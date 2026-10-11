@@ -17,6 +17,12 @@ NC='\033[0m'
 
 cd "$WORKDIR" || exit 1
 
+# ===== Detection =====
+PYTHON_CMD="python3"
+if ! command -v python3 &> /dev/null; then
+    PYTHON_CMD="python"
+fi
+
 # ===== Functions =====
 
 is_running() {
@@ -35,7 +41,7 @@ start() {
         exit 1
     fi
 
-    echo -e "${GREEN}[INFO] Starting server with env-file '$ENV_FILE'...${NC}"
+    echo -e "${GREEN}[INFO] Starting SignalAlert Unified Server with env-file '$ENV_FILE'...${NC}"
     
     ENV_OPT=""
     if [ -f "$ENV_FILE" ]; then
@@ -44,16 +50,23 @@ start() {
         echo -e "${YELLOW}[WARN] Environment file '$ENV_FILE' not found! Server starting with default env...${NC}"
     fi
 
-    nohup python -m uvicorn "$APP" --host "$HOST" --port "$PORT" $ENV_OPT > "$LOG_FILE" 2>&1 &
+    nohup $PYTHON_CMD -m uvicorn "$APP" --host "$HOST" --port "$PORT" $ENV_OPT > "$LOG_FILE" 2>&1 &
     echo $! > "$PID_FILE"
 
     sleep 2
 
     if is_running; then
-        echo -e "${GREEN}[OK] Server started successfully${NC}"
-        echo -e "  PID: ${YELLOW}$(cat $PID_FILE)${NC}"
-        echo -e "  URL: ${YELLOW}http://$HOST:$PORT${NC}"
-        echo -e "  Log: ${YELLOW}$WORKDIR/$LOG_FILE${NC}"
+        echo -e "${GREEN}[OK] SignalAlert Server & All Sub-services started successfully!${NC}"
+        echo -e "  PID : ${YELLOW}$(cat $PID_FILE)${NC}"
+        echo -e "  URL : ${YELLOW}http://$HOST:$PORT${NC}"
+        echo -e "  Log : ${YELLOW}$WORKDIR/$LOG_FILE${NC}"
+        echo -e "  Unified Services Running Synchronously:"
+        echo -e "    • FastAPI Application & Web UI"
+        echo -e "    • 2-Second Price Alert Checker Scheduler"
+        echo -e "    • 24-Hour Macroeconomics Alert Evaluator"
+        echo -e "    • Weekly Catalog Sync Scheduler"
+        echo -e "    • Telegram Bot Polling Worker"
+        echo -e "    • Outbox FCM, Telegram & Webhook Dispatcher"
     else
         echo -e "${RED}[ERROR] Server failed to start! Check log:${NC}"
         tail -n 20 "$LOG_FILE"

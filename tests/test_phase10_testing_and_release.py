@@ -82,6 +82,7 @@ class TestPhase10TestingAndRelease(unittest.IsolatedAsyncioTestCase):
         FAILED_SYMBOLS.clear()
         OUTLIER_STREAK.clear()
         PRICE_CACHE.clear()
+        METRICS.setdefault("providers", {}).clear()
         set_feature_override("beta_experiments", None)
         set_feature_override("v3_mobile_delta_sync", None)
 

@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import asyncio
 from datetime import timezone
@@ -165,6 +166,16 @@ try:
 except Exception:
     pass
 
+DIST_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dist")
+if os.path.isdir(DIST_DIR):
+    try:
+        from fastapi.staticfiles import StaticFiles
+        assets_dir = os.path.join(DIST_DIR, "assets")
+        if os.path.isdir(assets_dir):
+            app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+    except Exception:
+        pass
+
 # Root status route
 @app.api_route("/", methods=["GET", "HEAD"])
 def read_root():
@@ -233,4 +244,131 @@ CACHE_TTL_IRAN = 60.0
 # 'state_fa'
 # 'bonbast.com'
 # 'cdn.tsetmc.com'
+
+# -------------------------------------------------------------------
+# Unified Process Management CLI (start, stop, restart, status)
+# -------------------------------------------------------------------
+PID_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "server.pid")
+LOG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "server.log")
+
+def _is_process_running(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+        return True
+    except (OSError, ProcessLookupError):
+        return False
+
+def cli_start():
+    if os.path.exists(PID_FILE):
+        try:
+            with open(PID_FILE, "r") as f:
+                pid = int(f.read().strip())
+            if _is_process_running(pid):
+                print(f"⚠️ [WARN] Server is already running with PID {pid}.")
+                return
+        except Exception:
+            pass
+
+    import subprocess
+    cmd = [sys.executable, "-m", "uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000"]
+    with open(LOG_FILE, "a") as log_out:
+        proc = subprocess.Popen(cmd, stdout=log_out, stderr=subprocess.STDOUT)
+    with open(PID_FILE, "w") as f:
+        f.write(str(proc.pid))
+    time.sleep(1.5)
+    if _is_process_running(proc.pid):
+        print(f"✅ [OK] SignalAlert Server & All Sub-services started successfully!")
+        print(f"   PID : {proc.pid}")
+        print(f"   Log : {LOG_FILE}")
+        print(f"   URL : http://0.0.0.0:8000")
+        print("   Unified Sub-services Running Synchronously:")
+        print("     • Price Alert Scheduler (2s interval)")
+        print("     • Daily Macroeconomic Job (24h)")
+        print("     • Weekly Catalog Sync Scheduler (Saturday cron)")
+        print("     • Telegram Bot Polling Worker")
+        print("     • Outbox FCM, Telegram & Webhook Dispatcher")
+        print("     • Web Frontend & API Endpoints")
+    else:
+        print(f"❌ [ERROR] Failed to start server. Check {LOG_FILE}")
+
+def cli_stop():
+    if not os.path.exists(PID_FILE):
+        print("⚠️ [WARN] Server is not running (no server.pid found).")
+        return
+    try:
+        with open(PID_FILE, "r") as f:
+            pid = int(f.read().strip())
+    except Exception:
+        pid = None
+
+    if pid and _is_process_running(pid):
+        print(f"🛑 Stopping SignalAlert server (PID: {pid})...")
+        try:
+            os.kill(pid, 15)  # SIGTERM
+            for _ in range(10):
+                time.sleep(0.5)
+                if not _is_process_running(pid):
+                    break
+            if _is_process_running(pid):
+                os.kill(pid, 9)  # SIGKILL
+        except Exception as e:
+            print(f"Error terminating process: {e}")
+    else:
+        print("⚠️ [WARN] Server process not found.")
+
+    if os.path.exists(PID_FILE):
+        os.remove(PID_FILE)
+    print("✅ [OK] Server and all coordinated workers stopped.")
+
+def cli_restart():
+    cli_stop()
+    time.sleep(1)
+    cli_start()
+
+def cli_status():
+    if os.path.exists(PID_FILE):
+        try:
+            with open(PID_FILE, "r") as f:
+                pid = int(f.read().strip())
+            if _is_process_running(pid):
+                print(f"✅ [OK] SignalAlert Server is RUNNING (PID: {pid})")
+                print(f"   URL: http://0.0.0.0:8000")
+                print("   Coordinated background components active:")
+                print("     • Price Alert Scheduler (2s interval)")
+                print("     • Macro Alerts Scheduler (24h daily job)")
+                print("     • Weekly Catalog Sync Job (cron)")
+                print("     • Telegram Bot Polling Worker")
+                print("     • Outbox Push & Webhook Dispatcher")
+                print("     • Web Frontend & API Routes")
+                return
+        except Exception:
+            pass
+    print("❌ [STOPPED] Server is not running.")
+
+if __name__ == "__main__":
+    action = sys.argv[1].lower() if len(sys.argv) > 1 else "run"
+    if action == "start":
+        cli_start()
+    elif action == "stop":
+        cli_stop()
+    elif action == "restart":
+        cli_restart()
+    elif action == "status":
+        cli_status()
+    else:
+        try:
+            import uvicorn
+            port = int(os.environ.get("PORT", 8000))
+            host = os.environ.get("HOST", "0.0.0.0")
+            print("=" * 72)
+            print(f"🚀 SignalAlert Unified Production Engine v{APP_VERSION} Starting...")
+            print(f"📍 Web & API URL       : http://{host}:{port}")
+            print(f"⚡ Price Check Interval: 2.0s (All active alerts)")
+            print(f"🏛️ Macro Check Interval: 24h (Daily)")
+            print(f"🤖 Telegram Bot Worker : {'ENABLED' if TELEGRAM_BOT_TOKEN else 'STANDBY (no token)'}")
+            print(f"📬 Outbox Dispatcher   : ACTIVE (FCM, Telegram, Webhooks)")
+            print("=" * 72)
+            uvicorn.run("server:app", host=host, port=port, reload=False)
+        except ImportError:
+            print("❌ uvicorn is required. Use python3 -m uvicorn server:app or ./run_server.sh")
 
