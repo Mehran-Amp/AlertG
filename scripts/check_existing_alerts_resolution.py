@@ -39,6 +39,7 @@ from app.markets.global_stocks import (
     EXACT_YF_MAP,
     FOREX_PAIRS,
     FRED_ONLY_SYMBOLS,
+    FRED_SERIES_FREQUENCY,
 )
 from app.markets.iran import (
     BONBAST_MAP, TSETMC_INDEX_MAP, TSETMC_GOLD_FUNDS_MAP, TSETMC_INSTRUMENTS_MAP
