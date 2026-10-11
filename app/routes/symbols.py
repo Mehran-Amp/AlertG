@@ -1,7 +1,18 @@
 import os
 import json
 from typing import Optional, List
-from fastapi import APIRouter, Query, HTTPException
+try:
+    from fastapi import APIRouter, Query, HTTPException
+except ImportError:
+    class APIRouter:
+        def __init__(self, *args, **kwargs): pass
+        def get(self, *args, **kwargs): return lambda f: f
+        def post(self, *args, **kwargs): return lambda f: f
+    def Query(default=None, **kwargs): return default
+    class HTTPException(Exception):
+        def __init__(self, status_code=500, detail=""):
+            self.status_code = status_code
+            self.detail = detail
 from app.markets.global_stocks import WALLSTREET_MACRO_SYMBOLS
 from app.engine.sync import load_catalog, get_catalog_delta
 from app.engine.calendar import get_symbol_market_detail

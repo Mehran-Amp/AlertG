@@ -1,7 +1,12 @@
 import html
 import asyncio
 from typing import Optional, Any
-import httpx
+try:
+    import httpx
+except ImportError:
+    class _MockHttpx:
+        AsyncClient = Any
+    httpx = _MockHttpx()
 from app.config import TELEGRAM_BOT_TOKEN, TELEGRAM_BOT_METADATA
 from app.security import _scrub
 from app.state import METRICS

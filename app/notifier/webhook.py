@@ -1,4 +1,10 @@
-import httpx
+from typing import Any
+try:
+    import httpx
+except ImportError:
+    class _MockHttpx:
+        AsyncClient = Any
+    httpx = _MockHttpx()
 from app.notifier.safety import is_safe_webhook_url_async
 from app.state import METRICS
 
