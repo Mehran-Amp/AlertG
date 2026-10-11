@@ -48,7 +48,7 @@ class CatalogValidationError(ValueError):
 SYMBOL_RE = re.compile(r'^[A-Z0-9^][A-Z0-9\.\-\=\/\_]{0,24}$', re.IGNORECASE)
 EXCHANGE_RE = re.compile(r'^[a-zA-Z0-9\_\-\s\.\&öäüéèáà]{2,40}$', re.IGNORECASE)
 VALID_ASSET_CLASSES = {'stock', 'etf', 'forex', 'index', 'commodity', 'bond', 'macro'}
-VALID_CURRENCIES = {'USD', 'EUR', 'GBP', 'JPY', 'CAD', 'CHF', 'AUD', 'NZD', 'CNY', 'HKD', 'IRR', 'IRT'}
+VALID_CURRENCIES = {'USD', 'EUR', 'GBP', 'JPY', 'CAD', 'CHF', 'AUD', 'NZD', 'CNY', 'HKD', 'AED', 'IRR', 'IRT'}
 ALLOWED_PROVIDERS = {'yahoo', 'finnhub', 'twelve_data', 'fred'}
 FORBIDDEN_CATEGORIES = {'iran_market', 'crypto'}
 
@@ -460,7 +460,7 @@ def validate_candidate_catalog(items: List[Dict[str, Any]], strict: bool = False
 
         # 4. Currency validation
         unit = norm.get("unit", "$").strip()
-        curr_map = {"$": "USD", "€": "EUR", "£": "GBP", "¥": "JPY", "Fr": "CHF", "C$": "CAD", "A$": "AUD", "ت": "IRT", "%": "USD", "pts": "USD", "واحد": "IRR"}
+        curr_map = {"$": "USD", "€": "EUR", "£": "GBP", "¥": "JPY", "FR": "CHF", "Fr": "CHF", "C$": "CAD", "A$": "AUD", "ت": "IRT", "%": "USD", "pts": "USD", "واحد": "IRR"}
         normalized_curr = curr_map.get(unit, unit.upper())
         if normalized_curr not in VALID_CURRENCIES:
             msg = f"Symbol '{s}' has invalid currency '{unit}'."

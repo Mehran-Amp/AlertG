@@ -24,7 +24,7 @@ from typing import Dict, Any, List, Tuple
 SYMBOL_RE = re.compile(r'^[A-Z0-9^][A-Z0-9\.\-\=\/\_]{0,24}$', re.IGNORECASE)
 EXCHANGE_RE = re.compile(r'^[a-zA-Z0-9\_\-\s\.\&öäüéèáà]{2,40}$', re.IGNORECASE)
 VALID_ASSET_CLASSES = {'stock', 'etf', 'forex', 'index', 'commodity', 'bond', 'macro'}
-VALID_CURRENCIES = {'USD', 'EUR', 'GBP', 'JPY', 'CAD', 'CHF', 'AUD', 'NZD', 'CNY', 'HKD', 'IRR', 'IRT'}
+VALID_CURRENCIES = {'USD', 'EUR', 'GBP', 'JPY', 'CAD', 'CHF', 'AUD', 'NZD', 'CNY', 'HKD', 'AED', 'IRR', 'IRT'}
 ALLOWED_PROVIDERS = {'yahoo', 'finnhub', 'twelve_data', 'fred'}
 FORBIDDEN_CATEGORIES = {'iran_market', 'crypto'}
 
@@ -99,7 +99,7 @@ def validate_catalog_payload(data: Any) -> Tuple[bool, List[str]]:
         # 4. Currency validation
         raw_currency = (item.get("currency") or item.get("unit") or "$").strip().upper()
         # Normalize common symbol notations
-        curr_map = {"$": "USD", "€": "EUR", "£": "GBP", "¥": "JPY", "Fr": "CHF", "C$": "CAD", "A$": "AUD", "ت": "IRT", "%": "USD", "PTS": "USD", "واحد": "IRR"}
+        curr_map = {"$": "USD", "€": "EUR", "£": "GBP", "¥": "JPY", "FR": "CHF", "Fr": "CHF", "C$": "CAD", "A$": "AUD", "ت": "IRT", "%": "USD", "PTS": "USD", "واحد": "IRR"}
         normalized_curr = curr_map.get(raw_currency, raw_currency)
         if normalized_curr not in VALID_CURRENCIES:
             errors.append(f"{prefix}: Invalid currency '{raw_currency}'. Allowed: {sorted(VALID_CURRENCIES)}")
