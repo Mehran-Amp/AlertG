@@ -552,6 +552,8 @@ class CatalogProbeRunner:
             'id': item_id,
             'symbol': symbol_raw,
             'nameEn': name_en,
+            'nameFa': item.get('nameFa') or name_en,
+            'marketName': item.get('marketName') or 'Global',
             'category': category,
             'status': 'ok' if is_ok else 'failed',
             'price': primary_quote.get('price'),

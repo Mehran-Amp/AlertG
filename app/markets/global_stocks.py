@@ -7,6 +7,11 @@ try:
 except ImportError:
     httpx = None
 
+if httpx is None:
+    class _MockHttpx:
+        AsyncClient = Any
+    httpx = _MockHttpx()
+
 from app.config import (
     APP_VERSION,
     FINNHUB_API_KEY,

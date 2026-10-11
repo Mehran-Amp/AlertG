@@ -113,18 +113,43 @@ def load_candidate_symbols(source_path: Optional[str]) -> Tuple[List[Dict[str, A
         try:
             with open(report_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                results = data.get("results", [])
+                if isinstance(data, list):
+                    results = data
+                elif isinstance(data, dict):
+                    results = data.get("results", [])
+                else:
+                    results = []
+
+                # Build existing catalog lookup map to preserve Persian names and metadata
+                existing_map = {}
+                if os.path.exists(CATALOG_FILE):
+                    try:
+                        with open(CATALOG_FILE, "r", encoding="utf-8") as cf:
+                            cdata = json.load(cf)
+                            for s in cdata.get("symbols", []):
+                                if s.get("id"):
+                                    existing_map[s["id"]] = dict(s)
+                                if s.get("symbol"):
+                                    existing_map[s["symbol"]] = dict(s)
+                    except Exception:
+                        pass
+
                 for r in results:
                     if r.get("status") == "ok":
+                        item_id = r.get("id") or r.get("symbol")
+                        item_sym = r.get("symbol") or item_id
+                        base = existing_map.get(item_id) or existing_map.get(item_sym) or {}
+
                         candidates.append({
-                            "id": r.get("id"),
-                            "symbol": r.get("symbol"),
-                            "nameEn": r.get("display_name") or r.get("symbol"),
-                            "nameFa": r.get("display_name") or r.get("symbol"),
-                            "category": r.get("category"),
-                            "marketName": r.get("marketName") or "Global Markets",
-                            "unit": r.get("expected_currency") or "$",
-                            "is_active": 1
+                            "id": item_id,
+                            "symbol": item_sym,
+                            "nameEn": base.get("nameEn") or r.get("nameEn") or r.get("display_name") or item_sym,
+                            "nameFa": base.get("nameFa") or r.get("nameFa") or r.get("display_name") or item_sym,
+                            "category": r.get("category") or base.get("category"),
+                            "marketName": base.get("marketName") or r.get("marketName") or "Global Markets",
+                            "unit": base.get("unit") or r.get("expected_currency") or "$",
+                            "is_active": 1,
+                            "delisted_at": None
                         })
                 if candidates:
                     return candidates, resolved_source

@@ -4,7 +4,15 @@ import json
 import asyncio
 import logging
 from typing import Dict, Tuple, Any, Optional, List
-import httpx
+try:
+    import httpx
+except ImportError:
+    httpx = None
+
+if httpx is None:
+    class _MockHttpx:
+        AsyncClient = Any
+    httpx = _MockHttpx()
 from app.config import CACHE_TTL_IRAN, IRAN_BRIDGE_URL, IRAN_BRIDGE_TOKEN
 from app.state import IRAN_MARKET_CACHE
 from app.markets.common import normalize_symbol

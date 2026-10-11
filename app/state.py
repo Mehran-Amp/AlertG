@@ -1,11 +1,17 @@
 import time
 import asyncio
 from typing import Optional, Dict, Tuple, List, Any
-import httpx
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+try:
+    import httpx
+except ImportError:
+    httpx = None
 
-http_client: Optional[httpx.AsyncClient] = None
-scheduler = AsyncIOScheduler()
+try:
+    from apscheduler.schedulers.asyncio import AsyncIOScheduler
+    scheduler = AsyncIOScheduler()
+except ImportError:
+    AsyncIOScheduler = None
+    scheduler = None
 _db_lock = asyncio.Lock()
 _prof_lock = asyncio.Lock()
 

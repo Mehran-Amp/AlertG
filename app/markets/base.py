@@ -5,6 +5,11 @@ try:
     import httpx
 except ImportError:
     httpx = None
+
+if httpx is None:
+    class _MockHttpx:
+        AsyncClient = Any
+    httpx = _MockHttpx()
 from app.config import (
     APP_VERSION, KILL_SWITCH_PROVIDERS, KILL_SWITCH_CATEGORIES, KILL_SWITCHES
 )

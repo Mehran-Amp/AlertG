@@ -2,9 +2,14 @@ import time
 import asyncio
 from datetime import timedelta
 from typing import Tuple
-import firebase_admin
-from firebase_admin import messaging
-from firebase_admin import exceptions as fb_exceptions
+try:
+    import firebase_admin
+    from firebase_admin import messaging
+    from firebase_admin import exceptions as fb_exceptions
+except ImportError:
+    firebase_admin = None
+    messaging = None
+    fb_exceptions = None
 from app.state import METRICS
 
 def _send_fcm_sync(fcm_token: str, title: str, body: str, data_payload: dict = None, ttl_seconds: int = 300) -> Tuple[bool, str]:
