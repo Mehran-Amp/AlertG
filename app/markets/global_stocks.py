@@ -855,7 +855,11 @@ class FredAdapter(BaseMarketAdapter):
         'DX-Y.NYB': 'DTWEXBGS',
         'FEDFUNDS': 'FEDFUNDS',
         'CPI': 'CPIAUCSL',
+        'CPIAUCSL': 'CPIAUCSL',
         'UNRATE': 'UNRATE',
+        'M2': 'M2SL',
+        'M2SL': 'M2SL',
+        'WALCL': 'WALCL',
     }
 
     def resolve_symbol(self, symbol: str) -> Optional[str]:
@@ -867,6 +871,8 @@ class FredAdapter(BaseMarketAdapter):
         if series_id:
             return series_id
         if clean_sym in self.FRED_SERIES_MAP.values():
+            return clean_sym
+        if clean_sym in FRED_SERIES_FREQUENCY:
             return clean_sym
         return None
 

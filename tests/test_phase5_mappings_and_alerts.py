@@ -301,12 +301,12 @@ class TestPhase5MappingsAndAlerts(unittest.TestCase):
 
         # Valid alerts
         valid_alerts = [
-            Alert(id="a1", user_id=123, symbol="AAPL", exchange="global_stocks", target_price=200.0, condition="ABOVE"),
-            Alert(id="a2", user_id=123, symbol="EUR/USD", exchange="global_stocks", target_price=1.08, condition="ABOVE"),
-            Alert(id="a3", user_id=123, symbol="GOLD", exchange="global_stocks", target_price=2700.0, condition="ABOVE"),
-            Alert(id="a4", user_id=123, symbol="BTCUSDT", exchange="binance", target_price=65000.0, condition="ABOVE"),
-            Alert(id="a5", user_id=123, symbol="USD", exchange="bonbast", target_price=60000.0, condition="ABOVE"),
-            Alert(id="a6", user_id=123, symbol="US10Y", exchange="macro", target_price=4.2, condition="ABOVE"),
+            Alert(id="a1", user_id="123", created_at="2026-10-11T12:00:00Z", symbol="AAPL", exchange="global_stocks", target_price=200.0, condition="ABOVE"),
+            Alert(id="a2", user_id="123", created_at="2026-10-11T12:00:00Z", symbol="EUR/USD", exchange="global_stocks", target_price=1.08, condition="ABOVE"),
+            Alert(id="a3", user_id="123", created_at="2026-10-11T12:00:00Z", symbol="GOLD", exchange="global_stocks", target_price=2700.0, condition="ABOVE"),
+            Alert(id="a4", user_id="123", created_at="2026-10-11T12:00:00Z", symbol="BTCUSDT", exchange="binance", target_price=65000.0, condition="ABOVE"),
+            Alert(id="a5", user_id="123", created_at="2026-10-11T12:00:00Z", symbol="USD", exchange="bonbast", target_price=60000.0, condition="ABOVE"),
+            Alert(id="a6", user_id="123", created_at="2026-10-11T12:00:00Z", symbol="US10Y", exchange="macro", target_price=4.2, condition="ABOVE"),
         ]
 
         resolved, unresolved, failed = asyncio.run(check_alerts(valid_alerts, offline=True))
@@ -316,8 +316,8 @@ class TestPhase5MappingsAndAlerts(unittest.TestCase):
 
         # Invalid alert scenario
         invalid_alerts = [
-            Alert(id="bad1", user_id=123, symbol="NON_EXISTENT_TICKER_XYZ", exchange="global_stocks", target_price=10.0, condition="ABOVE"),
-            Alert(id="bad2", user_id=123, symbol="INVALID_IRAN_ITEM", exchange="iran", target_price=100.0, condition="ABOVE"),
+            Alert(id="bad1", user_id="123", created_at="2026-10-11T12:00:00Z", symbol="NON_EXISTENT_TICKER_XYZ", exchange="global_stocks", target_price=10.0, condition="ABOVE"),
+            Alert(id="bad2", user_id="123", created_at="2026-10-11T12:00:00Z", symbol="INVALID_IRAN_ITEM", exchange="iran", target_price=100.0, condition="ABOVE"),
         ]
 
         resolved_inv, unresolved_inv, failed_inv = asyncio.run(check_alerts(invalid_alerts, offline=True))
