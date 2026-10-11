@@ -11,6 +11,32 @@ CATALOG_SNAPSHOTS_DIR = os.path.join(DATA_DIR, "catalog_snapshots") if DATA_DIR 
 # Bump when the catalog.json layout changes; load_catalog() refuses files written by a newer schema.
 CATALOG_SCHEMA_VERSION = 1
 
+# Automatic .env loading for CLI tools/scripts if not already in os.environ
+def _load_env_file():
+    candidates = [
+        os.getenv("ENV_FILE", ".env"),
+        os.path.join(DATA_DIR, ".env") if DATA_DIR != "." else ".env",
+        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"),
+    ]
+    for env_path in candidates:
+        if os.path.exists(env_path) and os.path.isfile(env_path):
+            try:
+                with open(env_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if not line or line.startswith("#") or "=" not in line:
+                            continue
+                        k, v = line.split("=", 1)
+                        k = k.strip()
+                        v = v.strip().strip("'\"")
+                        if k and k not in os.environ:
+                            os.environ[k] = v
+                break
+            except Exception:
+                pass
+
+_load_env_file()
+
 # 0. Security Configuration, Auth Dependencies & Validation Helpers
 API_KEY = os.getenv("API_KEY", "").strip()          # shared key the mobile app sends as X-API-Key
 ADMIN_KEY = os.getenv("ADMIN_KEY", "").strip()      # operator key: /status, /debug/*, /test/push

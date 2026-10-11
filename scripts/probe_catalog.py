@@ -192,7 +192,7 @@ def is_sampled_for_secondary(symbol_id: str, sample_rate: float = 0.10) -> bool:
     return int_val < threshold
 
 
-def check_currency_match(expected_unit: Optional[str], received_currency: Optional[str]) -> bool:
+def check_currency_match(expected_unit: Optional[str], received_currency: Optional[str], category: Optional[str] = None) -> bool:
     """Checks whether received currency matches catalog expected unit/currency."""
     if not received_currency or not expected_unit:
         return True
@@ -215,6 +215,8 @@ def check_currency_match(expected_unit: Optional[str], received_currency: Option
         'AED': 'AED',
         '%': '%',
         'PTS': 'PTS',
+        'POINT': 'PTS',
+        'POINTS': 'PTS',
         'HKD': 'HKD',
         'CNY': 'CNY',
         'ت': 'TMN',
@@ -222,7 +224,19 @@ def check_currency_match(expected_unit: Optional[str], received_currency: Option
     }
     canonical_exp = unit_map.get(exp, exp)
     canonical_rec = unit_map.get(rec, rec)
-    return canonical_exp == canonical_rec
+
+    if canonical_exp == canonical_rec:
+        return True
+
+    # Multi-currency allowances:
+    # ¥ represents both JPY and CNY/RMB
+    if exp in ('¥', 'YEN', 'YUAN') and canonical_rec in ('JPY', 'CNY'):
+        return True
+    # Indices often have unit 'pts' in catalog while provider returns index points or USD/EUR
+    if category == 'index' and (canonical_exp in ('PTS', 'POINT', 'POINTS') or canonical_rec == 'PTS'):
+        return True
+
+    return False
 
 
 class ProbeCheckpoint:
@@ -521,7 +535,7 @@ class CatalogProbeRunner:
 
         primary_quote = successful_quotes[0] if successful_quotes else {}
         resp_currency = primary_quote.get('currency')
-        curr_match = check_currency_match(unit, resp_currency)
+        curr_match = check_currency_match(unit, resp_currency, category=category)
 
         result_record = {
             'id': item_id,
