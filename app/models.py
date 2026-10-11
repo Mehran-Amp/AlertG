@@ -51,7 +51,7 @@ class AlertCreate(BaseModel):
 class Alert(AlertCreate):
     id: str
     is_active: bool = True
-    created_at: str
+    created_at: str = ""
     last_checked_at: float = 0.0
     last_triggered_at: float = 0.0
     last_eval_asof: Optional[int] = None

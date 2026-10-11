@@ -1,23 +1,23 @@
 {
   "status": "SUCCESS",
-  "timestamp": "2026-10-11T21:35:40Z",
+  "timestamp": "2026-10-11T21:41:57Z",
   "test_mode": "mock",
   "concurrency_limit": 20,
   "total_symbols": 70,
   "total_active_alerts": 70,
   "executed_cycles": 10,
-  "total_duration_seconds": 0.92,
+  "total_duration_seconds": 0.9,
   "cycle_latency_ms": {
-    "min": 79.74,
-    "avg": 81.15,
-    "p50": 80.74,
-    "p95": 84.11,
-    "max": 84.11
+    "min": 76.35,
+    "avg": 78.97,
+    "p50": 79.35,
+    "p95": 80.37,
+    "max": 80.37
   },
   "requests_per_minute": {
-    "yahoo": 520.7,
-    "nobitex": 1952.5,
-    "default": 2603.3
+    "yahoo": 534.5,
+    "nobitex": 2004.5,
+    "default": 2672.7
   },
   "total_429_rate_limits": 0,
   "provider_429_counts": {
@@ -26,9 +26,9 @@
     "default": 0
   },
   "memory_mb": {
-    "start": 23.54,
-    "end": 23.81,
-    "delta": 0.27,
+    "start": 23.47,
+    "end": 23.7,
+    "delta": 0.23,
     "growth_status": "FLAT"
   }
 }

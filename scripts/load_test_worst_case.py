@@ -107,7 +107,8 @@ async def run_worst_case_load_test(cycles: int = 15, use_mock: bool = True, expo
             condition="ABOVE",
             is_active=True,
             check_interval_seconds=1,  # Forces evaluation on every single cycle
-            last_checked_at=0.0
+            last_checked_at=0.0,
+            created_at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         )
         ALERTS_DB.append(alert)
 

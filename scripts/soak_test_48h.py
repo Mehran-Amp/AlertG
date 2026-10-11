@@ -131,7 +131,8 @@ async def run_soak_test(
             condition="ABOVE",
             is_active=True,
             check_interval_seconds=int(cycle_interval_seconds),
-            last_checked_at=0.0
+            last_checked_at=0.0,
+            created_at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         )
         ALERTS_DB.append(alert)
 
