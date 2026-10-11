@@ -1,0 +1,83 @@
+{
+  "source": "US Major ETF Issuers (State Street / BlackRock / Vanguard / Invesco)",
+  "fetched_at": "2026-10-11T17:00:00Z",
+  "asset_class": "etf",
+  "total_count": 5,
+  "symbols": [
+    {
+      "id": "SPY",
+      "display_name": "SPDR S&P 500 ETF Trust",
+      "asset_class": "etf",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "SPY", "priority": 1},
+        "finnhub": {"symbol": "SPY", "priority": 2},
+        "twelve_data": {"symbol": "SPY", "priority": 3}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "QQQ",
+      "display_name": "Invesco QQQ Trust Series 1",
+      "asset_class": "etf",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "QQQ", "priority": 1},
+        "finnhub": {"symbol": "QQQ", "priority": 2},
+        "twelve_data": {"symbol": "QQQ", "priority": 3}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "IWM",
+      "display_name": "iShares Russell 2000 ETF",
+      "asset_class": "etf",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "IWM", "priority": 1},
+        "finnhub": {"symbol": "IWM", "priority": 2},
+        "twelve_data": {"symbol": "IWM", "priority": 3}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "GLD",
+      "display_name": "SPDR Gold Shares",
+      "asset_class": "etf",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "GLD", "priority": 1},
+        "finnhub": {"symbol": "GLD", "priority": 2},
+        "twelve_data": {"symbol": "GLD", "priority": 3}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "URNM",
+      "display_name": "Sprott Uranium Miners ETF",
+      "asset_class": "etf",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": 2,
+      "provider_map": {
+        "yahoo": {"symbol": "URNM", "priority": 1},
+        "finnhub": {"symbol": "URNM", "priority": 2},
+        "twelve_data": {"symbol": "URNM", "priority": 3}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    }
+  ]
+}

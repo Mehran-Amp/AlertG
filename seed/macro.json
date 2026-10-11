@@ -1,0 +1,73 @@
+{
+  "source": "Federal Reserve Economic Data (FRED) / St. Louis Fed",
+  "fetched_at": "2026-10-11T17:00:00Z",
+  "asset_class": "macro",
+  "total_count": 5,
+  "symbols": [
+    {
+      "id": "FEDFUNDS",
+      "display_name": "Effective Federal Funds Rate",
+      "asset_class": "macro",
+      "exchange": "FRED",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "fred": {"symbol": "FEDFUNDS", "priority": 1}
+      },
+      "data_frequency": "daily",
+      "is_delayed": false
+    },
+    {
+      "id": "CPIAUCSL",
+      "display_name": "Consumer Price Index for All Urban Consumers (CPI)",
+      "asset_class": "macro",
+      "exchange": "FRED",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "fred": {"symbol": "CPIAUCSL", "priority": 1}
+      },
+      "data_frequency": "monthly",
+      "is_delayed": false
+    },
+    {
+      "id": "UNRATE",
+      "display_name": "Civilian Unemployment Rate",
+      "asset_class": "macro",
+      "exchange": "FRED",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "fred": {"symbol": "UNRATE", "priority": 1}
+      },
+      "data_frequency": "monthly",
+      "is_delayed": false
+    },
+    {
+      "id": "WALCL",
+      "display_name": "Federal Reserve Total Assets (Balance Sheet)",
+      "asset_class": "macro",
+      "exchange": "FRED",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "fred": {"symbol": "WALCL", "priority": 1}
+      },
+      "data_frequency": "daily",
+      "is_delayed": false
+    },
+    {
+      "id": "M2SL",
+      "display_name": "M2 Money Supply",
+      "asset_class": "macro",
+      "exchange": "FRED",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "fred": {"symbol": "M2SL", "priority": 1}
+      },
+      "data_frequency": "monthly",
+      "is_delayed": false
+    }
+  ]
+}

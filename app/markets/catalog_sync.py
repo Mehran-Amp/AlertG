@@ -1,0 +1,36 @@
+from app.engine.sync import (
+    load_catalog,
+    save_catalog,
+    save_catalog_snapshot,
+    list_catalog_snapshots,
+    rollback_catalog,
+    get_catalog_delta,
+    fetch_candidate_catalog,
+    normalize_catalog_item,
+    validate_candidate_catalog,
+    compute_catalog_diff,
+    check_sync_safety,
+    probe_catalog_prices,
+    notify_users_and_deactivate_delisted,
+    run_weekly_catalog_sync,
+    weekly_catalog_sync_job,
+    CatalogSafetyCeilingExceededError
+)
+
+__all__ = [
+    "load_catalog",
+    "save_catalog",
+    "save_catalog_snapshot",
+    "list_catalog_snapshots",
+    "rollback_catalog",
+    "fetch_candidate_catalog",
+    "normalize_catalog_item",
+    "validate_candidate_catalog",
+    "compute_catalog_diff",
+    "check_sync_safety",
+    "probe_catalog_prices",
+    "notify_users_and_deactivate_delisted",
+    "run_weekly_catalog_sync",
+    "weekly_catalog_sync_job",
+    "CatalogSafetyCeilingExceededError",
+]

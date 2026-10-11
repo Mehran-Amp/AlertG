@@ -1,0 +1,6 @@
+{
+  "name": "BitcoinChecker - Real-Time Market Alert Studio",
+  "description": "Real-time crypto and financial asset alert system, live market stream, and Flutter architecture workbench.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

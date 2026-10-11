@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">BitcoinChecker</string>
+    <string name="widget_name">Alarmer Live Widget</string>
+    <string name="widget_desc">Real-time crypto prices, active alerts &amp; proximity on home screen</string>
+</resources>

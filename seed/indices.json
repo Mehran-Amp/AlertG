@@ -1,0 +1,106 @@
+{
+  "source": "Global Major Exchanges & Index Providers (S&P Dow Jones / NASDAQ / CBOE / Deutsche Börse)",
+  "fetched_at": "2026-10-11T17:00:00Z",
+  "asset_class": "index",
+  "total_count": 7,
+  "symbols": [
+    {
+      "id": "SP500",
+      "display_name": "S&P 500 Index",
+      "asset_class": "index",
+      "exchange": "CME",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "^GSPC", "priority": 1},
+        "twelve_data": {"symbol": "SPX", "priority": 2}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "NASDAQ100",
+      "display_name": "NASDAQ 100 Index",
+      "asset_class": "index",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "^NDX", "priority": 1},
+        "twelve_data": {"symbol": "NDX", "priority": 2}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "DOWJONES",
+      "display_name": "Dow Jones Industrial Average",
+      "asset_class": "index",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "^DJI", "priority": 1},
+        "twelve_data": {"symbol": "DJI", "priority": 2}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "VIX",
+      "display_name": "CBOE Volatility Index",
+      "asset_class": "index",
+      "exchange": "CBOE",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "^VIX", "priority": 1},
+        "twelve_data": {"symbol": "VIX", "priority": 2}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "DXY",
+      "display_name": "US Dollar Index",
+      "asset_class": "index",
+      "exchange": "ICE",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "DX-Y.NYB", "priority": 1},
+        "twelve_data": {"symbol": "DXY", "priority": 2}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "DAX",
+      "display_name": "DAX 40 Germany",
+      "asset_class": "index",
+      "exchange": "Deutsche Börse",
+      "currency": "EUR",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "^GDAXI", "priority": 1},
+        "twelve_data": {"symbol": "DAX", "priority": 2}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "NIKKEI",
+      "display_name": "Nikkei 225 Japan",
+      "asset_class": "index",
+      "exchange": "Tokyo Stock Exchange",
+      "currency": "JPY",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "^N225", "priority": 1},
+        "twelve_data": {"symbol": "N225", "priority": 2}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    }
+  ]
+}

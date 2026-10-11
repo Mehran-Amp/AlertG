@@ -1,0 +1,78 @@
+{
+  "source": "Hong Kong Exchanges and Clearing (HKEX) / China Equities",
+  "fetched_at": "2026-10-11T17:00:00Z",
+  "asset_class": "stock",
+  "total_count": 5,
+  "symbols": [
+    {
+      "id": "0700.HK",
+      "display_name": "Tencent Holdings Limited",
+      "asset_class": "stock",
+      "exchange": "HKEX",
+      "currency": "HKD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "0700.HK", "priority": 1},
+        "twelve_data": {"symbol": "0700", "priority": 2}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "9988.HK",
+      "display_name": "Alibaba Group Holding Limited",
+      "asset_class": "stock",
+      "exchange": "HKEX",
+      "currency": "HKD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "9988.HK", "priority": 1},
+        "twelve_data": {"symbol": "9988", "priority": 2}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "3690.HK",
+      "display_name": "Meituan",
+      "asset_class": "stock",
+      "exchange": "HKEX",
+      "currency": "HKD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "3690.HK", "priority": 1},
+        "twelve_data": {"symbol": "3690", "priority": 2}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "1810.HK",
+      "display_name": "Xiaomi Corporation",
+      "asset_class": "stock",
+      "exchange": "HKEX",
+      "currency": "HKD",
+      "tier": 2,
+      "provider_map": {
+        "yahoo": {"symbol": "1810.HK", "priority": 1},
+        "twelve_data": {"symbol": "1810", "priority": 2}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "1211.HK",
+      "display_name": "BYD Company Limited",
+      "asset_class": "stock",
+      "exchange": "HKEX",
+      "currency": "HKD",
+      "tier": 2,
+      "provider_map": {
+        "yahoo": {"symbol": "1211.HK", "priority": 1},
+        "twelve_data": {"symbol": "1211", "priority": 2}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    }
+  ]
+}

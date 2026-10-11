@@ -1,0 +1,1073 @@
+{
+  "metadata": {
+    "phase": "Phase 0 Baseline",
+    "server_version": "2.6.0",
+    "server_py_md5": "706c349d3e51e7d660681deae5a00d02",
+    "server_py_lines": 3381,
+    "captured_at_utc": "2026-10-09T08:58:00Z"
+  },
+  "endpoints": {
+    "api_symbols_wallstreet_macro": {
+      "status": "success",
+      "market": "Wall Street & Macroeconomics",
+      "total_count": 94,
+      "categories": {
+        "stock": 41,
+        "forex": 9,
+        "bond": 3,
+        "commodity": 8,
+        "index": 9,
+        "iran_market": 24
+      },
+      "symbols": [
+        {
+          "id": "GOLD18_BONBAST",
+          "symbol": "GOLD18",
+          "nameEn": "Gold 18K (Gram)",
+          "nameFa": "طلای ۱۸ عیار - هر گرم (مرجع بن‌بست)",
+          "category": "iran_market",
+          "marketName": "بن‌بست (bonbast.com)",
+          "unit": "ت"
+        },
+        {
+          "id": "MITHQAL_BONBAST",
+          "symbol": "MITHQAL",
+          "nameEn": "Gold Mithqal (Melted)",
+          "nameFa": "مظنه آبشده / مثقال طلا تهران (مرجع بن‌بست)",
+          "category": "iran_market",
+          "marketName": "بن‌بست (bonbast.com)",
+          "unit": "ت"
+        },
+        {
+          "id": "EMAMI_BONBAST",
+          "symbol": "EMAMI",
+          "nameEn": "Emami Gold Coin",
+          "nameFa": "سکه تمام طرح جدید / امامی (مرجع بن‌بست)",
+          "category": "iran_market",
+          "marketName": "بن‌بست (bonbast.com)",
+          "unit": "ت"
+        },
+        {
+          "id": "BAHAR_BONBAST",
+          "symbol": "AZADI",
+          "nameEn": "Bahar Azadi Coin",
+          "nameFa": "سکه تمام بهار آزادی طرح قدیم (مرجع بن‌بست)",
+          "category": "iran_market",
+          "marketName": "بن‌بست (bonbast.com)",
+          "unit": "ت"
+        },
+        {
+          "id": "HALF_BONBAST",
+          "symbol": "HALF",
+          "nameEn": "Half Azadi Coin",
+          "nameFa": "نیم‌سکه بهار آزادی (مرجع بن‌بست)",
+          "category": "iran_market",
+          "marketName": "بن‌بست (bonbast.com)",
+          "unit": "ت"
+        },
+        {
+          "id": "QUARTER_BONBAST",
+          "symbol": "QUARTER",
+          "nameEn": "Quarter Azadi Coin",
+          "nameFa": "ربع‌سکه بهار آزادی (مرجع بن‌بست)",
+          "category": "iran_market",
+          "marketName": "بن‌بست (bonbast.com)",
+          "unit": "ت"
+        },
+        {
+          "id": "GRAM_BONBAST",
+          "symbol": "GRAM",
+          "nameEn": "Central Bank Gram Coin",
+          "nameFa": "سکه یک گرمی بانک مرکزی (مرجع بن‌بست)",
+          "category": "iran_market",
+          "marketName": "بن‌بست (bonbast.com)",
+          "unit": "ت"
+        },
+        {
+          "id": "USD_BONBAST",
+          "symbol": "USD/TMN",
+          "nameEn": "US Dollar (Tehran Cash)",
+          "nameFa": "دلار آزاد تهران - اسکناس (مرجع بن‌بست)",
+          "category": "iran_market",
+          "marketName": "بن‌بست (bonbast.com)",
+          "unit": "ت"
+        },
+        {
+          "id": "EUR_BONBAST",
+          "symbol": "EUR/TMN",
+          "nameEn": "Euro Cash",
+          "nameFa": "یورو آزاد تهران - اسکناس (مرجع بن‌بست)",
+          "category": "iran_market",
+          "marketName": "بن‌بست (bonbast.com)",
+          "unit": "ت"
+        },
+        {
+          "id": "AED_BONBAST",
+          "symbol": "AED/TMN",
+          "nameEn": "UAE Dirham Cash",
+          "nameFa": "درهم امارات - اسکناس/حواله (مرجع بن‌بست)",
+          "category": "iran_market",
+          "marketName": "بن‌بست (bonbast.com)",
+          "unit": "ت"
+        },
+        {
+          "id": "GBP_BONBAST",
+          "symbol": "GBP/TMN",
+          "nameEn": "British Pound Cash",
+          "nameFa": "پوند انگلیس - اسکناس (مرجع بن‌بست)",
+          "category": "iran_market",
+          "marketName": "بن‌بست (bonbast.com)",
+          "unit": "ت"
+        },
+        {
+          "id": "TRY_BONBAST",
+          "symbol": "TRY/TMN",
+          "nameEn": "Turkish Lira",
+          "nameFa": "لیر ترکیه (مرجع بن‌بست)",
+          "category": "iran_market",
+          "marketName": "بن‌بست (bonbast.com)",
+          "unit": "ت"
+        },
+        {
+          "id": "IQD_BONBAST",
+          "symbol": "IQD/TMN",
+          "nameEn": "Iraqi Dinar (100)",
+          "nameFa": "۱۰۰ دینار عراق (مرجع بن‌بست)",
+          "category": "iran_market",
+          "marketName": "بن‌بست (bonbast.com)",
+          "unit": "ت"
+        },
+        {
+          "id": "BOURSE_BONBAST",
+          "symbol": "TEDPIX",
+          "nameEn": "Tehran Stock Exchange Index",
+          "nameFa": "شاخص کل بورس اوراق بهادار تهران (TEDPIX)",
+          "category": "iran_market",
+          "marketName": "بورس تهران (مرجع بن‌بست)",
+          "unit": "واحد"
+        },
+        {
+          "id": "AFN_BONBAST",
+          "symbol": "AFN/TMN",
+          "nameEn": "Afghan Afghani (Herat)",
+          "nameFa": "افغانی افغانستان - بازار هرات (مرجع بن‌بست)",
+          "category": "iran_market",
+          "marketName": "بن‌بست (bonbast.com)",
+          "unit": "ت"
+        },
+        {
+          "id": "CAD_BONBAST",
+          "symbol": "CAD/TMN",
+          "nameEn": "Canadian Dollar Cash",
+          "nameFa": "دلار کانادا - اسکناس آزاد (مرجع بن‌بست)",
+          "category": "iran_market",
+          "marketName": "بن‌بست (bonbast.com)",
+          "unit": "ت"
+        },
+        {
+          "id": "AUD_BONBAST",
+          "symbol": "AUD/TMN",
+          "nameEn": "Australian Dollar Cash",
+          "nameFa": "دلار استرالیا - اسکناس آزاد (مرجع بن‌بست)",
+          "category": "iran_market",
+          "marketName": "بن‌بست (bonbast.com)",
+          "unit": "ت"
+        },
+        {
+          "id": "CHF_BONBAST",
+          "symbol": "CHF/TMN",
+          "nameEn": "Swiss Franc Cash",
+          "nameFa": "فرانک سوئیس - اسکناس آزاد (مرجع بن‌بست)",
+          "category": "iran_market",
+          "marketName": "بن‌بست (bonbast.com)",
+          "unit": "ت"
+        },
+        {
+          "id": "CNY_BONBAST",
+          "symbol": "CNY/TMN",
+          "nameEn": "Chinese Yuan Cash",
+          "nameFa": "یوان چین - اسکناس آزاد (مرجع بن‌بست)",
+          "category": "iran_market",
+          "marketName": "بن‌بست (bonbast.com)",
+          "unit": "ت"
+        },
+        {
+          "id": "KWD_BONBAST",
+          "symbol": "KWD/TMN",
+          "nameEn": "Kuwaiti Dinar",
+          "nameFa": "دینار کویت (مرجع بن‌بست)",
+          "category": "iran_market",
+          "marketName": "بن‌بست (bonbast.com)",
+          "unit": "ت"
+        },
+        {
+          "id": "SAR_BONBAST",
+          "symbol": "SAR/TMN",
+          "nameEn": "Saudi Riyal Cash",
+          "nameFa": "ریال عربستان (مرجع بن‌بست)",
+          "category": "iran_market",
+          "marketName": "بن‌بست (bonbast.com)",
+          "unit": "ت"
+        },
+        {
+          "id": "QAR_BONBAST",
+          "symbol": "QAR/TMN",
+          "nameEn": "Qatari Riyal Cash",
+          "nameFa": "ریال قطر (مرجع بن‌بست)",
+          "category": "iran_market",
+          "marketName": "بن‌بست (bonbast.com)",
+          "unit": "ت"
+        },
+        {
+          "id": "OMR_BONBAST",
+          "symbol": "OMR/TMN",
+          "nameEn": "Omani Rial Cash",
+          "nameFa": "ریال عمان (مرجع بن‌بست)",
+          "category": "iran_market",
+          "marketName": "بن‌بست (bonbast.com)",
+          "unit": "ت"
+        },
+        {
+          "id": "JPY_BONBAST",
+          "symbol": "JPY/TMN",
+          "nameEn": "Japanese Yen (10)",
+          "nameFa": "۱۰ ین ژاپن (مرجع بن‌بست)",
+          "category": "iran_market",
+          "marketName": "بن‌بست (bonbast.com)",
+          "unit": "ت"
+        },
+        {
+          "id": "US10Y",
+          "symbol": "US10Y (^TNX)",
+          "nameEn": "US 10-Year Treasury Yield",
+          "nameFa": "بازده اوراق قرضه ۱۰ ساله آمریکا (US10Y)",
+          "category": "bond",
+          "marketName": "US Treasury",
+          "unit": "%"
+        },
+        {
+          "id": "US02Y",
+          "symbol": "US02Y (^IRX)",
+          "nameEn": "US 2-Year Treasury Yield",
+          "nameFa": "بازده اوراق قرضه ۲ ساله آمریکا (US02Y)",
+          "category": "bond",
+          "marketName": "US Treasury",
+          "unit": "%"
+        },
+        {
+          "id": "US30Y",
+          "symbol": "US30Y (^TYX)",
+          "nameEn": "US 30-Year Treasury Bond",
+          "nameFa": "بازده اوراق قرضه ۳۰ ساله آمریکا (US30Y)",
+          "category": "bond",
+          "marketName": "US Treasury",
+          "unit": "%"
+        },
+        {
+          "id": "EURUSD",
+          "symbol": "EUR/USD",
+          "nameEn": "Euro / US Dollar",
+          "nameFa": "یورو به دلار آمریکا (EUR/USD)",
+          "category": "forex",
+          "marketName": "Forex Major",
+          "unit": "$"
+        },
+        {
+          "id": "GBPUSD",
+          "symbol": "GBP/USD",
+          "nameEn": "British Pound / US Dollar",
+          "nameFa": "پوند انگلیس به دلار (GBP/USD)",
+          "category": "forex",
+          "marketName": "Forex Major",
+          "unit": "$"
+        },
+        {
+          "id": "USDJPY",
+          "symbol": "USD/JPY",
+          "nameEn": "US Dollar / Japanese Yen",
+          "nameFa": "دلار به ین ژاپن (USD/JPY)",
+          "category": "forex",
+          "marketName": "Forex Major",
+          "unit": "¥"
+        },
+        {
+          "id": "USDCHF",
+          "symbol": "USD/CHF",
+          "nameEn": "US Dollar / Swiss Franc",
+          "nameFa": "دلار به فرانک سوئیس (USD/CHF)",
+          "category": "forex",
+          "marketName": "Forex Major",
+          "unit": "Fr"
+        },
+        {
+          "id": "AUDUSD",
+          "symbol": "AUD/USD",
+          "nameEn": "Australian Dollar / USD",
+          "nameFa": "دلار استرالیا به دلار آمریکا (AUD/USD)",
+          "category": "forex",
+          "marketName": "Forex Major",
+          "unit": "$"
+        },
+        {
+          "id": "USDCAD",
+          "symbol": "USD/CAD",
+          "nameEn": "US Dollar / Canadian Dollar",
+          "nameFa": "دلار آمریکا به دلار کانادا (USD/CAD)",
+          "category": "forex",
+          "marketName": "Forex Major",
+          "unit": "C$"
+        },
+        {
+          "id": "NVDA",
+          "symbol": "NVDA",
+          "nameEn": "NVIDIA Corporation",
+          "nameFa": "سهام انویدیا (NVIDIA)",
+          "category": "stock",
+          "marketName": "NASDAQ",
+          "unit": "$"
+        },
+        {
+          "id": "AAPL",
+          "symbol": "AAPL",
+          "nameEn": "Apple Inc.",
+          "nameFa": "سهام اپل (Apple)",
+          "category": "stock",
+          "marketName": "NASDAQ",
+          "unit": "$"
+        },
+        {
+          "id": "MSFT",
+          "symbol": "MSFT",
+          "nameEn": "Microsoft Corporation",
+          "nameFa": "سهام مایکروسافت (Microsoft)",
+          "category": "stock",
+          "marketName": "NASDAQ",
+          "unit": "$"
+        },
+        {
+          "id": "AMZN",
+          "symbol": "AMZN",
+          "nameEn": "Amazon.com Inc.",
+          "nameFa": "سهام آمازون (Amazon)",
+          "category": "stock",
+          "marketName": "NASDAQ",
+          "unit": "$"
+        },
+        {
+          "id": "GOOGL",
+          "symbol": "GOOGL",
+          "nameEn": "Alphabet Inc. (Google)",
+          "nameFa": "سهام گوگل (آلفابت)",
+          "category": "stock",
+          "marketName": "NASDAQ",
+          "unit": "$"
+        },
+        {
+          "id": "META",
+          "symbol": "META",
+          "nameEn": "Meta Platforms (Facebook)",
+          "nameFa": "سهام متا (فیسبوک)",
+          "category": "stock",
+          "marketName": "NASDAQ",
+          "unit": "$"
+        },
+        {
+          "id": "PLTR",
+          "symbol": "PLTR",
+          "nameEn": "Palantir Technologies",
+          "nameFa": "سهام پالانتیر (Palantir)",
+          "category": "stock",
+          "marketName": "NYSE",
+          "unit": "$"
+        },
+        {
+          "id": "BRKB",
+          "symbol": "BRK.B",
+          "nameEn": "Berkshire Hathaway",
+          "nameFa": "برکشایر هاتاوی (وارن بافت)",
+          "category": "stock",
+          "marketName": "NYSE",
+          "unit": "$"
+        },
+        {
+          "id": "TSLA",
+          "symbol": "TSLA",
+          "nameEn": "Tesla Inc.",
+          "nameFa": "سهام تسلا (خودروهای برقی، هوش مصنوعی، ربات اپتیموس و انرژی ایلان ماسک)",
+          "category": "stock",
+          "marketName": "NASDAQ",
+          "unit": "$"
+        },
+        {
+          "id": "SPACEX",
+          "symbol": "SPACEX",
+          "nameEn": "SpaceX (Starship & Space Exploration)",
+          "nameFa": "اسپیس‌ایکس (فناوری‌های فضایی، استارشیپ و ماموریت‌های مریخ ایلان ماسک)",
+          "category": "stock",
+          "marketName": "Pre-IPO Benchmark",
+          "unit": "$"
+        },
+        {
+          "id": "STARLINK",
+          "symbol": "STARLINK",
+          "nameEn": "Starlink (SpaceX Satellite Constellation)",
+          "nameFa": "استارلینک (شبکه اینترنت ماهواره‌ای جهانی ایلان ماسک)",
+          "category": "stock",
+          "marketName": "Pre-IPO Benchmark",
+          "unit": "$"
+        },
+        {
+          "id": "XAI",
+          "symbol": "XAI",
+          "nameEn": "xAI (Grok AI & Colossus)",
+          "nameFa": "شرکت هوش مصنوعی xAI (خالق Grok و سوپرکامپیوتر کلوسوس ایلان ماسک)",
+          "category": "stock",
+          "marketName": "Pre-IPO Benchmark",
+          "unit": "$"
+        },
+        {
+          "id": "X_CORP",
+          "symbol": "X_CORP",
+          "nameEn": "X Corp (Twitter - Everything App)",
+          "nameFa": "ایکس / توییتر سابق (شبکه اجتماعی جهانی و اپلیکیشن همه‌کاره ایلان ماسک)",
+          "category": "stock",
+          "marketName": "Pre-IPO Benchmark",
+          "unit": "$"
+        },
+        {
+          "id": "NEURALINK",
+          "symbol": "NEURALINK",
+          "nameEn": "Neuralink (Brain-Computer Interface)",
+          "nameFa": "نورالینک (تراشه رابط مغز و رایانه و تله‌پاتی ایلان ماسک)",
+          "category": "stock",
+          "marketName": "Pre-IPO Benchmark",
+          "unit": "$"
+        },
+        {
+          "id": "BORING",
+          "symbol": "BORING",
+          "nameEn": "The Boring Company (Hyperloop & Tunneling)",
+          "nameFa": "بورینگ کمپانی (تونل‌های زیرزمینی حمل‌ونقل سریع هایپرلوپ ایلان ماسک)",
+          "category": "stock",
+          "marketName": "Pre-IPO Benchmark",
+          "unit": "$"
+        },
+        {
+          "id": "DOGE_MUSK",
+          "symbol": "DOGE",
+          "nameEn": "Dogecoin (Elon Musk Ecosystem Crypto)",
+          "nameFa": "دوج‌کوین (رمزارز محبوب و رسمی اکوسیستم تسلا و پلتفرم ایکس)",
+          "category": "stock",
+          "marketName": "Musk Ecosystem",
+          "unit": "$"
+        },
+        {
+          "id": "DXYZ",
+          "symbol": "DXYZ",
+          "nameEn": "Destiny Tech100 (SpaceX & OpenAI ETF)",
+          "nameFa": "صندوق سرنوشت ۱۰۰ (سبد سهام عمومی اسپیس‌ایکس و اوپن‌ای‌آی)",
+          "category": "stock",
+          "marketName": "NYSE",
+          "unit": "$"
+        },
+        {
+          "id": "RKLB",
+          "symbol": "RKLB",
+          "nameEn": "Rocket Lab USA",
+          "nameFa": "راکت لب (پرتاب‌های فضایی مداری تجاری و ماهواره‌های ناسا)",
+          "category": "stock",
+          "marketName": "NASDAQ",
+          "unit": "$"
+        },
+        {
+          "id": "ASTS",
+          "symbol": "ASTS",
+          "nameEn": "AST SpaceMobile",
+          "nameFa": "ای‌اس‌تی اسپیس‌موبایل (شبکه پهن‌باند ماهواره‌ای به گوشی هوشمند)",
+          "category": "stock",
+          "marketName": "NASDAQ",
+          "unit": "$"
+        },
+        {
+          "id": "BA",
+          "symbol": "BA",
+          "nameEn": "The Boeing Company",
+          "nameFa": "بوئینگ (غول هواپیماسازی، فضاپیما و کپسول فضایی استارلاینر)",
+          "category": "stock",
+          "marketName": "NYSE",
+          "unit": "$"
+        },
+        {
+          "id": "TSM",
+          "symbol": "TSM",
+          "nameEn": "Taiwan Semiconductor Manufacturing (TSMC)",
+          "nameFa": "تی‌اس‌ام‌سی (سازنده انحصاری تراشه‌های پیشرفته جهان)",
+          "category": "stock",
+          "marketName": "NYSE",
+          "unit": "$"
+        },
+        {
+          "id": "ASML",
+          "symbol": "ASML",
+          "nameEn": "ASML Holding N.V.",
+          "nameFa": "ای‌اس‌ام‌ال هلند (انحصار ۱۰۰٪ ماشین‌آلات لیتوگرافی فرابنفش چاپ تراشه)",
+          "category": "stock",
+          "marketName": "NASDAQ",
+          "unit": "$"
+        },
+        {
+          "id": "AMD",
+          "symbol": "AMD",
+          "nameEn": "Advanced Micro Devices Inc.",
+          "nameFa": "ای‌ام‌دی (پردازنده‌های هوش مصنوعی و کارت‌های گرافیک)",
+          "category": "stock",
+          "marketName": "NASDAQ",
+          "unit": "$"
+        },
+        {
+          "id": "AVGO",
+          "symbol": "AVGO",
+          "nameEn": "Broadcom Inc.",
+          "nameFa": "برودکام (غول تراشه‌های شبکه و هوش مصنوعی اختصاصی)",
+          "category": "stock",
+          "marketName": "NASDAQ",
+          "unit": "$"
+        },
+        {
+          "id": "LVMH",
+          "symbol": "MC.PA",
+          "nameEn": "LVMH Moët Hennessy Louis Vuitton",
+          "nameFa": "ال‌وی‌ام‌اچ فرانسه (لویی ویتون، دیور، تیفانی، بولگاری - پادشاه برندهای لوکس)",
+          "category": "stock",
+          "marketName": "Euronext Paris",
+          "unit": "€"
+        },
+        {
+          "id": "HERMES",
+          "symbol": "RMS.PA",
+          "nameEn": "Hermès International",
+          "nameFa": "هرمس فرانسه (گران‌قیمت‌ترین خانه مد، کیف برکین و چرم دست‌ساز)",
+          "category": "stock",
+          "marketName": "Euronext Paris",
+          "unit": "€"
+        },
+        {
+          "id": "PORSCHE",
+          "symbol": "P911.DE",
+          "nameEn": "Porsche AG",
+          "nameFa": "پورشه آلمان (سوپراسپرت‌های لوکس اشتوتگارت)",
+          "category": "stock",
+          "marketName": "XETRA",
+          "unit": "€"
+        },
+        {
+          "id": "USDT_TMN",
+          "symbol": "USDT/TMN",
+          "nameEn": "Tether / Iranian Toman",
+          "nameFa": "تتر به تومان ایران (نرخ لحظه‌ای بازار آزاد تهران)",
+          "category": "forex",
+          "marketName": "Tehran Free Market",
+          "unit": "ت"
+        },
+        {
+          "id": "USD_AED",
+          "symbol": "USD/AED",
+          "nameEn": "US Dollar / UAE Dirham",
+          "nameFa": "دلار آمریکا به درهم امارات (USD/AED)",
+          "category": "forex",
+          "marketName": "Forex Major",
+          "unit": "AED"
+        },
+        {
+          "id": "USD_CNY",
+          "symbol": "USD/CNY",
+          "nameEn": "US Dollar / Chinese Yuan",
+          "nameFa": "دلار آمریکا به یوان چین (USD/CNY)",
+          "category": "forex",
+          "marketName": "Forex Major",
+          "unit": "¥"
+        },
+        {
+          "id": "OPENAI",
+          "symbol": "OPENAI",
+          "nameEn": "OpenAI (ChatGPT & Frontier AI)",
+          "nameFa": "اوپن‌ای‌آی (خالق چت‌جی‌پی‌تی و پیشتاز هوش مصنوعی عمومی AGI)",
+          "category": "stock",
+          "marketName": "Pre-IPO Benchmark",
+          "unit": "$"
+        },
+        {
+          "id": "ANTHROPIC",
+          "symbol": "ANTHROPIC",
+          "nameEn": "Anthropic (Claude AI)",
+          "nameFa": "انتروپیک (خالق هوش مصنوعی کلود Claude)",
+          "category": "stock",
+          "marketName": "Pre-IPO Benchmark",
+          "unit": "$"
+        },
+        {
+          "id": "STRIPE",
+          "symbol": "STRIPE",
+          "nameEn": "Stripe Payments",
+          "nameFa": "استریپ (زیرساخت پرداخت اینترنتی و تسویه رمزارزی جهان)",
+          "category": "stock",
+          "marketName": "Pre-IPO Benchmark",
+          "unit": "$"
+        },
+        {
+          "id": "BYTEDANCE",
+          "symbol": "BYTEDANCE",
+          "nameEn": "ByteDance (TikTok)",
+          "nameFa": "بایت‌دنس (مالک تیک‌تاک و غول الگوریتم‌های هوش مصنوعی)",
+          "category": "stock",
+          "marketName": "Pre-IPO Benchmark",
+          "unit": "$"
+        },
+        {
+          "id": "MSTR",
+          "symbol": "MSTR",
+          "nameEn": "MicroStrategy Inc.",
+          "nameFa": "میکرواستراتژی (بزرگ‌ترین خزانه‌داری بیت‌کوین سازمانی)",
+          "category": "stock",
+          "marketName": "NASDAQ",
+          "unit": "$"
+        },
+        {
+          "id": "COIN",
+          "symbol": "COIN",
+          "nameEn": "Coinbase Global Inc.",
+          "nameFa": "کوین‌بیس (بزرگ‌ترین صرافی مجاز کریپتو آمریکا)",
+          "category": "stock",
+          "marketName": "NASDAQ",
+          "unit": "$"
+        },
+        {
+          "id": "MARA",
+          "symbol": "MARA",
+          "nameEn": "MARA Holdings (Marathon)",
+          "nameFa": "ماراتون دیجیتال / MARA (بزرگ‌ترین استخراج‌کننده بیت‌کوین)",
+          "category": "stock",
+          "marketName": "NASDAQ",
+          "unit": "$"
+        },
+        {
+          "id": "RIOT",
+          "symbol": "RIOT",
+          "nameEn": "Riot Platforms Inc.",
+          "nameFa": "رایوت پلتفرمز (زیرساخت استخراج و مزارع بیت‌کوین)",
+          "category": "stock",
+          "marketName": "NASDAQ",
+          "unit": "$"
+        },
+        {
+          "id": "CLSK",
+          "symbol": "CLSK",
+          "nameEn": "CleanSpark Inc.",
+          "nameFa": "کلین‌اسپارک (استخراج سبز و پربازده بیت‌کوین)",
+          "category": "stock",
+          "marketName": "NASDAQ",
+          "unit": "$"
+        },
+        {
+          "id": "HOOD",
+          "symbol": "HOOD",
+          "nameEn": "Robinhood Markets",
+          "nameFa": "رابین‌هود (کارگزاری معامله سهام و رمزارز)",
+          "category": "stock",
+          "marketName": "NASDAQ",
+          "unit": "$"
+        },
+        {
+          "id": "RDDT",
+          "symbol": "RDDT",
+          "nameEn": "Reddit Inc.",
+          "nameFa": "ردیت (انجمن وب و مرجع داده‌های آموزش AI)",
+          "category": "stock",
+          "marketName": "NYSE",
+          "unit": "$"
+        },
+        {
+          "id": "SHOP",
+          "symbol": "SHOP",
+          "nameEn": "Shopify Inc.",
+          "nameFa": "شاپیفای (فروشگاه‌ساز آنلاین جهانی)",
+          "category": "stock",
+          "marketName": "NYSE",
+          "unit": "$"
+        },
+        {
+          "id": "SNOW",
+          "symbol": "SNOW",
+          "nameEn": "Snowflake Inc.",
+          "nameFa": "اسنوفلیک (انبار داده‌های کلاد هوش مصنوعی)",
+          "category": "stock",
+          "marketName": "NYSE",
+          "unit": "$"
+        },
+        {
+          "id": "RACE",
+          "symbol": "RACE",
+          "nameEn": "Ferrari N.V.",
+          "nameFa": "فراری (سوپراسپرت‌های لوکس ایتالیا)",
+          "category": "stock",
+          "marketName": "NYSE",
+          "unit": "$"
+        },
+        {
+          "id": "GOLD",
+          "symbol": "XAU/USD",
+          "nameEn": "Gold Spot",
+          "nameFa": "انس طلای جهانی (Gold XAU/USD)",
+          "category": "commodity",
+          "marketName": "Commodities",
+          "unit": "$"
+        },
+        {
+          "id": "SILVER",
+          "symbol": "XAG/USD",
+          "nameEn": "Silver Spot",
+          "nameFa": "انس نقره جهانی (Silver XAG/USD)",
+          "category": "commodity",
+          "marketName": "Commodities",
+          "unit": "$"
+        },
+        {
+          "id": "COPPER",
+          "symbol": "HG=F",
+          "nameEn": "Copper Futures (Dr. Copper)",
+          "nameFa": "مس صنعتی جهانی (دکتر مس - دماسنج اقتصاد)",
+          "category": "commodity",
+          "marketName": "COMEX",
+          "unit": "$"
+        },
+        {
+          "id": "NATGAS",
+          "symbol": "NG=F",
+          "nameEn": "Natural Gas Futures",
+          "nameFa": "گاز طبیعی هنری هاب (Henry Hub)",
+          "category": "commodity",
+          "marketName": "NYMEX",
+          "unit": "$"
+        },
+        {
+          "id": "PLATINUM",
+          "symbol": "PL=F",
+          "nameEn": "Platinum Spot (XPT/USD)",
+          "nameFa": "پلاتین جهانی (فلز فوق‌لوکس صنعتی)",
+          "category": "commodity",
+          "marketName": "NYMEX",
+          "unit": "$"
+        },
+        {
+          "id": "URANIUM",
+          "symbol": "URNM",
+          "nameEn": "Sprott Uranium Miners ETF",
+          "nameFa": "صندوق اورانیوم و سوخت هسته‌ای هوش مصنوعی",
+          "category": "commodity",
+          "marketName": "NYSE",
+          "unit": "$"
+        },
+        {
+          "id": "OIL_WTI",
+          "symbol": "WTI",
+          "nameEn": "Crude Oil (WTI)",
+          "nameFa": "نفت خام تگزاس (WTI Oil)",
+          "category": "commodity",
+          "marketName": "NYMEX",
+          "unit": "$"
+        },
+        {
+          "id": "OIL_BRENT",
+          "symbol": "BRENT",
+          "nameEn": "Brent Crude Oil",
+          "nameFa": "نفت برنت دریای شمال",
+          "category": "commodity",
+          "marketName": "ICE",
+          "unit": "$"
+        },
+        {
+          "id": "VIX",
+          "symbol": "^VIX",
+          "nameEn": "CBOE Volatility Index (VIX)",
+          "nameFa": "شاخص نوسان و ترس وال‌استریت (VIX)",
+          "category": "index",
+          "marketName": "CBOE",
+          "unit": "pts"
+        },
+        {
+          "id": "RUT",
+          "symbol": "^RUT",
+          "nameEn": "Russell 2000 Index",
+          "nameFa": "شاخص ۲۰۰۰ شرکت کوچک آمریکا (Russell 2000)",
+          "category": "index",
+          "marketName": "US Indices",
+          "unit": "pts"
+        },
+        {
+          "id": "DAX",
+          "symbol": "^GDAXI",
+          "nameEn": "DAX 40 Germany",
+          "nameFa": "شاخص ۴۰ غول صنعتی بورس آلمان (DAX)",
+          "category": "index",
+          "marketName": "Deutsche Börse",
+          "unit": "pts"
+        },
+        {
+          "id": "NIKKEI",
+          "symbol": "^N225",
+          "nameEn": "Nikkei 225 Japan",
+          "nameFa": "شاخص ۲۲۵ شرکت برتر بورس توکیو ژاپن (Nikkei)",
+          "category": "index",
+          "marketName": "Tokyo Stock Exchange",
+          "unit": "pts"
+        },
+        {
+          "id": "FTSE",
+          "symbol": "^FTSE",
+          "nameEn": "FTSE 100 UK",
+          "nameFa": "شاخص ۱۰۰ شرکت برتر بورس لندن انگلستان (FTSE)",
+          "category": "index",
+          "marketName": "London Stock Exchange",
+          "unit": "pts"
+        },
+        {
+          "id": "SP500",
+          "symbol": "S&P 500",
+          "nameEn": "S&P 500 Index",
+          "nameFa": "شاخص ۵۰۰ شرکت برتر آمریکا (S&P 500)",
+          "category": "index",
+          "marketName": "US Indices",
+          "unit": "pts"
+        },
+        {
+          "id": "NASDAQ100",
+          "symbol": "NDX",
+          "nameEn": "NASDAQ 100 Index",
+          "nameFa": "شاخص ۱۰۰ غول فناوری (Nasdaq 100)",
+          "category": "index",
+          "marketName": "NASDAQ",
+          "unit": "pts"
+        },
+        {
+          "id": "DOWJONES",
+          "symbol": "DJI",
+          "nameEn": "Dow Jones Industrial",
+          "nameFa": "شاخص صنعتی داوجونز (Dow Jones)",
+          "category": "index",
+          "marketName": "NYSE",
+          "unit": "pts"
+        },
+        {
+          "id": "DXY",
+          "symbol": "DXY",
+          "nameEn": "US Dollar Index",
+          "nameFa": "شاخص قدرت جهانی دلار (DXY)",
+          "category": "index",
+          "marketName": "ICE",
+          "unit": "pts"
+        }
+      ]
+    },
+    "api_markets_status": {
+      "status": "ok",
+      "cached": true,
+      "markets": {
+        "crypto": {
+          "status": "open",
+          "description": "بازار ۲۴ ساعته"
+        },
+        "tse": {
+          "status": "closed",
+          "schedule_fa": "شنبه تا چهارشنبه ۰۹:۰۰ تا ۱۲:۳۰"
+        }
+      },
+      "state_counts": {},
+      "symbols_count": 0,
+      "symbols_with_price": 0,
+      "items": {}
+    },
+    "api_alerts_user_id": [],
+    "price_samples": {
+      "nobitex/USDTIRT": {
+        "exchange": "nobitex",
+        "input_symbol": "USDTIRT",
+        "normalized_symbol": "USDTIRT",
+        "cache_key": "nobitex:USDTIRT",
+        "response_template": {
+          "status": "ok",
+          "exchange": "nobitex",
+          "symbol": "USDTIRT",
+          "price": null,
+          "source": "Market API",
+          "asOf": 1760000000,
+          "state": "LIVE",
+          "currency": "USD",
+          "timestamp": 1760000000.0
+        }
+      },
+      "nobitex/BTCIRT": {
+        "exchange": "nobitex",
+        "input_symbol": "BTCIRT",
+        "normalized_symbol": "BTCIRT",
+        "cache_key": "nobitex:BTCIRT",
+        "response_template": {
+          "status": "ok",
+          "exchange": "nobitex",
+          "symbol": "BTCIRT",
+          "price": null,
+          "source": "Market API",
+          "asOf": 1760000000,
+          "state": "LIVE",
+          "currency": "USD",
+          "timestamp": 1760000000.0
+        }
+      },
+      "binance/BTCUSDT": {
+        "exchange": "binance",
+        "input_symbol": "BTCUSDT",
+        "normalized_symbol": "BTCUSDT",
+        "cache_key": "binance:BTCUSDT",
+        "response_template": {
+          "status": "ok",
+          "exchange": "binance",
+          "symbol": "BTCUSDT",
+          "price": null,
+          "source": "Market API",
+          "asOf": 1760000000,
+          "state": "LIVE",
+          "currency": "USD",
+          "timestamp": 1760000000.0
+        }
+      },
+      "wallex/USDTTMN": {
+        "exchange": "wallex",
+        "input_symbol": "USDTTMN",
+        "normalized_symbol": "USDTTMN",
+        "cache_key": "wallex:USDTTMN",
+        "response_template": {
+          "status": "ok",
+          "exchange": "wallex",
+          "symbol": "USDTTMN",
+          "price": null,
+          "source": "Market API",
+          "asOf": 1760000000,
+          "state": "LIVE",
+          "currency": "USD",
+          "timestamp": 1760000000.0
+        }
+      },
+      "yahoo/AAPL": {
+        "exchange": "yahoo",
+        "input_symbol": "AAPL",
+        "normalized_symbol": "AAPL",
+        "cache_key": "yahoo:AAPL",
+        "response_template": {
+          "status": "ok",
+          "exchange": "yahoo",
+          "symbol": "AAPL",
+          "price": null,
+          "source": "Market API",
+          "asOf": 1760000000,
+          "state": "LIVE",
+          "currency": "USD",
+          "timestamp": 1760000000.0
+        }
+      },
+      "yahoo/TSLA": {
+        "exchange": "yahoo",
+        "input_symbol": "TSLA",
+        "normalized_symbol": "TSLA",
+        "cache_key": "yahoo:TSLA",
+        "response_template": {
+          "status": "ok",
+          "exchange": "yahoo",
+          "symbol": "TSLA",
+          "price": null,
+          "source": "Market API",
+          "asOf": 1760000000,
+          "state": "LIVE",
+          "currency": "USD",
+          "timestamp": 1760000000.0
+        }
+      },
+      "yahoo/EURUSD": {
+        "exchange": "yahoo",
+        "input_symbol": "EURUSD",
+        "normalized_symbol": "EURUSD",
+        "cache_key": "yahoo:EURUSD",
+        "response_template": {
+          "status": "ok",
+          "exchange": "yahoo",
+          "symbol": "EURUSD",
+          "price": null,
+          "source": "Market API",
+          "asOf": 1760000000,
+          "state": "LIVE",
+          "currency": "USD",
+          "timestamp": 1760000000.0
+        }
+      },
+      "yahoo/^TNX": {
+        "exchange": "yahoo",
+        "input_symbol": "^TNX",
+        "normalized_symbol": "^TNX",
+        "cache_key": "yahoo:^TNX",
+        "response_template": {
+          "status": "ok",
+          "exchange": "yahoo",
+          "symbol": "^TNX",
+          "price": null,
+          "source": "Market API",
+          "asOf": 1760000000,
+          "state": "LIVE",
+          "currency": "USD",
+          "timestamp": 1760000000.0
+        }
+      },
+      "yahoo/^GSPC": {
+        "exchange": "yahoo",
+        "input_symbol": "^GSPC",
+        "normalized_symbol": "^GSPC",
+        "cache_key": "yahoo:^GSPC",
+        "response_template": {
+          "status": "ok",
+          "exchange": "yahoo",
+          "symbol": "^GSPC",
+          "price": null,
+          "source": "Market API",
+          "asOf": 1760000000,
+          "state": "LIVE",
+          "currency": "USD",
+          "timestamp": 1760000000.0
+        }
+      },
+      "bonbast/USD/TMN": {
+        "exchange": "bonbast",
+        "input_symbol": "USD/TMN",
+        "normalized_symbol": "USDTMN",
+        "cache_key": "bonbast:USDTMN",
+        "response_template": {
+          "status": "ok",
+          "exchange": "bonbast",
+          "symbol": "USD/TMN",
+          "price": null,
+          "source": "Market API",
+          "asOf": 1760000000,
+          "state": "LIVE",
+          "currency": "USD",
+          "timestamp": 1760000000.0
+        }
+      }
+    }
+  },
+  "live_provider_probes": {
+    "nobitex_stats": {
+      "usdt-rls_latest": "2672950",
+      "btc-rls_latest": "220591960920"
+    },
+    "binance_btcusdt": {
+      "symbol": "BTCUSDT",
+      "price": "82749.50000000"
+    }
+  }
+}

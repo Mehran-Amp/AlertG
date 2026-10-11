@@ -1,0 +1,42 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Flutter & Dart Build Artifacts (machine specific)
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+android/.gradle/
+android/local.properties
+
+# Sensitive Firebase & Service Account Keys
+serviceAccountKey.json
+*serviceAccount*.json
+*.pem
+*.key
+.last_fcm_token
+alerts_data.json
+
+# Python
+__pycache__/
+*.pyc
+
+# IDE
+.idea/
+
+# Runtime data
+user_profiles.json
+fcm_outbox.json
+catalog.db
+backups/
+*.tar.gz
+tmp/
+
+# Catalog single-writer lock
+catalog.json.lock

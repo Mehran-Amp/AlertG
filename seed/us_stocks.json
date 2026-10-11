@@ -1,0 +1,158 @@
+{
+  "source": "Wikipedia S&P 500 & Major US Exchanges (NYSE/NASDAQ)",
+  "fetched_at": "2026-10-11T17:00:00Z",
+  "asset_class": "stock",
+  "total_count": 10,
+  "symbols": [
+    {
+      "id": "AAPL",
+      "display_name": "Apple Inc.",
+      "asset_class": "stock",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "AAPL", "priority": 1},
+        "finnhub": {"symbol": "AAPL", "priority": 2},
+        "twelve_data": {"symbol": "AAPL", "priority": 3}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "MSFT",
+      "display_name": "Microsoft Corporation",
+      "asset_class": "stock",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "MSFT", "priority": 1},
+        "finnhub": {"symbol": "MSFT", "priority": 2},
+        "twelve_data": {"symbol": "MSFT", "priority": 3}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "NVDA",
+      "display_name": "NVIDIA Corporation",
+      "asset_class": "stock",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "NVDA", "priority": 1},
+        "finnhub": {"symbol": "NVDA", "priority": 2},
+        "twelve_data": {"symbol": "NVDA", "priority": 3}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "AMZN",
+      "display_name": "Amazon.com Inc.",
+      "asset_class": "stock",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "AMZN", "priority": 1},
+        "finnhub": {"symbol": "AMZN", "priority": 2},
+        "twelve_data": {"symbol": "AMZN", "priority": 3}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "GOOGL",
+      "display_name": "Alphabet Inc. Class A",
+      "asset_class": "stock",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "GOOGL", "priority": 1},
+        "finnhub": {"symbol": "GOOGL", "priority": 2},
+        "twelve_data": {"symbol": "GOOGL", "priority": 3}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "META",
+      "display_name": "Meta Platforms Inc.",
+      "asset_class": "stock",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "META", "priority": 1},
+        "finnhub": {"symbol": "META", "priority": 2},
+        "twelve_data": {"symbol": "META", "priority": 3}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "TSLA",
+      "display_name": "Tesla Inc.",
+      "asset_class": "stock",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "TSLA", "priority": 1},
+        "finnhub": {"symbol": "TSLA", "priority": 2},
+        "twelve_data": {"symbol": "TSLA", "priority": 3}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "BRK.B",
+      "display_name": "Berkshire Hathaway Inc. Class B",
+      "asset_class": "stock",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "BRK-B", "priority": 1},
+        "finnhub": {"symbol": "BRK.B", "priority": 2},
+        "twelve_data": {"symbol": "BRK.B", "priority": 3}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "PLTR",
+      "display_name": "Palantir Technologies Inc.",
+      "asset_class": "stock",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": 2,
+      "provider_map": {
+        "yahoo": {"symbol": "PLTR", "priority": 1},
+        "finnhub": {"symbol": "PLTR", "priority": 2},
+        "twelve_data": {"symbol": "PLTR", "priority": 3}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "MSTR",
+      "display_name": "MicroStrategy Inc.",
+      "asset_class": "stock",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": 2,
+      "provider_map": {
+        "yahoo": {"symbol": "MSTR", "priority": 1},
+        "finnhub": {"symbol": "MSTR", "priority": 2},
+        "twelve_data": {"symbol": "MSTR", "priority": 3}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    }
+  ]
+}

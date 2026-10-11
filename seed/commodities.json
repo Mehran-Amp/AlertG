@@ -1,0 +1,92 @@
+{
+  "source": "Commodity Exchanges (COMEX / NYMEX / ICE Futures)",
+  "fetched_at": "2026-10-11T17:00:00Z",
+  "asset_class": "commodity",
+  "total_count": 6,
+  "symbols": [
+    {
+      "id": "GOLD",
+      "display_name": "Gold Spot / Futures",
+      "asset_class": "commodity",
+      "exchange": "COMEX",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "GC=F", "priority": 1},
+        "twelve_data": {"symbol": "XAU/USD", "priority": 2}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SILVER",
+      "display_name": "Silver Spot / Futures",
+      "asset_class": "commodity",
+      "exchange": "COMEX",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "SI=F", "priority": 1},
+        "twelve_data": {"symbol": "XAG/USD", "priority": 2}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "OIL_WTI",
+      "display_name": "Crude Oil (WTI)",
+      "asset_class": "commodity",
+      "exchange": "NYMEX",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "CL=F", "priority": 1},
+        "twelve_data": {"symbol": "WTI/USD", "priority": 2}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "OIL_BRENT",
+      "display_name": "Brent Crude Oil",
+      "asset_class": "commodity",
+      "exchange": "ICE",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "BZ=F", "priority": 1},
+        "twelve_data": {"symbol": "BRENT", "priority": 2}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "COPPER",
+      "display_name": "Copper Futures",
+      "asset_class": "commodity",
+      "exchange": "COMEX",
+      "currency": "USD",
+      "tier": 2,
+      "provider_map": {
+        "yahoo": {"symbol": "HG=F", "priority": 1},
+        "twelve_data": {"symbol": "COPPER", "priority": 2}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "NATGAS",
+      "display_name": "Natural Gas Futures",
+      "asset_class": "commodity",
+      "exchange": "NYMEX",
+      "currency": "USD",
+      "tier": 2,
+      "provider_map": {
+        "yahoo": {"symbol": "NG=F", "priority": 1},
+        "twelve_data": {"symbol": "NATGAS", "priority": 2}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    }
+  ]
+}

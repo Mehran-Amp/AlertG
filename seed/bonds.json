@@ -1,0 +1,63 @@
+{
+  "source": "US Department of the Treasury / Federal Reserve",
+  "fetched_at": "2026-10-11T17:00:00Z",
+  "asset_class": "bond",
+  "total_count": 4,
+  "symbols": [
+    {
+      "id": "US10Y",
+      "display_name": "US 10-Year Treasury Yield",
+      "asset_class": "bond",
+      "exchange": "FRED",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "fred": {"symbol": "DGS10", "priority": 1},
+        "yahoo": {"symbol": "^TNX", "priority": 2}
+      },
+      "data_frequency": "daily",
+      "is_delayed": false
+    },
+    {
+      "id": "US02Y",
+      "display_name": "US 2-Year Treasury Yield",
+      "asset_class": "bond",
+      "exchange": "FRED",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "fred": {"symbol": "DGS2", "priority": 1}
+      },
+      "data_frequency": "daily",
+      "is_delayed": false
+    },
+    {
+      "id": "US13W",
+      "display_name": "US 13-Week Treasury Bill Yield",
+      "asset_class": "bond",
+      "exchange": "FRED",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "fred": {"symbol": "DTB3", "priority": 1},
+        "yahoo": {"symbol": "^IRX", "priority": 2}
+      },
+      "data_frequency": "daily",
+      "is_delayed": false
+    },
+    {
+      "id": "US30Y",
+      "display_name": "US 30-Year Treasury Bond Yield",
+      "asset_class": "bond",
+      "exchange": "FRED",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "fred": {"symbol": "DGS30", "priority": 1},
+        "yahoo": {"symbol": "^TYX", "priority": 2}
+      },
+      "data_frequency": "daily",
+      "is_delayed": false
+    }
+  ]
+}
