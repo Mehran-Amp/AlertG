@@ -46,8 +46,15 @@ from app.markets.base import fetch_price_with_trace
 
 
 def load_catalog_symbols() -> set:
-    """Loads all known symbols from catalog.json if available."""
+    """Loads all known symbols from catalog.json, seed files, and macro list."""
     symbols = set()
+    for s in WALLSTREET_MACRO_SYMBOLS:
+        if s.get('id'):
+            symbols.add(s['id'].upper())
+        if s.get('symbol'):
+            symbols.add(s['symbol'].upper())
+            symbols.add(s['symbol'].upper().replace('/', ''))
+
     if os.path.exists(CATALOG_FILE):
         try:
             with open(CATALOG_FILE, 'r', encoding='utf-8') as f:
@@ -57,8 +64,24 @@ def load_catalog_symbols() -> set:
                         symbols.add(item['id'].upper())
                     if item.get('symbol'):
                         symbols.add(item['symbol'].upper())
+                        symbols.add(item['symbol'].upper().replace('/', ''))
         except Exception:
             pass
+
+    seed_dir = os.path.join(PROJECT_ROOT, 'seed')
+    if os.path.exists(seed_dir) and os.path.isdir(seed_dir):
+        for fname in os.listdir(seed_dir):
+            if fname.endswith('.json'):
+                try:
+                    with open(os.path.join(seed_dir, fname), 'r', encoding='utf-8') as f:
+                        sdata = json.load(f)
+                        for item in sdata.get('symbols', []):
+                            if item.get('id'):
+                                symbols.add(item['id'].upper())
+                            if item.get('symbol'):
+                                symbols.add(item['symbol'].upper())
+                except Exception:
+                    pass
     return symbols
 
 
@@ -85,17 +108,16 @@ def resolve_symbol_offline(exchange: str, symbol: str, catalog_symbols: set) -> 
             return True, "Major Forex pair verified", f"{s_no_slash[:3]}/{s_no_slash[3:]}"
 
         # 3. FRED macro series
-        if clean_sym in fred_adapter.FRED_SERIES_MAP or canonical in fred_adapter.FRED_SERIES_MAP:
+        if clean_sym in fred_adapter.FRED_SERIES_MAP or canonical in fred_adapter.FRED_SERIES_MAP or clean_sym in FRED_SERIES_FREQUENCY:
             return True, "FRED macroeconomic series verified", canonical
 
-        # 4. Standard US equity / Hong Kong / Dotted
+        # 4. Catalog or Seed presence
         yf_mapped = resolve_yf_symbol(clean_sym)
-        if yf_mapped:
-            return True, f"Yahoo query mapping: {yf_mapped}", canonical
-
-        # 5. Catalog presence
-        if clean_sym in catalog_symbols or canonical in catalog_symbols:
-            return True, "Present in catalog.json", canonical
+        if (clean_sym in catalog_symbols or 
+            canonical in catalog_symbols or 
+            yf_mapped in catalog_symbols or 
+            s_no_slash in catalog_symbols):
+            return True, "Present in catalog / seed database", canonical
 
         return False, "Symbol not found in any provider map or catalog", canonical
 
