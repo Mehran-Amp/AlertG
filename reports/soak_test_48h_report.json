@@ -1,41 +1,41 @@
 {
   "status": "COMPLETED",
-  "timestamp": "2026-10-11T21:42:06Z",
-  "duration_hours": 0.001,
-  "target_hours": 0.001,
-  "completed_cycles": 8,
+  "timestamp": "2026-10-11T22:05:51Z",
+  "duration_hours": 0.0,
+  "target_hours": 0.0002777777777777778,
+  "completed_cycles": 10,
   "cycle_latency_ms": {
-    "min": 90.95,
-    "avg": 94.24,
-    "p50": 94.65,
-    "p95": 96.15,
-    "p99": 96.15,
-    "max": 96.15
+    "min": 91.56,
+    "avg": 94.01,
+    "p50": 94.61,
+    "p95": 96.1,
+    "p99": 96.1,
+    "max": 96.1
   },
   "provider_metrics": {
     "yahoo": {
-      "total_requests": 8,
-      "requests_per_minute": 119.6,
+      "total_requests": 16,
+      "requests_per_minute": 944.2,
       "rate_limits_429": 0
     },
     "nobitex": {
-      "total_requests": 24,
-      "requests_per_minute": 358.8,
+      "total_requests": 30,
+      "requests_per_minute": 1770.4,
       "rate_limits_429": 0
     },
     "default": {
-      "total_requests": 32,
-      "requests_per_minute": 478.5,
+      "total_requests": 40,
+      "requests_per_minute": 2360.6,
       "rate_limits_429": 0
     }
   },
   "total_429_errors": 0,
   "memory_profile_mb": {
-    "initial": 23.81,
-    "final": 24.04,
-    "peak": 24.04,
+    "initial": 24.82,
+    "final": 25.06,
+    "peak": 25.06,
     "growth_delta": 0.23,
     "leak_assessment": "PASS (Flat Memory)"
   },
-  "memory_samples_count": 4
+  "memory_samples_count": 1
 }

@@ -34,7 +34,7 @@ import json
 import signal
 import asyncio
 import argparse
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 # Ensure repository root is on sys.path
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -95,6 +95,8 @@ async def run_soak_test(
     cycle_interval_seconds: float = 2.0,
     use_mock: bool = False,
     checkpoint_interval_seconds: float = 300.0,
+    max_cycles: Optional[int] = None,
+    total_target_seconds: Optional[float] = None,
     report_file: str = "reports/soak_test_48h_report.json",
     checkpoint_file: str = "reports/soak_test_checkpoint.json"
 ) -> Dict[str, Any]:
@@ -102,12 +104,25 @@ async def run_soak_test(
     signal.signal(signal.SIGINT, handle_interrupt)
     signal.signal(signal.SIGTERM, handle_interrupt)
 
-    total_target_seconds = duration_hours * 3600.0
+    if total_target_seconds is None:
+        total_target_seconds = duration_hours * 3600.0
+    else:
+        duration_hours = total_target_seconds / 3600.0
+
+    # Auto-adjust checkpoint interval for shorter runs so checkpoints fire
+    if checkpoint_interval_seconds > total_target_seconds:
+        checkpoint_interval_seconds = max(5.0, total_target_seconds / 3.0)
+
+    print_every = 1 if (max_cycles and max_cycles <= 20) or total_target_seconds <= 60 else (2 if total_target_seconds <= 300 else 5)
+
     print("=" * 78)
     print("⏳ SignalAlert 48-Hour Soak & Endurance Test Engine v3.6.0")
-    print(f"Target Duration       : {duration_hours:.2f} hours ({total_target_seconds:.0f} seconds)")
+    if max_cycles:
+        print(f"Target Cycles         : {max_cycles} cycles")
+    print(f"Target Duration       : {duration_hours:.4f} hours ({total_target_seconds:.1f} seconds)")
     print(f"Cycle Interval        : {cycle_interval_seconds:.1f} s | Concurrency Limit: {PRICE_FETCH_CONCURRENCY}")
     print(f"Network Mode          : {'🧪 MOCK SIMULATION' if use_mock else '🌐 LIVE PROVIDERS'}")
+    print(f"Heartbeat Cadence     : Every {print_every} cycle(s)")
     print(f"Report Output         : {report_file}")
     print("=" * 78)
 
@@ -155,8 +170,11 @@ async def run_soak_test(
     try:
         while not _STOP_REQUESTED:
             elapsed_total = time.time() - start_time
-            if elapsed_total >= total_target_seconds:
-                print(f"\n🎯 Reached target duration of {duration_hours:.2f} hours!")
+            if total_target_seconds and elapsed_total >= total_target_seconds:
+                print(f"\n🎯 Reached target duration of {total_target_seconds:.1f}s ({duration_hours:.2f}h)!")
+                break
+            if max_cycles and completed_cycles >= max_cycles:
+                print(f"\n🎯 Reached target limit of {max_cycles} cycles!")
                 break
 
             # Execute single alert check cycle
@@ -177,6 +195,10 @@ async def run_soak_test(
             current_mem_mb = get_process_memory_mb()
             if current_mem_mb > mem_peak_mb:
                 mem_peak_mb = current_mem_mb
+
+            # Live heartbeat output
+            if completed_cycles % print_every == 0:
+                print(f"   [Cycle {completed_cycles:04d}] Latency: {c_dur_ms:6.1f} ms | Mem: {current_mem_mb:5.1f} MB | Elapsed: {elapsed_total:5.1f}s")
 
             # Periodic checkpointing
             if (time.time() - last_checkpoint_time) >= checkpoint_interval_seconds:
@@ -306,18 +328,40 @@ async def run_soak_test(
 
 def main():
     parser = argparse.ArgumentParser(description="SignalAlert 48-Hour Soak & Endurance Test Engine")
-    parser.add_argument("--duration-hours", type=float, default=48.0, help="Total duration in hours (default: 48.0)")
+    parser.add_argument("--duration-hours", type=float, default=None, help="Total duration in hours (e.g. 48.0 or 0.5)")
+    parser.add_argument("--duration-minutes", type=float, default=None, help="Total duration in minutes (e.g. 1.0 or 5.0)")
+    parser.add_argument("--duration-seconds", type=float, default=None, help="Total duration in seconds (e.g. 30.0)")
+    parser.add_argument("--cycles", type=int, default=None, help="Target total cycles before terminating (e.g. 10 or 20)")
     parser.add_argument("--interval-seconds", type=float, default=2.0, help="Interval between cycles in seconds (default: 2.0)")
     parser.add_argument("--mock", action="store_true", help="Run with simulated mock responses")
     parser.add_argument("--checkpoint-seconds", type=float, default=300.0, help="Checkpoint interval in seconds (default: 300)")
     parser.add_argument("--export", type=str, default="reports/soak_test_48h_report.json", help="Path to final JSON report")
     args = parser.parse_args()
 
+    # Determine total seconds
+    if args.duration_seconds is not None:
+        total_seconds = args.duration_seconds
+        hours = total_seconds / 3600.0
+    elif args.duration_minutes is not None:
+        total_seconds = args.duration_minutes * 60.0
+        hours = total_seconds / 3600.0
+    elif args.duration_hours is not None:
+        hours = args.duration_hours
+        total_seconds = hours * 3600.0
+    elif args.cycles is not None:
+        hours = (args.cycles * args.interval_seconds) / 3600.0
+        total_seconds = args.cycles * args.interval_seconds
+    else:
+        hours = 48.0
+        total_seconds = 48.0 * 3600.0
+
     asyncio.run(run_soak_test(
-        duration_hours=args.duration_hours,
+        duration_hours=hours,
         cycle_interval_seconds=args.interval_seconds,
         use_mock=args.mock,
         checkpoint_interval_seconds=args.checkpoint_seconds,
+        max_cycles=args.cycles,
+        total_target_seconds=total_seconds,
         report_file=args.export
     ))
 

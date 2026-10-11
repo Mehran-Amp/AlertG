@@ -1,21 +1,21 @@
 {
-  "checkpoint_time": "2026-10-11T21:42:06Z",
-  "elapsed_hours": 0.001,
-  "completed_cycles": 7,
-  "current_mem_mb": 24.04,
-  "peak_mem_mb": 24.04,
+  "checkpoint_time": "2026-10-11T22:05:41Z",
+  "elapsed_hours": 0.002,
+  "completed_cycles": 4,
+  "current_mem_mb": 24.98,
+  "peak_mem_mb": 24.98,
   "mem_delta_mb": 0.23,
   "providers": {
     "yahoo": {
-      "rpm": 159.5,
+      "rpm": 159.8,
       "429s": 0
     },
     "nobitex": {
-      "rpm": 418.8,
+      "rpm": 119.9,
       "429s": 0
     },
     "default": {
-      "rpm": 558.4,
+      "rpm": 159.8,
       "429s": 0
     }
   }
