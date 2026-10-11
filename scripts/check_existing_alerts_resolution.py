@@ -18,6 +18,7 @@ from typing import List, Dict, Any, Optional, Tuple
 
 # Ensure project root is in sys.path
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PROJECT_ROOT = ROOT_DIR
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
