@@ -734,11 +734,12 @@ class FinnhubAdapter(BaseMarketAdapter):
         return None
 
     async def fetch_quote(self, symbol: str, client: httpx.AsyncClient) -> Optional[Dict[str, Any]]:
-        if not self.api_key:
+        active_key = self.api_key or os.getenv("FINNHUB_API_KEY", "").strip()
+        if not active_key:
             return None
 
         finnhub_sym = self._resolve_symbol(symbol)
-        url = f"https://finnhub.io/api/v1/quote?symbol={finnhub_sym}&token={self.api_key}"
+        url = f"https://finnhub.io/api/v1/quote?symbol={finnhub_sym}&token={active_key}"
         parsed, _ = await self._execute_http(url, self._extract_finnhub, client)
         return parsed
 
@@ -834,11 +835,12 @@ class TwelveDataAdapter(BaseMarketAdapter):
         return None
 
     async def fetch_quote(self, symbol: str, client: httpx.AsyncClient) -> Optional[Dict[str, Any]]:
-        if not self.api_key:
+        active_key = self.api_key or os.getenv("TWELVE_DATA_API_KEY", "").strip()
+        if not active_key:
             return None
 
         td_sym = self._resolve_symbol(symbol)
-        url = f"https://api.twelvedata.com/quote?symbol={td_sym}&apikey={self.api_key}"
+        url = f"https://api.twelvedata.com/quote?symbol={td_sym}&apikey={active_key}"
         parsed, _ = await self._execute_http(url, self._extract_td, client)
         return parsed
 
@@ -923,7 +925,8 @@ class FredAdapter(BaseMarketAdapter):
         return _extract
 
     async def fetch_quote(self, symbol: str, client: httpx.AsyncClient) -> Optional[Dict[str, Any]]:
-        if not self.api_key:
+        active_key = self.api_key or os.getenv("FRED_API_KEY", "").strip()
+        if not active_key:
             return None
 
         clean_sym = symbol.upper().strip().replace(' ', '')
@@ -934,7 +937,7 @@ class FredAdapter(BaseMarketAdapter):
             else:
                 return None
 
-        url = f"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}&api_key={self.api_key}&file_type=json&sort_order=desc&limit=1"
+        url = f"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}&api_key={active_key}&file_type=json&sort_order=desc&limit=1"
         parsed, _ = await self._execute_http(url, self._make_extractor(series_id), client)
         return parsed
 

@@ -212,8 +212,11 @@ def check_currency_match(expected_unit: Optional[str], received_currency: Option
         'CHF': 'CHF',
         'C$': 'CAD',
         'CAD': 'CAD',
+        'A$': 'AUD',
+        'AUD': 'AUD',
         'AED': 'AED',
         '%': '%',
+        'PERCENT': '%',
         'PTS': 'PTS',
         'POINT': 'PTS',
         'POINTS': 'PTS',
@@ -221,6 +224,7 @@ def check_currency_match(expected_unit: Optional[str], received_currency: Option
         'CNY': 'CNY',
         'ت': 'TMN',
         'TMN': 'TMN',
+        'IRR': 'TMN',
     }
     canonical_exp = unit_map.get(exp, exp)
     canonical_rec = unit_map.get(rec, rec)
@@ -232,8 +236,15 @@ def check_currency_match(expected_unit: Optional[str], received_currency: Option
     # ¥ represents both JPY and CNY/RMB
     if exp in ('¥', 'YEN', 'YUAN') and canonical_rec in ('JPY', 'CNY'):
         return True
-    # Indices often have unit 'pts' in catalog while provider returns index points or USD/EUR
-    if category == 'index' and (canonical_exp in ('PTS', 'POINT', 'POINTS') or canonical_rec == 'PTS'):
+    # Forex major pairings
+    if category == 'forex':
+        if canonical_exp in ('USD', 'EUR', 'GBP', 'CHF', 'CAD', 'AUD', 'JPY', 'CNY', 'AED', 'TMN'):
+            return True
+    # Indices often have unit 'pts' in catalog while provider returns index points or USD/EUR/GBP/JPY
+    if category == 'index' and (canonical_exp in ('PTS', 'POINT', 'POINTS') or canonical_rec in ('PTS', 'USD', 'EUR', 'GBP', 'JPY')):
+        return True
+    # Bonds often have unit '%' in catalog while Yahoo quote API tags quotes with currency='USD'
+    if category == 'bond' and (canonical_exp in ('%', 'PERCENT') or canonical_rec in ('%', 'PERCENT', 'USD')):
         return True
 
     return False
@@ -611,7 +622,8 @@ class CatalogProbeRunner:
 
             else:
                 # Live FRED Probe
-                if FRED_API_KEY:
+                active_fred_key = FRED_API_KEY or os.getenv("FRED_API_KEY", "").strip()
+                if active_fred_key:
                     try:
                         await acquire_provider_slot('fred', wait=True)
                         q_f = await fred_adapter.fetch_quote(fred_id, client)
@@ -727,6 +739,18 @@ class CatalogProbeRunner:
         results_list = list(results_map.values())
         rejected_list = self.checkpoint.data.get('rejected', [])
         yields_table = self.checkpoint.data.get('yields_data', [])
+
+        # Dynamically refresh currency_match using latest rules so resumed checkpoint reflects updated logic
+        for r in results_list:
+            r['currency_match'] = check_currency_match(
+                r.get('expected_currency'),
+                r.get('currency'),
+                category=r.get('category')
+            )
+            # Keep checkpoint in sync
+            item_id = r.get('id')
+            if item_id and item_id in results_map:
+                results_map[item_id]['currency_match'] = r['currency_match']
 
         total = len(results_list)
         ok_count = sum(1 for r in results_list if r.get('status') == 'ok')
