@@ -22,7 +22,7 @@ import re
 from typing import Dict, Any, List, Tuple
 
 SYMBOL_RE = re.compile(r'^[A-Z0-9^][A-Z0-9\.\-\=\/\_]{0,24}$', re.IGNORECASE)
-EXCHANGE_RE = re.compile(r'^[A-Z0-9\_\-\s]{2,30}$', re.IGNORECASE)
+EXCHANGE_RE = re.compile(r'^[a-zA-Z0-9\_\-\s\.\&öäüéèáà]{2,40}$', re.IGNORECASE)
 VALID_ASSET_CLASSES = {'stock', 'etf', 'forex', 'index', 'commodity', 'bond', 'macro'}
 VALID_CURRENCIES = {'USD', 'EUR', 'GBP', 'JPY', 'CAD', 'CHF', 'AUD', 'NZD', 'CNY', 'HKD', 'IRR', 'IRT'}
 ALLOWED_PROVIDERS = {'yahoo', 'finnhub', 'twelve_data', 'fred'}

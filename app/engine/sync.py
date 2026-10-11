@@ -46,7 +46,7 @@ class CatalogValidationError(ValueError):
 # VALIDATION CONSTRAINTS (Phase 4 / v3.2.0)
 # -------------------------------------------------------------------------
 SYMBOL_RE = re.compile(r'^[A-Z0-9^][A-Z0-9\.\-\=\/\_]{0,24}$', re.IGNORECASE)
-EXCHANGE_RE = re.compile(r'^[A-Z0-9\_\-\s]{2,30}$', re.IGNORECASE)
+EXCHANGE_RE = re.compile(r'^[a-zA-Z0-9\_\-\s\.\&öäüéèáà]{2,40}$', re.IGNORECASE)
 VALID_ASSET_CLASSES = {'stock', 'etf', 'forex', 'index', 'commodity', 'bond', 'macro'}
 VALID_CURRENCIES = {'USD', 'EUR', 'GBP', 'JPY', 'CAD', 'CHF', 'AUD', 'NZD', 'CNY', 'HKD', 'IRR', 'IRT'}
 ALLOWED_PROVIDERS = {'yahoo', 'finnhub', 'twelve_data', 'fred'}
@@ -443,7 +443,10 @@ def validate_candidate_catalog(items: List[Dict[str, Any]], strict: bool = False
         symbol_to_category[s_upper] = cat
 
         # 3. Exchange validation
-        market = norm.get("marketName", "").strip()
+        market = raw.get("exchange") if "exchange" in raw else raw.get("marketName")
+        if market is None:
+            market = norm.get("marketName", "")
+        market = str(market).strip()
         if not market:
             msg = f"Symbol '{s}' missing exchange/marketName."
             if strict:

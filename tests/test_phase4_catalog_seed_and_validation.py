@@ -93,7 +93,7 @@ class TestPhase4CatalogSeedAndValidation(unittest.TestCase):
 
     def test_03_exchange_regex_validation(self):
         """Invalid exchanges violate EXCHANGE_RE pattern"""
-        invalid_exchanges = ["", "@", "X", "VERY_LONG_NAME_EXCEEDING_THIRTY_CHARACTERS_HERE_12345"]
+        invalid_exchanges = ["", "@", "X", "VERY_LONG_NAME_EXCEEDING_FORTY_CHARACTERS_HERE_1234567890"]
         for bad_ex in invalid_exchanges:
             item = {
                 "id": "TEST",
@@ -224,7 +224,7 @@ class TestPhase4CatalogSeedAndValidation(unittest.TestCase):
     def test_11_legacy_wallstreet_macro_matches_golden_count_and_categories(self):
         """Verifies /api/symbols/wallstreet-macro returns 94 symbols matching golden categories"""
         from app.routes.symbols import get_debug_wallstreet_macro_symbols
-        res = get_debug_wallstreet_macro_symbols()
+        res = get_debug_wallstreet_macro_symbols(since_version=None)
         self.assertEqual(res["status"], "success")
         self.assertEqual(res["total_count"], 94)
         self.assertEqual(res["categories"]["stock"], 41)

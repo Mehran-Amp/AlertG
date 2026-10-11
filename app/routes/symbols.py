@@ -48,7 +48,7 @@ def get_global_catalog_symbols(since_version: Optional[int] = Query(None)):
 @router.get("/api/debug/symbols/macro", dependencies=ADMIN_DEP)
 def get_debug_wallstreet_macro_symbols(since_version: Optional[int] = Query(None)):
     cat = load_catalog()
-    if since_version is not None and since_version > 0:
+    if isinstance(since_version, int) and since_version > 0:
         return get_catalog_delta(since_version)
 
     active_symbols = [s for s in cat.get("symbols", []) if s.get("is_active", 1)]
