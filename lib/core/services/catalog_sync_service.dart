@@ -19,6 +19,8 @@ class CatalogItem {
   final DateTime? delistedAt;
   final String source;
   final double? price;
+  final bool singleSource;
+  final bool isDelayed;
 
   CatalogItem({
     required this.id,
@@ -32,21 +34,26 @@ class CatalogItem {
     this.delistedAt,
     this.source = 'default',
     this.price,
+    this.singleSource = true,
+    this.isDelayed = false,
   });
 
   factory CatalogItem.fromJson(Map<String, dynamic> json) {
+    final cat = (json['category'] as String? ?? 'stock').toLowerCase();
     return CatalogItem(
       id: json['id'] as String? ?? json['symbol'] as String? ?? '',
       symbol: (json['symbol'] as String? ?? json['id'] as String? ?? '').toUpperCase(),
       nameEn: json['nameEn'] as String? ?? json['name'] as String? ?? '',
       nameFa: json['nameFa'] as String? ?? json['name_fa'] as String? ?? '',
-      category: (json['category'] as String? ?? 'stock').toLowerCase(),
+      category: cat,
       marketName: json['marketName'] as String? ?? json['market'] as String? ?? 'Global',
       unit: json['unit'] as String? ?? '\$',
       isActive: (json['is_active'] == 1 || json['is_active'] == true || json['is_active'] == null),
       delistedAt: json['delisted_at'] != null ? DateTime.tryParse(json['delisted_at'].toString()) : null,
       source: json['source'] as String? ?? json['source_provider'] as String? ?? 'Yahoo Finance',
       price: (json['price'] as num?)?.toDouble(),
+      singleSource: json['single_source'] as bool? ?? (cat == 'bond' ? false : true),
+      isDelayed: json['is_delayed'] as bool? ?? (cat == 'stock' || cat == 'index' || cat == 'macro'),
     );
   }
 
@@ -63,6 +70,8 @@ class CatalogItem {
       'delisted_at': delistedAt?.toIso8601String(),
       'source': source,
       'price': price,
+      'single_source': singleSource,
+      'is_delayed': isDelayed,
     };
   }
 
@@ -89,12 +98,11 @@ class CatalogItem {
     }
   }
 
+  String get singleSourceBadge => singleSource ? '⚠️ منبع محدود' : '🌐 چندمنبعی';
+
   String get delayBadge {
-    if (category == 'crypto') return '⚡ بلادرنگ (Real-Time)';
-    if (category == 'forex') return '⚡ بلادرنگ (Real-Time)';
-    if (category == 'iran_market') return '⚡ بلادرنگ (Real-Time)';
-    if (category == 'macro' || category == 'bond') return '🏛️ ماهانه و دوره‌ای';
-    return '⏱️ تأخیر ۱۵ دقیقه';
+    if (isDelayed) return '⏱️ با تأخیر';
+    return '⚡ بلادرنگ (Real-Time)';
   }
 
   String get sourceBadge {

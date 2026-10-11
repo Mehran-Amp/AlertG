@@ -1,12 +1,38 @@
 import os
+import json
 import time
 import html
 import asyncio
 from datetime import datetime
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Header
-from fastapi.responses import HTMLResponse, JSONResponse
-import firebase_admin
+try:
+    from fastapi import APIRouter, HTTPException, Header
+    from fastapi.responses import HTMLResponse, JSONResponse
+except ImportError:
+    class APIRouter:
+        def __init__(self, *args, **kwargs): pass
+        def get(self, *args, **kwargs): return lambda f: f
+        def post(self, *args, **kwargs): return lambda f: f
+    def Header(default=None, **kwargs): return default
+    class HTTPException(Exception):
+        def __init__(self, status_code=500, detail=""):
+            self.status_code = status_code
+            self.detail = detail
+    class HTMLResponse:
+        def __init__(self, content="", status_code=200, **kwargs):
+            self.content = content
+            self.status_code = status_code
+            self.body = content.encode("utf-8") if isinstance(content, str) else content
+    class JSONResponse:
+        def __init__(self, content=None, status_code=200, **kwargs):
+            self.content = content
+            self.status_code = status_code
+            self.body = json.dumps(content).encode("utf-8")
+
+try:
+    import firebase_admin
+except ImportError:
+    firebase_admin = None
 
 from app.config import APP_VERSION, SERVICE_ACCOUNT_FILE
 from app.security import ADMIN_DEP, API_DEP, _validate_market_args
@@ -295,12 +321,12 @@ def get_status_dashboard(format: Optional[str] = None, accept: Optional[str] = H
                     <tbody>
                         {"".join(f'''
                         <tr>
-                            <td style="font-weight:bold; font-family:monospace;">{html.escape(a.symbol)}</td>
-                            <td>{html.escape(get_exchange_display_name(a.exchange))}</td>
-                            <td style="font-family:monospace; color:#38bdf8;">{a.target_price:,.2f}</td>
-                            <td>{"🟢 Above" if a.condition.upper() == "ABOVE" else "🔴 Below"}</td>
-                            <td>{a.check_interval_seconds}s</td>
-                            <td class="{'badge-active' if a.is_active else 'badge-done'}">{'Active' if a.is_active else 'Triggered (Done)'}</td>
+                            <td style="font-weight:bold; font-family:monospace;">{html.escape(str(getattr(a, 'symbol', '')))}</td>
+                            <td>{html.escape(get_exchange_display_name(getattr(a, 'exchange', '')))}</td>
+                            <td style="font-family:monospace; color:#38bdf8;">{getattr(a, 'target_price', 0.0):,.2f}</td>
+                            <td>{"🟢 Above" if str(getattr(a, 'condition', '')).upper() == "ABOVE" else "🔴 Below"}</td>
+                            <td>{getattr(a, 'check_interval_seconds', 10)}s</td>
+                            <td class="{'badge-active' if getattr(a, 'is_active', False) else 'badge-done'}">{'Active' if getattr(a, 'is_active', False) else 'Triggered (Done)'}</td>
                         </tr>
                         ''' for a in storage.ALERTS_DB[:25]) if storage.ALERTS_DB else '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:24px;">No alerts registered on server yet.</td></tr>'}
                     </tbody>

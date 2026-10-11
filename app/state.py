@@ -6,6 +6,8 @@ try:
 except ImportError:
     httpx = None
 
+http_client = None
+
 try:
     from apscheduler.schedulers.asyncio import AsyncIOScheduler
     scheduler = AsyncIOScheduler()

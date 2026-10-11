@@ -300,17 +300,34 @@ const CRYPTO_COIN_METAS: Record<string, CryptoCoinMeta> = {
 };
 
 // === 2. MACRO ASSETS (US 10Y BONDS, FOREX, STOCKS, GOLD, OIL) ===
-interface MacroAssetMeta {
+export interface MacroAssetMeta {
   symbol: string;
   name: string;
   nameFa: string;
-  category: 'bond' | 'forex' | 'stock' | 'commodity' | 'index' | 'iran_market';
+  category: 'bond' | 'forex' | 'stock' | 'commodity' | 'index' | 'iran_market' | 'macro' | 'crypto';
   marketName: string;
   icon: string;
   currentPrice: number;
   unit: string;
   change24h: number;
+  single_source?: boolean;
+  is_delayed?: boolean;
+  source?: string;
 }
+
+export const normalizeSearchQuery = (text?: string): string => {
+  if (!text) return '';
+  return text
+    .toLowerCase()
+    .replace(/[\u200c\u200b\u200e\u200f]/g, '')
+    .replace(/ي/g, 'ی')
+    .replace(/ك/g, 'ک')
+    .replace(/[آأإ]/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/ؤ/g, 'و')
+    .replace(/ئ/g, 'ی')
+    .trim();
+};
 
 const MACRO_ASSETS: Record<string, MacroAssetMeta> = {
   // === BONBAST IRAN FREE MARKET (PRIMARY REFERENCE: BONBAST.COM) ===
@@ -638,6 +655,73 @@ export default function App() {
       localStorage.setItem('alarmer_telegram_chat_id', telegramChatId);
     } catch (_) {}
   }, [telegramChatId]);
+
+  // Catalog Delta Sync with server (loads list strictly from server + delta sync updates)
+  useEffect(() => {
+    let isMounted = true;
+    const syncCatalogWithServer = async () => {
+      try {
+        const storedVer = parseInt(localStorage.getItem('alarmer_catalog_version') || '0', 10);
+        const baseUrl = 'https://aisocialfeed.com';
+        const url = storedVer > 0 
+          ? `${baseUrl}/api/symbols/changes?since=${storedVer}`
+          : `${baseUrl}/api/symbols?limit=150`;
+
+        const res = await fetch(url);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!isMounted) return;
+
+        if (data.status === 'up_to_date') {
+          return;
+        }
+
+        const newVersion = data.catalog_version || 1;
+        setMacroPrices(prev => {
+          const next = { ...prev };
+          const itemsToAddOrUpdate = data.is_delta
+            ? [...(data.added || []), ...(data.updated || [])]
+            : (data.symbols || []);
+
+          for (const item of itemsToAddOrUpdate) {
+            const key = item.id || item.symbol;
+            if (!key) continue;
+            next[key] = {
+              symbol: item.symbol || key,
+              name: item.nameEn || item.name || key,
+              nameFa: item.nameFa || item.name_fa || key,
+              category: item.category || 'stock',
+              marketName: item.marketName || item.market || 'Global',
+              icon: item.icon || (item.category === 'bond' ? 'https://cdn-icons-png.flaticon.com/512/2830/2830284.png' : 'https://cdn-icons-png.flaticon.com/512/2583/2583344.png'),
+              currentPrice: typeof item.price === 'number' && item.price > 0 ? item.price : (next[key]?.currentPrice || 0),
+              unit: item.unit || '$',
+              change24h: item.change24h || 0,
+              single_source: item.single_source !== undefined ? item.single_source : true,
+              is_delayed: item.is_delayed !== undefined ? item.is_delayed : (item.category === 'stock' || item.category === 'index')
+            };
+          }
+
+          if (data.is_delta && Array.isArray(data.delisted)) {
+            for (const delId of data.delisted) {
+              delete next[delId];
+            }
+          }
+
+          try {
+            localStorage.setItem('alarmer_macro_prices', JSON.stringify(next));
+            localStorage.setItem('alarmer_catalog_version', newVersion.toString());
+          } catch (_) {}
+
+          return next;
+        });
+      } catch (err) {
+        // Offline resilient fallback to local cache
+      }
+    };
+
+    syncCatalogWithServer();
+    return () => { isMounted = false; };
+  }, []);
 
   // 3 MASTER GLOBAL SETTINGS (ویبره / صدا / Voice Speech)
   const [globalSoundEnabled, setGlobalSoundEnabled] = useState<boolean>(true);
@@ -2073,7 +2157,8 @@ export default function App() {
     }
 
     const meta = macroPrices[selectedMacroKey] || macroPrices.US10Y;
-    const totalSecs = calculateTotalSeconds(unitType, unitNumber);
+    const isDailyMacro = meta.category === 'macro';
+    const totalSecs = isDailyMacro ? 86400 : calculateTotalSeconds(unitType, unitNumber);
 
     const newRule: AlertRule = {
       uuid: `rule-macro-${Date.now()}`,
@@ -2173,13 +2258,17 @@ export default function App() {
     return matchesCategory && matchesSearch;
   }).sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
 
-  // Filtered Macro Assets
+  // Filtered Macro Assets (Robust Offline Persian & English Search)
   const filteredMacroAssets = Object.entries(macroPrices).filter(([key, asset]) => {
     const matchesCategory = macroCategoryFilter === 'all' || asset.category === macroCategoryFilter;
-    const matchesSearch = !macroSearchQuery ||
-      asset.name.toLowerCase().includes(macroSearchQuery.toLowerCase()) ||
-      asset.nameFa.includes(macroSearchQuery) ||
-      asset.symbol.toLowerCase().includes(macroSearchQuery.toLowerCase());
+    const cleanQ = normalizeSearchQuery(macroSearchQuery);
+    if (!cleanQ) return matchesCategory;
+    const matchesSearch =
+      normalizeSearchQuery(asset.name).includes(cleanQ) ||
+      normalizeSearchQuery(asset.nameFa).includes(cleanQ) ||
+      normalizeSearchQuery(asset.symbol).includes(cleanQ) ||
+      normalizeSearchQuery(key).includes(cleanQ) ||
+      normalizeSearchQuery(asset.marketName).includes(cleanQ);
     return matchesCategory && matchesSearch;
   });
 
@@ -4257,7 +4346,7 @@ export default function App() {
                                 <span className="font-bold text-xs text-white">{asset.nameFa}</span>
                                 <span className="text-[10px] font-mono text-slate-400">({asset.symbol})</span>
                               </div>
-                              <div className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-2">
+                              <div className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap">
                                 <span className="text-blue-400 font-bold">{asset.marketName}</span>
                                 <span>•</span>
                                 <span className="font-mono font-bold text-slate-200">
@@ -4267,6 +4356,20 @@ export default function App() {
                                     ? `${Math.round(asset.currentPrice).toLocaleString('fa-IR')} تومان`
                                     : `${asset.currentPrice.toLocaleString()}${asset.unit}`}
                                 </span>
+                                {asset.single_source !== false && (
+                                  <span className="text-[9px] px-1.5 py-0.2 rounded font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/20">
+                                    ⚠️ منبع محدود
+                                  </span>
+                                )}
+                                {asset.is_delayed ? (
+                                  <span className="text-[9px] px-1.5 py-0.2 rounded font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/20">
+                                    ⏱️ با تأخیر
+                                  </span>
+                                ) : (
+                                  <span className="text-[9px] px-1.5 py-0.2 rounded font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+                                    ⚡ بلادرنگ
+                                  </span>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -4304,50 +4407,68 @@ export default function App() {
                       );
                     })()}
 
-                    <div>
-                      <label className="block text-slate-300 font-bold mb-1.5">
-                        ۱. دوره بررسی نرخ (Check Frequency):
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 grid grid-cols-3 gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
-                          {[
-                            { key: 'seconds', label: 'ثانیه' },
-                            { key: 'minutes', label: 'دقیقه' },
-                            { key: 'hours', label: 'ساعت' },
-                          ].map((item) => (
-                            <button
-                              type="button"
-                              key={item.key}
-                              onClick={() => setUnitType(item.key as any)}
-                              className={`py-1.5 rounded-lg text-center font-bold text-[11px] transition-all ${
-                                unitType === item.key
-                                  ? 'bg-blue-500 text-white shadow'
-                                  : 'text-slate-400 hover:text-white'
-                              }`}
-                            >
-                              {item.label}
-                            </button>
-                          ))}
-                        </div>
+                    {(() => {
+                      const meta = macroPrices[selectedMacroKey] || macroPrices.US10Y;
+                      if (meta.category === 'macro') {
+                        return (
+                          <div className="p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300">
+                            <div className="flex items-center gap-2 font-bold text-xs text-indigo-200">
+                              <Timer className="h-4 w-4 text-indigo-400" />
+                              <span>دوره بررسی هشدار اقتصاد کلان: روزانه (Daily)</span>
+                            </div>
+                            <p className="text-[11px] text-indigo-300/80 mt-1 leading-relaxed">
+                              📢 شاخص‌های اقتصاد کلان (مانند نرخ بهره فدرال رزرو، تورم و نرخ بیکاری) به صورت روزانه و بلافاصله پس از انتشار داده‌های رسمی فدرال رزرو ارزیابی می‌شوند.
+                            </p>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div>
+                          <label className="block text-slate-300 font-bold mb-1.5">
+                            ۱. دوره بررسی نرخ (Check Frequency):
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 grid grid-cols-3 gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                              {[
+                                { key: 'seconds', label: 'ثانیه' },
+                                { key: 'minutes', label: 'دقیقه' },
+                                { key: 'hours', label: 'ساعت' },
+                              ].map((item) => (
+                                <button
+                                  type="button"
+                                  key={item.key}
+                                  onClick={() => setUnitType(item.key as any)}
+                                  className={`py-1.5 rounded-lg text-center font-bold text-[11px] transition-all ${
+                                    unitType === item.key
+                                      ? 'bg-blue-500 text-white shadow'
+                                      : 'text-slate-400 hover:text-white'
+                                  }`}
+                                >
+                                  {item.label}
+                                </button>
+                              ))}
+                            </div>
 
-                        <div className="w-24">
-                          <input
-                            type="number"
-                            min="1"
-                            max="3600"
-                            value={unitNumber}
-                            onChange={(e) => setUnitNumber(e.target.value)}
-                            placeholder="1"
-                            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-center text-white font-mono font-bold text-sm"
-                          />
-                        </div>
-                      </div>
+                            <div className="w-24">
+                              <input
+                                type="number"
+                                min="1"
+                                max="3600"
+                                value={unitNumber}
+                                onChange={(e) => setUnitNumber(e.target.value)}
+                                placeholder="1"
+                                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-center text-white font-mono font-bold text-sm"
+                              />
+                            </div>
+                          </div>
 
-                      <div className="mt-1.5 px-3 py-1.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[11px] font-semibold flex items-center gap-1.5">
-                        <Timer className="h-3.5 w-3.5" />
-                        <span>بررسی هر {formatCalculatedInterval(unitType, unitNumber)} انجام می‌شود.</span>
-                      </div>
-                    </div>
+                          <div className="mt-1.5 px-3 py-1.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[11px] font-semibold flex items-center gap-1.5">
+                            <Timer className="h-3.5 w-3.5" />
+                            <span>بررسی هر {formatCalculatedInterval(unitType, unitNumber)} انجام می‌شود.</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     <div>
                       <label className="block text-slate-300 font-bold mb-1.5">۲. نوع شرط هشدار:</label>

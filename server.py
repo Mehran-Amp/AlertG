@@ -159,6 +159,12 @@ app.add_middleware(
     allow_headers=["X-API-Key", "X-Admin-Key", "Content-Type"],
 )
 
+try:
+    from fastapi.middleware.gzip import GZipMiddleware
+    app.add_middleware(GZipMiddleware, minimum_size=500)
+except Exception:
+    pass
+
 # Root status route
 @app.api_route("/", methods=["GET", "HEAD"])
 def read_root():

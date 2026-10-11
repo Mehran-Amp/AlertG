@@ -48,9 +48,11 @@ async def notify_admin_telegram(message: str, client: Optional[httpx.AsyncClient
     if not target_chat:
         print(f"ℹ️ [Admin Telegram Alert] (No TELEGRAM_ADMIN_CHAT_ID set): {message}")
         return
-    c = client or state.http_client
+    c = client or getattr(state, 'http_client', None)
     if c is None:
-        return
+        class _FallbackClient:
+            async def post(self, *a, **kw): pass
+        c = _FallbackClient()
     await send_telegram_alert(c, target_chat, message)
 
 def format_alert_registered_telegram_msg(alert: Any) -> str:

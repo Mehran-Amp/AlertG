@@ -1,0 +1,41 @@
+{
+  "status": "COMPLETED",
+  "timestamp": "2026-10-11T21:35:48Z",
+  "duration_hours": 0.001,
+  "target_hours": 0.001,
+  "completed_cycles": 8,
+  "cycle_latency_ms": {
+    "min": 94.12,
+    "avg": 95.59,
+    "p50": 95.54,
+    "p95": 97.22,
+    "p99": 97.22,
+    "max": 97.22
+  },
+  "provider_metrics": {
+    "yahoo": {
+      "total_requests": 8,
+      "requests_per_minute": 119.7,
+      "rate_limits_429": 0
+    },
+    "nobitex": {
+      "total_requests": 24,
+      "requests_per_minute": 359.1,
+      "rate_limits_429": 0
+    },
+    "default": {
+      "total_requests": 32,
+      "requests_per_minute": 478.8,
+      "rate_limits_429": 0
+    }
+  },
+  "total_429_errors": 0,
+  "memory_profile_mb": {
+    "initial": 25.21,
+    "final": 25.48,
+    "peak": 25.48,
+    "growth_delta": 0.27,
+    "leak_assessment": "PASS (Flat Memory)"
+  },
+  "memory_samples_count": 4
+}
