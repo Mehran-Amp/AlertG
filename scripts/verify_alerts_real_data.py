@@ -24,7 +24,7 @@ if ROOT_DIR not in sys.path:
 import httpx
 
 from app.markets.global_stocks import (
-    WALLSTREET_MACRO_SYMBOLS, EXACT_YF_MAP, FOREX_PAIRS, resolve_yf_symbol
+    WALLSTREET_MACRO_SYMBOLS, EXACT_YF_MAP, FOREX_PAIRS, resolve_yf_symbol, resolve_symbol_alias
 )
 from app.markets.iran import (
     BONBAST_MAP, TSETMC_INDEX_MAP, TSETMC_GOLD_FUNDS_MAP, TSETMC_INSTRUMENTS_MAP

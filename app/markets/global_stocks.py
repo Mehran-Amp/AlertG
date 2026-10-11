@@ -60,21 +60,38 @@ EXACT_YF_MAP: Dict[str, str] = {
     'SILVER': 'SI=F',
     'XAG': 'SI=F',
     'XAGUSD': 'SI=F',
+    'XAG/USD': 'SI=F',
     'SI=F': 'SI=F',
     'BRENT': 'BZ=F',
     'OILBRENT': 'BZ=F',
+    'OIL_BRENT': 'BZ=F',
+    'BRENT/USD': 'BZ=F',
     'BZ=F': 'BZ=F',
     'WTI': 'CL=F',
     'OILWTI': 'CL=F',
+    'OIL_WTI': 'CL=F',
+    'WTI/USD': 'CL=F',
     'OIL': 'CL=F',
     'CRUDE': 'CL=F',
     'CL=F': 'CL=F',
+    'XAU/USD': 'GC=F',
+    'S&P 500': '^GSPC',
+    'NASDAQ100': '^NDX',
+    'DOWJONES': '^DJI',
     'NATGAS': 'NG=F',
     'NG=F': 'NG=F',
     'COPPER': 'HG=F',
     'HG=F': 'HG=F',
     'PLATINUM': 'PL=F',
     'PL=F': 'PL=F',
+    'BRK.B': 'BRK-B',
+    'BRKB': 'BRK-B',
+    'BRK-B': 'BRK-B',
+    'BRK/B': 'BRK-B',
+    'BF.B': 'BF-B',
+    'BFB': 'BF-B',
+    'BF-B': 'BF-B',
+    'BF/B': 'BF-B',
     'BTC.D': 'BTC.D',
     'USDT.D': 'USDT.D',
     'ETH.D': 'ETH.D',
@@ -83,6 +100,153 @@ EXACT_YF_MAP: Dict[str, str] = {
     'TOTAL3': 'TOTAL3',
     'CRYPTO_FGI': 'CRYPTO_FGI',
 }
+
+# ===================================================================
+# SYMBOL ALIASES & CANONICAL RESOLUTION (Phase 5 / v3.3.0)
+# Maps legacy labels, shorthand codes, and alternate notations to canonical symbols.
+# ===================================================================
+SYMBOL_ALIASES: Dict[str, str] = {
+    # Commodities
+    'GOLD': 'GOLD',
+    'XAU': 'GOLD',
+    'XAUUSD': 'GOLD',
+    'XAU/USD': 'GOLD',
+    'GC=F': 'GOLD',
+    'SILVER': 'SILVER',
+    'XAG': 'SILVER',
+    'XAGUSD': 'SILVER',
+    'XAG/USD': 'SILVER',
+    'SI=F': 'SILVER',
+    'OIL': 'OIL_WTI',
+    'WTI': 'OIL_WTI',
+    'CRUDE': 'OIL_WTI',
+    'OILWTI': 'OIL_WTI',
+    'OIL_WTI': 'OIL_WTI',
+    'WTI/USD': 'OIL_WTI',
+    'CL=F': 'OIL_WTI',
+    'BRENT': 'OIL_BRENT',
+    'OILBRENT': 'OIL_BRENT',
+    'OIL_BRENT': 'OIL_BRENT',
+    'BRENT/USD': 'OIL_BRENT',
+    'BZ=F': 'OIL_BRENT',
+    'NATGAS': 'NATGAS',
+    'NG=F': 'NATGAS',
+    'COPPER': 'COPPER',
+    'HG=F': 'COPPER',
+    'PLATINUM': 'PLATINUM',
+    'PL=F': 'PLATINUM',
+    # Indices
+    'DXY': 'DXY',
+    'USDX': 'DXY',
+    'DX-Y.NYB': 'DXY',
+    'SP500': 'SP500',
+    'SPX': 'SP500',
+    'S&P 500': 'SP500',
+    '^GSPC': 'SP500',
+    'NASDAQ': 'NASDAQ100',
+    'NASDAQ100': 'NASDAQ100',
+    'NDX': 'NASDAQ100',
+    '^NDX': 'NASDAQ100',
+    'DOW': 'DOWJONES',
+    'DOWJONES': 'DOWJONES',
+    'DJI': 'DOWJONES',
+    '^DJI': 'DOWJONES',
+    'RUT': 'RUT',
+    'RUSSELL2000': 'RUT',
+    '^RUT': 'RUT',
+    'VIX': 'VIX',
+    '^VIX': 'VIX',
+    'DAX': 'DAX',
+    '^GDAXI': 'DAX',
+    'FTSE': 'FTSE',
+    '^FTSE': 'FTSE',
+    'NIKKEI': 'NIKKEI',
+    '^N225': 'NIKKEI',
+    # Bonds & Yields
+    'US10Y': 'US10Y',
+    'TNX': 'US10Y',
+    '^TNX': 'US10Y',
+    'US02Y': 'US02Y',
+    'US2Y': 'US02Y',
+    '^2YY': 'US02Y',
+    'US13W': 'US13W',
+    '^IRX': 'US13W',
+    'US30Y': 'US30Y',
+    '^TYX': 'US30Y',
+    # Dotted share classes
+    'BRKB': 'BRK.B',
+    'BRK-B': 'BRK.B',
+    'BRK/B': 'BRK.B',
+    'BRK.B': 'BRK.B',
+    'BFB': 'BF.B',
+    'BF-B': 'BF.B',
+    'BF/B': 'BF.B',
+    'BF.B': 'BF.B',
+    # China/HK local vs ADR separation
+    'BABA': 'BABA',
+    '9988': '9988.HK',
+    '9988.HK': '9988.HK',
+    'TCEHY': 'TCEHY',
+    '0700': '0700.HK',
+    '0700.HK': '0700.HK',
+    'XIACY': 'XIACY',
+    '1810': '1810.HK',
+    '1810.HK': '1810.HK',
+    'BYDDY': 'BYDDY',
+    '1211': '1211.HK',
+    '1211.HK': '1211.HK',
+    'BIDU': 'BIDU',
+    '9888': '9888.HK',
+    '9888.HK': '9888.HK',
+    'JD': 'JD',
+    '9618': '9618.HK',
+    '9618.HK': '9618.HK',
+}
+
+# FRED Series Update Frequency Rule:
+# Daily and Monthly series are authoritative only for daily/macro alerts; never high-frequency intraday alerts.
+FRED_SERIES_FREQUENCY: Dict[str, str] = {
+    'DGS10': 'daily',
+    'DGS2': 'daily',
+    'DTB3': 'daily',
+    'DGS30': 'daily',
+    'FEDFUNDS': 'daily',
+    'CPIAUCSL': 'monthly',
+    'UNRATE': 'monthly',
+    'WALCL': 'daily',
+    'M2SL': 'monthly',
+    'DTWEXBGS': 'daily',
+}
+
+def validate_fred_alert_frequency(symbol: str, timeframe: Optional[str] = None) -> Tuple[bool, str]:
+    """
+    Validates that FRED series (daily/monthly) are only used for macro/daily alerts,
+    never high-frequency intraday alerts.
+    """
+    clean_sym = (symbol or '').upper().strip().replace(' ', '')
+    # Check if symbol maps to a known FRED series
+    series_id = clean_sym
+    from app.markets.global_stocks import FredAdapter
+    if clean_sym in FredAdapter.FRED_SERIES_MAP:
+        series_id = FredAdapter.FRED_SERIES_MAP[clean_sym]
+    
+    freq = FRED_SERIES_FREQUENCY.get(series_id)
+    if not freq:
+        return True, "Not a FRED series"
+
+    tf = (timeframe or '').strip().lower()
+    intraday_timeframes = {'1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h'}
+    if tf in intraday_timeframes:
+        return False, f"FRED series '{symbol}' ({series_id}) updates {freq}; intraday timeframe '{tf}' is prohibited. Only macro/daily alerts allowed."
+
+    return True, f"Valid {freq} frequency for macro alert"
+
+def resolve_symbol_alias(symbol: str) -> str:
+    """Resolves legacy alias or alternative notation to canonical symbol."""
+    if not symbol:
+        return ''
+    clean = symbol.strip().upper()
+    return SYMBOL_ALIASES.get(clean, clean)
 
 FOREX_PAIRS = {
     'EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'USDCHF', 'NZDUSD',
@@ -141,6 +305,12 @@ def resolve_yf_symbol(symbol: str) -> str:
                 if candidate in EXACT_YF_MAP:
                     return EXACT_YF_MAP[candidate]
                 return candidate
+
+    # 5. Dotted US share classes: BRK.B -> BRK-B, BF.B -> BF-B
+    if '.' in s and not s.startswith('^'):
+        parts = s.split('.')
+        if len(parts) == 2 and len(parts[1]) == 1 and parts[1].isalpha():
+            return f"{parts[0]}-{parts[1]}"
 
     return s
 
@@ -442,6 +612,10 @@ class YahooFinanceAdapter(BaseMarketAdapter):
     def fetch_catalog(self) -> List[Dict[str, Any]]:
         return WALLSTREET_MACRO_SYMBOLS
 
+    def resolve_symbol(self, symbol: str) -> str:
+        """Resolves symbol for Yahoo Finance, including dotted share classes and futures."""
+        return resolve_yf_symbol(symbol)
+
     def _extract_yf(self, data):
         if isinstance(data, dict):
             chart = data.get('chart', {}).get('result', [])
@@ -499,13 +673,27 @@ class FinnhubAdapter(BaseMarketAdapter):
     def fetch_catalog(self) -> List[Dict[str, Any]]:
         return [s for s in WALLSTREET_MACRO_SYMBOLS if s.get('category') in ('stock', 'forex')]
 
+    def resolve_symbol(self, symbol: str) -> str:
+        """Resolves symbol for Finnhub REST API."""
+        return self._resolve_symbol(symbol)
+
     def _resolve_symbol(self, symbol: str) -> str:
         s = symbol.upper().strip().replace(' ', '')
+        if s.endswith('=X'):
+            s = s[:-2]
         if '/' in s:
             parts = s.split('/')
             return f"OANDA:{parts[0]}_{parts[1]}"
         if s in FOREX_PAIRS:
             return f"OANDA:{s[:3]}_{s[3:]}"
+        # Dotted US equities in Finnhub: BRK.B, BF.B
+        if s in ('BRKB', 'BRK-B', 'BRK/B', 'BRK.B'):
+            return 'BRK.B'
+        if s in ('BFB', 'BF-B', 'BF/B', 'BF.B'):
+            return 'BF.B'
+        # US ADRs (BABA, TCEHY, XIACY, BYDDY, BIDU, JD)
+        if s in ('BABA', 'TCEHY', 'XIACY', 'BYDDY', 'BIDU', 'JD'):
+            return s
         return s
 
     def _extract_finnhub(self, data):
@@ -554,16 +742,61 @@ class TwelveDataAdapter(BaseMarketAdapter):
     def fetch_catalog(self) -> List[Dict[str, Any]]:
         return [s for s in WALLSTREET_MACRO_SYMBOLS if s.get('category') in ('stock', 'forex', 'index', 'commodity')]
 
+    def resolve_symbol(self, symbol: str) -> str:
+        """Resolves symbol for Twelve Data REST API."""
+        return self._resolve_symbol(symbol)
+
     def _resolve_symbol(self, symbol: str) -> str:
         s = symbol.upper().strip()
-        if s in ('GOLD', 'XAU', 'XAUUSD', 'GC=F'):
+        # Commodities
+        if s in ('GOLD', 'XAU', 'XAUUSD', 'XAU/USD', 'GC=F'):
             return 'XAU/USD'
-        if s in ('SILVER', 'XAG', 'XAGUSD', 'SI=F'):
+        if s in ('SILVER', 'XAG', 'XAGUSD', 'XAG/USD', 'SI=F'):
             return 'XAG/USD'
-        if s in ('WTI', 'CL=F', 'OIL'):
+        if s in ('WTI', 'CL=F', 'OIL', 'CRUDE', 'OILWTI', 'OIL_WTI', 'WTI/USD'):
             return 'WTI/USD'
-        if s in ('BRENT', 'BZ=F'):
-            return 'BRENT/USD'
+        if s in ('BRENT', 'BZ=F', 'OILBRENT', 'OIL_BRENT', 'BRENT/USD'):
+            return 'BRENT'
+        if s in ('NATGAS', 'NG=F'):
+            return 'NATGAS'
+        if s in ('COPPER', 'HG=F'):
+            return 'COPPER'
+        if s in ('PLATINUM', 'PL=F'):
+            return 'PLATINUM'
+        # Indices
+        if s in ('SP500', 'SPX', '^GSPC', 'S&P 500'):
+            return 'SPX'
+        if s in ('NASDAQ', 'NASDAQ100', 'NDX', '^NDX'):
+            return 'NDX'
+        if s in ('DOW', 'DOWJONES', 'DJI', '^DJI'):
+            return 'DJI'
+        if s in ('VIX', '^VIX'):
+            return 'VIX'
+        if s in ('DXY', 'USDX', 'DX-Y.NYB'):
+            return 'DXY'
+        if s in ('RUT', '^RUT'):
+            return 'RUT'
+        if s in ('DAX', '^GDAXI'):
+            return 'DAX'
+        if s in ('FTSE', '^FTSE'):
+            return 'FTSE'
+        if s in ('NIKKEI', '^N225'):
+            return 'N225'
+        # Dotted US equities
+        if s in ('BRKB', 'BRK-B', 'BRK/B', 'BRK.B'):
+            return 'BRK.B'
+        if s in ('BFB', 'BF-B', 'BF/B', 'BF.B'):
+            return 'BF.B'
+        # Hong Kong local shares vs US ADRs
+        if s.endswith('.HK'):
+            return s[:-3]  # e.g., '0700.HK' -> '0700'
+        if s in ('BABA', 'TCEHY', 'XIACY', 'BYDDY', 'BIDU', 'JD'):
+            return s
+        if s.endswith('=X'):
+            s_pair = s[:-2]
+            if len(s_pair) == 6:
+                return f"{s_pair[:3]}/{s_pair[3:]}"
+            return s_pair
         if '/' in s:
             return s
         if s in FOREX_PAIRS:
@@ -624,6 +857,25 @@ class FredAdapter(BaseMarketAdapter):
         'CPI': 'CPIAUCSL',
         'UNRATE': 'UNRATE',
     }
+
+    def resolve_symbol(self, symbol: str) -> Optional[str]:
+        """Resolves user symbol or market symbol to FRED series ID."""
+        if not symbol:
+            return None
+        clean_sym = symbol.upper().strip().replace(' ', '')
+        series_id = self.FRED_SERIES_MAP.get(clean_sym)
+        if series_id:
+            return series_id
+        if clean_sym in self.FRED_SERIES_MAP.values():
+            return clean_sym
+        return None
+
+    def get_series_frequency(self, symbol: str) -> Optional[str]:
+        """Returns the update frequency ('daily' or 'monthly') of a FRED series."""
+        series_id = self.resolve_symbol(symbol)
+        if series_id:
+            return FRED_SERIES_FREQUENCY.get(series_id, 'daily')
+        return None
 
     def fetch_catalog(self) -> List[Dict[str, Any]]:
         return [s for s in WALLSTREET_MACRO_SYMBOLS if s.get('category') in ('bond', 'macro')]
