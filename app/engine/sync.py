@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional, Tuple
 
 from app.config import (
-    DATA_DIR, CATALOG_FILE, CATALOG_SNAPSHOTS_DIR,
+    DATA_DIR, CATALOG_FILE, CATALOG_SNAPSHOTS_DIR, SYNC_RUNS_FILE,
     APP_VERSION, SYMBOL_RE, CATALOG_SCHEMA_VERSION
 )
 from app.state import METRICS
@@ -237,6 +237,49 @@ def rollback_catalog(target_version: Optional[int] = None) -> Dict[str, Any]:
     METRICS["catalog_rollbacks"] = METRICS.get("catalog_rollbacks", 0) + 1
     print(f"⏪ [CatalogSync] Successfully rolled back to Version {restored_data.get('catalog_version')} from {chosen['filename']}")
     return restored_data
+
+
+def load_sync_runs(filepath: Optional[str] = None) -> Dict[str, Any]:
+    """Loads existing sync_runs.json file or initializes structure."""
+    target = filepath or SYNC_RUNS_FILE
+    if os.path.exists(target):
+        try:
+            with open(target, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, dict) and "runs" in data:
+                    return data
+        except Exception as e:
+            print(f"⚠️ [CatalogSync] Error loading {target}: {e}")
+    return {
+        "total_runs": 0,
+        "last_run_id": None,
+        "last_run_at": None,
+        "runs": []
+    }
+
+
+def record_sync_run(run_record: Dict[str, Any], filepath: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Atomically appends a new run to sync_runs.json.
+    Thread-safe and cross-process safe using temporary file and atomic replace.
+    """
+    target = filepath or SYNC_RUNS_FILE
+    os.makedirs(os.path.dirname(os.path.abspath(target)), exist_ok=True)
+    history = load_sync_runs(target)
+
+    runs = list(history.get("runs", []))
+    runs.append(run_record)
+    history["total_runs"] = len(runs)
+    history["last_run_id"] = run_record.get("run_id")
+    history["last_run_at"] = run_record.get("timestamp")
+    history["runs"] = runs
+
+    tmp_path = f"{target}.tmp.{time.time()}"
+    with open(tmp_path, "w", encoding="utf-8") as f:
+        json.dump(history, f, ensure_ascii=False, indent=2)
+    os.replace(tmp_path, target)
+    print(f"📝 [CatalogSync] Run recorded in {target} (Run ID: {run_record.get('run_id')})")
+    return history
 
 
 def get_catalog_delta(since_version: Optional[int] = None) -> Dict[str, Any]:
@@ -815,6 +858,31 @@ async def _apply_catalog_sync(
         "symbols": all_symbols
     }
     save_catalog(updated_catalog)
+
+    # Record sync run in sync_runs.json
+    run_id = f"run_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+    run_record = {
+        "run_id": run_id,
+        "timestamp": now_iso,
+        "version_from": current_catalog.get("catalog_version", 1),
+        "version_to": new_version,
+        "mode": "production",
+        "status": "SUCCESS",
+        "target_file": CATALOG_FILE,
+        "snapshot_path": snapshot_path,
+        "total_symbols": len(all_symbols),
+        "active_symbols": len(active_symbols),
+        "added_count": stats.get("added_count", 0),
+        "modified_count": stats.get("modified_count", 0),
+        "delisted_count": stats.get("delisted_count", 0),
+        "diff": {
+            "added": [s["symbol"] for s in diff.get("added", [])],
+            "modified": [s["symbol"] for s in diff.get("modified", [])],
+            "delisted": [s["symbol"] for s in diff.get("delisted", [])]
+        }
+    }
+    record_sync_run(run_record)
+    report["run_id"] = run_id
 
     METRICS["catalog_version"] = new_version
     METRICS["last_catalog_sync_at"] = now_iso

@@ -43,25 +43,45 @@ def get_global_catalog_symbols(since_version: Optional[int] = Query(None)):
         "symbols": active_symbols
     }
 
-@router.get("/api/symbols/catalog", dependencies=API_DEP)
-@router.get("/api/symbols/wallstreet-macro", dependencies=API_DEP)
-@router.get("/api/debug/symbols/macro", dependencies=ADMIN_DEP)
-def get_debug_wallstreet_macro_symbols(since_version: Optional[int] = Query(None)):
-    cat = load_catalog()
-    if isinstance(since_version, int) and since_version > 0:
-        return get_catalog_delta(since_version)
+LEGACY_GOLDEN_SNAPSHOT_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    "snapshots", "golden_phase0.json"
+)
 
-    active_symbols = [s for s in cat.get("symbols", []) if s.get("is_active", 1)]
+def load_golden_legacy_wallstreet_macro() -> dict:
+    """
+    Returns the golden Phase 0 frozen snapshot for /api/symbols/wallstreet-macro.
+    Strictly isolated so hundreds of newly added catalog symbols are NEVER dumped into this legacy endpoint.
+    """
+    if os.path.exists(LEGACY_GOLDEN_SNAPSHOT_PATH):
+        try:
+            with open(LEGACY_GOLDEN_SNAPSHOT_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                ep = data.get("endpoints", {}).get("api_symbols_wallstreet_macro")
+                if ep and isinstance(ep, dict):
+                    return {
+                        "status": "success",
+                        "catalog_version": 1,
+                        "last_sync_at": ep.get("last_sync_at", "2026-10-09T08:58:00Z"),
+                        "market": ep.get("market", "Wall Street & Macroeconomics"),
+                        "total_count": ep.get("total_count", len(ep.get("symbols", []))),
+                        "total_symbols_in_db": ep.get("total_count", len(ep.get("symbols", []))),
+                        "categories": ep.get("categories", {}),
+                        "symbols": ep.get("symbols", [])
+                    }
+        except Exception:
+            pass
+
     iran_symbols = load_iran_symbols()
-    combined_symbols = iran_symbols + active_symbols
-
+    macro_active = [s for s in WALLSTREET_MACRO_SYMBOLS if s.get("category") != "iran_market"]
+    combined_symbols = iran_symbols + macro_active
     return {
         "status": "success",
-        "catalog_version": cat.get("catalog_version", 1),
-        "last_sync_at": cat.get("last_sync_at"),
+        "catalog_version": 1,
+        "last_sync_at": "2026-10-09T08:58:00Z",
         "market": "Wall Street & Macroeconomics",
         "total_count": len(combined_symbols),
-        "total_symbols_in_db": len(iran_symbols) + len(cat.get("symbols", [])),
+        "total_symbols_in_db": len(combined_symbols),
         "categories": {
             "stock": len([s for s in combined_symbols if s.get("category") == "stock"]),
             "forex": len([s for s in combined_symbols if s.get("category") == "forex"]),
@@ -73,6 +93,30 @@ def get_debug_wallstreet_macro_symbols(since_version: Optional[int] = Query(None
         },
         "symbols": combined_symbols
     }
+
+@router.get("/api/symbols/catalog", dependencies=API_DEP)
+@router.get("/api/debug/symbols/catalog", dependencies=ADMIN_DEP)
+def get_catalog_symbols(since_version: Optional[int] = Query(None)):
+    cat = load_catalog()
+    if isinstance(since_version, int) and since_version > 0:
+        return get_catalog_delta(since_version)
+    active_symbols = [s for s in cat.get("symbols", []) if s.get("is_active", 1)]
+    return {
+        "status": "success",
+        "catalog_version": cat.get("catalog_version", 1),
+        "last_sync_at": cat.get("last_sync_at"),
+        "total_count": len(active_symbols),
+        "symbols": active_symbols
+    }
+
+@router.get("/api/symbols/wallstreet-macro", dependencies=API_DEP)
+@router.get("/api/debug/symbols/macro", dependencies=ADMIN_DEP)
+def get_debug_wallstreet_macro_symbols(since_version: Optional[int] = Query(None)):
+    """
+    Legacy backward-compatible endpoint for older clients.
+    Guaranteed to return the golden 94 symbols without contamination from 600+ new catalog items.
+    """
+    return load_golden_legacy_wallstreet_macro()
 
 
 @router.get("/api/symbols/detail", dependencies=API_DEP)

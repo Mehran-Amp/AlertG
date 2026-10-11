@@ -3,11 +3,12 @@ import re
 import json
 from typing import Dict, Any
 
-APP_VERSION = "3.4.0"
+APP_VERSION = "3.5.0"
 
 DATA_DIR = os.getenv("DATA_DIR", ".")
 CATALOG_FILE = os.path.join(DATA_DIR, "catalog.json") if DATA_DIR != "." else "catalog.json"
 CATALOG_SNAPSHOTS_DIR = os.path.join(DATA_DIR, "catalog_snapshots") if DATA_DIR != "." else "catalog_snapshots"
+SYNC_RUNS_FILE = os.path.join(DATA_DIR, "sync_runs.json") if DATA_DIR != "." else "sync_runs.json"
 # Bump when the catalog.json layout changes; load_catalog() refuses files written by a newer schema.
 CATALOG_SCHEMA_VERSION = 1
 
