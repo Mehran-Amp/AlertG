@@ -1,7 +1,10 @@
 import time
 import asyncio
 from typing import Optional, List, Dict, Any, Tuple
-import httpx
+try:
+    import httpx
+except ImportError:
+    httpx = None
 from app.config import (
     APP_VERSION, KILL_SWITCH_PROVIDERS, KILL_SWITCH_CATEGORIES, KILL_SWITCHES
 )

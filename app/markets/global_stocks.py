@@ -2,7 +2,10 @@ import time
 import random
 import asyncio
 from typing import Dict, Any, List, Optional, Tuple
-import httpx
+try:
+    import httpx
+except ImportError:
+    httpx = None
 
 from app.config import (
     APP_VERSION,
@@ -25,6 +28,10 @@ EXACT_YF_MAP: Dict[str, str] = {
     'US10Y': '^TNX',
     '^TNX': '^TNX',
     'TNX': '^TNX',
+    'US05Y': '^FVX',
+    'US5Y': '^FVX',
+    '^FVX': '^FVX',
+    'FVX': '^FVX',
     'US13W': '^IRX',
     '^IRX': '^IRX',
     'VIX': '^VIX',
@@ -171,6 +178,9 @@ SYMBOL_ALIASES: Dict[str, str] = {
     '^2YY': 'US02Y',
     'US13W': 'US13W',
     '^IRX': 'US13W',
+    'US05Y': 'US05Y',
+    'US5Y': 'US05Y',
+    '^FVX': 'US05Y',
     'US30Y': 'US30Y',
     '^TYX': 'US30Y',
     # Dotted share classes
@@ -208,6 +218,7 @@ SYMBOL_ALIASES: Dict[str, str] = {
 FRED_SERIES_FREQUENCY: Dict[str, str] = {
     'DGS10': 'daily',
     'DGS2': 'daily',
+    'DGS5': 'daily',
     'DTB3': 'daily',
     'DGS30': 'daily',
     'FEDFUNDS': 'daily',
@@ -846,6 +857,9 @@ class FredAdapter(BaseMarketAdapter):
         'US02Y': 'DGS2',
         'US2Y': 'DGS2',
         '^2YY': 'DGS2',
+        'US05Y': 'DGS5',
+        'US5Y': 'DGS5',
+        '^FVX': 'DGS5',
         'US13W': 'DTB3',
         '^IRX': 'DTB3',
         'US30Y': 'DGS30',
