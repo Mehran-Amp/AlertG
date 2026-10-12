@@ -348,7 +348,7 @@ class CatalogProbeRunner:
     async def probe_single_symbol(
         self,
         item: Dict[str, Any],
-        client: httpx.AsyncClient
+        client: Any = None
     ) -> Tuple[Dict[str, Any], bool, Optional[Dict[str, Any]]]:
         """
         Probes a single catalog item across relevant providers.
@@ -586,7 +586,7 @@ class CatalogProbeRunner:
 
         return result_record, False, None
 
-    async def probe_treasury_yields(self, client: httpx.AsyncClient) -> List[Dict[str, Any]]:
+    async def probe_treasury_yields(self, client: Any = None) -> List[Dict[str, Any]]:
         """
         Builds side-by-side Treasury Yields table (13W, 2Y [FRED-only], 5Y, 10Y, 30Y).
         Captures Yahoo and FRED values with timestamps.
