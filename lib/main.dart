@@ -45,6 +45,10 @@ void main() async {
   // Wire token rotation callback BEFORE initialization so any new token is synced immediately to server
   FCMNotificationService.onTokenChanged = (newToken) {
     debugPrint('🔄 [FCM] Token rotated: ...${newToken.length > 6 ? newToken.substring(newToken.length - 6) : newToken}. Syncing rules to server...');
+    BackgroundServiceManager.updatePriceSource(
+      isFromServer: true,
+      lang: settingsService.settings.language,
+    );
     ServerAlertService.syncAllRulesToServer(
       alertRuleRepository.allRules,
       userId: settingsService.settings.userEmail,
@@ -52,6 +56,12 @@ void main() async {
   };
 
   await FCMNotificationService.initialize(storageDirectoryPath: dir.path);
+
+  // Update initial price source state in persistent notification
+  BackgroundServiceManager.updatePriceSource(
+    isFromServer: FCMNotificationService.isRealFCMActive && ServerAlertService.isServerAvailable,
+    lang: settingsService.settings.language,
+  );
 
   // Sync all active alert rules to Python server for 24/7 background FCM monitoring
   ServerAlertService.syncAllRulesToServer(

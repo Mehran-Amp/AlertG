@@ -4,6 +4,7 @@ import '../../exchanges/registry/exchange_registry.dart';
 import '../../notifications/models/notification_log.dart';
 import '../../notifications/repositories/notification_repository.dart';
 import '../../notifications/services/notification_service.dart';
+import '../../notifications/background/background_service_manager.dart';
 import '../../settings/services/settings_service.dart';
 import '../models/alert_rule.dart';
 import '../repositories/json_alert_rule_repository.dart';
@@ -80,6 +81,7 @@ class SchedulerService {
     if (rule.preferServerProxy) {
       final serverPrice = await ServerAlertService.fetchPriceViaServer(rule.exchangeId, rule.pair.marketSymbol);
       if (serverPrice != null && serverPrice > 0) {
+        BackgroundServiceManager.updatePriceSource(isFromServer: true);
         final t = MarketTicker(
           exchangeId: rule.exchangeId,
           pair: rule.pair,
@@ -98,6 +100,7 @@ class SchedulerService {
       try {
         final localTicker = await exchange.fetchTicker(rule.pair).timeout(const Duration(seconds: 5));
         if (localTicker.lastPrice > 0) {
+          BackgroundServiceManager.updatePriceSource(isFromServer: false);
           _recentTickers[cacheKey] = (localTicker, now);
           return localTicker;
         }
@@ -110,6 +113,7 @@ class SchedulerService {
     if (!rule.preferServerProxy) {
       final serverPrice = await ServerAlertService.fetchPriceViaServer(rule.exchangeId, rule.pair.marketSymbol);
       if (serverPrice != null && serverPrice > 0) {
+        BackgroundServiceManager.updatePriceSource(isFromServer: true);
         final t = MarketTicker(
           exchangeId: rule.exchangeId,
           pair: rule.pair,

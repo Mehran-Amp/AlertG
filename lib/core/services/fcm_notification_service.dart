@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -6,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../features/notifications/services/notification_service.dart';
+import '../../features/notifications/background/background_service_manager.dart';
 import 'tts_service.dart';
 
 /// Stable Android notification id derived from the server alert id, so a
@@ -34,11 +36,20 @@ Future<void> _handleIncomingAlert(RemoteMessage message, {required bool inApp}) 
     return;
   }
 
-  final speechText = TtsService.buildAlertSpeech(
-    symbol: symbol.isNotEmpty ? symbol : 'Price Alert',
-    price: double.tryParse(priceStr) ?? 0.0,
-    customNote: note.isNotEmpty ? note : null,
-  );
+  // Update background service notification to reflect price arrival from cloud FCM
+  BackgroundServiceManager.updatePriceSource(isFromServer: true);
+
+  final double? parsedPrice = double.tryParse(priceStr);
+  final String speechText;
+  if (symbol.isNotEmpty && parsedPrice != null && parsedPrice > 0) {
+    speechText = TtsService.buildAlertSpeech(
+      symbol: symbol,
+      price: parsedPrice,
+      customNote: note.isNotEmpty ? note : null,
+    );
+  } else {
+    speechText = body.isNotEmpty ? body : (title.isNotEmpty ? title : 'هشدار قیمت دریافتی از سرور');
+  }
 
   final ns = NotificationService();
   // Banner first. Master toggles / volume / sound name are resolved once,
@@ -80,13 +91,29 @@ class FCMNotificationService {
   static String? _storageDir;
   static bool _firebaseInitialized = false;
   static bool _handlersRegistered = false;
+  static Timer? _retryTimer;
+  static int _retryAttempts = 0;
 
-  /// Called whenever Google rotates the token. Wire this to your alert sync so
+  /// Returns true if the token is a genuine Google FCM token
+  static bool isRealFCMToken(String? token) {
+    if (token == null || token.trim().isEmpty) return false;
+    final clean = token.trim();
+    if (clean.startsWith('dev_') || clean.startsWith('device_token_')) return false;
+    return clean.length >= 40;
+  }
+
+  /// Whether a verified Google FCM push token is actively available
+  static bool get isRealFCMActive => isRealFCMToken(_cachedToken);
+
+  /// Current cached token value (FCM or fallback)
+  static String? get currentToken => _cachedToken;
+
+  /// Called whenever Google rotates or discovers a new token. Wire this to your alert sync so
   /// the server never keeps pushing to a dead token.
   static void Function(String token)? onTokenChanged;
 
   /// [requestPermission] must be false in the foreground-service isolate
-  /// (no Activity there).
+  /// (no Activity there, and onBackgroundMessage cannot be called on background isolates).
   static Future<void> initialize({
     String? storageDirectoryPath,
     bool requestPermission = true,
@@ -111,9 +138,21 @@ class FCMNotificationService {
       _handlersRegistered = true;
       final fcm = FirebaseMessaging.instance;
 
-      // 1. Listeners FIRST: a pending permission dialog must never delay them.
       try {
-        FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+        await fcm.setAutoInitEnabled(true);
+      } catch (_) {}
+
+      // 1. Listeners FIRST:
+      // Note: onBackgroundMessage can ONLY be called on root isolate with an Activity!
+      if (requestPermission) {
+        try {
+          FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+        } catch (e) {
+          debugPrint('⚠️ FCM onBackgroundMessage registration note: $e');
+        }
+      }
+
+      try {
         FirebaseMessaging.onMessage.listen((m) async {
           try {
             await _handleIncomingAlert(m, inApp: true);
@@ -121,17 +160,20 @@ class FCMNotificationService {
             debugPrint('⚠️ [FCM Foreground] handler error: $e');
           }
         });
+
         fcm.onTokenRefresh.listen((t) {
+          final wasFallback = !isRealFCMToken(_cachedToken);
           _cachedToken = t;
           _saveTokenToDisk(t);
+          _stopBackgroundTokenRetry();
           onTokenChanged?.call(t);
-          debugPrint('🔄 FCM token refreshed');
+          debugPrint('🔄 FCM token refreshed / discovered: ...${t.length > 6 ? t.substring(t.length - 6) : t}');
         });
       } catch (e) {
         debugPrint('⚠️ FCM listener registration error: $e');
       }
 
-      // 2. Permission (UI isolate only), isolated from token retrieval.
+      // 2. Permission (UI isolate only)
       if (requestPermission) {
         try {
           await fcm.requestPermission(alert: true, badge: true, sound: true);
@@ -140,20 +182,26 @@ class FCMNotificationService {
         }
       }
 
-      // 3. Token.
+      // 3. Token
       try {
-        final token = await fcm.getToken().timeout(const Duration(seconds: 10));
+        final token = await fcm.getToken().timeout(const Duration(seconds: 8));
         if (token != null && token.isNotEmpty) {
+          final wasFallback = _cachedToken == null || !isRealFCMToken(_cachedToken);
           _cachedToken = token;
           await _saveTokenToDisk(token);
+          _stopBackgroundTokenRetry();
+          if (wasFallback) {
+            onTokenChanged?.call(token);
+          }
+          debugPrint('✅ FCM Token successfully resolved: ...${token.length > 6 ? token.substring(token.length - 6) : token}');
           return;
         }
       } catch (e) {
-        debugPrint('⚠️ Error retrieving FCM token: $e');
+        debugPrint('⚠️ Initial FCM token fetch failed, starting background retry: $e');
       }
     }
 
-    // Fallback: cached token or persistent device id.
+    // Fallback: cached token from disk or persistent device id
     if (_cachedToken == null) {
       final saved = await _loadTokenFromDisk();
       if (saved != null && saved.isNotEmpty) {
@@ -164,6 +212,41 @@ class FCMNotificationService {
         await _saveTokenToDisk(newId);
       }
     }
+
+    // If still on a fallback ID, keep retrying in the background until Google services respond!
+    if (!isRealFCMToken(_cachedToken) && _firebaseInitialized) {
+      _startBackgroundTokenRetry();
+    }
+  }
+
+  /// Active retry loop to fetch real FCM token when Google Play Services reconnects
+  static void _startBackgroundTokenRetry() {
+    if (_retryTimer != null && _retryTimer!.isActive) return;
+    _retryAttempts = 0;
+    _retryTimer = Timer.periodic(const Duration(seconds: 12), (timer) async {
+      _retryAttempts++;
+      if (_retryAttempts > 25) {
+        timer.cancel();
+        return;
+      }
+      try {
+        if (_firebaseInitialized) {
+          final token = await FirebaseMessaging.instance.getToken().timeout(const Duration(seconds: 6));
+          if (token != null && token.isNotEmpty && isRealFCMToken(token)) {
+            _cachedToken = token;
+            await _saveTokenToDisk(token);
+            timer.cancel();
+            onTokenChanged?.call(token);
+            debugPrint('🎯 [FCM Retry] Real token obtained after retry #$_retryAttempts: ...${token.substring(token.length - 6)}');
+          }
+        }
+      } catch (_) {}
+    });
+  }
+
+  static void _stopBackgroundTokenRetry() {
+    _retryTimer?.cancel();
+    _retryTimer = null;
   }
 
   static Future<void> _saveTokenToDisk(String token) async {
@@ -192,20 +275,26 @@ class FCMNotificationService {
     if (token.isNotEmpty) {
       _cachedToken = token.trim();
       await _saveTokenToDisk(_cachedToken!);
+      if (isRealFCMToken(_cachedToken)) {
+        _stopBackgroundTokenRetry();
+        onTokenChanged?.call(_cachedToken!);
+      }
     }
   }
 
   /// Current token (upgrades from `dev_` fallback to the real Google token).
   static Future<String> getFCMToken() async {
-    if (_cachedToken != null && _cachedToken!.isNotEmpty && !_cachedToken!.startsWith('dev_')) {
+    if (isRealFCMToken(_cachedToken)) {
       return _cachedToken!;
     }
     try {
       if (_firebaseInitialized) {
         final token = await FirebaseMessaging.instance.getToken().timeout(const Duration(seconds: 4));
-        if (token != null && token.isNotEmpty) {
+        if (token != null && token.isNotEmpty && isRealFCMToken(token)) {
           _cachedToken = token;
           await _saveTokenToDisk(token);
+          _stopBackgroundTokenRetry();
+          onTokenChanged?.call(token);
           return token;
         }
       }

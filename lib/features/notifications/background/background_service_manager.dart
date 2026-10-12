@@ -21,6 +21,19 @@ import '../../settings/services/settings_service.dart';
 class BackgroundServiceManager {
   static const String notificationChannelId = 'alarmer_foreground_service';
   static const int notificationId = 777;
+  static bool _lastPriceFromServer = false;
+
+  /// Updates foreground persistent notification text with current price source
+  static void updatePriceSource({required bool isFromServer, String? lang}) {
+    _lastPriceFromServer = isFromServer;
+    try {
+      final service = FlutterBackgroundService();
+      service.invoke('updatePriceSource', {
+        'source': isFromServer ? 'fcm' : 'local',
+        'lang': lang ?? 'fa',
+      });
+    } catch (_) {}
+  }
 
   static Future<void> initializeService() async {
     if (kIsWeb) return;
@@ -55,7 +68,7 @@ class BackgroundServiceManager {
           isForegroundMode: true,
           notificationChannelId: notificationChannelId,
           initialNotificationTitle: 'SignalAlert',
-          initialNotificationContent: 'سرویس پایش ۲۴/۷ بازار فعال است',
+          initialNotificationContent: 'سرویس پایش ۲۴/۷ بازار فعال است • منبع: پایش محلی دستگاه',
           foregroundServiceNotificationId: notificationId,
         ),
         iosConfiguration: IosConfiguration(
@@ -91,11 +104,31 @@ class BackgroundServiceManager {
         service.setAsBackgroundService();
       });
 
+      void setNotificationText(bool isServer, [String lang = 'fa']) {
+        final isFa = lang == 'fa' || lang == 'ar' || lang == 'ckb';
+        final sourceText = isServer
+            ? (isFa ? 'سرور ابری (FCM)' : 'Cloud Server (FCM)')
+            : (isFa ? 'پایش محلی دستگاه' : 'Local Device Engine');
+        final contentText = isFa
+            ? 'سرویس پایش ۲۴/۷ بازار فعال است • منبع: $sourceText'
+            : '24/7 Market Monitor Active • Source: $sourceText';
+        service.setForegroundNotificationInfo(
+          title: 'SignalAlert',
+          content: contentText,
+        );
+      }
+
+      service.on('updatePriceSource').listen((event) {
+        if (event != null) {
+          final isServer = event['source'] == 'fcm';
+          final lang = event['lang'] as String? ?? 'fa';
+          _lastPriceFromServer = isServer;
+          setNotificationText(isServer, lang);
+        }
+      });
+
       service.setAsForegroundService();
-      service.setForegroundNotificationInfo(
-        title: 'SignalAlert',
-        content: 'سرویس پایش ۲۴/۷ بازار فعال است',
-      );
+      setNotificationText(false, 'fa');
     }
 
     try {
@@ -149,6 +182,10 @@ class BackgroundServiceManager {
       Timer.periodic(const Duration(seconds: 10), (timer) async {
         try {
           await alertRuleRepository.load();
+          if (service is AndroidServiceInstance) {
+            final hasActiveServer = ServerAlertService.isServerAvailable && FCMNotificationService.isRealFCMActive;
+            setNotificationText(_lastPriceFromServer || hasActiveServer, settingsService.settings.language);
+          }
         } catch (_) {}
       });
     } catch (_) {}

@@ -2,7 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import '../../core/services/fcm_notification_service.dart';
 import '../../core/services/server_alert_service.dart';
+import '../settings/models/app_settings.dart';
+import '../settings/services/settings_service.dart';
 
 enum ServerConnectionStatus { checking, online, offline }
 
@@ -274,6 +278,10 @@ class _ServerStatusButtonState extends State<ServerStatusButton> {
         break;
     }
 
+    final isFa = lang == 'fa' || lang == 'ar' || lang == 'ckb';
+    final fcmLabel = isFa ? 'سرویس پوش ابری (FCM):' : 'Cloud Push (FCM):';
+    final telegramLabel = isFa ? 'ربات تلگرام (Telegram Bot):' : 'Telegram Bot:';
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -284,6 +292,28 @@ class _ServerStatusButtonState extends State<ServerStatusButton> {
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
+            AppSettings? settings;
+            try {
+              settings = context.read<SettingsService>().settings;
+            } catch (_) {}
+
+            final bool isTelegramConnected = settings?.isTelegramConnected ?? false;
+            final String tgChatId = settings?.telegramChatId ?? '';
+            final String tgDisplay = isTelegramConnected
+                ? (isFa ? 'متصل (Chat ID: $tgChatId)' : 'Connected ($tgChatId)')
+                : (isFa ? 'غیرفعال (تنظیم در تنظیمات)' : 'Not Connected');
+            final Color tgColor = isTelegramConnected ? Colors.green : Colors.grey;
+
+            final bool isFcmReal = FCMNotificationService.isRealFCMActive;
+            final String? fcmToken = FCMNotificationService.currentToken;
+            final String fcmSuffix = (fcmToken != null && fcmToken.length > 6) ? fcmToken.substring(fcmToken.length - 6) : '';
+            final String fcmDisplay = isFcmReal
+                ? (isFa ? 'متصل و فعال (...$fcmSuffix)' : 'Connected & Active (...$fcmSuffix)')
+                : ((fcmToken != null && fcmToken.startsWith('dev_'))
+                    ? (isFa ? 'شناسه محلی (در انتظار تایید گوگل)' : 'Local ID (Pending Google)')
+                    : (isFa ? 'در حال بررسی اتصال...' : 'Checking connection...'));
+            final Color fcmColor = isFcmReal ? Colors.green : ((fcmToken != null && fcmToken.startsWith('dev_')) ? Colors.orange : Colors.grey);
+
             return Padding(
               padding: EdgeInsets.only(
                 left: 20,
@@ -381,15 +411,31 @@ class _ServerStatusButtonState extends State<ServerStatusButton> {
                           value: _latencyMs != null ? '$_latencyMs ms' : '---',
                           icon: Icons.speed_rounded,
                         ),
-                        const Divider(height: 18),
+                        const Divider(height: 14),
                         _buildInfoRow(
                           theme: theme,
                           label: alertsLabel,
                           value: _getFormattedAlertCount(_activeServerAlerts, lang),
                           icon: Icons.notifications_active_rounded,
                         ),
+                        const Divider(height: 14),
+                        _buildInfoRow(
+                          theme: theme,
+                          label: fcmLabel,
+                          value: fcmDisplay,
+                          icon: isFcmReal ? Icons.cloud_done_rounded : Icons.cloud_sync_rounded,
+                          valueColor: fcmColor,
+                        ),
+                        const Divider(height: 14),
+                        _buildInfoRow(
+                          theme: theme,
+                          label: telegramLabel,
+                          value: tgDisplay,
+                          icon: Icons.send_rounded,
+                          valueColor: tgColor,
+                        ),
                         if (_lastError != null && _status == ServerConnectionStatus.offline) ...[
-                          const Divider(height: 18),
+                          const Divider(height: 14),
                           _buildInfoRow(
                             theme: theme,
                             label: reasonLabel,
@@ -400,6 +446,87 @@ class _ServerStatusButtonState extends State<ServerStatusButton> {
                       ],
                     ),
                   ),
+
+                  if (isFcmReal || isTelegramConnected) ...[
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        if (isFcmReal)
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () async {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(isFa ? '⏳ در حال ارسال پوش تست FCM از سرور...' : '⏳ Sending test FCM push...'),
+                                    duration: const Duration(seconds: 1),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                                final res = await ServerAlertService.sendTestPush();
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(res['success'] == true
+                                          ? (isFa ? '🎉 پوش تست با موفقیت توسط سرور FCM ارسال شد!' : '🎉 Test FCM push sent successfully!')
+                                          : (res['error'] ?? 'خطا در ارسال پوش تست')),
+                                      backgroundColor: res['success'] == true ? Colors.green : Colors.red,
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                }
+                              },
+                              icon: const Icon(Icons.cloud_upload_outlined, size: 16),
+                              label: Text(
+                                isFa ? 'تست پوش FCM' : 'Test FCM Push',
+                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                            ),
+                          ),
+                        if (isFcmReal && isTelegramConnected) const SizedBox(width: 8),
+                        if (isTelegramConnected)
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () async {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(isFa ? '⏳ در حال ارسال پیام تست به تلگرام...' : '⏳ Sending test alert to Telegram...'),
+                                    duration: const Duration(seconds: 1),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                                final res = await ServerAlertService.sendTelegramTestAlert(tgChatId);
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(res['success'] == true
+                                          ? (isFa ? '🎉 پیام تست با موفقیت به تلگرام شما ارسال شد!' : '🎉 Test alert sent to Telegram!')
+                                          : (res['error'] ?? 'خطا در ارسال پیام به تلگرام')),
+                                      backgroundColor: res['success'] == true ? Colors.green : Colors.red,
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                }
+                              },
+                              icon: const Icon(Icons.send_outlined, size: 16),
+                              label: Text(
+                                isFa ? 'تست ربات تلگرام' : 'Test Telegram',
+                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
 
                   const SizedBox(height: 14),
 
@@ -508,19 +635,28 @@ class _ServerStatusButtonState extends State<ServerStatusButton> {
     required String label,
     required String value,
     required IconData icon,
+    Color? valueColor,
   }) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: theme.colorScheme.primary),
+        Icon(icon, size: 18, color: valueColor ?? theme.colorScheme.primary),
         const SizedBox(width: 8),
         Text(
           label,
           style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurface.withValues(alpha: 0.7)),
         ),
-        const Spacer(),
-        Text(
-          value,
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: valueColor ?? theme.colorScheme.onSurface,
+            ),
+          ),
         ),
       ],
     );
