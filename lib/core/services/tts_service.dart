@@ -46,6 +46,11 @@ class TtsService {
     'DXY': _AssetVoiceInfo('Dollar Index', overrideUnit: 'points'),
     'DX-Y.NYB': _AssetVoiceInfo('Dollar Index', overrideUnit: 'points'),
     'USDX': _AssetVoiceInfo('Dollar Index', overrideUnit: 'points'),
+    'TOTAL': _AssetVoiceInfo('Crypto Total Market', overrideUnit: 'billion dollars'),
+    'TOTAL2': _AssetVoiceInfo('Crypto Total Market Excl BTC', overrideUnit: 'billion dollars'),
+    'TOTAL3': _AssetVoiceInfo('Crypto Total Market Excl BTC and ETH', overrideUnit: 'billion dollars'),
+    'BTC.D': _AssetVoiceInfo('Bitcoin Dominance', overrideUnit: 'percent'),
+    'BTCD': _AssetVoiceInfo('Bitcoin Dominance', overrideUnit: 'percent'),
 
     // Global Indices
     'SPX': _AssetVoiceInfo('S and P 500', overrideUnit: 'points'),

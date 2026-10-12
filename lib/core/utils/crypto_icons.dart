@@ -114,6 +114,12 @@ class CryptoIcons {
     '^IXIC': _AssetMeta('NASDAQ Composite', Color(0xFF00A3E0), '', customIcon: Icons.auto_graph_rounded, aliases: 'NASDAQ IXIC INDEX'),
     'DX-Y.NYB': _AssetMeta('US Dollar Index (DXY)', Color(0xFF059669), '', customIcon: Icons.attach_money_rounded, aliases: 'DXY DOLLAR_INDEX'),
     'DXY': _AssetMeta('US Dollar Index (DXY)', Color(0xFF059669), '', customIcon: Icons.attach_money_rounded, aliases: 'DX-Y.NYB DOLLAR_INDEX'),
+    'TOTAL': _AssetMeta('CRYPTO TOTAL MARKET', Color(0xFF2563EB), '', customIcon: Icons.pie_chart_rounded, aliases: 'TOTAL TOTAL_CAP CRYPTO_TOTAL'),
+    'TOTAL2': _AssetMeta('CRYPTO TOTAL EXCL BTC', Color(0xFF7C3AED), '', customIcon: Icons.pie_chart_rounded, aliases: 'TOTAL2 TOTAL_EXCL_BTC'),
+    'TOTAL3': _AssetMeta('CRYPTO TOTAL EXCL BTC & ETH', Color(0xFF059669), '', customIcon: Icons.pie_chart_rounded, aliases: 'TOTAL3'),
+    'BTC.D': _AssetMeta('Bitcoin Dominance Index', Color(0xFFF7931A), '', customIcon: Icons.percent_rounded, aliases: 'BTCD BTC.D DOMINANCE'),
+    'USDT.D': _AssetMeta('Tether Dominance Index', Color(0xFF26A17B), '', customIcon: Icons.percent_rounded, aliases: 'USDTD USDT.D'),
+    'OTHERS.D': _AssetMeta('Altcoin Dominance Index', Color(0xFF8B5CF6), '', customIcon: Icons.percent_rounded, aliases: 'OTHERS.D'),
   };
 
   /// Returns official human readable display name with alias indicator
