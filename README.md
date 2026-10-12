@@ -35,3 +35,15 @@ python3 scripts/compare_golden.py --verify-manifest docs/MD5_MANIFEST.txt   # ex
 md5sum -c docs/MD5_MANIFEST.txt
 ```
 `snapshots/golden_phase0.json` is never written by these tools.
+
+## Soak & load tests (safe by default)
+```bash
+# Both scripts run on a throw-away copy of the data dir: real alerts/profiles/outbox are never read or written.
+python3 scripts/load_test_worst_case.py --cycles 30            # mock
+python3 scripts/load_test_worst_case.py --cycles 30 --live     # real httpx client + real providers
+nohup python3 scripts/soak_test_48h.py --duration-hours 48 --server-pid $(cat server.pid) > soak_test.log 2>&1 &
+```
+- Live mode always uses a real `httpx.AsyncClient`; the mock is used only with `--mock` (or the load test's default).
+- `--server-pid` samples the real server's RSS; the soak's own RSS is reported separately and labelled as such.
+- The leak verdict is a growth slope (MB/hour, warm-up ignored) and is `INCONCLUSIVE` for runs shorter than 10 minutes.
+- Synthetic alerts use an unreachable target price (`--target-price` to override) so they never trigger or deactivate.
