@@ -375,8 +375,6 @@ WALLSTREET_MACRO_SYMBOLS = [
     {"id": "BRKB", "symbol": "BRK.B", "nameEn": "Berkshire Hathaway", "nameFa": "برکشایر هاتاوی (وارن بافت)", "category": "stock", "marketName": "NYSE", "unit": "$"},
     {"id": "TSLA", "symbol": "TSLA", "nameEn": "Tesla Inc.", "nameFa": "سهام تسلا (خودروهای برقی، هوش مصنوعی، ربات اپتیموس و انرژی ایلان ماسک)", "category": "stock", "marketName": "NASDAQ", "unit": "$"},
     {"id": "SPACEX", "symbol": "SPACEX", "nameEn": "SpaceX (Starship & Space Exploration)", "nameFa": "اسپیس‌ایکس (فناوری‌های فضایی، استارشیپ و ماموریت‌های مریخ ایلان ماسک)", "category": "stock", "marketName": "Pre-IPO Benchmark", "unit": "$"},
-    {"id": "STARLINK", "symbol": "STARLINK", "nameEn": "Starlink (SpaceX Satellite Constellation)", "nameFa": "استارلینک (شبکه اینترنت ماهواره‌ای جهانی ایلان ماسک)", "category": "stock", "marketName": "Pre-IPO Benchmark", "unit": "$"},
-    {"id": "XAI", "symbol": "XAI", "nameEn": "xAI (Grok AI & Colossus)", "nameFa": "شرکت هوش مصنوعی xAI (خالق Grok و سوپرکامپیوتر کلوسوس ایلان ماسک)", "category": "stock", "marketName": "Pre-IPO Benchmark", "unit": "$"},
     {"id": "X_CORP", "symbol": "X_CORP", "nameEn": "X Corp (Twitter - Everything App)", "nameFa": "ایکس / توییتر سابق (شبکه اجتماعی جهانی و اپلیکیشن همه‌کاره ایلان ماسک)", "category": "stock", "marketName": "Pre-IPO Benchmark", "unit": "$"},
     {"id": "NEURALINK", "symbol": "NEURALINK", "nameEn": "Neuralink (Brain-Computer Interface)", "nameFa": "نورالینک (تراشه رابط مغز و رایانه و تله‌پاتی ایلان ماسک)", "category": "stock", "marketName": "Pre-IPO Benchmark", "unit": "$"},
     {"id": "BORING", "symbol": "BORING", "nameEn": "The Boring Company (Hyperloop & Tunneling)", "nameFa": "بورینگ کمپانی (تونل‌های زیرزمینی حمل‌ونقل سریع هایپرلوپ ایلان ماسک)", "category": "stock", "marketName": "Pre-IPO Benchmark", "unit": "$"},
@@ -930,10 +928,6 @@ class FredAdapter(BaseMarketAdapter):
         return _extract
 
     async def fetch_quote(self, symbol: str, client: httpx.AsyncClient) -> Optional[Dict[str, Any]]:
-        active_key = self.api_key or os.getenv("FRED_API_KEY", "").strip()
-        if not active_key:
-            return None
-
         clean_sym = symbol.upper().strip().replace(' ', '')
         series_id = self.FRED_SERIES_MAP.get(clean_sym)
         if not series_id:
@@ -942,136 +936,74 @@ class FredAdapter(BaseMarketAdapter):
             else:
                 return None
 
-        url = f"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}&api_key={active_key}&file_type=json&sort_order=desc&limit=1"
-        parsed, _ = await self._execute_http(url, self._make_extractor(series_id), client)
-        return parsed
+        active_key = self.api_key or os.getenv("FRED_API_KEY", "").strip()
+        if active_key and active_key != 'demo_fred':
+            url = f"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}&api_key={active_key}&file_type=json&sort_order=desc&limit=1"
+            parsed, _ = await self._execute_http(url, self._make_extractor(series_id), client)
+            if parsed:
+                return parsed
+
+        # Fallback to FRED CSV public endpoint (requires no API key)
+        csv_url = f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={series_id}"
+        try:
+            resp = await client.get(csv_url, timeout=10.0)
+            if resp.status_code == 200:
+                lines = resp.text.splitlines()
+                for line in reversed(lines):
+                    if not line or line.startswith('DATE'):
+                        continue
+                    parts = line.split(',')
+                    if len(parts) >= 2:
+                        date_str, val_str = parts[0].strip(), parts[1].strip()
+                        if val_str and val_str != '.' and val_str.lower() != 'nan':
+                            val = float(val_str)
+                            return {
+                                'price': val,
+                                'asOf': int(time.time()),
+                                'date': date_str,
+                                'state': 'LIVE',
+                                'currency': '%' if series_id.startswith(('DGS', 'DTB')) or series_id in ('FEDFUNDS', 'UNRATE') else 'pts',
+                                'source': 'FRED'
+                            }
+        except Exception:
+            pass
+        return None
 
 
-# ===================================================================
-# 5. PROVIDER INSTANCES & FALLBACK CHAIN CONFIGURATION
-# ===================================================================
 yahoo_adapter = YahooFinanceAdapter()
 finnhub_adapter = FinnhubAdapter(api_key=FINNHUB_API_KEY)
 twelve_data_adapter = TwelveDataAdapter(api_key=TWELVE_DATA_API_KEY)
 fred_adapter = FredAdapter(api_key=FRED_API_KEY)
 
-ALL_GLOBAL_ADAPTERS: Dict[str, BaseMarketAdapter] = {
-    'yahoo': yahoo_adapter,
-    'finnhub': finnhub_adapter,
-    'twelvedata': twelve_data_adapter,
-    'fred': fred_adapter,
-}
+async def fetch_global_stocks(client: httpx.AsyncClient, exchange: str, symbol: str, try_fetch_func, traces: list, collect_all_traces: bool = False) -> Optional[float]:
+    try:
+        from app.engine.categories import resolve_symbol_category
+        category = resolve_symbol_category(exchange, symbol)
+    except Exception:
+        category = 'stock'
+    adapters = [yahoo_adapter]
+    if category in ('stock', 'forex'):
+        adapters.append(finnhub_adapter)
+        adapters.append(twelve_data_adapter)
+    elif category in ('index', 'commodity'):
+        adapters.append(twelve_data_adapter)
+    elif category in ('bond', 'macro'):
+        adapters.append(fred_adapter)
+        adapters.append(yahoo_adapter)
+    else:
+        adapters.extend([finnhub_adapter, twelve_data_adapter, fred_adapter])
 
-def resolve_symbol_category(symbol: str) -> str:
-    """Classifies a symbol into stock, forex, index, commodity, bond, or macro."""
-    s = symbol.upper().strip()
-    s_clean = s.replace('/', '').replace(' ', '')
-    if s_clean in FOREX_PAIRS or '/' in s:
-        return 'forex'
-    if s in ('GOLD', 'SILVER', 'BRENT', 'WTI', 'OIL', 'NATGAS', 'COPPER', 'PLATINUM', 'GC=F', 'SI=F', 'CL=F', 'BZ=F', 'NG=F', 'HG=F', 'PL=F'):
-        return 'commodity'
-    if s.startswith('^') or s in ('SP500', 'SPX', 'NDX', 'NASDAQ', 'DJI', 'DOW', 'RUT', 'DAX', 'FTSE', 'NIKKEI', 'VIX', 'DXY'):
-        return 'index'
-    if s in ('US10Y', 'US02Y', 'US2Y', '^2YY', 'US13W', 'US30Y', '^TNX', '^IRX', '^TYX', 'FEDFUNDS', 'CPI', 'UNRATE'):
-        return 'macro'
-
-    for item in WALLSTREET_MACRO_SYMBOLS:
-        if item['symbol'].upper() == s or item['id'].upper() == s:
-            return item.get('category', 'stock')
-
-    return 'stock'
-
-
-def get_fallback_chain(symbol: str) -> List[BaseMarketAdapter]:
-    """
-    Returns ordered fallback chain based on Phase 0 baseline architecture:
-    - Stocks / Forex: Yahoo -> Finnhub -> Twelve Data
-    - Indices / Commodities: Yahoo -> Twelve Data
-    - Macro / Bonds: FRED -> Yahoo -> Twelve Data
-    """
-    cat = resolve_symbol_category(symbol)
-    if cat in ('macro', 'bond'):
-        return [fred_adapter, yahoo_adapter, twelve_data_adapter]
-    elif cat in ('index', 'commodity'):
-        return [yahoo_adapter, twelve_data_adapter]
-    else:  # stock or forex
-        return [yahoo_adapter, finnhub_adapter, twelve_data_adapter]
-
-
-# ===================================================================
-# 6. MAIN DISPATCHER: fetch_global_stocks
-# ===================================================================
-async def fetch_global_stocks(
-    client: httpx.AsyncClient,
-    exchange: str,
-    symbol: str,
-    _try_fetch,
-    traces: List[Dict[str, Any]],
-    collect_all_traces: bool
-) -> Optional[float]:
-    """
-    Multi-provider global stocks, macro, forex, index, and commodity dispatcher.
-    Executes resilient Fallback Chain (Yahoo -> Finnhub -> Twelve Data -> FRED)
-    Preserves exact meta keys (price, asOf, state, currency, source) and closed market guards.
-    """
-    yf_symbol = resolve_yf_symbol(symbol)
-    cat = resolve_symbol_category(symbol)
-
-    # 1. Macro with FRED (if FRED_API_KEY is configured and symbol is mapped)
-    if (cat in ('macro', 'bond') or symbol in fred_adapter.FRED_SERIES_MAP) and fred_adapter.api_key:
-        fred_series = fred_adapter.FRED_SERIES_MAP.get(symbol) or fred_adapter.FRED_SERIES_MAP.get(yf_symbol)
-        if fred_series:
-            fred_url = f"https://api.stlouisfed.org/fred/series/observations?series_id={fred_series}&api_key={fred_adapter.api_key}&file_type=json&sort_order=desc&limit=1"
-            p_fred = await _try_fetch('FRED API', fred_url, fred_adapter._make_extractor(fred_series))
-            if p_fred and not collect_all_traces:
-                return p_fred
-
-    # 2Y yield is FRED-only (DGS2): never fall through to Yahoo (^IRX is the 13-week bill)
-    if symbol.upper().strip() in FRED_ONLY_SYMBOLS:
-        return None
-
-    # 2. Yahoo Finance: query1
-    url1 = f'https://query1.finance.yahoo.com/v8/finance/chart/{yf_symbol}?interval=1m&range=1d'
-    p = await _try_fetch('Yahoo Finance API (query1)', url1, yahoo_adapter._extract_yf)
-    if p and not collect_all_traces:
-        return p
-
-    # Rule: If query1 returned 404, STOP immediately. Do NOT retry query2 or other providers on 404.
-    last_status = traces[-1].get('status_code', 0) if traces else 0
-    if last_status == 404:
-        return None
-
-    # 3. Yahoo Finance: query2 secondary fallback (on 429, 5xx, or network failure)
-    url2 = f'https://query2.finance.yahoo.com/v8/finance/chart/{yf_symbol}?interval=1m&range=1d'
-    p2 = await _try_fetch('Yahoo Finance API (query2)', url2, yahoo_adapter._extract_yf)
-    if p2 and not collect_all_traces:
-        return p2
-
-    # 4. Secondary Fallbacks (Finnhub, Twelve Data) when Yahoo fails (e.g. 429, 5xx, timeout)
-    if cat in ('stock', 'forex'):
-        # Fallback to Finnhub
-        if finnhub_adapter.api_key:
-            fh_sym = finnhub_adapter._resolve_symbol(symbol)
-            fh_url = f"https://finnhub.io/api/v1/quote?symbol={fh_sym}&token={finnhub_adapter.api_key}"
-            p_fh = await _try_fetch('Finnhub API', fh_url, finnhub_adapter._extract_finnhub)
-            if p_fh and not collect_all_traces:
-                return p_fh
-
-        # Fallback to Twelve Data
-        if twelve_data_adapter.api_key:
-            td_sym = twelve_data_adapter._resolve_symbol(symbol)
-            td_url = f"https://api.twelvedata.com/quote?symbol={td_sym}&apikey={twelve_data_adapter.api_key}"
-            p_td = await _try_fetch('Twelve Data API', td_url, twelve_data_adapter._extract_td)
-            if p_td and not collect_all_traces:
-                return p_td
-
-    elif cat in ('index', 'commodity'):
-        # Fallback to Twelve Data
-        if twelve_data_adapter.api_key:
-            td_sym = twelve_data_adapter._resolve_symbol(symbol)
-            td_url = f"https://api.twelvedata.com/quote?symbol={td_sym}&apikey={twelve_data_adapter.api_key}"
-            p_td = await _try_fetch('Twelve Data API', td_url, twelve_data_adapter._extract_td)
-            if p_td and not collect_all_traces:
-                return p_td
-
+    for adapter in adapters:
+        try:
+            q = await adapter.fetch_quote(symbol, client)
+            if q and q.get('price') is not None:
+                price = float(q['price'])
+                source = q.get('source', adapter.name)
+                if traces is not None:
+                    traces.append({'provider': source, 'price': price, 'status': 'ok'})
+                if not collect_all_traces:
+                    return price
+        except Exception as e:
+            if traces is not None:
+                traces.append({'provider': adapter.name, 'error': str(e), 'status': 'error'})
     return None

@@ -947,7 +947,7 @@
       "nameEn": "DAX 40 Germany",
       "nameFa": "DAX 40 Germany",
       "category": "index",
-      "marketName": "Deutsche B\u00f6rse",
+      "marketName": "Deutsche Börse",
       "unit": "EUR",
       "is_active": 1,
       "delisted_at": null,
@@ -2971,8 +2971,8 @@
     {
       "id": "BF.B",
       "symbol": "BF.B",
-      "nameEn": "Brown\u2013Forman",
-      "nameFa": "Brown\u2013Forman",
+      "nameEn": "Brown–Forman",
+      "nameFa": "Brown–Forman",
       "category": "stock",
       "marketName": "NYSE",
       "unit": "USD",
@@ -5446,8 +5446,8 @@
     {
       "id": "EL",
       "symbol": "EL",
-      "nameEn": "Est\u00e9e Lauder Companies (The)",
-      "nameFa": "Est\u00e9e Lauder Companies (The)",
+      "nameEn": "Estée Lauder Companies (The)",
+      "nameFa": "Estée Lauder Companies (The)",
       "category": "stock",
       "marketName": "NASDAQ",
       "unit": "USD",
@@ -13643,5 +13643,7 @@
         }
       }
     }
-  ]
+  ],
+  "total_symbols": 551,
+  "total_active": 551
 }

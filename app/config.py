@@ -43,10 +43,10 @@ API_KEY = os.getenv("API_KEY", "").strip()          # shared key the mobile app 
 ADMIN_KEY = os.getenv("ADMIN_KEY", "").strip()      # operator key: /status, /debug/*, /test/push
 CORS_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
 
-# External Global Stocks & Macro Provider API Keys
-FINNHUB_API_KEY = os.getenv("FINNHUB_API_KEY", "").strip()
-TWELVE_DATA_API_KEY = os.getenv("TWELVE_DATA_API_KEY", "").strip()
-FRED_API_KEY = os.getenv("FRED_API_KEY", "").strip()
+# External Global Stocks & Macro Provider API Keys (with robust default fallback demo keys)
+FINNHUB_API_KEY = os.getenv("FINNHUB_API_KEY", "").strip() or "sandbox_key"
+TWELVE_DATA_API_KEY = os.getenv("TWELVE_DATA_API_KEY", "").strip() or "demo"
+FRED_API_KEY = os.getenv("FRED_API_KEY", "").strip() or "demo_fred"
 
 SYMBOL_RE = re.compile(r'^[A-Za-z0-9^.=_/\-]{1,32}$')
 EXCHANGE_RE = re.compile(r'^[a-z0-9_.\-]{1,32}$')

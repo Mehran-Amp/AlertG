@@ -243,30 +243,6 @@
       "added_at": "2026-10-09T10:54:02.360842+00:00"
     },
     {
-      "id": "STARLINK",
-      "symbol": "STARLINK",
-      "nameEn": "Starlink (SpaceX Satellite Constellation)",
-      "nameFa": "استارلینک (شبکه اینترنت ماهواره‌ای جهانی ایلان ماسک)",
-      "category": "stock",
-      "marketName": "Pre-IPO Benchmark",
-      "unit": "$",
-      "is_active": 1,
-      "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
-    },
-    {
-      "id": "XAI",
-      "symbol": "XAI",
-      "nameEn": "xAI (Grok AI & Colossus)",
-      "nameFa": "شرکت هوش مصنوعی xAI (خالق Grok و سوپرکامپیوتر کلوسوس ایلان ماسک)",
-      "category": "stock",
-      "marketName": "Pre-IPO Benchmark",
-      "unit": "$",
-      "is_active": 1,
-      "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
-    },
-    {
       "id": "X_CORP",
       "symbol": "X_CORP",
       "nameEn": "X Corp (Twitter - Everything App)",
@@ -13634,5 +13610,7 @@
         }
       }
     }
-  ]
+  ],
+  "total_symbols": 581,
+  "total_active": 581
 }

@@ -50,10 +50,11 @@ from app.config import (
     TWELVE_DATA_API_KEY,
     FRED_API_KEY,
 )
+from app.engine.categories import resolve_symbol_category
 from app.markets.global_stocks import (
     resolve_yf_symbol,
     resolve_symbol_alias,
-    resolve_symbol_category,
+    # resolve_symbol_category moved
     yahoo_adapter,
     finnhub_adapter,
     twelve_data_adapter,
@@ -162,17 +163,19 @@ def load_catalog(catalog_path: str) -> List[Dict[str, Any]]:
 def is_tier_major(item: Dict[str, Any]) -> bool:
     """Determines whether a symbol is major tier."""
     t = str(item.get('tier', '')).strip().lower()
-    if t in ('1', 'major'):
+    if t in ('1', 'major', 'true'):
+        return True
+    if item.get('is_major') or item.get('isMajor'):
         return True
     market_name = str(item.get('marketName', '')).lower()
-    if 'major' in market_name:
+    if 'major' in market_name or 'treasury' in market_name or 'forex' in market_name:
         return True
+    sym = (item.get('symbol') or item.get('id') or '').upper().replace('/', '').replace('.', '').replace('-', '')
     cat = str(item.get('category', '')).lower()
-    sym = (item.get('symbol') or item.get('id') or '').upper().replace('/', '')
-    if sym in FOREX_PAIRS:
+    if cat in ('bond', 'macro') or sym in FOREX_PAIRS:
         return True
-    major_equities = {'AAPL', 'MSFT', 'NVDA', 'GOOGL', 'AMZN', 'META', 'TSLA', 'BRK.B', 'SP500', 'GOLD', 'OIL'}
-    if sym in major_equities or item.get('id', '').upper() in major_equities:
+    major_equities = {'AAPL', 'MSFT', 'NVDA', 'GOOGL', 'AMZN', 'META', 'TSLA', 'BRKB', 'BRKB', 'SP500', 'GOLD', 'OIL', 'EURUSD', 'GBPUSD', 'USDJPY', 'US10Y', 'US02Y', 'US30Y'}
+    if sym in major_equities or item.get('id', '').upper().replace('.', '').replace('-', '') in major_equities:
         return True
     return False
 
@@ -464,7 +467,7 @@ class CatalogProbeRunner:
             # 2. Secondary Providers (Twelve Data / Finnhub)
             if probe_secondary and not is_fred_only:
                 # Finnhub
-                if category in ('stock', 'forex') and FINNHUB_API_KEY:
+                if category in ('stock', 'forex'):
                     try:
                         await acquire_provider_slot('finnhub', wait=True)
                         t0 = time.time()
@@ -488,7 +491,7 @@ class CatalogProbeRunner:
                         attempts.append({'provider': 'finnhub', 'status': 'error', 'error': str(e)})
 
                 # Twelve Data
-                if category in ('stock', 'forex', 'index', 'commodity') and TWELVE_DATA_API_KEY:
+                if category in ('stock', 'forex', 'index', 'commodity'):
                     try:
                         await acquire_provider_slot('twelvedata', wait=True)
                         t0 = time.time()
@@ -512,7 +515,7 @@ class CatalogProbeRunner:
                         attempts.append({'provider': 'twelvedata', 'status': 'error', 'error': str(e)})
 
             # 3. FRED for Macro and Treasury Yields
-            if (category in ('bond', 'macro') or clean_sym in fred_adapter.FRED_SERIES_MAP) and FRED_API_KEY:
+            if (category in ('bond', 'macro') or clean_sym in fred_adapter.FRED_SERIES_MAP):
                 try:
                     await acquire_provider_slot('fred', wait=True)
                     t0 = time.time()
@@ -563,7 +566,7 @@ class CatalogProbeRunner:
             'provider': primary_quote.get('provider'),
             'successful_providers': successful_providers,
             'single_source': is_single_source if is_ok else None,
-            'latency_ms': primary_quote.get('latency_ms', 0.0),
+            'latency_ms': primary_quote.get('latency_ms') if is_ok and primary_quote.get('latency_ms') is not None else None,
             'as_of': primary_quote.get('as_of'),
             'state': primary_quote.get('state', 'unknown'),
             'attempts_count': len(attempts),
