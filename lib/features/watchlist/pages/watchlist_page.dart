@@ -544,11 +544,16 @@ class _WatchlistPageState extends State<WatchlistPage> {
                       },
                       onSwipeDelete: () => _onRuleDismissed(rule, repository),
                       onRearm: () => repository.rearmRule(rule.uuid),
-                      onDuplicate: () {
-                        final copy = rule.copyWith(
-                          uuid: DateTime.now().millisecondsSinceEpoch.toString(),
-                        );
-                        repository.saveRule(copy);
+                      onDuplicate: () async {
+                        final duplicated = await repository.duplicateRule(rule.uuid);
+                        if (duplicated != null && mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(AppStrings.get('alert_rule_duplicated', lang)),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        }
                       },
                       onEdit: () => _openEditFlow(rule),
                       onExport: () {},

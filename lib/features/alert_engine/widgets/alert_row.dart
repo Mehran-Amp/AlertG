@@ -180,7 +180,7 @@ class AlertRow extends StatelessWidget {
                   children: [
                     // Coin / Asset High-Res Logo
                     CryptoIcons.buildLogo(rule.baseCurrency, size: 36),
-                    const SizedBox(width: AppTokens.space10),
+                    const SizedBox(width: 10.0),
 
                     // Left Column: Symbol & Full English Name
                     Expanded(
@@ -258,7 +258,7 @@ class AlertRow extends StatelessWidget {
                   ],
                 ),
 
-                const SizedBox(height: AppTokens.space10),
+                const SizedBox(height: 10.0),
 
                 // ==============================================================
                 // 2. TARGET CONDITION & PROXIMITY PROGRESS BAR
