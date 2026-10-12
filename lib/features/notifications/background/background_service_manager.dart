@@ -18,6 +18,7 @@ import '../../settings/services/settings_service.dart';
 /// Configures Android 14+ Foreground Service
 /// using a persistent background task to keep market monitoring alive 24/7
 /// even when the app UI is closed by the user.
+@pragma('vm:entry-point')
 class BackgroundServiceManager {
   static const String notificationChannelId = 'alarmer_foreground_service';
   static const int notificationId = 777;

@@ -181,12 +181,15 @@ class _AssetSearchFieldState extends State<AssetSearchField> {
           const SizedBox(height: AppTokens.space12),
           Container(
             constraints: const BoxConstraints(maxHeight: 260),
-            decoration: BoxDecoration(
+            child: Material(
               color: AppTokens.surface,
               borderRadius: AppTokens.borderMedium,
-              border: Border.all(color: AppTokens.borderSubtle),
-            ),
-            child: ListView.separated(
+              shape: const RoundedRectangleBorder(
+                borderRadius: AppTokens.borderMedium,
+                side: BorderSide(color: AppTokens.borderSubtle),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: ListView.separated(
               shrinkWrap: true,
               itemCount: _results.length,
               separatorBuilder: (_, __) => const Divider(height: 1, color: AppTokens.borderSubtle),
@@ -223,6 +226,7 @@ class _AssetSearchFieldState extends State<AssetSearchField> {
               },
             ),
           ),
+        ),
         ],
       ],
     );

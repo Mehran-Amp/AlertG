@@ -162,6 +162,10 @@ class TestPhase8ApplyCatalog(unittest.TestCase):
         # Initial production file
         prod_mtime_before = os.path.getmtime(self.test_catalog_file)
 
+        # Initialize staging test file from initial_data baseline
+        with open(self.test_staging_file, "w", encoding="utf-8") as sf:
+            json.dump(self.initial_data, sf, indent=2)
+
         candidates = [dict(s) for s in self.initial_data["symbols"]]
         candidates.append({
             "id": "NVDA",

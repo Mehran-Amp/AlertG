@@ -2918,16 +2918,18 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
         ),
         const SizedBox(height: 8),
 
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
+        Material(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(14),
+          shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: theme.dividerColor),
+            side: BorderSide(color: theme.dividerColor),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
               // 3.1 Custom Note / Message TextField
               TextField(
                 controller: _customNoteController,
@@ -3055,75 +3057,79 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
               const SizedBox(height: 10),
 
               // 3.4 Text-to-Speech (TTS) Voice Announcer
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: theme.scaffoldBackgroundColor.withValues(alpha: 0.5),
+              Material(
+                color: theme.scaffoldBackgroundColor.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(12),
+                shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
+                  side: BorderSide(
                     color: _ttsEnabled
                         ? theme.colorScheme.primary.withValues(alpha: 0.4)
                         : theme.colorScheme.onSurface.withValues(alpha: 0.08),
                   ),
                 ),
-                child: Column(
-                  children: [
-                    SwitchListTile(
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                      secondary: Icon(
-                        Icons.record_voice_over_rounded,
-                        color: _ttsEnabled ? theme.colorScheme.primary : theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                        size: 22,
-                      ),
-                      title: Text(
-                        AppStrings.get('tts_voice_title', lang),
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.onSurface,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Column(
+                    children: [
+                      SwitchListTile(
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        secondary: Icon(
+                          Icons.record_voice_over_rounded,
+                          color: _ttsEnabled ? theme.colorScheme.primary : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                          size: 22,
                         ),
-                      ),
-                      subtitle: Text(
-                        AppStrings.get('tts_voice_desc', lang),
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                        ),
-                      ),
-                      value: _ttsEnabled,
-                      activeThumbColor: Colors.white,
-                      activeTrackColor: theme.colorScheme.primary,
-                      inactiveThumbColor: Colors.grey.shade400,
-                      inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
-                      onChanged: (val) => setState(() => _ttsEnabled = val),
-                    ),
-                    if (_ttsEnabled) ...[
-                      const SizedBox(height: 6),
-                      Align(
-                        alignment: (lang == 'fa' || lang == 'ar' || lang == 'ckb')
-                            ? Alignment.centerLeft
-                            : Alignment.centerRight,
-                        child: OutlinedButton.icon(
-                          onPressed: () => TtsService.instance.testVoice(),
-                          icon: const Icon(Icons.volume_up_rounded, size: 14),
-                          label: Text(
-                            AppStrings.get('tts_test_button', lang),
-                            style: const TextStyle(fontSize: 11),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            visualDensity: VisualDensity.compact,
+                        title: Text(
+                          AppStrings.get('tts_voice_title', lang),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurface,
                           ),
                         ),
+                        subtitle: Text(
+                          AppStrings.get('tts_voice_desc', lang),
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                          ),
+                        ),
+                        value: _ttsEnabled,
+                        activeThumbColor: Colors.white,
+                        activeTrackColor: theme.colorScheme.primary,
+                        inactiveThumbColor: Colors.grey.shade400,
+                        inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
+                        onChanged: (val) => setState(() => _ttsEnabled = val),
                       ),
+                      if (_ttsEnabled) ...[
+                        const SizedBox(height: 6),
+                        Align(
+                          alignment: (lang == 'fa' || lang == 'ar' || lang == 'ckb')
+                              ? Alignment.centerLeft
+                              : Alignment.centerRight,
+                          child: OutlinedButton.icon(
+                            onPressed: () => TtsService.instance.testVoice(),
+                            icon: const Icon(Icons.volume_up_rounded, size: 14),
+                            label: Text(
+                              AppStrings.get('tts_test_button', lang),
+                              style: const TextStyle(fontSize: 11),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ],
           ),
         ),
+      ),
 
         const SizedBox(height: 24),
 

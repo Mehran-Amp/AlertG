@@ -542,16 +542,18 @@ class _SettingsPageState extends State<SettingsPage> {
           _buildSectionHeader(isFa ? '۳. تنظیمات صدای آلارم و زنگ هشدار' : '3. Alarm Sound & Ringtone', theme),
           const SizedBox(height: AppTokens.space8),
 
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: AppTokens.space16, vertical: AppTokens.space12),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
+          Material(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(14),
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: theme.dividerColor),
+              side: BorderSide(color: theme.dividerColor),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppTokens.space16, vertical: AppTokens.space12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 // 1. Current Selected Sound Tile
                 Builder(builder: (context) {
                   final currentPreset = SoundManager.presets.firstWhere(
@@ -812,6 +814,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ],
             ),
           ),
+        ),
           const SizedBox(height: AppTokens.space20),
 
           // Section 4: Themes & Colors (بخش تم‌ها)
