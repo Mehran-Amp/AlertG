@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/services/google_auth_service.dart';
@@ -13,7 +15,6 @@ import '../../exchanges/registry/exchange_registry.dart';
 import '../../settings/services/settings_service.dart';
 import '../../widgets/alert_home_widget.dart';
 import '../../widgets/server_status_button.dart';
-import '../../alert_engine/widgets/alert_row.dart';
 import 'create_alert_flow.dart';
 
 /// The Main Screen of Alarmer: Personal Price Alerts.
@@ -537,29 +538,7 @@ class _WatchlistPageState extends State<WatchlistPage> {
                   return Padding(
                     key: ValueKey(rule.uuid),
                     padding: const EdgeInsets.only(bottom: AppTokens.space12),
-                    child: AlertRow(
-                      rule: rule,
-                      onToggle: (isActive) {
-                        repository.saveRule(rule.copyWith(isActive: isActive));
-                      },
-                      onSwipeDelete: () => _onRuleDismissed(rule, repository),
-                      onRearm: () => repository.rearmRule(rule.uuid),
-                      onDuplicate: () async {
-                        final duplicated = await repository.duplicateRule(rule.uuid);
-                        if (duplicated != null && mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(AppStrings.get('alert_rule_duplicated', lang)),
-                              duration: const Duration(seconds: 2),
-                            ),
-                          );
-                        }
-                      },
-                      onEdit: () => _openEditFlow(rule),
-                      onExport: () {},
-                      onManualCheck: () => _manualCheck(rule, scheduler, lang),
-                      isChecking: _checkingRuleUuids.contains(rule.uuid),
-                    ),
+                    child: _buildAlertCard(rule, repository, scheduler, lang),
                   );
                 },
               );
@@ -666,17 +645,78 @@ class _WatchlistPageState extends State<WatchlistPage> {
 
     return Dismissible(
       key: Key(rule.uuid),
-      direction: DismissDirection.endToStart,
+      direction: DismissDirection.horizontal,
+      // Swipe Right (Start to End) -> Toggle Active / Inactive
       background: Container(
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.only(left: AppTokens.space20),
+        decoration: BoxDecoration(
+          color: rule.isActive ? const Color(0xFFF59E0B) : const Color(0xFF10B981),
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              rule.isActive ? Icons.pause_circle_filled_rounded : Icons.play_circle_filled_rounded,
+              color: Colors.white,
+              size: 26,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              rule.isActive
+                  ? (lang == 'fa' ? 'غیرفعال‌سازی' : 'Deactivate')
+                  : (lang == 'fa' ? 'فعال‌سازی' : 'Activate'),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      ),
+      // Swipe Left (End to Start) -> Delete Alert
+      secondaryBackground: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: AppTokens.space20),
         decoration: BoxDecoration(
           color: AppTokens.negative,
           borderRadius: BorderRadius.circular(18),
         ),
-        child: const Icon(Icons.delete_sweep_rounded, color: Colors.white, size: 26),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Text(
+              lang == 'fa' ? 'حذف آلارم' : 'Delete',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(Icons.delete_sweep_rounded, color: Colors.white, size: 26),
+          ],
+        ),
       ),
-      onDismissed: (_) => _onRuleDismissed(rule, repository),
+      confirmDismiss: (direction) async {
+        if (direction == DismissDirection.startToEnd) {
+          HapticFeedback.mediumImpact();
+          repository.saveRule(rule.copyWith(isActive: !rule.isActive));
+          return false; // Snap back smoothly to reflect toggled state
+        } else if (direction == DismissDirection.endToStart) {
+          HapticFeedback.heavyImpact();
+          return true; // Dismiss and trigger delete
+        }
+        return false;
+      },
+      onDismissed: (direction) {
+        if (direction == DismissDirection.endToStart) {
+          _onRuleDismissed(rule, repository);
+        }
+      },
       child: Material(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(18),
@@ -686,7 +726,7 @@ class _WatchlistPageState extends State<WatchlistPage> {
           child: Directionality(
             textDirection: TextDirection.ltr,
             child: SizedBox(
-              height: 184,
+              height: 168,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 decoration: BoxDecoration(
@@ -727,8 +767,9 @@ class _WatchlistPageState extends State<WatchlistPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // === ROW 1: Hero Asset + Dedicated Wide Title & Exchange + Switch ===
+                        // === ROW 1: Hero Asset + Symbol & Full Name on Left | Price & Percent on Right ===
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Container(
                               padding: const EdgeInsets.all(2),
@@ -739,7 +780,7 @@ class _WatchlistPageState extends State<WatchlistPage> {
                                   width: 1.2,
                                 ),
                               ),
-                              child: CryptoIcons.buildLogo(rule.baseCurrency, size: 32),
+                              child: CryptoIcons.buildLogo(rule.baseCurrency, size: 34),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
@@ -754,7 +795,7 @@ class _WatchlistPageState extends State<WatchlistPage> {
                                           rule.pair.displayName,
                                           style: TextStyle(
                                             fontWeight: FontWeight.w800,
-                                            fontSize: 14,
+                                            fontSize: 14.5,
                                             color: rule.isActive ? theme.colorScheme.onSurface : textMuted,
                                           ),
                                           maxLines: 1,
@@ -768,163 +809,96 @@ class _WatchlistPageState extends State<WatchlistPage> {
                                     ],
                                   ),
                                   const SizedBox(height: 2),
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                                        decoration: BoxDecoration(
-                                          color: theme.colorScheme.surfaceContainerHighest,
-                                          borderRadius: BorderRadius.circular(4),
-                                        ),
-                                        child: Text(
-                                          _getExchangeDisplayName(rule.exchangeId, cardLang).toUpperCase(),
-                                          maxLines: 1,
-                                          softWrap: false,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            fontSize: 8.5,
-                                            fontWeight: FontWeight.bold,
-                                            color: rule.isActive ? theme.colorScheme.primary : textMuted,
-                                            letterSpacing: 0.3,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 5),
-                                      Flexible(
-                                        child: Text(
-                                          rule.marketSymbol.isNotEmpty ? rule.marketSymbol : rule.baseCurrency,
-                                          style: TextStyle(
-                                            fontSize: 9.5,
-                                            fontFamily: 'monospace',
-                                            fontWeight: FontWeight.w600,
-                                            color: textMuted,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
+                                  // Full English Name (No Exchange Badge!)
+                                  Text(
+                                    _resolveFullEnglishName(rule.baseCurrency),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w500,
+                                      color: rule.isActive
+                                          ? theme.colorScheme.onSurface.withValues(alpha: 0.6)
+                                          : textMuted.withValues(alpha: 0.6),
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 6),
-                            Transform.scale(
-                              scale: 0.78,
-                              child: isTriggeredOneShot
-                                  ? IconButton(
-                                      icon: const Icon(Icons.replay_rounded, color: AppTokens.warning),
-                                      onPressed: () => repository.rearmRule(rule.uuid),
-                                    )
-                                  : Switch(
-                                      value: rule.isActive,
-                                      activeThumbColor: Colors.white,
-                                      activeTrackColor: theme.colorScheme.primary,
-                                      onChanged: (val) => repository.saveRule(rule.copyWith(isActive: val)),
-                                    ),
-                            ),
-                          ],
-                        ),
-
-                        // === ROW 2: Price Metrics Bar (Live Price & 24h Change Badge) ===
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
+                            const SizedBox(width: 8),
+                            // Price in front of symbol, and percentage badge directly UNDER price!
                             Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.end,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                SizedBox(
-                                  height: 12,
-                                  child: showPrevious
-                                      ? FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          alignment: Alignment.centerLeft,
-                                          child: Text(
-                                            FormatUtils.formatPrice(prevPrice, currencySymbol: rule.counterCurrency, lang: cardLang),
-                                            maxLines: 1,
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w600,
-                                              fontFamily: 'monospace',
-                                              decoration: TextDecoration.lineThrough,
-                                              color: textMuted,
-                                            ),
-                                          ),
-                                        )
-                                      : const SizedBox.shrink(),
-                                ),
-                                FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    displayPrice != null
-                                        ? FormatUtils.formatPrice(displayPrice, currencySymbol: rule.counterCurrency, lang: cardLang)
-                                        : '---',
-                                    maxLines: 1,
-                                    style: TextStyle(
-                                      fontSize: 19,
-                                      fontWeight: FontWeight.w900,
-                                      fontFamily: 'monospace',
-                                      letterSpacing: -0.2,
-                                      color: rule.isActive
-                                          ? (changePercent != null && changePercent > 0.005
-                                              ? theme.colorScheme.primary
-                                              : (changePercent != null && changePercent < -0.005
-                                                  ? AppTokens.negative
-                                                  : theme.colorScheme.onSurface))
-                                          : textMuted,
+                                if (showPrevious)
+                                  SizedBox(
+                                    height: 11,
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.centerRight,
+                                      child: Text(
+                                        FormatUtils.formatPrice(prevPrice, currencySymbol: rule.counterCurrency, lang: cardLang),
+                                        maxLines: 1,
+                                        style: TextStyle(
+                                          fontSize: 9.5,
+                                          fontWeight: FontWeight.w600,
+                                          fontFamily: 'monospace',
+                                          decoration: TextDecoration.lineThrough,
+                                          color: textMuted,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
+                                _buildPriceWidget(rule, displayPrice, theme, lang, textMuted),
+                                const SizedBox(height: 2.5),
+                                if (isTriggeredOneShot)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1.5),
+                                    decoration: BoxDecoration(
+                                      color: AppTokens.warning.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(5),
+                                      border: Border.all(color: AppTokens.warning.withValues(alpha: 0.3)),
+                                    ),
+                                    child: const Text(
+                                      '✅ Done',
+                                      maxLines: 1,
+                                      style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppTokens.warning),
+                                    ),
+                                  )
+                                else if (changePercent != null)
+                                  Builder(builder: (context) {
+                                    final cp = changePercent!;
+                                    final isZero = cp.abs() < 0.005;
+                                    final isPositive = cp > 0.005;
+                                    final badgeColor = isZero ? textMuted : (isPositive ? AppTokens.positive : AppTokens.negative);
+                                    final badgeBg = isZero
+                                        ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.6)
+                                        : badgeColor.withValues(alpha: 0.12);
+                                    final prefix = isZero ? '• ' : (isPositive ? '▲ +' : '▼ ');
+
+                                    return Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                                      decoration: BoxDecoration(
+                                        color: badgeBg,
+                                        borderRadius: BorderRadius.circular(5),
+                                      ),
+                                      child: Text(
+                                        '$prefix${cp.abs().toStringAsFixed(2)}%',
+                                        maxLines: 1,
+                                        style: TextStyle(
+                                          fontSize: 9.5,
+                                          fontWeight: FontWeight.bold,
+                                          fontFamily: 'monospace',
+                                          color: badgeColor,
+                                        ),
+                                      ),
+                                    );
+                                  })
+                                else
+                                  const SizedBox(height: 14),
                               ],
                             ),
-                            if (isTriggeredOneShot)
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: AppTokens.warning.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(color: AppTokens.warning.withValues(alpha: 0.3)),
-                                ),
-                                child: const Text(
-                                  '✅ Done',
-                                  maxLines: 1,
-                                  style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppTokens.warning),
-                                ),
-                              )
-                            else if (changePercent != null)
-                              Builder(builder: (context) {
-                                final cp = changePercent!;
-                                final isZero = cp.abs() < 0.005;
-                                final isPositive = cp > 0.005;
-                                final badgeColor = isZero ? textMuted : (isPositive ? AppTokens.positive : AppTokens.negative);
-                                final badgeBg = isZero
-                                    ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.6)
-                                    : badgeColor.withValues(alpha: 0.12);
-                                final prefix = isZero ? '• ' : (isPositive ? '▲ +' : '▼ ');
-
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: badgeBg,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    '$prefix${cp.abs().toStringAsFixed(2)}%',
-                                    maxLines: 1,
-                                    style: TextStyle(
-                                      fontSize: 9.5,
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: 'monospace',
-                                      color: badgeColor,
-                                    ),
-                                  ),
-                                );
-                              })
-                            else
-                              const SizedBox(height: 16),
                           ],
                         ),
 
@@ -1043,6 +1017,11 @@ class _WatchlistPageState extends State<WatchlistPage> {
                                 padding: const EdgeInsets.only(left: 3),
                                 child: Icon(Icons.volume_up_rounded, size: 11.5, color: theme.colorScheme.onSurface.withValues(alpha: 0.55)),
                               ),
+                            if (rule.vibrationEnabled)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 3),
+                                child: Icon(Icons.vibration_rounded, size: 11.5, color: theme.colorScheme.onSurface.withValues(alpha: 0.55)),
+                              ),
                             const Spacer(),
                             Row(
                               mainAxisSize: MainAxisSize.min,
@@ -1110,6 +1089,106 @@ class _WatchlistPageState extends State<WatchlistPage> {
         ),
       ),
     );
+  }
+
+  /// Builds prominent live price with compact font size for Toman / IRT unit
+  Widget _buildPriceWidget(
+    AlertRule rule,
+    double? displayPrice,
+    ThemeData theme,
+    String lang,
+    Color textMuted,
+  ) {
+    if (displayPrice == null) {
+      return Text(
+        '---',
+        style: TextStyle(
+          fontSize: 19,
+          fontWeight: FontWeight.w900,
+          fontFamily: 'monospace',
+          letterSpacing: -0.2,
+          color: textMuted,
+        ),
+      );
+    }
+
+    final counter = rule.counterCurrency.trim();
+    final upper = counter.toUpperCase();
+    final isToman = upper == 'TMN' || upper == 'IRT' || upper == 'TOMAN' || counter == 'تومان' || counter == 'ت';
+    final isRial = upper == 'IRR' || upper == 'RLS' || counter == 'ریال';
+
+    if (isToman || isRial) {
+      final numStr = displayPrice >= 1000
+          ? NumberFormat('#,###', 'en_US').format(displayPrice)
+          : (displayPrice == displayPrice.roundToDouble()
+              ? displayPrice.toInt().toString()
+              : displayPrice.toStringAsFixed(2));
+      final displayNum = (lang == 'fa') ? FormatUtils.toPersianDigits(numStr) : numStr;
+      final displayUnit = FormatUtils.resolveCurrencyDisplayName(counter, lang: lang);
+
+      return RichText(
+        textAlign: TextAlign.end,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        text: TextSpan(
+          children: [
+            TextSpan(
+              text: displayNum,
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                fontSize: 19, // Large prominent price number
+                fontFamily: 'monospace',
+                letterSpacing: -0.2,
+                color: rule.isActive ? theme.colorScheme.onSurface : textMuted,
+              ),
+            ),
+            const TextSpan(text: ' '),
+            TextSpan(
+              text: displayUnit,
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 10, // Small unit font size for Toman / IRT only!
+                color: rule.isActive ? theme.colorScheme.primary : textMuted,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final scaled = FormatUtils.formatScaledCurrencyPrice(displayPrice, counter);
+    final formatted = scaled ?? FormatUtils.formatPrice(displayPrice, currencySymbol: counter, lang: lang);
+
+    return Text(
+      formatted,
+      textAlign: TextAlign.end,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(
+        fontSize: 19, // Large prominent price!
+        fontWeight: FontWeight.w900,
+        fontFamily: 'monospace',
+        letterSpacing: -0.2,
+        color: rule.isActive ? theme.colorScheme.onSurface : textMuted,
+      ),
+    );
+  }
+
+  /// Resolves full English asset name for cryptocurrencies, totals and macro indices
+  String _resolveFullEnglishName(String baseCurrency) {
+    final clean = baseCurrency.toUpperCase().trim();
+    if (clean == 'TOTAL') return 'CRYPTO TOTAL MARKET';
+    if (clean == 'TOTAL2') return 'CRYPTO TOTAL EXCL BTC';
+    if (clean == 'TOTAL3') return 'CRYPTO TOTAL EXCL BTC & ETH';
+    if (clean == 'BTC.D' || clean == 'BTCD') return 'Bitcoin Dominance';
+    if (clean == 'USDT.D') return 'Tether Dominance';
+    if (clean == 'OTHERS.D') return 'Altcoin Dominance';
+
+    final name = CryptoIcons.getName(clean);
+    if (name.isNotEmpty && name != clean) {
+      return name;
+    }
+    return clean;
   }
 
   Widget _buildEmptyState(String lang, ThemeData theme) {
