@@ -2,6 +2,8 @@ import os
 import re
 from typing import Set, Dict, Any, Optional
 
+import app.config  # Ensures .env configurations are automatically loaded
+
 def get_beta_users() -> Set[str]:
     """Returns set of registered beta testers from environment variable BETA_USER_IDS."""
     raw = os.getenv("BETA_USER_IDS", "").strip()
