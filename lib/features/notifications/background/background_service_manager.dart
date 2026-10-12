@@ -95,16 +95,8 @@ class BackgroundServiceManager {
   static void onBackgroundServiceStart(ServiceInstance service) async {
     DartPluginRegistrant.ensureInitialized();
 
-    if (service is AndroidServiceInstance) {
-      service.on('setAsForeground').listen((event) {
-        service.setAsForegroundService();
-      });
-
-      service.on('setAsBackground').listen((event) {
-        service.setAsBackgroundService();
-      });
-
-      void setNotificationText(bool isServer, [String lang = 'fa']) {
+    void setNotificationText(bool isServer, [String lang = 'fa']) {
+      if (service is AndroidServiceInstance) {
         final isFa = lang == 'fa' || lang == 'ar' || lang == 'ckb';
         final sourceText = isServer
             ? (isFa ? 'سرور ابری (FCM)' : 'Cloud Server (FCM)')
@@ -117,6 +109,16 @@ class BackgroundServiceManager {
           content: contentText,
         );
       }
+    }
+
+    if (service is AndroidServiceInstance) {
+      service.on('setAsForeground').listen((event) {
+        service.setAsForegroundService();
+      });
+
+      service.on('setAsBackground').listen((event) {
+        service.setAsBackgroundService();
+      });
 
       service.on('updatePriceSource').listen((event) {
         if (event != null) {
