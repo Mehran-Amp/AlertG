@@ -33,13 +33,31 @@ ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
-from app.models import Alert
-from app.state import METRICS, PRICE_CACHE, OUTLIER_STREAK, FAILED_SYMBOLS
-from app.storage import ALERTS_DB
-from app.engine.sync import load_catalog
-from app.engine.checker import check_alerts_job, PRICE_FETCH_CONCURRENCY
-from app.markets.limiter import get_all_providers_status, record_provider_metric
-import app.state as state
+SCRIPTS_DIR = os.path.dirname(os.path.abspath(__file__))
+if SCRIPTS_DIR not in sys.path:
+    sys.path.insert(0, SCRIPTS_DIR)
+
+from _soak_common import (
+    isolate_data_dir, require_isolated_data_dir, build_live_http_client, UNREACHABLE_TARGET_PRICE,
+)
+
+# app.* is imported lazily by _load_app(): main() runs isolate_data_dir() first, so the load test can never read
+# or write the real alerts_data.json / user_profiles.json / fcm_outbox.json.
+Alert = METRICS = PRICE_CACHE = OUTLIER_STREAK = FAILED_SYMBOLS = ALERTS_DB = None
+load_catalog = check_alerts_job = PRICE_FETCH_CONCURRENCY = state = None
+
+
+def _load_app() -> None:
+    global Alert, METRICS, PRICE_CACHE, OUTLIER_STREAK, FAILED_SYMBOLS, ALERTS_DB
+    global load_catalog, check_alerts_job, PRICE_FETCH_CONCURRENCY, state
+    from app.models import Alert as _Alert
+    from app.state import METRICS as _M, PRICE_CACHE as _PC, OUTLIER_STREAK as _OS, FAILED_SYMBOLS as _FS
+    from app.storage import ALERTS_DB as _DB
+    from app.engine.sync import load_catalog as _lc
+    from app.engine.checker import check_alerts_job as _check, PRICE_FETCH_CONCURRENCY as _conc
+    import app.state as _state
+    Alert, METRICS, PRICE_CACHE, OUTLIER_STREAK, FAILED_SYMBOLS, ALERTS_DB = _Alert, _M, _PC, _OS, _FS, _DB
+    load_catalog, check_alerts_job, PRICE_FETCH_CONCURRENCY, state = _lc, _check, _conc, _state
 
 try:
     import psutil
@@ -74,7 +92,15 @@ class MockHttpxClient:
         return MockResponse()
 
 
-async def run_worst_case_load_test(cycles: int = 15, use_mock: bool = True, export_path: str = None) -> Dict[str, Any]:
+def make_client(use_mock: bool):
+    """Mock only when explicitly requested; otherwise always a real httpx client (never a silent fallback)."""
+    return MockHttpxClient(simulate_latency_ms=10.0) if use_mock else build_live_http_client()
+
+
+async def run_worst_case_load_test(cycles: int = 15, use_mock: bool = True, export_path: str = None,
+                                   target_price: float = UNREACHABLE_TARGET_PRICE) -> Dict[str, Any]:
+    require_isolated_data_dir()
+    _load_app()
     print("=" * 75)
     print("🚀 SignalAlert Worst-Case Concurrency & Load Test Engine v3.6.0")
     print(f"Mode: {'🧪 SIMULATED MOCK' if use_mock else '🌐 LIVE NETWORK'}")
@@ -103,7 +129,7 @@ async def run_worst_case_load_test(cycles: int = 15, use_mock: bool = True, expo
             user_id="load_test_user",
             exchange=exchange,
             symbol=sym_id,
-            target_price=100.0,
+            target_price=target_price,  # unreachable by default: alerts never trigger, so every cycle evaluates all of them
             condition="ABOVE",
             is_active=True,
             check_interval_seconds=1,  # Forces evaluation on every single cycle
@@ -116,8 +142,10 @@ async def run_worst_case_load_test(cycles: int = 15, use_mock: bool = True, expo
 
     # 3. Setup client
     original_client = state.http_client
-    if use_mock or state.http_client is None:
-        state.http_client = MockHttpxClient(simulate_latency_ms=10.0)
+    # Mock ONLY when requested; live mode always uses a real httpx client (no silent "client is None" fallback).
+    load_client = make_client(use_mock)
+    state.http_client = load_client
+    print(f"🔌 HTTP client in use: {type(load_client).__name__}")
 
     # Memory before test
     mem_start_mb = get_process_memory_mb()
@@ -179,11 +207,14 @@ async def run_worst_case_load_test(cycles: int = 15, use_mock: bool = True, expo
     # Clean up state
     state.http_client = original_client
     ALERTS_DB.clear()
+    if not use_mock:
+        await load_client.aclose()
 
     report = {
         "status": "SUCCESS",
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "test_mode": "mock" if use_mock else "live",
+        "http_client": type(load_client).__name__,
         "concurrency_limit": PRICE_FETCH_CONCURRENCY,
         "total_symbols": len(symbols),
         "total_active_alerts": len(symbols),
@@ -236,12 +267,18 @@ def main():
     parser.add_argument("--cycles", type=int, default=15, help="Number of check cycles to run (default: 15)")
     parser.add_argument("--live", action="store_true", help="Execute against live network instead of mock")
     parser.add_argument("--export", type=str, default="reports/load_test_worst_case_report.json", help="Path to export JSON report")
+    parser.add_argument("--target-price", type=float, default=UNREACHABLE_TARGET_PRICE,
+                        help="ABOVE target of the synthetic alerts (default: unreachable, so they never trigger/deactivate)")
     args = parser.parse_args()
+
+    data_dir = isolate_data_dir(ROOT_DIR)  # MUST run before any app.* import
+    print(f"🛡️ Isolated data dir: {data_dir} (real alerts/profiles/outbox are not touched)")
 
     asyncio.run(run_worst_case_load_test(
         cycles=args.cycles,
         use_mock=not args.live,
-        export_path=args.export
+        export_path=args.export,
+        target_price=args.target_price
     ))
 
 

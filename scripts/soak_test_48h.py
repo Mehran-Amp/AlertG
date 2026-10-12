@@ -23,8 +23,8 @@ Usage:
   # Quick verification mode (e.g. 1 minute):
   python3 scripts/soak_test_48h.py --duration-hours 0.02 --mock
 
-  # Background execution:
-  nohup python3 scripts/soak_test_48h.py --duration-hours 48.0 > soak_test.log 2>&1 &
+  # Background execution, also measuring the real server process memory:
+  nohup python3 scripts/soak_test_48h.py --duration-hours 48.0 --server-pid $(cat server.pid) > soak_test.log 2>&1 &
 """
 
 import os
@@ -41,13 +41,30 @@ ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
-from app.models import Alert
-from app.state import METRICS, PRICE_CACHE, OUTLIER_STREAK, FAILED_SYMBOLS
-from app.storage import ALERTS_DB
-from app.engine.sync import load_catalog
-from app.engine.checker import check_alerts_job, PRICE_FETCH_CONCURRENCY
-from app.markets.limiter import get_all_providers_status
-import app.state as state
+SCRIPTS_DIR = os.path.dirname(os.path.abspath(__file__))
+if SCRIPTS_DIR not in sys.path:
+    sys.path.insert(0, SCRIPTS_DIR)
+
+from _soak_common import (
+    isolate_data_dir, require_isolated_data_dir, build_live_http_client, sample_pid_memory_mb,
+    compute_memory_slope_mb_per_hour, memory_verdict, UNREACHABLE_TARGET_PRICE,
+)
+
+# app.* is imported lazily by _load_app(): main() runs isolate_data_dir() first, so the soak can never read or
+# write the real alerts_data.json / user_profiles.json / fcm_outbox.json.
+Alert = METRICS = ALERTS_DB = load_catalog = check_alerts_job = PRICE_FETCH_CONCURRENCY = state = None
+
+
+def _load_app() -> None:
+    global Alert, METRICS, ALERTS_DB, load_catalog, check_alerts_job, PRICE_FETCH_CONCURRENCY, state
+    from app.models import Alert as _Alert
+    from app.state import METRICS as _METRICS
+    from app.storage import ALERTS_DB as _ALERTS_DB
+    from app.engine.sync import load_catalog as _load_catalog
+    from app.engine.checker import check_alerts_job as _check, PRICE_FETCH_CONCURRENCY as _conc
+    import app.state as _state
+    Alert, METRICS, ALERTS_DB, load_catalog = _Alert, _METRICS, _ALERTS_DB, _load_catalog
+    check_alerts_job, PRICE_FETCH_CONCURRENCY, state = _check, _conc, _state
 
 try:
     import psutil
@@ -90,6 +107,11 @@ def handle_interrupt(sig, frame):
     _STOP_REQUESTED = True
 
 
+def make_client(use_mock: bool):
+    """Mock only when explicitly requested; otherwise always a real httpx client (never a silent fallback)."""
+    return SoakMockClient() if use_mock else build_live_http_client()
+
+
 async def run_soak_test(
     duration_hours: float = 48.0,
     cycle_interval_seconds: float = 2.0,
@@ -98,9 +120,15 @@ async def run_soak_test(
     max_cycles: Optional[int] = None,
     total_target_seconds: Optional[float] = None,
     report_file: str = "reports/soak_test_48h_report.json",
-    checkpoint_file: str = "reports/soak_test_checkpoint.json"
+    checkpoint_file: str = "reports/soak_test_checkpoint.json",
+    target_price: float = UNREACHABLE_TARGET_PRICE,
+    server_pid: Optional[int] = None,
+    leak_threshold_mb_per_hour: float = 0.5,
+    sample_interval_seconds: Optional[float] = None
 ) -> Dict[str, Any]:
     global _STOP_REQUESTED
+    require_isolated_data_dir()
+    _load_app()
     signal.signal(signal.SIGINT, handle_interrupt)
     signal.signal(signal.SIGTERM, handle_interrupt)
 
@@ -121,7 +149,9 @@ async def run_soak_test(
         print(f"Target Cycles         : {max_cycles} cycles")
     print(f"Target Duration       : {duration_hours:.4f} hours ({total_target_seconds:.1f} seconds)")
     print(f"Cycle Interval        : {cycle_interval_seconds:.1f} s | Concurrency Limit: {PRICE_FETCH_CONCURRENCY}")
-    print(f"Network Mode          : {'🧪 MOCK SIMULATION' if use_mock else '🌐 LIVE PROVIDERS'}")
+    print(f"Network Mode          : {'🧪 MOCK SIMULATION' if use_mock else '🌐 LIVE PROVIDERS (real httpx client)'}")
+    if server_pid:
+        print(f"Server PID monitored  : {server_pid}")
     print(f"Heartbeat Cadence     : Every {print_every} cycle(s)")
     print(f"Report Output         : {report_file}")
     print("=" * 78)
@@ -142,7 +172,7 @@ async def run_soak_test(
             user_id="soak_test_runner",
             exchange=exchange,
             symbol=sym_id,
-            target_price=200.0,
+            target_price=target_price,
             condition="ABOVE",
             is_active=True,
             check_interval_seconds=int(cycle_interval_seconds),
@@ -152,16 +182,26 @@ async def run_soak_test(
         ALERTS_DB.append(alert)
 
     original_client = state.http_client
-    if use_mock or state.http_client is None:
-        state.http_client = SoakMockClient()
+    # Mock ONLY when explicitly requested. Live mode always gets a real client (the old
+    # "or state.http_client is None" fallback silently mocked every standalone run).
+    soak_client = make_client(use_mock)
+    state.http_client = soak_client
+    print(f"🔌 HTTP client in use  : {type(soak_client).__name__}")
+
+    if sample_interval_seconds is None:
+        sample_interval_seconds = max(1.0, min(60.0, total_target_seconds / 30.0))
+    warmup_seconds = min(600.0, total_target_seconds * 0.1)
+    server_mem_initial = sample_pid_memory_mb(server_pid) if server_pid else None  # fail fast on bad pid
 
     start_time = time.time()
+    last_sample_time = start_time
     last_checkpoint_time = start_time
     mem_initial_mb = get_process_memory_mb()
     mem_peak_mb = mem_initial_mb
 
     cycle_durations: List[float] = []
     memory_samples: List[Dict[str, Any]] = [{"time_s": 0, "mem_mb": mem_initial_mb}]
+    server_samples: List[Dict[str, Any]] = [{"time_s": 0, "mem_mb": server_mem_initial}] if server_pid else []
     completed_cycles = 0
 
     print(f"🧠 Initial Process RSS Memory: {mem_initial_mb:.2f} MB")
@@ -196,6 +236,14 @@ async def run_soak_test(
             if current_mem_mb > mem_peak_mb:
                 mem_peak_mb = current_mem_mb
 
+            # Periodic memory sampling (own process + optional server process) for the leak slope
+            if (time.time() - last_sample_time) >= sample_interval_seconds:
+                last_sample_time = time.time()
+                memory_samples.append({"time_s": round(elapsed_total, 1), "mem_mb": round(current_mem_mb, 2)})
+                if server_pid:
+                    server_samples.append({"time_s": round(elapsed_total, 1),
+                                           "mem_mb": round(sample_pid_memory_mb(server_pid), 2)})
+
             # Live heartbeat output
             if completed_cycles % print_every == 0:
                 print(f"   [Cycle {completed_cycles:04d}] Latency: {c_dur_ms:6.1f} ms | Mem: {current_mem_mb:5.1f} MB | Elapsed: {elapsed_total:5.1f}s")
@@ -203,10 +251,6 @@ async def run_soak_test(
             # Periodic checkpointing
             if (time.time() - last_checkpoint_time) >= checkpoint_interval_seconds:
                 last_checkpoint_time = time.time()
-                memory_samples.append({
-                    "time_s": round(elapsed_total, 1),
-                    "mem_mb": round(current_mem_mb, 2)
-                })
 
                 # Compute current RPM
                 min_elapsed = max(0.01, elapsed_total / 60.0)
@@ -226,6 +270,7 @@ async def run_soak_test(
                     "current_mem_mb": round(current_mem_mb, 2),
                     "peak_mem_mb": round(mem_peak_mb, 2),
                     "mem_delta_mb": round(current_mem_mb - mem_initial_mb, 2),
+                    "server_mem_mb": server_samples[-1]["mem_mb"] if server_samples else None,
                     "providers": prov_summary
                 }
 
@@ -243,11 +288,29 @@ async def run_soak_test(
     finally:
         state.http_client = original_client
         ALERTS_DB.clear()
+        if not use_mock:
+            await soak_client.aclose()
 
     # Final calculations
     total_elapsed_s = max(0.001, time.time() - start_time)
     mem_final_mb = get_process_memory_mb()
     mem_growth_mb = mem_final_mb - mem_initial_mb
+    memory_samples.append({"time_s": round(total_elapsed_s, 1), "mem_mb": round(mem_final_mb, 2)})
+    own_slope = compute_memory_slope_mb_per_hour(memory_samples, warmup_seconds)
+    server_report = None
+    if server_pid:
+        server_final = sample_pid_memory_mb(server_pid)
+        server_samples.append({"time_s": round(total_elapsed_s, 1), "mem_mb": round(server_final, 2)})
+        server_slope = compute_memory_slope_mb_per_hour(server_samples, warmup_seconds)
+        server_report = {
+            "pid": server_pid,
+            "initial": round(server_mem_initial, 2),
+            "final": round(server_final, 2),
+            "peak": round(max(s["mem_mb"] for s in server_samples), 2),
+            "growth_delta": round(server_final - server_mem_initial, 2),
+            "slope_mb_per_hour": None if server_slope is None else round(server_slope, 3),
+            "leak_assessment": memory_verdict(server_slope, total_elapsed_s, leak_threshold_mb_per_hour),
+        }
 
     if cycle_durations:
         cycle_durations.sort()
@@ -275,7 +338,7 @@ async def run_soak_test(
             "rate_limits_429": c429
         }
 
-    leak_status = "PASS (Flat Memory)" if abs(mem_growth_mb) < 25.0 else "WARNING (Memory Drift Detected)"
+    leak_status = memory_verdict(own_slope, total_elapsed_s, leak_threshold_mb_per_hour)
 
     report = {
         "status": "COMPLETED",
@@ -283,6 +346,8 @@ async def run_soak_test(
         "duration_hours": round(total_elapsed_s / 3600.0, 3),
         "target_hours": duration_hours,
         "completed_cycles": completed_cycles,
+        "network_mode": "mock" if use_mock else "live",
+        "http_client": type(soak_client).__name__,
         "cycle_latency_ms": {
             "min": round(min_dur, 2),
             "avg": round(avg_dur, 2),
@@ -298,8 +363,11 @@ async def run_soak_test(
             "final": round(mem_final_mb, 2),
             "peak": round(mem_peak_mb, 2),
             "growth_delta": round(mem_growth_mb, 2),
-            "leak_assessment": leak_status
+            "slope_mb_per_hour": None if own_slope is None else round(own_slope, 3),
+            "leak_assessment": leak_status,
+            "scope": "soak script process (NOT the server) - see server_memory_mb"
         },
+        "server_memory_mb": server_report,
         "memory_samples_count": len(memory_samples)
     }
 
@@ -312,7 +380,11 @@ async def run_soak_test(
     print(f"• Cycle Latency (Avg)   : {report['cycle_latency_ms']['avg']:.1f} ms (p95: {report['cycle_latency_ms']['p95']:.1f} ms, max: {report['cycle_latency_ms']['max']:.1f} ms)")
     print(f"• Total HTTP 429 Errors : {report['total_429_errors']}")
     print(f"• Memory Stability      : {report['memory_profile_mb']['initial']:.1f} MB ➔ {report['memory_profile_mb']['final']:.1f} MB (Peak: {report['memory_profile_mb']['peak']:.1f} MB, Delta: {report['memory_profile_mb']['growth_delta']:+.1f} MB)")
-    print(f"• Memory Leak Verdict   : 🛡️ {report['memory_profile_mb']['leak_assessment']}")
+    print(f"• Memory Leak Verdict   : 🛡️ {report['memory_profile_mb']['leak_assessment']} [soak process only]")
+    if server_report:
+        print(f"• Server RSS (PID {server_report['pid']}) : {server_report['initial']:.1f} MB ➔ {server_report['final']:.1f} MB (Peak: {server_report['peak']:.1f} MB) | {server_report['leak_assessment']}")
+    else:
+        print("• Server RSS            : not monitored (pass --server-pid $(cat server.pid) to measure the real server)")
     print("\n📊 Provider Statistics:")
     for prov, pdata in provider_report.items():
         print(f"   - {prov:<15}: {pdata['requests_per_minute']:>6.1f} req/min | Total: {pdata['total_requests']:>6} | 429s: {pdata['rate_limits_429']}")
@@ -336,6 +408,11 @@ def main():
     parser.add_argument("--mock", action="store_true", help="Run with simulated mock responses")
     parser.add_argument("--checkpoint-seconds", type=float, default=300.0, help="Checkpoint interval in seconds (default: 300)")
     parser.add_argument("--export", type=str, default="reports/soak_test_48h_report.json", help="Path to final JSON report")
+    parser.add_argument("--target-price", type=float, default=UNREACHABLE_TARGET_PRICE,
+                        help="ABOVE target of the synthetic alerts (default: unreachable, so they never trigger/deactivate)")
+    parser.add_argument("--server-pid", type=int, default=None, help="PID of the running server whose RSS is sampled (e.g. $(cat server.pid))")
+    parser.add_argument("--leak-threshold-mb-per-hour", type=float, default=0.5, help="Max accepted memory growth slope (default: 0.5)")
+    parser.add_argument("--sample-seconds", type=float, default=None, help="Memory sampling interval (default: auto, max 60 s)")
     args = parser.parse_args()
 
     # Determine total seconds
@@ -355,6 +432,9 @@ def main():
         hours = 48.0
         total_seconds = 48.0 * 3600.0
 
+    data_dir = isolate_data_dir(ROOT_DIR)  # MUST run before any app.* import
+    print(f"🛡️ Isolated data dir: {data_dir} (real alerts/profiles/outbox are not touched)")
+
     asyncio.run(run_soak_test(
         duration_hours=hours,
         cycle_interval_seconds=args.interval_seconds,
@@ -362,7 +442,11 @@ def main():
         checkpoint_interval_seconds=args.checkpoint_seconds,
         max_cycles=args.cycles,
         total_target_seconds=total_seconds,
-        report_file=args.export
+        report_file=args.export,
+        target_price=args.target_price,
+        server_pid=args.server_pid,
+        leak_threshold_mb_per_hour=args.leak_threshold_mb_per_hour,
+        sample_interval_seconds=args.sample_seconds
     ))
 
 
