@@ -27,6 +27,8 @@ class AlertRow extends StatelessWidget {
   final VoidCallback onDuplicate;
   final VoidCallback onEdit;
   final VoidCallback onExport;
+  final VoidCallback? onManualCheck;
+  final bool isChecking;
 
   const AlertRow({
     super.key,
@@ -37,6 +39,8 @@ class AlertRow extends StatelessWidget {
     required this.onDuplicate,
     required this.onEdit,
     required this.onExport,
+    this.onManualCheck,
+    this.isChecking = false,
   });
 
   @override
@@ -135,6 +139,7 @@ class AlertRow extends StatelessWidget {
         }
       },
       child: GestureDetector(
+        onTap: onEdit,
         onLongPressStart: (details) => _showContextMenu(context, details.globalPosition, lang),
         child: AnimatedOpacity(
           duration: const Duration(milliseconds: 200),
@@ -426,6 +431,51 @@ class AlertRow extends StatelessWidget {
                         ],
                       ),
                     ),
+
+                    // Manual Check Button [🔄 Check]
+                    if (onManualCheck != null) ...[
+                      const SizedBox(width: 6),
+                      InkWell(
+                        onTap: isChecking ? null : onManualCheck,
+                        borderRadius: BorderRadius.circular(6),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                              width: 0.8,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (isChecking)
+                                SizedBox(
+                                  width: 9,
+                                  height: 9,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 1.5,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                )
+                              else
+                                Icon(Icons.sync_rounded, size: 11, color: theme.colorScheme.primary),
+                              const SizedBox(width: 3),
+                              Text(
+                                AppStrings.get('check_now', lang),
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: theme.colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
 
                     // Cooldown Indicator
                     if (rule.isInCooldown && rule.cooldownUntil != null) ...[

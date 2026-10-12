@@ -13,6 +13,7 @@ import '../../exchanges/registry/exchange_registry.dart';
 import '../../settings/services/settings_service.dart';
 import '../../widgets/alert_home_widget.dart';
 import '../../widgets/server_status_button.dart';
+import '../../alert_engine/widgets/alert_row.dart';
 import 'create_alert_flow.dart';
 
 /// The Main Screen of Alarmer: Personal Price Alerts.
@@ -536,7 +537,24 @@ class _WatchlistPageState extends State<WatchlistPage> {
                   return Padding(
                     key: ValueKey(rule.uuid),
                     padding: const EdgeInsets.only(bottom: AppTokens.space12),
-                    child: _buildAlertCard(rule, repository, scheduler, lang),
+                    child: AlertRow(
+                      rule: rule,
+                      onToggle: (isActive) {
+                        repository.saveRule(rule.copyWith(isActive: isActive));
+                      },
+                      onSwipeDelete: () => _onRuleDismissed(rule, repository),
+                      onRearm: () => repository.rearmRule(rule.uuid),
+                      onDuplicate: () {
+                        final copy = rule.copyWith(
+                          uuid: DateTime.now().millisecondsSinceEpoch.toString(),
+                        );
+                        repository.saveRule(copy);
+                      },
+                      onEdit: () => _openEditFlow(rule),
+                      onExport: () {},
+                      onManualCheck: () => _manualCheck(rule, scheduler, lang),
+                      isChecking: _checkingRuleUuids.contains(rule.uuid),
+                    ),
                   );
                 },
               );
