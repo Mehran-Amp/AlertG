@@ -54,6 +54,7 @@ import { AlarmCard } from './components/AlarmCard';
 import { AppLogo } from './components/AppLogo';
 import { FA } from './i18n/fa';
 import { getLoginTelegramI18n } from './i18n/loginTelegram';
+import { getSymbolEnglishFullName, getSymbolSpokenName } from './utils/symbolNames';
 
 export interface AlertRule {
   uuid: string;
@@ -63,7 +64,7 @@ export interface AlertRule {
   baseCurrency: string;
   counterCurrency: string;
   marketSymbol: string;
-  assetCategory: 'crypto' | 'stock' | 'forex' | 'bond' | 'commodity' | 'index' | 'iran_market';
+  assetCategory: 'crypto' | 'stock' | 'forex' | 'bond' | 'commodity' | 'index' | 'iran_market' | 'macro';
   checkIntervalSeconds: number;
   conditionType: 'PERCENT_CHANGE' | 'PRICE_THRESHOLD' | 'VOLUME_SURGE';
   direction: 'BOTH' | 'ABOVE' | 'BELOW';
@@ -1632,11 +1633,12 @@ export default function App() {
   };
 
   const testTtsSpeech = (symbol = 'BTC', price = 83770) => {
+    const spokenSymbol = getSymbolEnglishFullName(symbol, symbol);
     const text = currentLang === 'fa'
-      ? `توجه، هشدار قیمت برای ${symbol} فعال شد. نرخ لحظه‌ای: ${price.toLocaleString('fa-IR')} دلار.`
-      : `Attention, price alert triggered for ${symbol}. Current price: ${price} dollars.`;
+      ? `توجه، هشدار قیمت برای ${spokenSymbol} فعال شد. نرخ لحظه‌ای: ${price.toLocaleString('fa-IR')} دلار.`
+      : `Attention, price alert triggered for ${spokenSymbol}. Current price: ${price} dollars.`;
     speakText(text, currentLang);
-    showToast(`🗣️ در حال پخش صدای هوشمند برای ${symbol}...`);
+    showToast(`🗣️ در حال پخش صدای هوشمند برای ${spokenSymbol}...`);
   };
 
   const showToast = (msg: string) => {
@@ -1906,9 +1908,12 @@ export default function App() {
         spokenPrice = `${spokenPrice} ${unit === '$' ? 'دلار' : unit}`;
       }
 
+      const englishFullName = getSymbolEnglishFullName(rule.baseCurrency, rule.marketSymbol);
+      const spokenSymbol = englishFullName || nameFa || rule.baseCurrency;
+
       const spoken = currentLang === 'fa'
-        ? `هشدار: ${nameFa} در ${rule.exchangeName} به قیمت ${spokenPrice} رسید.`
-        : `Alert: ${rule.baseCurrency} on ${rule.exchangeName} reached ${newPrice} ${unit === '$' ? 'dollars' : unit}.`;
+        ? `هشدار: ${spokenSymbol} در ${rule.exchangeName} به قیمت ${spokenPrice} رسید.`
+        : `Alert: ${spokenSymbol} on ${rule.exchangeName} reached ${newPrice} ${unit === '$' ? 'dollars' : unit}.`;
 
       const notifItem: QueuedNotification = {
         id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
