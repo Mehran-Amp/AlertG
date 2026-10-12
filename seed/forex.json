@@ -2,7 +2,7 @@
   "source": "Interbank FX Spot & Major Central Banks",
   "fetched_at": "2026-10-11T17:00:00Z",
   "asset_class": "forex",
-  "total_count": 6,
+  "total_count": 16,
   "symbols": [
     {
       "id": "EURUSD",
@@ -90,6 +90,156 @@
         "yahoo": {"symbol": "CAD=X", "priority": 1},
         "twelve_data": {"symbol": "USD/CAD", "priority": 2},
         "finnhub": {"symbol": "OANDA:USD_CAD", "priority": 3}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "NZDUSD",
+      "display_name": "New Zealand Dollar / US Dollar",
+      "asset_class": "forex",
+      "exchange": "FOREX",
+      "currency": "USD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "NZDUSD=X", "priority": 1},
+        "twelve_data": {"symbol": "NZD/USD", "priority": 2},
+        "finnhub": {"symbol": "OANDA:NZD_USD", "priority": 3}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "EURGBP",
+      "display_name": "Euro / British Pound",
+      "asset_class": "forex",
+      "exchange": "FOREX",
+      "currency": "GBP",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "EURGBP=X", "priority": 1},
+        "twelve_data": {"symbol": "EUR/GBP", "priority": 2},
+        "finnhub": {"symbol": "OANDA:EUR_GBP", "priority": 3}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "EURJPY",
+      "display_name": "Euro / Japanese Yen",
+      "asset_class": "forex",
+      "exchange": "FOREX",
+      "currency": "JPY",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "EURJPY=X", "priority": 1},
+        "twelve_data": {"symbol": "EUR/JPY", "priority": 2},
+        "finnhub": {"symbol": "OANDA:EUR_JPY", "priority": 3}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "GBPJPY",
+      "display_name": "British Pound / Japanese Yen",
+      "asset_class": "forex",
+      "exchange": "FOREX",
+      "currency": "JPY",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "GBPJPY=X", "priority": 1},
+        "twelve_data": {"symbol": "GBP/JPY", "priority": 2},
+        "finnhub": {"symbol": "OANDA:GBP_JPY", "priority": 3}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "EURCHF",
+      "display_name": "Euro / Swiss Franc",
+      "asset_class": "forex",
+      "exchange": "FOREX",
+      "currency": "CHF",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "EURCHF=X", "priority": 1},
+        "twelve_data": {"symbol": "EUR/CHF", "priority": 2},
+        "finnhub": {"symbol": "OANDA:EUR_CHF", "priority": 3}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "EURAUD",
+      "display_name": "Euro / Australian Dollar",
+      "asset_class": "forex",
+      "exchange": "FOREX",
+      "currency": "AUD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "EURAUD=X", "priority": 1},
+        "twelve_data": {"symbol": "EUR/AUD", "priority": 2},
+        "finnhub": {"symbol": "OANDA:EUR_AUD", "priority": 3}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "EURCAD",
+      "display_name": "Euro / Canadian Dollar",
+      "asset_class": "forex",
+      "exchange": "FOREX",
+      "currency": "CAD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "EURCAD=X", "priority": 1},
+        "twelve_data": {"symbol": "EUR/CAD", "priority": 2},
+        "finnhub": {"symbol": "OANDA:EUR_CAD", "priority": 3}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "AUDJPY",
+      "display_name": "Australian Dollar / Japanese Yen",
+      "asset_class": "forex",
+      "exchange": "FOREX",
+      "currency": "JPY",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "AUDJPY=X", "priority": 1},
+        "twelve_data": {"symbol": "AUD/JPY", "priority": 2},
+        "finnhub": {"symbol": "OANDA:AUD_JPY", "priority": 3}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "GBPAUD",
+      "display_name": "British Pound / Australian Dollar",
+      "asset_class": "forex",
+      "exchange": "FOREX",
+      "currency": "AUD",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "GBPAUD=X", "priority": 1},
+        "twelve_data": {"symbol": "GBP/AUD", "priority": 2},
+        "finnhub": {"symbol": "OANDA:GBP_AUD", "priority": 3}
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "USDCNY",
+      "display_name": "US Dollar / Chinese Yuan",
+      "asset_class": "forex",
+      "exchange": "FOREX",
+      "currency": "CNY",
+      "tier": 1,
+      "provider_map": {
+        "yahoo": {"symbol": "CNY=X", "priority": 1},
+        "twelve_data": {"symbol": "USD/CNY", "priority": 2},
+        "finnhub": {"symbol": "OANDA:USD_CNY", "priority": 3}
       },
       "data_frequency": "live",
       "is_delayed": false

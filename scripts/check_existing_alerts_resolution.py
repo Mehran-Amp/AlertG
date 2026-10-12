@@ -22,7 +22,10 @@ PROJECT_ROOT = ROOT_DIR
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
-import httpx
+try:
+    import httpx
+except ImportError:
+    httpx = None
 
 from app.config import APP_VERSION, CATALOG_FILE
 from app.models import Alert
@@ -157,6 +160,32 @@ async def check_alerts(
     unresolved_count = 0
     diagnostics = []
 
+    if offline:
+        for idx, alert in enumerate(alerts, 1):
+            ex = alert.exchange
+            sym = alert.symbol
+            clean_sym = sym.strip().upper()
+            canonical = resolve_symbol_alias(clean_sym)
+            is_res, reason, sug = resolve_symbol_offline(ex, sym, catalog_symbols)
+            if is_res:
+                resolved_count += 1
+            else:
+                unresolved_count += 1
+                diagnostics.append({
+                    'index': idx,
+                    'id': alert.id,
+                    'user_id': str(alert.user_id)[:4] + '***' if alert.user_id else 'None',
+                    'exchange': ex,
+                    'symbol': sym,
+                    'canonical': canonical,
+                    'reason': reason,
+                    'suggested_fix': sug or canonical
+                })
+        return resolved_count, unresolved_count, diagnostics
+
+    if httpx is None:
+        raise RuntimeError("httpx module is required for live network checks. Run with --offline or install httpx.")
+
     limits = httpx.Limits(max_keepalive_connections=20, max_connections=30)
     timeout = httpx.Timeout(timeout_sec, connect=4.0)
 
@@ -166,13 +195,24 @@ async def check_alerts(
             sym = alert.symbol
             clean_sym = sym.strip().upper()
             canonical = resolve_symbol_alias(clean_sym)
+            # Live network test
+            t0 = asyncio.get_event_loop().time()
+            try:
+                price, traces = await fetch_price_with_trace(client, ex, sym, collect_all_traces=False)
+                latency = round((asyncio.get_event_loop().time() - t0) * 1000, 1)
 
-            if offline:
-                is_res, reason, sug = resolve_symbol_offline(ex, sym, catalog_symbols)
-                if is_res:
+                if price is not None and price > 0:
                     resolved_count += 1
                 else:
+                    # Try canonical alias as backup check
+                    if canonical != clean_sym:
+                        p_alt, _ = await fetch_price_with_trace(client, ex, canonical, collect_all_traces=False)
+                        if p_alt is not None and p_alt > 0:
+                            resolved_count += 1
+                            continue
+
                     unresolved_count += 1
+                    last_err = traces[-1].get('error') if traces else "Price returned None"
                     diagnostics.append({
                         'index': idx,
                         'id': alert.id,
@@ -180,50 +220,21 @@ async def check_alerts(
                         'exchange': ex,
                         'symbol': sym,
                         'canonical': canonical,
-                        'reason': reason,
-                        'suggested_fix': sug or canonical
-                    })
-            else:
-                # Live network test
-                t0 = asyncio.get_event_loop().time()
-                try:
-                    price, traces = await fetch_price_with_trace(client, ex, sym, collect_all_traces=False)
-                    latency = round((asyncio.get_event_loop().time() - t0) * 1000, 1)
-
-                    if price is not None and price > 0:
-                        resolved_count += 1
-                    else:
-                        # Try canonical alias as backup check
-                        if canonical != clean_sym:
-                            p_alt, _ = await fetch_price_with_trace(client, ex, canonical, collect_all_traces=False)
-                            if p_alt is not None and p_alt > 0:
-                                resolved_count += 1
-                                continue
-
-                        unresolved_count += 1
-                        last_err = traces[-1].get('error') if traces else "Price returned None"
-                        diagnostics.append({
-                            'index': idx,
-                            'id': alert.id,
-                            'user_id': str(alert.user_id)[:4] + '***' if alert.user_id else 'None',
-                            'exchange': ex,
-                            'symbol': sym,
-                            'canonical': canonical,
-                            'reason': f"Live fetch failed ({last_err}) [{latency}ms]",
-                            'suggested_fix': canonical
-                        })
-                except Exception as e:
-                    unresolved_count += 1
-                    diagnostics.append({
-                        'index': idx,
-                        'id': alert.id,
-                        'user_id': str(alert.user_id)[:4] + '***' if alert.user_id else 'None',
-                        'exchange': ex,
-                        'symbol': sym,
-                        'canonical': canonical,
-                        'reason': f"Exception during fetch: {str(e)}",
+                        'reason': f"Live fetch failed ({last_err}) [{latency}ms]",
                         'suggested_fix': canonical
                     })
+            except Exception as e:
+                unresolved_count += 1
+                diagnostics.append({
+                    'index': idx,
+                    'id': alert.id,
+                    'user_id': str(alert.user_id)[:4] + '***' if alert.user_id else 'None',
+                    'exchange': ex,
+                    'symbol': sym,
+                    'canonical': canonical,
+                    'reason': f"Exception during fetch: {str(e)}",
+                    'suggested_fix': canonical
+                })
 
     return resolved_count, unresolved_count, diagnostics
 
@@ -242,23 +253,23 @@ def main():
 
     alerts = []
     target_file = args.file or DB_FILE
-    if os.path.exists(target_file):
+    if args.file and os.path.exists(args.file):
         try:
             with open(target_file, 'r', encoding='utf-8') as f:
                 raw = json.load(f)
                 if isinstance(raw, list):
                     for item in raw:
                         if isinstance(item, dict):
-                            alerts.append(Alert.from_dict(item))
+                            alerts.append(Alert(**item))
                 elif isinstance(raw, dict):
                     for v in raw.values():
                         if isinstance(v, dict):
-                            alerts.append(Alert.from_dict(v))
+                            alerts.append(Alert(**v))
         except Exception as e:
             print(f"❌ Error reading alerts file '{target_file}': {e}")
             sys.exit(1)
     else:
-        # Fall back to load_alerts_from_disk
+        # Load alerts cleanly via storage module
         alerts = load_alerts_from_disk()
 
     if not alerts:

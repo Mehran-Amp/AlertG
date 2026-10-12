@@ -7,7 +7,10 @@ except ImportError:
             for k, v in data.items():
                 setattr(self, k, v)
         def dict(self, *args, **kwargs):
-            return {k: getattr(self, k) for k in getattr(self, '__annotations__', {})}
+            annotations = {}
+            for cls in reversed(self.__class__.__mro__):
+                annotations.update(getattr(cls, '__annotations__', {}))
+            return {k: getattr(self, k, None) for k in annotations}
         def model_dump(self, *args, **kwargs):
             return self.dict()
 
