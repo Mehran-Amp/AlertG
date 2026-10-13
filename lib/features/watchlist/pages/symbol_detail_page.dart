@@ -244,7 +244,7 @@ class _SymbolDetailPageState extends State<SymbolDetailPage> {
                   const SizedBox(height: 16),
                   if (_livePrice != null && _livePrice! > 0)
                     Text(
-                      '${FormatUtils.formatPrice(_livePrice)} ${widget.unit}',
+                      '${FormatUtils.formatPrice(_livePrice!)} ${widget.unit}',
                       style: const TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.w900,
@@ -393,7 +393,7 @@ class _SymbolDetailPageState extends State<SymbolDetailPage> {
                       const Icon(Icons.gavel, color: Colors.amber, size: 18),
                       const SizedBox(width: 8),
                       Text(
-                        AppStrings.get('legal_disclaimer_title'),
+                        AppStrings.get('legal_disclaimer_title', 'fa'),
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
@@ -404,7 +404,7 @@ class _SymbolDetailPageState extends State<SymbolDetailPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    AppStrings.get('legal_disclaimer_text'),
+                    AppStrings.get('legal_disclaimer_text', 'fa'),
                     style: TextStyle(
                       fontSize: 11.5,
                       height: 1.6,

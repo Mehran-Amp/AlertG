@@ -195,62 +195,104 @@ def is_sampled_for_secondary(symbol_id: str, sample_rate: float = 0.10) -> bool:
     return int_val < threshold
 
 
-def check_currency_match(expected_unit: Optional[str], received_currency: Optional[str], category: Optional[str] = None) -> bool:
-    """Checks whether received currency matches catalog expected unit/currency."""
-    if not received_currency or not expected_unit:
+def normalize_expected_currency(unit: Optional[str], category: Optional[str] = None) -> str:
+    """Normalizes catalog unit/currency into ISO 4217 standard currency code or standard unit indicator."""
+    if not unit:
+        return 'USD'
+    u = unit.strip().upper()
+    if u in ('$', 'USD', 'DOLLAR'):
+        return 'USD'
+    if u in ('€', 'EUR', 'EURO'):
+        return 'EUR'
+    if u in ('£', 'GBP', 'POUND'):
+        return 'GBP'
+    if u in ('¥', 'JPY', 'YEN'):
+        return 'JPY'
+    if u in ('CNY', 'RMB', 'YUAN'):
+        return 'CNY'
+    if u in ('FR', 'CHF', 'FRANC'):
+        return 'CHF'
+    if u in ('C$', 'CAD'):
+        return 'CAD'
+    if u in ('A$', 'AUD'):
+        return 'AUD'
+    if u in ('AED', 'DIRHAM'):
+        return 'AED'
+    if u in ('HKD',):
+        return 'HKD'
+    if u in ('ت', 'TMN', 'TOMAN', 'IRT', 'IRR'):
+        return 'TMN'
+    if u in ('%', 'PERCENT', 'PCT'):
+        return '%'
+    if 'INDEX' in u or u in ('PTS', 'POINT', 'POINTS'):
+        return 'PTS'
+    if 'MILLION' in u or 'BILLION' in u:
+        return 'USD'
+    return u
+
+
+def check_unit_match(expected_unit: Optional[str], received_unit: Optional[str], category: Optional[str] = None) -> bool:
+    """Checks whether received unit matches catalog expected unit (distinct from currency)."""
+    if not expected_unit or not received_unit:
         return True
-    exp = expected_unit.strip().upper()
-    rec = received_currency.strip().upper()
+    exp = expected_unit.strip().lower()
+    rec = received_unit.strip().lower()
+    if exp == rec:
+        return True
+    if ('%' in exp or 'percent' in exp) and ('%' in rec or 'percent' in rec):
+        return True
+    if ('index' in exp or 'pts' in exp or 'point' in exp) and ('index' in rec or 'pts' in rec or 'point' in rec):
+        return True
+    if ('million' in exp or 'mil' in exp) and ('million' in rec or 'mil' in rec or 'usd' in rec or '$' in rec):
+        return True
+    if ('billion' in exp or 'bil' in exp) and ('billion' in rec or 'bil' in rec or 'usd' in rec or '$' in rec):
+        return True
+    if category == 'bond' and ('%' in exp or 'percent' in exp or 'yield' in exp):
+        return True
+    return False
 
-    unit_map = {
-        '$': 'USD',
-        'USD': 'USD',
-        '€': 'EUR',
-        'EUR': 'EUR',
-        '£': 'GBP',
-        'GBP': 'GBP',
-        '¥': 'JPY',
-        'JPY': 'JPY',
-        'FR': 'CHF',
-        'CHF': 'CHF',
-        'C$': 'CAD',
-        'CAD': 'CAD',
-        'A$': 'AUD',
-        'AUD': 'AUD',
-        'AED': 'AED',
-        '%': '%',
-        'PERCENT': '%',
-        'PTS': 'PTS',
-        'POINT': 'PTS',
-        'POINTS': 'PTS',
-        'HKD': 'HKD',
-        'CNY': 'CNY',
-        'ت': 'TMN',
-        'TMN': 'TMN',
-        'IRR': 'TMN',
-    }
-    canonical_exp = unit_map.get(exp, exp)
-    canonical_rec = unit_map.get(rec, rec)
 
-    if canonical_exp == canonical_rec:
+def check_currency_match(expected_currency: Optional[str], received_currency: Optional[str], category: Optional[str] = None) -> bool:
+    """Checks whether received currency matches catalog expected currency code."""
+    if not received_currency or not expected_currency:
+        return True
+    exp_iso = normalize_expected_currency(expected_currency, category)
+    rec_iso = normalize_expected_currency(received_currency, category)
+
+    if exp_iso == rec_iso:
         return True
 
     # Multi-currency allowances:
-    # ¥ represents both JPY and CNY/RMB
-    if exp in ('¥', 'YEN', 'YUAN') and canonical_rec in ('JPY', 'CNY'):
+    # ¥ represents both JPY and CNY
+    if exp_iso in ('JPY', 'CNY') and rec_iso in ('JPY', 'CNY'):
         return True
     # Forex major pairings
     if category == 'forex':
-        if canonical_exp in ('USD', 'EUR', 'GBP', 'CHF', 'CAD', 'AUD', 'JPY', 'CNY', 'AED', 'TMN'):
+        if exp_iso in ('USD', 'EUR', 'GBP', 'CHF', 'CAD', 'AUD', 'JPY', 'CNY', 'AED', 'TMN'):
             return True
-    # Indices often have unit 'pts' in catalog while provider returns index points or USD/EUR/GBP/JPY
-    if category == 'index' and (canonical_exp in ('PTS', 'POINT', 'POINTS') or canonical_rec in ('PTS', 'USD', 'EUR', 'GBP', 'JPY')):
+    # Indices often have expected PTS while quote API tags quotes with currency
+    if category == 'index' and (exp_iso in ('PTS', 'USD') or rec_iso in ('PTS', 'USD', 'EUR', 'GBP', 'JPY')):
         return True
-    # Bonds often have unit '%' in catalog while Yahoo quote API tags quotes with currency='USD'
-    if category == 'bond' and (canonical_exp in ('%', 'PERCENT') or canonical_rec in ('%', 'PERCENT', 'USD')):
+    # Bonds often have expected % while Yahoo quote API tags quotes with currency='USD'
+    if category == 'bond' and (exp_iso == '%' or rec_iso in ('%', 'USD')):
         return True
+    # Macro indicators (CPI points vs USD or %)
+    if category == 'macro':
+        if exp_iso in ('PTS', 'USD', '%') and rec_iso in ('PTS', 'USD', '%'):
+            return True
 
     return False
+
+
+def is_sampled_for_secondary_rotation(symbol_id: str, daily_batch_size: int = 50, total_symbols: int = 580) -> bool:
+    """
+    Deterministically rotates ~daily_batch_size symbols per day over Finnhub/Twelve Data.
+    Allows all fallback mappings to be gradually validated over weekly sync runs.
+    """
+    today_int = int(datetime.now(timezone.utc).strftime("%Y%j"))
+    sym_hash = int(hashlib.md5(symbol_id.encode('utf-8')).hexdigest()[:6], 16)
+    slots = max(1, total_symbols // daily_batch_size)
+    return (sym_hash % slots) == (today_int % slots)
 
 
 class ProbeCheckpoint:
@@ -360,10 +402,10 @@ class CatalogProbeRunner:
         item_id = item.get('id', '')
         symbol_raw = item.get('symbol', item_id)
         name_en = item.get('nameEn', '')
-        category = item.get('category', resolve_symbol_category(symbol_raw))
+        category = item.get('category') or item.get('asset_class') or resolve_symbol_category(item.get('exchange', 'global_stocks'), symbol_raw)
         unit = item.get('unit', '')
         is_major = is_tier_major(item)
-        probe_secondary = is_major and is_sampled_for_secondary(item_id, self.sample_rate_secondary)
+        probe_secondary = is_major and (is_sampled_for_secondary(item_id, self.sample_rate_secondary) or is_sampled_for_secondary_rotation(item_id, daily_batch_size=50))
 
         clean_sym = symbol_raw.upper().strip()
         canonical = resolve_symbol_alias(clean_sym)
@@ -428,10 +470,32 @@ class CatalogProbeRunner:
             # FRED simulation for bond/macro
             if category in ('bond', 'macro') or clean_sym in fred_adapter.FRED_SERIES_MAP:
                 self.secondary_counts['fred'] += 1
+                sim_units = '%'
+                sim_unit = '%'
+                sim_curr = '%'
+                sim_price = 4.25
+                if clean_sym in ('CPIAUCSL', 'CPI'):
+                    sim_units = 'Index 1982-1984=100'
+                    sim_unit = 'Index 1982-1984=100'
+                    sim_curr = 'PTS'
+                    sim_price = 314.50
+                elif clean_sym == 'WALCL':
+                    sim_units = 'Millions of U.S. Dollars'
+                    sim_unit = 'Mil. of U.S. $'
+                    sim_curr = 'USD'
+                    sim_price = 7120000.0
+                elif clean_sym in ('M2SL', 'M2'):
+                    sim_units = 'Billions of U.S. Dollars'
+                    sim_unit = 'Bil. of U.S. $'
+                    sim_curr = 'USD'
+                    sim_price = 21400.0
+
                 successful_quotes.append({
                     'provider': 'fred',
-                    'price': 4.25,
-                    'currency': '%',
+                    'price': sim_price,
+                    'currency': sim_curr,
+                    'units': sim_units,
+                    'unit': sim_unit,
                     'latency_ms': 80.0,
                     'as_of': int(time.time()),
                     'state': 'LIVE'
@@ -542,14 +606,31 @@ class CatalogProbeRunner:
         successful_providers = [q['provider'] for q in successful_quotes]
         is_ok = len(successful_quotes) > 0
 
-        # Requirement: "single_source بر اساس probe موفق، نه صرف وجود نگاشت."
-        # If exactly 1 provider returned quote successfully -> single_source = True
-        # If 2 or more succeeded -> single_source = False
+        # Provider prices & spread calculation
+        provider_prices: Dict[str, float] = {}
+        for q in successful_quotes:
+            if 'provider' in q and q.get('price') is not None:
+                provider_prices[q['provider']] = q['price']
+
+        price_difference_pct: Optional[float] = None
+        if len(provider_prices) >= 2:
+            p_vals = list(provider_prices.values())
+            p1, p2 = p_vals[0], p_vals[1]
+            avg = (p1 + p2) / 2.0
+            if avg > 0:
+                price_difference_pct = round(abs(p1 - p2) / avg * 100.0, 4)
+
+        secondary_probed = bool(probe_secondary)
+        confirmed_single_source = (len(successful_quotes) == 1) if secondary_probed else None
         is_single_source = (len(successful_quotes) == 1)
 
         primary_quote = successful_quotes[0] if successful_quotes else {}
         resp_currency = primary_quote.get('currency')
-        curr_match = check_currency_match(unit, resp_currency, category=category)
+        resp_units = primary_quote.get('units') or primary_quote.get('unit')
+
+        expected_iso = normalize_expected_currency(item.get('currency') or unit, category=category)
+        curr_match = check_currency_match(expected_iso, resp_currency, category=category)
+        unit_match = check_unit_match(unit, resp_units or resp_currency, category=category)
 
         result_record = {
             'id': item_id,
@@ -561,10 +642,15 @@ class CatalogProbeRunner:
             'status': 'ok' if is_ok else 'failed',
             'price': primary_quote.get('price'),
             'currency': resp_currency,
-            'expected_currency': unit,
+            'expected_currency': expected_iso,
             'currency_match': curr_match,
+            'unit_match': unit_match,
             'provider': primary_quote.get('provider'),
             'successful_providers': successful_providers,
+            'provider_prices': provider_prices,
+            'price_difference_pct': price_difference_pct,
+            'secondary_probed': secondary_probed,
+            'confirmed_single_source': confirmed_single_source,
             'single_source': is_single_source if is_ok else None,
             'latency_ms': primary_quote.get('latency_ms') if is_ok and primary_quote.get('latency_ms') is not None else None,
             'as_of': primary_quote.get('as_of'),
@@ -627,16 +713,14 @@ class CatalogProbeRunner:
 
             else:
                 # Live FRED Probe
-                active_fred_key = FRED_API_KEY or os.getenv("FRED_API_KEY", "").strip()
-                if active_fred_key:
-                    try:
-                        await acquire_provider_slot('fred', wait=True)
-                        q_f = await fred_adapter.fetch_quote(fred_id, client)
-                        if q_f and q_f.get('price'):
-                            fred_val = q_f.get('price')
-                            fred_time = q_f.get('date') or str(q_f.get('asOf'))
-                    except Exception as e:
-                        print(f"[WARN] FRED probe error for {fred_id}: {e}")
+                try:
+                    await acquire_provider_slot('fred', wait=True)
+                    q_f = await fred_adapter.fetch_quote(fred_id, client)
+                    if q_f and q_f.get('price'):
+                        fred_val = q_f.get('price')
+                        fred_time = q_f.get('date') or str(q_f.get('asOf'))
+                except Exception as e:
+                    print(f"[WARN] FRED probe error for {fred_id}: {e}")
 
                 # Live Yahoo Probe
                 if not fred_only and yf_sym:
@@ -745,9 +829,14 @@ class CatalogProbeRunner:
         rejected_list = self.checkpoint.data.get('rejected', [])
         yields_table = self.checkpoint.data.get('yields_data', [])
 
-        # Dynamically refresh currency_match using latest rules so resumed checkpoint reflects updated logic
+        # Dynamically refresh currency_match and unit_match using latest rules so resumed checkpoint reflects updated logic
         for r in results_list:
             r['currency_match'] = check_currency_match(
+                r.get('expected_currency'),
+                r.get('currency'),
+                category=r.get('category')
+            )
+            r['unit_match'] = check_unit_match(
                 r.get('expected_currency'),
                 r.get('currency'),
                 category=r.get('category')
@@ -756,20 +845,24 @@ class CatalogProbeRunner:
             item_id = r.get('id')
             if item_id and item_id in results_map:
                 results_map[item_id]['currency_match'] = r['currency_match']
+                results_map[item_id]['unit_match'] = r['unit_match']
 
         total = len(results_list)
         ok_count = sum(1 for r in results_list if r.get('status') == 'ok')
         failed_count = sum(1 for r in results_list if r.get('status') == 'failed')
         single_source_count = sum(1 for r in results_list if r.get('single_source') is True)
         multi_source_count = sum(1 for r in results_list if r.get('single_source') is False)
+        secondary_probed_count = sum(1 for r in results_list if r.get('secondary_probed') is True)
+        confirmed_single_source_count = sum(1 for r in results_list if r.get('confirmed_single_source') is True)
         curr_mismatches = [r for r in results_list if r.get('currency_match') is False]
+        unit_mismatches = [r for r in results_list if r.get('unit_match') is False]
 
         # Breakdown by category
         categories: Dict[str, Dict[str, int]] = {}
         for r in results_list:
             c = r.get('category', 'unknown')
             if c not in categories:
-                categories[c] = {'total': 0, 'ok': 0, 'failed': 0, 'single_source': 0}
+                categories[c] = {'total': 0, 'ok': 0, 'failed': 0, 'single_source': 0, 'secondary_probed': 0, 'confirmed_single_source': 0}
             categories[c]['total'] += 1
             if r.get('status') == 'ok':
                 categories[c]['ok'] += 1
@@ -777,6 +870,10 @@ class CatalogProbeRunner:
                 categories[c]['failed'] += 1
             if r.get('single_source') is True:
                 categories[c]['single_source'] += 1
+            if r.get('secondary_probed') is True:
+                categories[c]['secondary_probed'] += 1
+            if r.get('confirmed_single_source') is True:
+                categories[c]['confirmed_single_source'] += 1
 
         summary = {
             'app_version': APP_VERSION,
@@ -787,7 +884,10 @@ class CatalogProbeRunner:
             'success_rate_pct': round((ok_count / total * 100) if total else 0.0, 2),
             'single_source_count': single_source_count,
             'multi_source_count': multi_source_count,
+            'secondary_probed_count': secondary_probed_count,
+            'confirmed_single_source_count': confirmed_single_source_count,
             'currency_mismatches_count': len(curr_mismatches),
+            'unit_mismatches_count': len(unit_mismatches),
             'category_breakdown': categories,
             'quota_usage': {
                 'twelvedata': {
@@ -820,6 +920,15 @@ class CatalogProbeRunner:
                 }
                 for r in results_list if r.get('single_source') is True
             ],
+            'confirmed_single_source_symbols': [
+                {
+                    'id': r['id'],
+                    'symbol': r['symbol'],
+                    'category': r['category'],
+                    'provider': r['provider']
+                }
+                for r in results_list if r.get('confirmed_single_source') is True
+            ],
             'currency_mismatches': [
                 {
                     'id': r['id'],
@@ -829,6 +938,16 @@ class CatalogProbeRunner:
                     'provider': r.get('provider')
                 }
                 for r in curr_mismatches
+            ],
+            'unit_mismatches': [
+                {
+                    'id': r['id'],
+                    'symbol': r['symbol'],
+                    'expected': r.get('expected_currency'),
+                    'received': r.get('currency'),
+                    'provider': r.get('provider')
+                }
+                for r in unit_mismatches
             ],
             'rejected_symbols': rejected_list,
             'treasury_yields': yields_table

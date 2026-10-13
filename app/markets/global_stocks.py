@@ -39,6 +39,9 @@ EXACT_YF_MAP: Dict[str, str] = {
     'FVX': '^FVX',
     'US13W': '^IRX',
     '^IRX': '^IRX',
+    'US30Y': '^TYX',
+    '^TYX': '^TYX',
+    'TYX': '^TYX',
     'VIX': '^VIX',
     '^VIX': '^VIX',
     'SPX': '^GSPC',
@@ -178,16 +181,22 @@ SYMBOL_ALIASES: Dict[str, str] = {
     'US10Y': 'US10Y',
     'TNX': 'US10Y',
     '^TNX': 'US10Y',
+    'DGS10': 'US10Y',
     'US02Y': 'US02Y',
     'US2Y': 'US02Y',
     '^2YY': 'US02Y',
+    'DGS2': 'US02Y',
     'US13W': 'US13W',
     '^IRX': 'US13W',
+    'DTB3': 'US13W',
     'US05Y': 'US05Y',
     'US5Y': 'US05Y',
     '^FVX': 'US05Y',
+    'DGS5': 'US05Y',
     'US30Y': 'US30Y',
     '^TYX': 'US30Y',
+    'TYX': 'US30Y',
+    'DGS30': 'US30Y',
     # Dotted share classes
     'BRKB': 'BRK.B',
     'BRK-B': 'BRK.B',
@@ -271,7 +280,7 @@ FOREX_PAIRS = {
 }
 
 # 2-year Treasury yield exists only on FRED (DGS2). Yahoo's ^IRX is the 13-week bill, never a 2Y proxy.
-FRED_ONLY_SYMBOLS = frozenset({'US02Y', 'US2Y', '^2YY'})
+FRED_ONLY_SYMBOLS = frozenset({'US02Y', 'US2Y', '^2YY', 'DGS2'})
 
 
 def resolve_yf_symbol(symbol: str) -> str:
@@ -355,10 +364,10 @@ WALLSTREET_MACRO_SYMBOLS = [
     {"id": "QAR_BONBAST", "symbol": "QAR/TMN", "nameEn": "Qatari Riyal Cash", "nameFa": "ریال قطر (مرجع بن‌بست)", "category": "iran_market", "marketName": "بن‌بست (bonbast.com)", "unit": "ت"},
     {"id": "OMR_BONBAST", "symbol": "OMR/TMN", "nameEn": "Omani Rial Cash", "nameFa": "ریال عمان (مرجع بن‌بست)", "category": "iran_market", "marketName": "بن‌بست (bonbast.com)", "unit": "ت"},
     {"id": "JPY_BONBAST", "symbol": "JPY/TMN", "nameEn": "Japanese Yen (10)", "nameFa": "۱۰ ین ژاپن (مرجع بن‌بست)", "category": "iran_market", "marketName": "بن‌بست (bonbast.com)", "unit": "ت"},
-    {"id": "US10Y", "symbol": "US10Y (^TNX)", "nameEn": "US 10-Year Treasury Yield", "nameFa": "بازده اوراق قرضه ۱۰ ساله آمریکا (US10Y)", "category": "bond", "marketName": "US Treasury", "unit": "%"},
-    {"id": "US02Y", "symbol": "US02Y (DGS2)", "nameEn": "US 2-Year Treasury Yield", "nameFa": "بازده اوراق قرضه ۲ ساله آمریکا (US02Y)", "category": "bond", "marketName": "US Treasury", "unit": "%"},
-    {"id": "US13W", "symbol": "US13W (^IRX)", "nameEn": "US 13-Week Treasury Bill Yield", "nameFa": "بازده اوراق ۱۳ هفته‌ای خزانه‌داری آمریکا (US13W)", "category": "bond", "marketName": "US Treasury", "unit": "%"},
-    {"id": "US30Y", "symbol": "US30Y (^TYX)", "nameEn": "US 30-Year Treasury Bond", "nameFa": "بازده اوراق قرضه ۳۰ ساله آمریکا (US30Y)", "category": "bond", "marketName": "US Treasury", "unit": "%"},
+    {"id": "US10Y", "symbol": "^TNX", "nameEn": "US 10-Year Treasury Yield", "nameFa": "بازده اوراق قرضه ۱۰ ساله آمریکا (US10Y)", "category": "bond", "marketName": "US Treasury", "unit": "%"},
+    {"id": "US02Y", "symbol": "DGS2", "nameEn": "US 2-Year Treasury Yield", "nameFa": "بازده اوراق قرضه ۲ ساله آمریکا (US02Y)", "category": "bond", "marketName": "US Treasury", "unit": "%"},
+    {"id": "US13W", "symbol": "^IRX", "nameEn": "US 13-Week Treasury Bill Yield", "nameFa": "بازده اوراق ۱۳ هفته‌ای خزانه‌داری آمریکا (US13W)", "category": "bond", "marketName": "US Treasury", "unit": "%"},
+    {"id": "US30Y", "symbol": "^TYX", "nameEn": "US 30-Year Treasury Bond", "nameFa": "بازده اوراق قرضه ۳۰ ساله آمریکا (US30Y)", "category": "bond", "marketName": "US Treasury", "unit": "%"},
     {"id": "EURUSD", "symbol": "EUR/USD", "nameEn": "Euro / US Dollar", "nameFa": "یورو به دلار آمریکا (EUR/USD)", "category": "forex", "marketName": "Forex Major", "unit": "$"},
     {"id": "GBPUSD", "symbol": "GBP/USD", "nameEn": "British Pound / US Dollar", "nameFa": "پوند انگلیس به دلار (GBP/USD)", "category": "forex", "marketName": "Forex Major", "unit": "$"},
     {"id": "USDJPY", "symbol": "USD/JPY", "nameEn": "US Dollar / Japanese Yen", "nameFa": "دلار به ین ژاپن (USD/JPY)", "category": "forex", "marketName": "Forex Major", "unit": "¥"},
@@ -374,11 +383,6 @@ WALLSTREET_MACRO_SYMBOLS = [
     {"id": "PLTR", "symbol": "PLTR", "nameEn": "Palantir Technologies", "nameFa": "سهام پالانتیر (Palantir)", "category": "stock", "marketName": "NYSE", "unit": "$"},
     {"id": "BRKB", "symbol": "BRK.B", "nameEn": "Berkshire Hathaway", "nameFa": "برکشایر هاتاوی (وارن بافت)", "category": "stock", "marketName": "NYSE", "unit": "$"},
     {"id": "TSLA", "symbol": "TSLA", "nameEn": "Tesla Inc.", "nameFa": "سهام تسلا (خودروهای برقی، هوش مصنوعی، ربات اپتیموس و انرژی ایلان ماسک)", "category": "stock", "marketName": "NASDAQ", "unit": "$"},
-    {"id": "SPACEX", "symbol": "SPACEX", "nameEn": "SpaceX (Starship & Space Exploration)", "nameFa": "اسپیس‌ایکس (فناوری‌های فضایی، استارشیپ و ماموریت‌های مریخ ایلان ماسک)", "category": "stock", "marketName": "Pre-IPO Benchmark", "unit": "$"},
-    {"id": "X_CORP", "symbol": "X_CORP", "nameEn": "X Corp (Twitter - Everything App)", "nameFa": "ایکس / توییتر سابق (شبکه اجتماعی جهانی و اپلیکیشن همه‌کاره ایلان ماسک)", "category": "stock", "marketName": "Pre-IPO Benchmark", "unit": "$"},
-    {"id": "NEURALINK", "symbol": "NEURALINK", "nameEn": "Neuralink (Brain-Computer Interface)", "nameFa": "نورالینک (تراشه رابط مغز و رایانه و تله‌پاتی ایلان ماسک)", "category": "stock", "marketName": "Pre-IPO Benchmark", "unit": "$"},
-    {"id": "BORING", "symbol": "BORING", "nameEn": "The Boring Company (Hyperloop & Tunneling)", "nameFa": "بورینگ کمپانی (تونل‌های زیرزمینی حمل‌ونقل سریع هایپرلوپ ایلان ماسک)", "category": "stock", "marketName": "Pre-IPO Benchmark", "unit": "$"},
-    {"id": "DOGE_MUSK", "symbol": "DOGE", "nameEn": "Dogecoin (Elon Musk Ecosystem Crypto)", "nameFa": "دوج‌کوین (رمزارز محبوب و رسمی اکوسیستم تسلا و پلتفرم ایکس)", "category": "stock", "marketName": "Musk Ecosystem", "unit": "$"},
     {"id": "DXYZ", "symbol": "DXYZ", "nameEn": "Destiny Tech100 (SpaceX & OpenAI ETF)", "nameFa": "صندوق سرنوشت ۱۰۰ (سبد سهام عمومی اسپیس‌ایکس و اوپن‌ای‌آی)", "category": "stock", "marketName": "NYSE", "unit": "$"},
     {"id": "RKLB", "symbol": "RKLB", "nameEn": "Rocket Lab USA", "nameFa": "راکت لب (پرتاب‌های فضایی مداری تجاری و ماهواره‌های ناسا)", "category": "stock", "marketName": "NASDAQ", "unit": "$"},
     {"id": "ASTS", "symbol": "ASTS", "nameEn": "AST SpaceMobile", "nameFa": "ای‌اس‌تی اسپیس‌موبایل (شبکه پهن‌باند ماهواره‌ای به گوشی هوشمند)", "category": "stock", "marketName": "NASDAQ", "unit": "$"},
@@ -390,13 +394,8 @@ WALLSTREET_MACRO_SYMBOLS = [
     {"id": "LVMH", "symbol": "MC.PA", "nameEn": "LVMH Moët Hennessy Louis Vuitton", "nameFa": "ال‌وی‌ام‌اچ فرانسه (لویی ویتون، دیور، تیفانی، بولگاری - پادشاه برندهای لوکس)", "category": "stock", "marketName": "Euronext Paris", "unit": "€"},
     {"id": "HERMES", "symbol": "RMS.PA", "nameEn": "Hermès International", "nameFa": "هرمس فرانسه (گران‌قیمت‌ترین خانه مد، کیف برکین و چرم دست‌ساز)", "category": "stock", "marketName": "Euronext Paris", "unit": "€"},
     {"id": "PORSCHE", "symbol": "P911.DE", "nameEn": "Porsche AG", "nameFa": "پورشه آلمان (سوپراسپرت‌های لوکس اشتوتگارت)", "category": "stock", "marketName": "XETRA", "unit": "€"},
-    {"id": "USDT_TMN", "symbol": "USDT/TMN", "nameEn": "Tether / Iranian Toman", "nameFa": "تتر به تومان ایران (نرخ لحظه‌ای بازار آزاد تهران)", "category": "forex", "marketName": "Tehran Free Market", "unit": "ت"},
     {"id": "USD_AED", "symbol": "USD/AED", "nameEn": "US Dollar / UAE Dirham", "nameFa": "دلار آمریکا به درهم امارات (USD/AED)", "category": "forex", "marketName": "Forex Major", "unit": "AED"},
     {"id": "USD_CNY", "symbol": "USD/CNY", "nameEn": "US Dollar / Chinese Yuan", "nameFa": "دلار آمریکا به یوان چین (USD/CNY)", "category": "forex", "marketName": "Forex Major", "unit": "¥"},
-    {"id": "OPENAI", "symbol": "OPENAI", "nameEn": "OpenAI (ChatGPT & Frontier AI)", "nameFa": "اوپن‌ای‌آی (خالق چت‌جی‌پی‌تی و پیشتاز هوش مصنوعی عمومی AGI)", "category": "stock", "marketName": "Pre-IPO Benchmark", "unit": "$"},
-    {"id": "ANTHROPIC", "symbol": "ANTHROPIC", "nameEn": "Anthropic (Claude AI)", "nameFa": "انتروپیک (خالق هوش مصنوعی کلود Claude)", "category": "stock", "marketName": "Pre-IPO Benchmark", "unit": "$"},
-    {"id": "STRIPE", "symbol": "STRIPE", "nameEn": "Stripe Payments", "nameFa": "استریپ (زیرساخت پرداخت اینترنتی و تسویه رمزارزی جهان)", "category": "stock", "marketName": "Pre-IPO Benchmark", "unit": "$"},
-    {"id": "BYTEDANCE", "symbol": "BYTEDANCE", "nameEn": "ByteDance (TikTok)", "nameFa": "بایت‌دنس (مالک تیک‌تاک و غول الگوریتم‌های هوش مصنوعی)", "category": "stock", "marketName": "Pre-IPO Benchmark", "unit": "$"},
     {"id": "MSTR", "symbol": "MSTR", "nameEn": "MicroStrategy Inc.", "nameFa": "میکرواستراتژی (بزرگ‌ترین خزانه‌داری بیت‌کوین سازمانی)", "category": "stock", "marketName": "NASDAQ", "unit": "$"},
     {"id": "COIN", "symbol": "COIN", "nameEn": "Coinbase Global Inc.", "nameFa": "کوین‌بیس (بزرگ‌ترین صرافی مجاز کریپتو آمریکا)", "category": "stock", "marketName": "NASDAQ", "unit": "$"},
     {"id": "MARA", "symbol": "MARA", "nameEn": "MARA Holdings (Marathon)", "nameFa": "ماراتون دیجیتال / MARA (بزرگ‌ترین استخراج‌کننده بیت‌کوین)", "category": "stock", "marketName": "NASDAQ", "unit": "$"},
@@ -905,7 +904,98 @@ class FredAdapter(BaseMarketAdapter):
     def fetch_catalog(self) -> List[Dict[str, Any]]:
         return [s for s in WALLSTREET_MACRO_SYMBOLS if s.get('category') in ('bond', 'macro')]
 
-    def _make_extractor(self, series_id: str):
+    FRED_SERIES_METADATA: Dict[str, Dict[str, Any]] = {
+        'CPIAUCSL': {
+            'id': 'CPIAUCSL',
+            'title': 'Consumer Price Index for All Urban Consumers: All Items in U.S. City Average',
+            'units': 'Index 1982-1984=100',
+            'units_short': 'Index 1982-1984=100',
+            'frequency': 'Monthly',
+            'currency': 'PTS',
+        },
+        'WALCL': {
+            'id': 'WALCL',
+            'title': 'Assets: Total Assets: Total Assets (Less Eliminations from Consolidation)',
+            'units': 'Millions of U.S. Dollars',
+            'units_short': 'Mil. of U.S. $',
+            'frequency': 'Weekly',
+            'currency': 'USD',
+        },
+        'M2SL': {
+            'id': 'M2SL',
+            'title': 'M2',
+            'units': 'Billions of U.S. Dollars',
+            'units_short': 'Bil. of U.S. $',
+            'frequency': 'Monthly',
+            'currency': 'USD',
+        },
+        'FEDFUNDS': {
+            'id': 'FEDFUNDS',
+            'title': 'Federal Funds Effective Rate',
+            'units': 'Percent',
+            'units_short': '%',
+            'frequency': 'Daily',
+            'currency': '%',
+        },
+        'UNRATE': {
+            'id': 'UNRATE',
+            'title': 'Civilian Unemployment Rate',
+            'units': 'Percent',
+            'units_short': '%',
+            'frequency': 'Monthly',
+            'currency': '%',
+        },
+        'DGS10': {
+            'id': 'DGS10',
+            'title': '10-Year Treasury Constant Maturity Rate',
+            'units': 'Percent',
+            'units_short': '%',
+            'frequency': 'Daily',
+            'currency': '%',
+        },
+        'DGS2': {
+            'id': 'DGS2',
+            'title': '2-Year Treasury Constant Maturity Rate',
+            'units': 'Percent',
+            'units_short': '%',
+            'frequency': 'Daily',
+            'currency': '%',
+        },
+        'DGS5': {
+            'id': 'DGS5',
+            'title': '5-Year Treasury Constant Maturity Rate',
+            'units': 'Percent',
+            'units_short': '%',
+            'frequency': 'Daily',
+            'currency': '%',
+        },
+        'DTB3': {
+            'id': 'DTB3',
+            'title': '3-Month Treasury Bill Secondary Market Rate',
+            'units': 'Percent',
+            'units_short': '%',
+            'frequency': 'Daily',
+            'currency': '%',
+        },
+        'DGS30': {
+            'id': 'DGS30',
+            'title': '30-Year Treasury Constant Maturity Rate',
+            'units': 'Percent',
+            'units_short': '%',
+            'frequency': 'Daily',
+            'currency': '%',
+        },
+        'DTWEXBGS': {
+            'id': 'DTWEXBGS',
+            'title': 'Nominal Broad U.S. Dollar Index',
+            'units': 'Index Jan 2006=100',
+            'units_short': 'Index Jan 2006=100',
+            'frequency': 'Daily',
+            'currency': 'PTS',
+        },
+    }
+
+    def _make_extractor(self, series_id: str, dynamic_units: Optional[str] = None):
         def _extract(data):
             if isinstance(data, dict):
                 obs = data.get('observations', [])
@@ -914,12 +1004,17 @@ class FredAdapter(BaseMarketAdapter):
                     if val_str and val_str != '.':
                         try:
                             val = float(val_str)
+                            meta = self.FRED_SERIES_METADATA.get(series_id, {})
+                            units_val = dynamic_units or meta.get('units', '%')
+                            curr_val = meta.get('currency') or ('%' if '%' in str(units_val) else 'USD')
                             return {
                                 'price': val,
                                 'asOf': int(time.time()),
                                 'date': obs[0].get('date'),
                                 'state': 'LIVE',
-                                'currency': '%' if series_id.startswith(('DGS', 'DTB')) or series_id in ('FEDFUNDS', 'UNRATE') else 'pts',
+                                'units': units_val,
+                                'unit': meta.get('units_short', units_val),
+                                'currency': curr_val,
                                 'source': 'FRED'
                             }
                         except ValueError:
@@ -936,10 +1031,28 @@ class FredAdapter(BaseMarketAdapter):
             else:
                 return None
 
+        meta = self.FRED_SERIES_METADATA.get(series_id, {})
+        dynamic_units = meta.get('units')
         active_key = self.api_key or os.getenv("FRED_API_KEY", "").strip()
+
         if active_key and active_key != 'demo_fred':
+            # 1. Fetch units metadata from fred/series if available
+            try:
+                meta_url = f"https://api.stlouisfed.org/fred/series?series_id={series_id}&api_key={active_key}&file_type=json"
+                resp_meta = await client.get(meta_url, timeout=5.0)
+                if resp_meta.status_code == 200:
+                    m_data = resp_meta.json()
+                    seriess = m_data.get('seriess', [])
+                    if seriess and isinstance(seriess, list) and len(seriess) > 0:
+                        live_units = seriess[0].get('units')
+                        if live_units:
+                            dynamic_units = live_units
+            except Exception:
+                pass
+
+            # 2. Fetch latest observation
             url = f"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}&api_key={active_key}&file_type=json&sort_order=desc&limit=1"
-            parsed, _ = await self._execute_http(url, self._make_extractor(series_id), client)
+            parsed, _ = await self._execute_http(url, self._make_extractor(series_id, dynamic_units), client)
             if parsed:
                 return parsed
 
@@ -957,12 +1070,16 @@ class FredAdapter(BaseMarketAdapter):
                         date_str, val_str = parts[0].strip(), parts[1].strip()
                         if val_str and val_str != '.' and val_str.lower() != 'nan':
                             val = float(val_str)
+                            units_val = dynamic_units or meta.get('units', '%')
+                            curr_val = meta.get('currency') or ('%' if '%' in str(units_val) else 'USD')
                             return {
                                 'price': val,
                                 'asOf': int(time.time()),
                                 'date': date_str,
                                 'state': 'LIVE',
-                                'currency': '%' if series_id.startswith(('DGS', 'DTB')) or series_id in ('FEDFUNDS', 'UNRATE') else 'pts',
+                                'units': units_val,
+                                'unit': meta.get('units_short', units_val),
+                                'currency': curr_val,
                                 'source': 'FRED'
                             }
         except Exception:

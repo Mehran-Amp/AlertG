@@ -9,7 +9,8 @@
       "display_name": "Effective Federal Funds Rate",
       "asset_class": "macro",
       "exchange": "FRED",
-      "currency": "USD",
+      "currency": "%",
+      "unit": "%",
       "tier": 1,
       "provider_map": {
         "fred": {"symbol": "FEDFUNDS", "priority": 1}
@@ -22,7 +23,8 @@
       "display_name": "Consumer Price Index for All Urban Consumers (CPI)",
       "asset_class": "macro",
       "exchange": "FRED",
-      "currency": "USD",
+      "currency": "PTS",
+      "unit": "Index 1982-1984=100",
       "tier": 1,
       "provider_map": {
         "fred": {"symbol": "CPIAUCSL", "priority": 1}
@@ -35,7 +37,8 @@
       "display_name": "Civilian Unemployment Rate",
       "asset_class": "macro",
       "exchange": "FRED",
-      "currency": "USD",
+      "currency": "%",
+      "unit": "%",
       "tier": 1,
       "provider_map": {
         "fred": {"symbol": "UNRATE", "priority": 1}
@@ -49,6 +52,7 @@
       "asset_class": "macro",
       "exchange": "FRED",
       "currency": "USD",
+      "unit": "Millions of U.S. Dollars",
       "tier": 1,
       "provider_map": {
         "fred": {"symbol": "WALCL", "priority": 1}
@@ -62,6 +66,7 @@
       "asset_class": "macro",
       "exchange": "FRED",
       "currency": "USD",
+      "unit": "Billions of U.S. Dollars",
       "tier": 1,
       "provider_map": {
         "fred": {"symbol": "M2SL", "priority": 1}

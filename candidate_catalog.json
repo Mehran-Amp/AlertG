@@ -2,12 +2,12 @@
   "symbols": [
     {
       "id": "US10Y",
-      "symbol": "US10Y",
+      "symbol": "^TNX",
       "nameEn": "US 10-Year Treasury Yield",
       "nameFa": "US 10-Year Treasury Yield",
       "category": "bond",
       "marketName": "FRED",
-      "unit": "USD",
+      "unit": "%",
       "is_active": 1,
       "delisted_at": null,
       "provider_map": {
@@ -19,16 +19,17 @@
           "symbol": "^TNX",
           "priority": 2
         }
-      }
+      },
+      "currency": "%"
     },
     {
       "id": "US02Y",
-      "symbol": "US02Y",
+      "symbol": "DGS2",
       "nameEn": "US 2-Year Treasury Yield",
       "nameFa": "US 2-Year Treasury Yield",
       "category": "bond",
       "marketName": "FRED",
-      "unit": "USD",
+      "unit": "%",
       "is_active": 1,
       "delisted_at": null,
       "provider_map": {
@@ -36,16 +37,17 @@
           "symbol": "DGS2",
           "priority": 1
         }
-      }
+      },
+      "currency": "%"
     },
     {
       "id": "US13W",
-      "symbol": "US13W",
+      "symbol": "^IRX",
       "nameEn": "US 13-Week Treasury Bill Yield",
       "nameFa": "US 13-Week Treasury Bill Yield",
       "category": "bond",
       "marketName": "FRED",
-      "unit": "USD",
+      "unit": "%",
       "is_active": 1,
       "delisted_at": null,
       "provider_map": {
@@ -57,16 +59,17 @@
           "symbol": "^IRX",
           "priority": 2
         }
-      }
+      },
+      "currency": "%"
     },
     {
       "id": "US30Y",
-      "symbol": "US30Y",
+      "symbol": "^TYX",
       "nameEn": "US 30-Year Treasury Bond Yield",
       "nameFa": "US 30-Year Treasury Bond Yield",
       "category": "bond",
       "marketName": "FRED",
-      "unit": "USD",
+      "unit": "%",
       "is_active": 1,
       "delisted_at": null,
       "provider_map": {
@@ -78,7 +81,8 @@
           "symbol": "^TYX",
           "priority": 2
         }
-      }
+      },
+      "currency": "%"
     },
     {
       "id": "0700.HK",
@@ -1007,7 +1011,7 @@
       "nameFa": "Consumer Price Index for All Urban Consumers (CPI)",
       "category": "macro",
       "marketName": "FRED",
-      "unit": "USD",
+      "unit": "Index 1982-1984=100",
       "is_active": 1,
       "delisted_at": null,
       "provider_map": {
@@ -1015,7 +1019,8 @@
           "symbol": "CPIAUCSL",
           "priority": 1
         }
-      }
+      },
+      "currency": "PTS"
     },
     {
       "id": "UNRATE",
@@ -1041,7 +1046,7 @@
       "nameFa": "Federal Reserve Total Assets (Balance Sheet)",
       "category": "macro",
       "marketName": "FRED",
-      "unit": "USD",
+      "unit": "Millions of U.S. Dollars",
       "is_active": 1,
       "delisted_at": null,
       "provider_map": {
@@ -1049,7 +1054,8 @@
           "symbol": "WALCL",
           "priority": 1
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "M2SL",
@@ -1058,7 +1064,7 @@
       "nameFa": "M2 Money Supply",
       "category": "macro",
       "marketName": "FRED",
-      "unit": "USD",
+      "unit": "Billions of U.S. Dollars",
       "is_active": 1,
       "delisted_at": null,
       "provider_map": {
@@ -1066,7 +1072,8 @@
           "symbol": "M2SL",
           "priority": 1
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MMM",

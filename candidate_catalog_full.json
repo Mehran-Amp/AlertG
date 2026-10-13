@@ -2,7 +2,7 @@
   "symbols": [
     {
       "id": "US10Y",
-      "symbol": "US10Y (^TNX)",
+      "symbol": "^TNX",
       "nameEn": "US 10-Year Treasury Yield",
       "nameFa": "بازده اوراق قرضه ۱۰ ساله آمریکا (US10Y)",
       "category": "bond",
@@ -10,11 +10,23 @@
       "unit": "%",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "%",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "^TNX",
+          "priority": 1
+        },
+        "fred": {
+          "symbol": "DGS10",
+          "priority": 2
+        }
+      },
+      "data_frequency": "daily"
     },
     {
       "id": "US02Y",
-      "symbol": "US02Y (^IRX)",
+      "symbol": "DGS2",
       "nameEn": "US 2-Year Treasury Yield",
       "nameFa": "بازده اوراق قرضه ۲ ساله آمریکا (US02Y)",
       "category": "bond",
@@ -22,11 +34,19 @@
       "unit": "%",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "%",
+      "provider_map": {
+        "fred": {
+          "symbol": "DGS2",
+          "priority": 1
+        }
+      },
+      "data_frequency": "daily"
     },
     {
       "id": "US30Y",
-      "symbol": "US30Y (^TYX)",
+      "symbol": "^TYX",
       "nameEn": "US 30-Year Treasury Bond",
       "nameFa": "بازده اوراق قرضه ۳۰ ساله آمریکا (US30Y)",
       "category": "bond",
@@ -34,7 +54,19 @@
       "unit": "%",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "%",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "^TYX",
+          "priority": 1
+        },
+        "fred": {
+          "symbol": "DGS30",
+          "priority": 2
+        }
+      },
+      "data_frequency": "daily"
     },
     {
       "id": "EURUSD",
@@ -231,66 +263,6 @@
       "added_at": "2026-10-09T10:54:02.360842+00:00"
     },
     {
-      "id": "SPACEX",
-      "symbol": "SPACEX",
-      "nameEn": "SpaceX (Starship & Space Exploration)",
-      "nameFa": "اسپیس‌ایکس (فناوری‌های فضایی، استارشیپ و ماموریت‌های مریخ ایلان ماسک)",
-      "category": "stock",
-      "marketName": "Pre-IPO Benchmark",
-      "unit": "$",
-      "is_active": 1,
-      "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
-    },
-    {
-      "id": "X_CORP",
-      "symbol": "X_CORP",
-      "nameEn": "X Corp (Twitter - Everything App)",
-      "nameFa": "ایکس / توییتر سابق (شبکه اجتماعی جهانی و اپلیکیشن همه‌کاره ایلان ماسک)",
-      "category": "stock",
-      "marketName": "Pre-IPO Benchmark",
-      "unit": "$",
-      "is_active": 1,
-      "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
-    },
-    {
-      "id": "NEURALINK",
-      "symbol": "NEURALINK",
-      "nameEn": "Neuralink (Brain-Computer Interface)",
-      "nameFa": "نورالینک (تراشه رابط مغز و رایانه و تله‌پاتی ایلان ماسک)",
-      "category": "stock",
-      "marketName": "Pre-IPO Benchmark",
-      "unit": "$",
-      "is_active": 1,
-      "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
-    },
-    {
-      "id": "BORING",
-      "symbol": "BORING",
-      "nameEn": "The Boring Company (Hyperloop & Tunneling)",
-      "nameFa": "بورینگ کمپانی (تونل‌های زیرزمینی حمل‌ونقل سریع هایپرلوپ ایلان ماسک)",
-      "category": "stock",
-      "marketName": "Pre-IPO Benchmark",
-      "unit": "$",
-      "is_active": 1,
-      "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
-    },
-    {
-      "id": "DOGE_MUSK",
-      "symbol": "DOGE",
-      "nameEn": "Dogecoin (Elon Musk Ecosystem Crypto)",
-      "nameFa": "دوج‌کوین (رمزارز محبوب و رسمی اکوسیستم تسلا و پلتفرم ایکس)",
-      "category": "stock",
-      "marketName": "Musk Ecosystem",
-      "unit": "$",
-      "is_active": 1,
-      "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
-    },
-    {
       "id": "DXYZ",
       "symbol": "DXYZ",
       "nameEn": "Destiny Tech100 (SpaceX & OpenAI ETF)",
@@ -423,18 +395,6 @@
       "added_at": "2026-10-09T10:54:02.360842+00:00"
     },
     {
-      "id": "USDT_TMN",
-      "symbol": "USDT/TMN",
-      "nameEn": "Tether / Iranian Toman",
-      "nameFa": "تتر به تومان ایران (نرخ لحظه‌ای بازار آزاد تهران)",
-      "category": "forex",
-      "marketName": "Tehran Free Market",
-      "unit": "ت",
-      "is_active": 1,
-      "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
-    },
-    {
       "id": "USD_AED",
       "symbol": "USD/AED",
       "nameEn": "US Dollar / UAE Dirham",
@@ -454,54 +414,6 @@
       "category": "forex",
       "marketName": "Forex Major",
       "unit": "¥",
-      "is_active": 1,
-      "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
-    },
-    {
-      "id": "OPENAI",
-      "symbol": "OPENAI",
-      "nameEn": "OpenAI (ChatGPT & Frontier AI)",
-      "nameFa": "اوپن‌ای‌آی (خالق چت‌جی‌پی‌تی و پیشتاز هوش مصنوعی عمومی AGI)",
-      "category": "stock",
-      "marketName": "Pre-IPO Benchmark",
-      "unit": "$",
-      "is_active": 1,
-      "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
-    },
-    {
-      "id": "ANTHROPIC",
-      "symbol": "ANTHROPIC",
-      "nameEn": "Anthropic (Claude AI)",
-      "nameFa": "انتروپیک (خالق هوش مصنوعی کلود Claude)",
-      "category": "stock",
-      "marketName": "Pre-IPO Benchmark",
-      "unit": "$",
-      "is_active": 1,
-      "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
-    },
-    {
-      "id": "STRIPE",
-      "symbol": "STRIPE",
-      "nameEn": "Stripe Payments",
-      "nameFa": "استریپ (زیرساخت پرداخت اینترنتی و تسویه رمزارزی جهان)",
-      "category": "stock",
-      "marketName": "Pre-IPO Benchmark",
-      "unit": "$",
-      "is_active": 1,
-      "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
-    },
-    {
-      "id": "BYTEDANCE",
-      "symbol": "BYTEDANCE",
-      "nameEn": "ByteDance (TikTok)",
-      "nameFa": "بایت‌دنس (مالک تیک‌تاک و غول الگوریتم‌های هوش مصنوعی)",
-      "category": "stock",
-      "marketName": "Pre-IPO Benchmark",
-      "unit": "$",
       "is_active": 1,
       "delisted_at": null,
       "added_at": "2026-10-09T10:54:02.360842+00:00"
@@ -846,12 +758,12 @@
     },
     {
       "id": "US13W",
-      "symbol": "US13W",
+      "symbol": "^IRX",
       "nameEn": "US 13-Week Treasury Bill Yield",
       "nameFa": "US 13-Week Treasury Bill Yield",
       "category": "bond",
       "marketName": "FRED",
-      "unit": "USD",
+      "unit": "%",
       "is_active": 1,
       "delisted_at": null,
       "provider_map": {
@@ -863,7 +775,9 @@
           "symbol": "^IRX",
           "priority": 2
         }
-      }
+      },
+      "currency": "%",
+      "data_frequency": "daily"
     },
     {
       "id": "0700.HK",
@@ -1336,7 +1250,8 @@
           "priority": 1
         }
       },
-      "currency": "%"
+      "currency": "%",
+      "data_frequency": "daily"
     },
     {
       "id": "CPIAUCSL",
@@ -1345,7 +1260,7 @@
       "nameFa": "Consumer Price Index for All Urban Consumers (CPI)",
       "category": "macro",
       "marketName": "FRED",
-      "unit": "%",
+      "unit": "Index 1982-1984=100",
       "is_active": 1,
       "delisted_at": null,
       "provider_map": {
@@ -1354,7 +1269,8 @@
           "priority": 1
         }
       },
-      "currency": "%"
+      "currency": "PTS",
+      "data_frequency": "monthly"
     },
     {
       "id": "UNRATE",
@@ -1372,7 +1288,8 @@
           "priority": 1
         }
       },
-      "currency": "%"
+      "currency": "%",
+      "data_frequency": "monthly"
     },
     {
       "id": "WALCL",
@@ -1381,7 +1298,7 @@
       "nameFa": "Federal Reserve Total Assets (Balance Sheet)",
       "category": "macro",
       "marketName": "FRED",
-      "unit": "%",
+      "unit": "Millions of U.S. Dollars",
       "is_active": 1,
       "delisted_at": null,
       "provider_map": {
@@ -1390,7 +1307,8 @@
           "priority": 1
         }
       },
-      "currency": "%"
+      "currency": "USD",
+      "data_frequency": "daily"
     },
     {
       "id": "M2SL",
@@ -1399,7 +1317,7 @@
       "nameFa": "M2 Money Supply",
       "category": "macro",
       "marketName": "FRED",
-      "unit": "%",
+      "unit": "Billions of U.S. Dollars",
       "is_active": 1,
       "delisted_at": null,
       "provider_map": {
@@ -1408,7 +1326,8 @@
           "priority": 1
         }
       },
-      "currency": "%"
+      "currency": "USD",
+      "data_frequency": "monthly"
     },
     {
       "id": "MMM",
@@ -13611,6 +13530,6 @@
       }
     }
   ],
-  "total_symbols": 581,
-  "total_active": 581
+  "total_symbols": 571,
+  "total_active": 571
 }

@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
-import '../../core/services/catalog_sync_service.dart';
+import '../../../core/services/catalog_sync_service.dart';
 
 class WatchlistItem {
   final String symbol;

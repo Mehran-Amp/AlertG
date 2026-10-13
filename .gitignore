@@ -40,3 +40,10 @@ tmp/
 
 # Catalog single-writer lock
 catalog.json.lock
+
+# Generated probe reports and checkpoints
+reports/probe_checkpoint.json
+reports/pre_apply_report.json
+reports/rejected.json
+reports/summary_report.json
+reports/yields_table.json

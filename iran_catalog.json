@@ -3,7 +3,7 @@
   "catalog_version": 1,
   "market": "Iran Domestic & Free Market",
   "source": "bonbast.com",
-  "total_symbols": 24,
+  "total_symbols": 25,
   "symbols": [
     {
       "id": "GOLD18_BONBAST",
@@ -292,6 +292,18 @@
       "is_active": 1,
       "delisted_at": null,
       "added_at": "2026-10-09T10:54:02.360842+00:00"
+    },
+    {
+      "id": "USDT_TMN",
+      "symbol": "USDT/TMN",
+      "nameEn": "Tether / Iranian Toman",
+      "nameFa": "تتر به تومان (صرافی‌های ایرانی و بازار آزاد)",
+      "category": "iran_market",
+      "marketName": "بازار ایران و تتر",
+      "unit": "ت",
+      "is_active": 1,
+      "delisted_at": null,
+      "added_at": "2026-10-13T03:50:00.000000+00:00"
     }
   ]
 }
