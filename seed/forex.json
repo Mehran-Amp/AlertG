@@ -12,9 +12,18 @@
       "currency": "USD",
       "tier": 1,
       "provider_map": {
-        "yahoo": {"symbol": "EURUSD=X", "priority": 1},
-        "twelve_data": {"symbol": "EUR/USD", "priority": 2},
-        "finnhub": {"symbol": "OANDA:EUR_USD", "priority": 3}
+        "yahoo": {
+          "symbol": "EURUSD=X",
+          "priority": 1
+        },
+        "twelve_data": {
+          "symbol": "EUR/USD",
+          "priority": 2
+        },
+        "finnhub": {
+          "symbol": "OANDA:EUR_USD",
+          "priority": 3
+        }
       },
       "data_frequency": "live",
       "is_delayed": false
@@ -27,9 +36,18 @@
       "currency": "USD",
       "tier": 1,
       "provider_map": {
-        "yahoo": {"symbol": "GBPUSD=X", "priority": 1},
-        "twelve_data": {"symbol": "GBP/USD", "priority": 2},
-        "finnhub": {"symbol": "OANDA:GBP_USD", "priority": 3}
+        "yahoo": {
+          "symbol": "GBPUSD=X",
+          "priority": 1
+        },
+        "twelve_data": {
+          "symbol": "GBP/USD",
+          "priority": 2
+        },
+        "finnhub": {
+          "symbol": "OANDA:GBP_USD",
+          "priority": 3
+        }
       },
       "data_frequency": "live",
       "is_delayed": false
@@ -42,9 +60,18 @@
       "currency": "JPY",
       "tier": 1,
       "provider_map": {
-        "yahoo": {"symbol": "JPY=X", "priority": 1},
-        "twelve_data": {"symbol": "USD/JPY", "priority": 2},
-        "finnhub": {"symbol": "OANDA:USD_JPY", "priority": 3}
+        "yahoo": {
+          "symbol": "JPY=X",
+          "priority": 1
+        },
+        "twelve_data": {
+          "symbol": "USD/JPY",
+          "priority": 2
+        },
+        "finnhub": {
+          "symbol": "OANDA:USD_JPY",
+          "priority": 3
+        }
       },
       "data_frequency": "live",
       "is_delayed": false
@@ -57,9 +84,18 @@
       "currency": "CHF",
       "tier": 1,
       "provider_map": {
-        "yahoo": {"symbol": "CHF=X", "priority": 1},
-        "twelve_data": {"symbol": "USD/CHF", "priority": 2},
-        "finnhub": {"symbol": "OANDA:USD_CHF", "priority": 3}
+        "yahoo": {
+          "symbol": "CHF=X",
+          "priority": 1
+        },
+        "twelve_data": {
+          "symbol": "USD/CHF",
+          "priority": 2
+        },
+        "finnhub": {
+          "symbol": "OANDA:USD_CHF",
+          "priority": 3
+        }
       },
       "data_frequency": "live",
       "is_delayed": false
@@ -72,9 +108,18 @@
       "currency": "USD",
       "tier": 1,
       "provider_map": {
-        "yahoo": {"symbol": "AUDUSD=X", "priority": 1},
-        "twelve_data": {"symbol": "AUD/USD", "priority": 2},
-        "finnhub": {"symbol": "OANDA:AUD_USD", "priority": 3}
+        "yahoo": {
+          "symbol": "AUDUSD=X",
+          "priority": 1
+        },
+        "twelve_data": {
+          "symbol": "AUD/USD",
+          "priority": 2
+        },
+        "finnhub": {
+          "symbol": "OANDA:AUD_USD",
+          "priority": 3
+        }
       },
       "data_frequency": "live",
       "is_delayed": false
@@ -87,9 +132,18 @@
       "currency": "CAD",
       "tier": 1,
       "provider_map": {
-        "yahoo": {"symbol": "CAD=X", "priority": 1},
-        "twelve_data": {"symbol": "USD/CAD", "priority": 2},
-        "finnhub": {"symbol": "OANDA:USD_CAD", "priority": 3}
+        "yahoo": {
+          "symbol": "CAD=X",
+          "priority": 1
+        },
+        "twelve_data": {
+          "symbol": "USD/CAD",
+          "priority": 2
+        },
+        "finnhub": {
+          "symbol": "OANDA:USD_CAD",
+          "priority": 3
+        }
       },
       "data_frequency": "live",
       "is_delayed": false
@@ -102,9 +156,18 @@
       "currency": "USD",
       "tier": 1,
       "provider_map": {
-        "yahoo": {"symbol": "NZDUSD=X", "priority": 1},
-        "twelve_data": {"symbol": "NZD/USD", "priority": 2},
-        "finnhub": {"symbol": "OANDA:NZD_USD", "priority": 3}
+        "yahoo": {
+          "symbol": "NZDUSD=X",
+          "priority": 1
+        },
+        "twelve_data": {
+          "symbol": "NZD/USD",
+          "priority": 2
+        },
+        "finnhub": {
+          "symbol": "OANDA:NZD_USD",
+          "priority": 3
+        }
       },
       "data_frequency": "live",
       "is_delayed": false
@@ -117,9 +180,18 @@
       "currency": "GBP",
       "tier": 1,
       "provider_map": {
-        "yahoo": {"symbol": "EURGBP=X", "priority": 1},
-        "twelve_data": {"symbol": "EUR/GBP", "priority": 2},
-        "finnhub": {"symbol": "OANDA:EUR_GBP", "priority": 3}
+        "yahoo": {
+          "symbol": "EURGBP=X",
+          "priority": 1
+        },
+        "twelve_data": {
+          "symbol": "EUR/GBP",
+          "priority": 2
+        },
+        "finnhub": {
+          "symbol": "OANDA:EUR_GBP",
+          "priority": 3
+        }
       },
       "data_frequency": "live",
       "is_delayed": false
@@ -132,9 +204,18 @@
       "currency": "JPY",
       "tier": 1,
       "provider_map": {
-        "yahoo": {"symbol": "EURJPY=X", "priority": 1},
-        "twelve_data": {"symbol": "EUR/JPY", "priority": 2},
-        "finnhub": {"symbol": "OANDA:EUR_JPY", "priority": 3}
+        "yahoo": {
+          "symbol": "EURJPY=X",
+          "priority": 1
+        },
+        "twelve_data": {
+          "symbol": "EUR/JPY",
+          "priority": 2
+        },
+        "finnhub": {
+          "symbol": "OANDA:EUR_JPY",
+          "priority": 3
+        }
       },
       "data_frequency": "live",
       "is_delayed": false
@@ -147,9 +228,18 @@
       "currency": "JPY",
       "tier": 1,
       "provider_map": {
-        "yahoo": {"symbol": "GBPJPY=X", "priority": 1},
-        "twelve_data": {"symbol": "GBP/JPY", "priority": 2},
-        "finnhub": {"symbol": "OANDA:GBP_JPY", "priority": 3}
+        "yahoo": {
+          "symbol": "GBPJPY=X",
+          "priority": 1
+        },
+        "twelve_data": {
+          "symbol": "GBP/JPY",
+          "priority": 2
+        },
+        "finnhub": {
+          "symbol": "OANDA:GBP_JPY",
+          "priority": 3
+        }
       },
       "data_frequency": "live",
       "is_delayed": false
@@ -162,9 +252,18 @@
       "currency": "CHF",
       "tier": 1,
       "provider_map": {
-        "yahoo": {"symbol": "EURCHF=X", "priority": 1},
-        "twelve_data": {"symbol": "EUR/CHF", "priority": 2},
-        "finnhub": {"symbol": "OANDA:EUR_CHF", "priority": 3}
+        "yahoo": {
+          "symbol": "EURCHF=X",
+          "priority": 1
+        },
+        "twelve_data": {
+          "symbol": "EUR/CHF",
+          "priority": 2
+        },
+        "finnhub": {
+          "symbol": "OANDA:EUR_CHF",
+          "priority": 3
+        }
       },
       "data_frequency": "live",
       "is_delayed": false
@@ -177,9 +276,18 @@
       "currency": "AUD",
       "tier": 1,
       "provider_map": {
-        "yahoo": {"symbol": "EURAUD=X", "priority": 1},
-        "twelve_data": {"symbol": "EUR/AUD", "priority": 2},
-        "finnhub": {"symbol": "OANDA:EUR_AUD", "priority": 3}
+        "yahoo": {
+          "symbol": "EURAUD=X",
+          "priority": 1
+        },
+        "twelve_data": {
+          "symbol": "EUR/AUD",
+          "priority": 2
+        },
+        "finnhub": {
+          "symbol": "OANDA:EUR_AUD",
+          "priority": 3
+        }
       },
       "data_frequency": "live",
       "is_delayed": false
@@ -192,9 +300,18 @@
       "currency": "CAD",
       "tier": 1,
       "provider_map": {
-        "yahoo": {"symbol": "EURCAD=X", "priority": 1},
-        "twelve_data": {"symbol": "EUR/CAD", "priority": 2},
-        "finnhub": {"symbol": "OANDA:EUR_CAD", "priority": 3}
+        "yahoo": {
+          "symbol": "EURCAD=X",
+          "priority": 1
+        },
+        "twelve_data": {
+          "symbol": "EUR/CAD",
+          "priority": 2
+        },
+        "finnhub": {
+          "symbol": "OANDA:EUR_CAD",
+          "priority": 3
+        }
       },
       "data_frequency": "live",
       "is_delayed": false
@@ -207,9 +324,18 @@
       "currency": "JPY",
       "tier": 1,
       "provider_map": {
-        "yahoo": {"symbol": "AUDJPY=X", "priority": 1},
-        "twelve_data": {"symbol": "AUD/JPY", "priority": 2},
-        "finnhub": {"symbol": "OANDA:AUD_JPY", "priority": 3}
+        "yahoo": {
+          "symbol": "AUDJPY=X",
+          "priority": 1
+        },
+        "twelve_data": {
+          "symbol": "AUD/JPY",
+          "priority": 2
+        },
+        "finnhub": {
+          "symbol": "OANDA:AUD_JPY",
+          "priority": 3
+        }
       },
       "data_frequency": "live",
       "is_delayed": false
@@ -222,24 +348,42 @@
       "currency": "AUD",
       "tier": 1,
       "provider_map": {
-        "yahoo": {"symbol": "GBPAUD=X", "priority": 1},
-        "twelve_data": {"symbol": "GBP/AUD", "priority": 2},
-        "finnhub": {"symbol": "OANDA:GBP_AUD", "priority": 3}
+        "yahoo": {
+          "symbol": "GBPAUD=X",
+          "priority": 1
+        },
+        "twelve_data": {
+          "symbol": "GBP/AUD",
+          "priority": 2
+        },
+        "finnhub": {
+          "symbol": "OANDA:GBP_AUD",
+          "priority": 3
+        }
       },
       "data_frequency": "live",
       "is_delayed": false
     },
     {
-      "id": "USDCNY",
+      "id": "USD_CNY",
       "display_name": "US Dollar / Chinese Yuan",
       "asset_class": "forex",
       "exchange": "FOREX",
       "currency": "CNY",
       "tier": 1,
       "provider_map": {
-        "yahoo": {"symbol": "CNY=X", "priority": 1},
-        "twelve_data": {"symbol": "USD/CNY", "priority": 2},
-        "finnhub": {"symbol": "OANDA:USD_CNY", "priority": 3}
+        "yahoo": {
+          "symbol": "CNY=X",
+          "priority": 1
+        },
+        "twelve_data": {
+          "symbol": "USD/CNY",
+          "priority": 2
+        },
+        "finnhub": {
+          "symbol": "OANDA:USD_CNY",
+          "priority": 3
+        }
       },
       "data_frequency": "live",
       "is_delayed": false

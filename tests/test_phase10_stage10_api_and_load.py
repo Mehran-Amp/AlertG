@@ -30,7 +30,15 @@ from unittest.mock import patch, MagicMock
 # Offline mock setup for test execution environment
 for mod in ['fastapi', 'fastapi.middleware.cors', 'fastapi.middleware.gzip', 'fastapi.responses']:
     if mod not in sys.modules:
-        sys.modules[mod] = MagicMock()
+        m = MagicMock()
+        if mod == 'fastapi':
+            class HTTPException(Exception):
+                def __init__(self, status_code=400, detail=""):
+                    super().__init__(detail)
+                    self.status_code = status_code
+                    self.detail = detail
+            m.HTTPException = HTTPException
+        sys.modules[mod] = m
 
 from app.routes.symbols import (
     get_symbols_catalog_filtered,

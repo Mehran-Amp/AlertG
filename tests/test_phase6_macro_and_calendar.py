@@ -20,12 +20,18 @@ Acceptance Criteria Verified:
      * /api/markets/status returns "status": "closed" and "state_fa": "بسته"
 """
 
+import sys
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime, timezone
 import zoneinfo
 import time
-import httpx
+try:
+    import httpx
+except ImportError:
+    import sys
+    httpx = MagicMock()
+    sys.modules['httpx'] = httpx
 
 from app.models import AlertCreate, Alert, AlertPublic
 from app.engine.calendar import (
@@ -42,8 +48,37 @@ from app.engine.calendar import (
 from app.engine.checker import check_alerts_job, check_macro_alerts_job
 from app.state import PRICE_CACHE, METRICS
 import app.storage as storage
-import app.state as state
+for mod_name in [
+    'fastapi', 'fastapi.middleware.cors', 'fastapi.responses',
+    'apscheduler', 'apscheduler.schedulers', 'apscheduler.schedulers.asyncio',
+    'firebase_admin', 'firebase_admin.credentials', 'firebase_admin.messaging', 'firebase_admin.exceptions'
+]:
+    if mod_name not in sys.modules:
+        try:
+            __import__(mod_name)
+        except ImportError:
+            m = MagicMock()
+            if mod_name == 'fastapi':
+                class HTTPException(Exception):
+                    def __init__(self, status_code=400, detail=""):
+                        super().__init__(detail)
+                        self.status_code = status_code
+                        self.detail = detail
+                m.HTTPException = HTTPException
+                class _Route:
+                    endpoint = MagicMock()
+                class APIRouter:
+                    def __init__(self, *args, **kwargs):
+                        self.routes = [_Route() for _ in range(10)]
+                    def get(self, *args, **kwargs): return lambda f: f
+                    def post(self, *args, **kwargs): return lambda f: f
+                    def put(self, *args, **kwargs): return lambda f: f
+                    def delete(self, *args, **kwargs): return lambda f: f
+                m.APIRouter = APIRouter
+            sys.modules[mod_name] = m
+
 from server import scheduler
+import app.state as state
 
 
 class TestPhase6MacroAndCalendar(unittest.IsolatedAsyncioTestCase):

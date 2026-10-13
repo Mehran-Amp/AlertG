@@ -29,7 +29,16 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import json
 import time
 import asyncio
-import httpx
+try:
+    import httpx
+except ImportError:
+    import sys
+    httpx = MagicMock()
+    class TimeoutException(Exception): pass
+    class HTTPError(Exception): pass
+    httpx.TimeoutException = TimeoutException
+    httpx.HTTPError = HTTPError
+    sys.modules['httpx'] = httpx
 
 from app.markets.global_stocks import (
     CircuitBreaker,

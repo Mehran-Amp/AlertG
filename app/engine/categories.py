@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 # Category-specific Cache TTL configuration (Seconds)
 # 1. Forex: 20s
@@ -37,11 +37,15 @@ CATEGORY_OUTLIER_THRESHOLDS: Dict[str, float] = {
     'default': 0.50
 }
 
-def resolve_symbol_category(exchange: str, symbol: str) -> str:
+def resolve_symbol_category(exchange: str, symbol: Optional[str] = None) -> str:
     """
     Identifies the financial category of an exchange:symbol pair
     to apply category-tailored Cache TTL and Outlier Thresholds.
+    Can also be called with single argument: resolve_symbol_category(symbol).
     """
+    if symbol is None:
+        symbol = exchange
+        exchange = 'global_stocks'
     ex = (exchange or '').lower().strip()
     sym = (symbol or '').upper().strip()
 
@@ -60,7 +64,7 @@ def resolve_symbol_category(exchange: str, symbol: str) -> str:
     if sym in ['EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD', 'EURGBP', 'EURJPY', 'GBPJPY']:
         return 'forex'
 
-    if sym in ['SPX', 'SP500', '^GSPC', 'NDX', 'NASDAQ', '^NDX', 'DJI', 'DOW', '^DJI', 'RUT', '^RUT', 'DAX', '^GDAXI', 'FTSE', '^FTSE', 'CAC40', '^FCHI', 'NIKKEI', '^N225', 'NIFTY', '^NSEI', 'KOSPI', '^KS11', 'VIX', '^VIX']:
+    if sym in ['SPX', 'SP500', '^GSPC', 'NDX', 'NASDAQ', '^NDX', 'DJI', 'DOWJONES', '^DJI', 'RUT', '^RUT', 'DAX', '^GDAXI', 'FTSE', '^FTSE', 'CAC40', '^FCHI', 'NIKKEI', '^N225', 'NIFTY', '^NSEI', 'KOSPI', '^KS11', 'VIX', '^VIX']:
         return 'index'
 
     if sym in ['GOLD', 'XAU', 'XAUUSD', 'GC=F', 'SILVER', 'XAG', 'XAGUSD', 'SI=F', 'BRENT', 'OILBRENT', 'BZ=F', 'WTI', 'OILWTI', 'CL=F', 'NATGAS', 'NG=F', 'COPPER', 'HG=F', 'PLATINUM', 'PL=F']:

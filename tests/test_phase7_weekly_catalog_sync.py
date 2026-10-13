@@ -34,6 +34,7 @@ from app.models import Alert
 from app.config import DATA_DIR, CATALOG_FILE, CATALOG_SNAPSHOTS_DIR, APP_VERSION
 import app.storage as storage
 import app.state as state
+from app.state import METRICS
 import app.engine.sync as sync_module
 try:
     from server import scheduler, setup_scheduler_jobs

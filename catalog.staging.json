@@ -84,7 +84,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "GBPUSD",
@@ -96,7 +97,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "USDJPY",
@@ -108,7 +110,8 @@
       "unit": "¥",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "JPY"
     },
     {
       "id": "USDCHF",
@@ -120,7 +123,8 @@
       "unit": "Fr",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "CHF"
     },
     {
       "id": "AUDUSD",
@@ -132,7 +136,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "USDCAD",
@@ -144,7 +149,8 @@
       "unit": "C$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "CAD"
     },
     {
       "id": "NVDA",
@@ -156,7 +162,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "AAPL",
@@ -168,7 +175,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "MSFT",
@@ -180,7 +188,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "AMZN",
@@ -192,7 +201,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "GOOGL",
@@ -204,7 +214,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "META",
@@ -216,7 +227,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "PLTR",
@@ -228,7 +240,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "BRKB",
@@ -254,7 +267,8 @@
           "symbol": "BRK.B",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "TSLA",
@@ -266,7 +280,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "DXYZ",
@@ -278,7 +293,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "RKLB",
@@ -290,7 +306,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "ASTS",
@@ -302,7 +319,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "BA",
@@ -314,7 +332,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "TSM",
@@ -326,7 +345,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "ASML",
@@ -338,7 +358,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "AMD",
@@ -350,7 +371,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "AVGO",
@@ -362,7 +384,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "LVMH",
@@ -374,7 +397,8 @@
       "unit": "€",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "EUR"
     },
     {
       "id": "HERMES",
@@ -386,7 +410,8 @@
       "unit": "€",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "EUR"
     },
     {
       "id": "PORSCHE",
@@ -398,7 +423,8 @@
       "unit": "€",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "EUR"
     },
     {
       "id": "USD_AED",
@@ -410,7 +436,8 @@
       "unit": "AED",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "USD_CNY",
@@ -422,7 +449,8 @@
       "unit": "¥",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "CNY"
     },
     {
       "id": "MSTR",
@@ -434,7 +462,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "COIN",
@@ -446,7 +475,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "MARA",
@@ -458,7 +488,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "RIOT",
@@ -470,7 +501,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "CLSK",
@@ -482,7 +514,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "HOOD",
@@ -494,7 +527,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "RDDT",
@@ -506,7 +540,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "SHOP",
@@ -518,7 +553,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "SNOW",
@@ -530,7 +566,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "RACE",
@@ -542,7 +579,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "GOLD",
@@ -554,7 +592,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "SILVER",
@@ -566,7 +605,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "COPPER",
@@ -578,7 +618,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "NATGAS",
@@ -590,7 +631,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "PLATINUM",
@@ -602,7 +644,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "URANIUM",
@@ -628,7 +671,8 @@
           "symbol": "URNM",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "OIL_WTI",
@@ -640,7 +684,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "OIL_BRENT",
@@ -652,7 +697,8 @@
       "unit": "$",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "VIX",
@@ -664,7 +710,8 @@
       "unit": "pts",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "RUT",
@@ -676,7 +723,8 @@
       "unit": "pts",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "DAX",
@@ -688,7 +736,8 @@
       "unit": "pts",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "EUR"
     },
     {
       "id": "NIKKEI",
@@ -700,7 +749,8 @@
       "unit": "pts",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "JPY"
     },
     {
       "id": "FTSE",
@@ -712,7 +762,8 @@
       "unit": "pts",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "SP500",
@@ -724,7 +775,8 @@
       "unit": "pts",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "NASDAQ100",
@@ -736,7 +788,8 @@
       "unit": "pts",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "DOWJONES",
@@ -748,7 +801,8 @@
       "unit": "pts",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "DXY",
@@ -760,7 +814,8 @@
       "unit": "pts",
       "is_active": 1,
       "delisted_at": null,
-      "added_at": "2026-10-09T10:54:02.360842+00:00"
+      "added_at": "2026-10-09T10:54:02.360842+00:00",
+      "currency": "USD"
     },
     {
       "id": "US13W",
@@ -804,7 +859,8 @@
           "symbol": "0700",
           "priority": 2
         }
-      }
+      },
+      "currency": "HKD"
     },
     {
       "id": "9988.HK",
@@ -825,7 +881,8 @@
           "symbol": "9988",
           "priority": 2
         }
-      }
+      },
+      "currency": "HKD"
     },
     {
       "id": "3690.HK",
@@ -846,7 +903,8 @@
           "symbol": "3690",
           "priority": 2
         }
-      }
+      },
+      "currency": "HKD"
     },
     {
       "id": "1810.HK",
@@ -867,7 +925,8 @@
           "symbol": "1810",
           "priority": 2
         }
-      }
+      },
+      "currency": "HKD"
     },
     {
       "id": "1211.HK",
@@ -888,7 +947,8 @@
           "symbol": "1211",
           "priority": 2
         }
-      }
+      },
+      "currency": "HKD"
     },
     {
       "id": "SPY",
@@ -913,7 +973,8 @@
           "symbol": "SPY",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "QQQ",
@@ -938,7 +999,8 @@
           "symbol": "QQQ",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "IWM",
@@ -963,7 +1025,8 @@
           "symbol": "IWM",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "GLD",
@@ -988,7 +1051,8 @@
           "symbol": "GLD",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "NZDUSD",
@@ -1013,7 +1077,8 @@
           "symbol": "OANDA:NZD_USD",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "EURGBP",
@@ -1038,7 +1103,8 @@
           "symbol": "OANDA:EUR_GBP",
           "priority": 3
         }
-      }
+      },
+      "currency": "GBP"
     },
     {
       "id": "EURJPY",
@@ -1063,7 +1129,8 @@
           "symbol": "OANDA:EUR_JPY",
           "priority": 3
         }
-      }
+      },
+      "currency": "JPY"
     },
     {
       "id": "GBPJPY",
@@ -1088,7 +1155,8 @@
           "symbol": "OANDA:GBP_JPY",
           "priority": 3
         }
-      }
+      },
+      "currency": "JPY"
     },
     {
       "id": "EURCHF",
@@ -1113,7 +1181,8 @@
           "symbol": "OANDA:EUR_CHF",
           "priority": 3
         }
-      }
+      },
+      "currency": "CHF"
     },
     {
       "id": "EURAUD",
@@ -1138,7 +1207,8 @@
           "symbol": "OANDA:EUR_AUD",
           "priority": 3
         }
-      }
+      },
+      "currency": "AUD"
     },
     {
       "id": "EURCAD",
@@ -1163,7 +1233,8 @@
           "symbol": "OANDA:EUR_CAD",
           "priority": 3
         }
-      }
+      },
+      "currency": "CAD"
     },
     {
       "id": "AUDJPY",
@@ -1188,7 +1259,8 @@
           "symbol": "OANDA:AUD_JPY",
           "priority": 3
         }
-      }
+      },
+      "currency": "JPY"
     },
     {
       "id": "GBPAUD",
@@ -1213,32 +1285,8 @@
           "symbol": "OANDA:GBP_AUD",
           "priority": 3
         }
-      }
-    },
-    {
-      "id": "USDCNY",
-      "symbol": "USDCNY",
-      "nameEn": "US Dollar / Chinese Yuan",
-      "nameFa": "US Dollar / Chinese Yuan",
-      "category": "forex",
-      "marketName": "FOREX",
-      "unit": "CNY",
-      "is_active": 1,
-      "delisted_at": null,
-      "provider_map": {
-        "yahoo": {
-          "symbol": "CNY=X",
-          "priority": 1
-        },
-        "twelve_data": {
-          "symbol": "USD/CNY",
-          "priority": 2
-        },
-        "finnhub": {
-          "symbol": "OANDA:USD_CNY",
-          "priority": 3
-        }
-      }
+      },
+      "currency": "AUD"
     },
     {
       "id": "FEDFUNDS",
@@ -1358,7 +1406,8 @@
           "symbol": "MMM",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "AOS",
@@ -1383,7 +1432,8 @@
           "symbol": "AOS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ABT",
@@ -1408,7 +1458,8 @@
           "symbol": "ABT",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ABBV",
@@ -1433,7 +1484,8 @@
           "symbol": "ABBV",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ACN",
@@ -1458,7 +1510,8 @@
           "symbol": "ACN",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ADBE",
@@ -1483,7 +1536,8 @@
           "symbol": "ADBE",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "AES",
@@ -1508,7 +1562,8 @@
           "symbol": "AES",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "AFL",
@@ -1533,7 +1588,8 @@
           "symbol": "AFL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "A",
@@ -1558,7 +1614,8 @@
           "symbol": "A",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "APD",
@@ -1583,7 +1640,8 @@
           "symbol": "APD",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ABNB",
@@ -1608,7 +1666,8 @@
           "symbol": "ABNB",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "AKAM",
@@ -1633,7 +1692,8 @@
           "symbol": "AKAM",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ALB",
@@ -1658,7 +1718,8 @@
           "symbol": "ALB",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ARE",
@@ -1683,7 +1744,8 @@
           "symbol": "ARE",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ALGN",
@@ -1708,7 +1770,8 @@
           "symbol": "ALGN",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ALLE",
@@ -1733,7 +1796,8 @@
           "symbol": "ALLE",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "LNT",
@@ -1758,7 +1822,8 @@
           "symbol": "LNT",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ALL",
@@ -1783,7 +1848,8 @@
           "symbol": "ALL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "GOOG",
@@ -1808,7 +1874,8 @@
           "symbol": "GOOG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MO",
@@ -1833,7 +1900,8 @@
           "symbol": "MO",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "AMCR",
@@ -1858,7 +1926,8 @@
           "symbol": "AMCR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "AEE",
@@ -1883,7 +1952,8 @@
           "symbol": "AEE",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "AEP",
@@ -1908,7 +1978,8 @@
           "symbol": "AEP",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "AXP",
@@ -1933,7 +2004,8 @@
           "symbol": "AXP",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "AIG",
@@ -1958,7 +2030,8 @@
           "symbol": "AIG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "AMT",
@@ -1983,7 +2056,8 @@
           "symbol": "AMT",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "AWK",
@@ -2008,7 +2082,8 @@
           "symbol": "AWK",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "AMP",
@@ -2033,7 +2108,8 @@
           "symbol": "AMP",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "AME",
@@ -2058,7 +2134,8 @@
           "symbol": "AME",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "AMGN",
@@ -2083,7 +2160,8 @@
           "symbol": "AMGN",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "APH",
@@ -2108,7 +2186,8 @@
           "symbol": "APH",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ADI",
@@ -2133,7 +2212,8 @@
           "symbol": "ADI",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "AON",
@@ -2158,7 +2238,8 @@
           "symbol": "AON",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "APA",
@@ -2183,7 +2264,8 @@
           "symbol": "APA",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "APO",
@@ -2208,7 +2290,8 @@
           "symbol": "APO",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "AMAT",
@@ -2233,7 +2316,8 @@
           "symbol": "AMAT",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "APP",
@@ -2258,7 +2342,8 @@
           "symbol": "APP",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "APTV",
@@ -2283,7 +2368,8 @@
           "symbol": "APTV",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ACGL",
@@ -2308,7 +2394,8 @@
           "symbol": "ACGL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ADM",
@@ -2333,7 +2420,8 @@
           "symbol": "ADM",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ARES",
@@ -2358,7 +2446,8 @@
           "symbol": "ARES",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ANET",
@@ -2383,7 +2472,8 @@
           "symbol": "ANET",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "AJG",
@@ -2408,7 +2498,8 @@
           "symbol": "AJG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "AIZ",
@@ -2433,7 +2524,8 @@
           "symbol": "AIZ",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "T",
@@ -2458,7 +2550,8 @@
           "symbol": "T",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ATO",
@@ -2483,7 +2576,8 @@
           "symbol": "ATO",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ADSK",
@@ -2508,7 +2602,8 @@
           "symbol": "ADSK",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ADP",
@@ -2533,7 +2628,8 @@
           "symbol": "ADP",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "AZO",
@@ -2558,7 +2654,8 @@
           "symbol": "AZO",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "AVY",
@@ -2583,7 +2680,8 @@
           "symbol": "AVY",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "AXON",
@@ -2608,7 +2706,8 @@
           "symbol": "AXON",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "BKR",
@@ -2633,7 +2732,8 @@
           "symbol": "BKR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "BALL",
@@ -2658,7 +2758,8 @@
           "symbol": "BALL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "BAC",
@@ -2683,7 +2784,8 @@
           "symbol": "BAC",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "BAX",
@@ -2708,7 +2810,8 @@
           "symbol": "BAX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "BDX",
@@ -2733,7 +2836,8 @@
           "symbol": "BDX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "BBY",
@@ -2758,7 +2862,8 @@
           "symbol": "BBY",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "TECH",
@@ -2783,7 +2888,8 @@
           "symbol": "TECH",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "BIIB",
@@ -2808,7 +2914,8 @@
           "symbol": "BIIB",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "BLK",
@@ -2833,7 +2940,8 @@
           "symbol": "BLK",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "BX",
@@ -2858,7 +2966,8 @@
           "symbol": "BX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "XYZ",
@@ -2883,7 +2992,8 @@
           "symbol": "XYZ",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "BE",
@@ -2908,7 +3018,8 @@
           "symbol": "BE",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "BNY",
@@ -2933,7 +3044,8 @@
           "symbol": "BNY",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "BKNG",
@@ -2958,7 +3070,8 @@
           "symbol": "BKNG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "BSX",
@@ -2983,7 +3096,8 @@
           "symbol": "BSX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "BMY",
@@ -3008,7 +3122,8 @@
           "symbol": "BMY",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "BR",
@@ -3033,7 +3148,8 @@
           "symbol": "BR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "BRO",
@@ -3058,7 +3174,8 @@
           "symbol": "BRO",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "BF.B",
@@ -3083,7 +3200,8 @@
           "symbol": "BF.B",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "BG",
@@ -3108,7 +3226,8 @@
           "symbol": "BG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "BXP",
@@ -3133,7 +3252,8 @@
           "symbol": "BXP",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CHRW",
@@ -3158,7 +3278,8 @@
           "symbol": "CHRW",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CDNS",
@@ -3183,7 +3304,8 @@
           "symbol": "CDNS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CPT",
@@ -3208,7 +3330,8 @@
           "symbol": "CPT",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "COF",
@@ -3233,7 +3356,8 @@
           "symbol": "COF",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CAH",
@@ -3258,7 +3382,8 @@
           "symbol": "CAH",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CCL",
@@ -3283,7 +3408,8 @@
           "symbol": "CCL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CARR",
@@ -3308,7 +3434,8 @@
           "symbol": "CARR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CVNA",
@@ -3333,7 +3460,8 @@
           "symbol": "CVNA",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CASY",
@@ -3358,7 +3486,8 @@
           "symbol": "CASY",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CAT",
@@ -3383,7 +3512,8 @@
           "symbol": "CAT",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CBOE",
@@ -3408,7 +3538,8 @@
           "symbol": "CBOE",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CBRE",
@@ -3433,7 +3564,8 @@
           "symbol": "CBRE",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CDW",
@@ -3458,7 +3590,8 @@
           "symbol": "CDW",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "COR",
@@ -3483,7 +3616,8 @@
           "symbol": "COR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CNC",
@@ -3508,7 +3642,8 @@
           "symbol": "CNC",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CNP",
@@ -3533,7 +3668,8 @@
           "symbol": "CNP",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CF",
@@ -3558,7 +3694,8 @@
           "symbol": "CF",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CRL",
@@ -3583,7 +3720,8 @@
           "symbol": "CRL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "SCHW",
@@ -3608,7 +3746,8 @@
           "symbol": "SCHW",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CHTR",
@@ -3633,7 +3772,8 @@
           "symbol": "CHTR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CVX",
@@ -3658,7 +3798,8 @@
           "symbol": "CVX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CMG",
@@ -3683,7 +3824,8 @@
           "symbol": "CMG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CB",
@@ -3708,7 +3850,8 @@
           "symbol": "CB",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CHD",
@@ -3733,7 +3876,8 @@
           "symbol": "CHD",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CIEN",
@@ -3758,7 +3902,8 @@
           "symbol": "CIEN",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CI",
@@ -3783,7 +3928,8 @@
           "symbol": "CI",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CINF",
@@ -3808,7 +3954,8 @@
           "symbol": "CINF",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CTAS",
@@ -3833,7 +3980,8 @@
           "symbol": "CTAS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CSCO",
@@ -3858,7 +4006,8 @@
           "symbol": "CSCO",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "C",
@@ -3883,7 +4032,8 @@
           "symbol": "C",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CFG",
@@ -3908,7 +4058,8 @@
           "symbol": "CFG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CLX",
@@ -3933,7 +4084,8 @@
           "symbol": "CLX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CME",
@@ -3958,7 +4110,8 @@
           "symbol": "CME",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CMS",
@@ -3983,7 +4136,8 @@
           "symbol": "CMS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "KO",
@@ -4008,7 +4162,8 @@
           "symbol": "KO",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CTSH",
@@ -4033,7 +4188,8 @@
           "symbol": "CTSH",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "COHR",
@@ -4058,7 +4214,8 @@
           "symbol": "COHR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CL",
@@ -4083,7 +4240,8 @@
           "symbol": "CL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CMCSA",
@@ -4108,7 +4266,8 @@
           "symbol": "CMCSA",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "FIX",
@@ -4133,7 +4292,8 @@
           "symbol": "FIX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "COP",
@@ -4158,7 +4318,8 @@
           "symbol": "COP",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ED",
@@ -4183,7 +4344,8 @@
           "symbol": "ED",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "STZ",
@@ -4208,7 +4370,8 @@
           "symbol": "STZ",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CEG",
@@ -4233,7 +4396,8 @@
           "symbol": "CEG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "COO",
@@ -4258,7 +4422,8 @@
           "symbol": "COO",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CPRT",
@@ -4283,7 +4448,8 @@
           "symbol": "CPRT",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "GLW",
@@ -4308,7 +4474,8 @@
           "symbol": "GLW",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CPAY",
@@ -4333,7 +4500,8 @@
           "symbol": "CPAY",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CSGP",
@@ -4358,7 +4526,8 @@
           "symbol": "CSGP",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "COST",
@@ -4383,7 +4552,8 @@
           "symbol": "COST",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CRH",
@@ -4408,7 +4578,8 @@
           "symbol": "CRH",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CRWD",
@@ -4433,7 +4604,8 @@
           "symbol": "CRWD",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CCI",
@@ -4458,7 +4630,8 @@
           "symbol": "CCI",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CSX",
@@ -4483,7 +4656,8 @@
           "symbol": "CSX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CMI",
@@ -4508,7 +4682,8 @@
           "symbol": "CMI",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CVS",
@@ -4533,7 +4708,8 @@
           "symbol": "CVS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "DHR",
@@ -4558,7 +4734,8 @@
           "symbol": "DHR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "DRI",
@@ -4583,7 +4760,8 @@
           "symbol": "DRI",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "DDOG",
@@ -4608,7 +4786,8 @@
           "symbol": "DDOG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "DVA",
@@ -4633,7 +4812,8 @@
           "symbol": "DVA",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "DECK",
@@ -4658,7 +4838,8 @@
           "symbol": "DECK",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "DE",
@@ -4683,7 +4864,8 @@
           "symbol": "DE",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "DELL",
@@ -4708,7 +4890,8 @@
           "symbol": "DELL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "DAL",
@@ -4733,7 +4916,8 @@
           "symbol": "DAL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "DVN",
@@ -4758,7 +4942,8 @@
           "symbol": "DVN",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "DXCM",
@@ -4783,7 +4968,8 @@
           "symbol": "DXCM",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "FANG",
@@ -4808,7 +4994,8 @@
           "symbol": "FANG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "DLR",
@@ -4833,7 +5020,8 @@
           "symbol": "DLR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "DG",
@@ -4858,7 +5046,8 @@
           "symbol": "DG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "DLTR",
@@ -4883,7 +5072,8 @@
           "symbol": "DLTR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "D",
@@ -4908,7 +5098,8 @@
           "symbol": "D",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "DPZ",
@@ -4933,7 +5124,8 @@
           "symbol": "DPZ",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "DASH",
@@ -4958,7 +5150,8 @@
           "symbol": "DASH",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "DOV",
@@ -4983,7 +5176,8 @@
           "symbol": "DOV",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "DOW",
@@ -5008,7 +5202,8 @@
           "symbol": "DOW",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "DHI",
@@ -5033,7 +5228,8 @@
           "symbol": "DHI",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "DTE",
@@ -5058,7 +5254,8 @@
           "symbol": "DTE",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "DUK",
@@ -5083,7 +5280,8 @@
           "symbol": "DUK",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "DD",
@@ -5108,7 +5306,8 @@
           "symbol": "DD",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ETN",
@@ -5133,7 +5332,8 @@
           "symbol": "ETN",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "EBAY",
@@ -5158,7 +5358,8 @@
           "symbol": "EBAY",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ECHO",
@@ -5183,7 +5384,8 @@
           "symbol": "ECHO",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ECL",
@@ -5208,7 +5410,8 @@
           "symbol": "ECL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "EIX",
@@ -5233,7 +5436,8 @@
           "symbol": "EIX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "EW",
@@ -5258,7 +5462,8 @@
           "symbol": "EW",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ELV",
@@ -5283,7 +5488,8 @@
           "symbol": "ELV",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "EME",
@@ -5308,7 +5514,8 @@
           "symbol": "EME",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "EMR",
@@ -5333,7 +5540,8 @@
           "symbol": "EMR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ETR",
@@ -5358,7 +5566,8 @@
           "symbol": "ETR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "EOG",
@@ -5383,7 +5592,8 @@
           "symbol": "EOG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "EQT",
@@ -5408,7 +5618,8 @@
           "symbol": "EQT",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "EFX",
@@ -5433,7 +5644,8 @@
           "symbol": "EFX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "EQIX",
@@ -5458,7 +5670,8 @@
           "symbol": "EQIX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ERIE",
@@ -5483,7 +5696,8 @@
           "symbol": "ERIE",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ESS",
@@ -5508,7 +5722,8 @@
           "symbol": "ESS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "EL",
@@ -5533,7 +5748,8 @@
           "symbol": "EL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "EG",
@@ -5558,7 +5774,8 @@
           "symbol": "EG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "EVRG",
@@ -5583,7 +5800,8 @@
           "symbol": "EVRG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "P",
@@ -5608,7 +5826,8 @@
           "symbol": "P",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ES",
@@ -5633,7 +5852,8 @@
           "symbol": "ES",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "EXC",
@@ -5658,7 +5878,8 @@
           "symbol": "EXC",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "EXE",
@@ -5683,7 +5904,8 @@
           "symbol": "EXE",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "EXPE",
@@ -5708,7 +5930,8 @@
           "symbol": "EXPE",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "EXPD",
@@ -5733,7 +5956,8 @@
           "symbol": "EXPD",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "EXR",
@@ -5758,7 +5982,8 @@
           "symbol": "EXR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "XOM",
@@ -5783,7 +6008,8 @@
           "symbol": "XOM",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "FFIV",
@@ -5808,7 +6034,8 @@
           "symbol": "FFIV",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "FDS",
@@ -5833,7 +6060,8 @@
           "symbol": "FDS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "FICO",
@@ -5858,7 +6086,8 @@
           "symbol": "FICO",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "FAST",
@@ -5883,7 +6112,8 @@
           "symbol": "FAST",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "FRT",
@@ -5908,7 +6138,8 @@
           "symbol": "FRT",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "FDX",
@@ -5933,7 +6164,8 @@
           "symbol": "FDX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "FDXF",
@@ -5958,7 +6190,8 @@
           "symbol": "FDXF",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "FERG",
@@ -5983,7 +6216,8 @@
           "symbol": "FERG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "FIS",
@@ -6008,7 +6242,8 @@
           "symbol": "FIS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "FITB",
@@ -6033,7 +6268,8 @@
           "symbol": "FITB",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "FSLR",
@@ -6058,7 +6294,8 @@
           "symbol": "FSLR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "FE",
@@ -6083,7 +6320,8 @@
           "symbol": "FE",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "FISV",
@@ -6108,7 +6346,8 @@
           "symbol": "FISV",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "FLEX",
@@ -6133,7 +6372,8 @@
           "symbol": "FLEX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "F",
@@ -6158,7 +6398,8 @@
           "symbol": "F",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "FTNT",
@@ -6183,7 +6424,8 @@
           "symbol": "FTNT",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "FTV",
@@ -6208,7 +6450,8 @@
           "symbol": "FTV",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "FOXA",
@@ -6233,7 +6476,8 @@
           "symbol": "FOXA",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "FOX",
@@ -6258,7 +6502,8 @@
           "symbol": "FOX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "BEN",
@@ -6283,7 +6528,8 @@
           "symbol": "BEN",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "FCX",
@@ -6308,7 +6554,8 @@
           "symbol": "FCX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "GRMN",
@@ -6333,7 +6580,8 @@
           "symbol": "GRMN",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "IT",
@@ -6358,7 +6606,8 @@
           "symbol": "IT",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "GE",
@@ -6383,7 +6632,8 @@
           "symbol": "GE",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "GEHC",
@@ -6408,7 +6658,8 @@
           "symbol": "GEHC",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "GEV",
@@ -6433,7 +6684,8 @@
           "symbol": "GEV",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "GEN",
@@ -6458,7 +6710,8 @@
           "symbol": "GEN",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "GNRC",
@@ -6483,7 +6736,8 @@
           "symbol": "GNRC",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "GD",
@@ -6508,7 +6762,8 @@
           "symbol": "GD",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "GIS",
@@ -6533,7 +6788,8 @@
           "symbol": "GIS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "GM",
@@ -6558,7 +6814,8 @@
           "symbol": "GM",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "GPC",
@@ -6583,7 +6840,8 @@
           "symbol": "GPC",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "GILD",
@@ -6608,7 +6866,8 @@
           "symbol": "GILD",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "GPN",
@@ -6633,7 +6892,8 @@
           "symbol": "GPN",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "GL",
@@ -6658,7 +6918,8 @@
           "symbol": "GL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "GDDY",
@@ -6683,7 +6944,8 @@
           "symbol": "GDDY",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "GS",
@@ -6708,7 +6970,8 @@
           "symbol": "GS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "HAL",
@@ -6733,7 +6996,8 @@
           "symbol": "HAL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "HIG",
@@ -6758,7 +7022,8 @@
           "symbol": "HIG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "HAS",
@@ -6783,7 +7048,8 @@
           "symbol": "HAS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "HCA",
@@ -6808,7 +7074,8 @@
           "symbol": "HCA",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "DOC",
@@ -6833,7 +7100,8 @@
           "symbol": "DOC",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "HSIC",
@@ -6858,7 +7126,8 @@
           "symbol": "HSIC",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "HSY",
@@ -6883,7 +7152,8 @@
           "symbol": "HSY",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "HPE",
@@ -6908,7 +7178,8 @@
           "symbol": "HPE",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "HLT",
@@ -6933,7 +7204,8 @@
           "symbol": "HLT",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "HD",
@@ -6958,7 +7230,8 @@
           "symbol": "HD",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "HONA",
@@ -6983,7 +7256,8 @@
           "symbol": "HONA",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "HON",
@@ -7008,7 +7282,8 @@
           "symbol": "HON",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "HRL",
@@ -7033,7 +7308,8 @@
           "symbol": "HRL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "HST",
@@ -7058,7 +7334,8 @@
           "symbol": "HST",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "HWM",
@@ -7083,7 +7360,8 @@
           "symbol": "HWM",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "HPQ",
@@ -7108,7 +7386,8 @@
           "symbol": "HPQ",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "HUBB",
@@ -7133,7 +7412,8 @@
           "symbol": "HUBB",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "HUM",
@@ -7158,7 +7438,8 @@
           "symbol": "HUM",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "HBAN",
@@ -7183,7 +7464,8 @@
           "symbol": "HBAN",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "HII",
@@ -7208,7 +7490,8 @@
           "symbol": "HII",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "IBM",
@@ -7233,7 +7516,8 @@
           "symbol": "IBM",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "IEX",
@@ -7258,7 +7542,8 @@
           "symbol": "IEX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "IDXX",
@@ -7283,7 +7568,8 @@
           "symbol": "IDXX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ITW",
@@ -7308,7 +7594,8 @@
           "symbol": "ITW",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ILMN",
@@ -7333,7 +7620,8 @@
           "symbol": "ILMN",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "INCY",
@@ -7358,7 +7646,8 @@
           "symbol": "INCY",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "IR",
@@ -7383,7 +7672,8 @@
           "symbol": "IR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PODD",
@@ -7408,7 +7698,8 @@
           "symbol": "PODD",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "INTC",
@@ -7433,7 +7724,8 @@
           "symbol": "INTC",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "IBKR",
@@ -7458,7 +7750,8 @@
           "symbol": "IBKR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ICE",
@@ -7483,7 +7776,8 @@
           "symbol": "ICE",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "IFF",
@@ -7508,7 +7802,8 @@
           "symbol": "IFF",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "IP",
@@ -7533,7 +7828,8 @@
           "symbol": "IP",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "INTU",
@@ -7558,7 +7854,8 @@
           "symbol": "INTU",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ISRG",
@@ -7583,7 +7880,8 @@
           "symbol": "ISRG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "IVZ",
@@ -7608,7 +7906,8 @@
           "symbol": "IVZ",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "INVH",
@@ -7633,7 +7932,8 @@
           "symbol": "INVH",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "IQV",
@@ -7658,7 +7958,8 @@
           "symbol": "IQV",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "IRM",
@@ -7683,7 +7984,8 @@
           "symbol": "IRM",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "JBHT",
@@ -7708,7 +8010,8 @@
           "symbol": "JBHT",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "JBL",
@@ -7733,7 +8036,8 @@
           "symbol": "JBL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "JKHY",
@@ -7758,7 +8062,8 @@
           "symbol": "JKHY",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "J",
@@ -7783,7 +8088,8 @@
           "symbol": "J",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "JNJ",
@@ -7808,7 +8114,8 @@
           "symbol": "JNJ",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "JCI",
@@ -7833,7 +8140,8 @@
           "symbol": "JCI",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "JPM",
@@ -7858,7 +8166,8 @@
           "symbol": "JPM",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "KVUE",
@@ -7883,7 +8192,8 @@
           "symbol": "KVUE",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "KDP",
@@ -7908,7 +8218,8 @@
           "symbol": "KDP",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "KEY",
@@ -7933,7 +8244,8 @@
           "symbol": "KEY",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "KEYS",
@@ -7958,7 +8270,8 @@
           "symbol": "KEYS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "KMB",
@@ -7983,7 +8296,8 @@
           "symbol": "KMB",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "KIM",
@@ -8008,7 +8322,8 @@
           "symbol": "KIM",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "KMI",
@@ -8033,7 +8348,8 @@
           "symbol": "KMI",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "KKR",
@@ -8058,7 +8374,8 @@
           "symbol": "KKR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "KLAC",
@@ -8083,7 +8400,8 @@
           "symbol": "KLAC",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "KHC",
@@ -8108,7 +8426,8 @@
           "symbol": "KHC",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "KR",
@@ -8133,7 +8452,8 @@
           "symbol": "KR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "LHX",
@@ -8158,7 +8478,8 @@
           "symbol": "LHX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "LH",
@@ -8183,7 +8504,8 @@
           "symbol": "LH",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "LRCX",
@@ -8208,7 +8530,8 @@
           "symbol": "LRCX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "LVS",
@@ -8233,7 +8556,8 @@
           "symbol": "LVS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "LDOS",
@@ -8258,7 +8582,8 @@
           "symbol": "LDOS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "LEN",
@@ -8283,7 +8608,8 @@
           "symbol": "LEN",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "LII",
@@ -8308,7 +8634,8 @@
           "symbol": "LII",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "LLY",
@@ -8333,7 +8660,8 @@
           "symbol": "LLY",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "LIN",
@@ -8358,7 +8686,8 @@
           "symbol": "LIN",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "LYV",
@@ -8383,7 +8712,8 @@
           "symbol": "LYV",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "LMT",
@@ -8408,7 +8738,8 @@
           "symbol": "LMT",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "L",
@@ -8433,7 +8764,8 @@
           "symbol": "L",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "LOW",
@@ -8458,7 +8790,8 @@
           "symbol": "LOW",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "LULU",
@@ -8483,7 +8816,8 @@
           "symbol": "LULU",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "LITE",
@@ -8508,7 +8842,8 @@
           "symbol": "LITE",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "LYB",
@@ -8533,7 +8868,8 @@
           "symbol": "LYB",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MTB",
@@ -8558,7 +8894,8 @@
           "symbol": "MTB",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MPC",
@@ -8583,7 +8920,8 @@
           "symbol": "MPC",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MAR",
@@ -8608,7 +8946,8 @@
           "symbol": "MAR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MRSH",
@@ -8633,7 +8972,8 @@
           "symbol": "MRSH",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MLM",
@@ -8658,7 +8998,8 @@
           "symbol": "MLM",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MRVL",
@@ -8683,7 +9024,8 @@
           "symbol": "MRVL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MAS",
@@ -8708,7 +9050,8 @@
           "symbol": "MAS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MA",
@@ -8733,7 +9076,8 @@
           "symbol": "MA",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MKC",
@@ -8758,7 +9102,8 @@
           "symbol": "MKC",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MCD",
@@ -8783,7 +9128,8 @@
           "symbol": "MCD",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MCK",
@@ -8808,7 +9154,8 @@
           "symbol": "MCK",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MDT",
@@ -8833,7 +9180,8 @@
           "symbol": "MDT",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MRK",
@@ -8858,7 +9206,8 @@
           "symbol": "MRK",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MET",
@@ -8883,7 +9232,8 @@
           "symbol": "MET",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MTD",
@@ -8908,7 +9258,8 @@
           "symbol": "MTD",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MGM",
@@ -8933,7 +9284,8 @@
           "symbol": "MGM",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MCHP",
@@ -8958,7 +9310,8 @@
           "symbol": "MCHP",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MU",
@@ -8983,7 +9336,8 @@
           "symbol": "MU",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MAA",
@@ -9008,7 +9362,8 @@
           "symbol": "MAA",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MRNA",
@@ -9033,7 +9388,8 @@
           "symbol": "MRNA",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MDLZ",
@@ -9058,7 +9414,8 @@
           "symbol": "MDLZ",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MPWR",
@@ -9083,7 +9440,8 @@
           "symbol": "MPWR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MNST",
@@ -9108,7 +9466,8 @@
           "symbol": "MNST",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MCO",
@@ -9133,7 +9492,8 @@
           "symbol": "MCO",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MS",
@@ -9158,7 +9518,8 @@
           "symbol": "MS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MOS",
@@ -9183,7 +9544,8 @@
           "symbol": "MOS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MSI",
@@ -9208,7 +9570,8 @@
           "symbol": "MSI",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "MSCI",
@@ -9233,7 +9596,8 @@
           "symbol": "MSCI",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "NDAQ",
@@ -9258,7 +9622,8 @@
           "symbol": "NDAQ",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "NTAP",
@@ -9283,7 +9648,8 @@
           "symbol": "NTAP",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "NFLX",
@@ -9308,7 +9674,8 @@
           "symbol": "NFLX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "NEM",
@@ -9333,7 +9700,8 @@
           "symbol": "NEM",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "NWSA",
@@ -9358,7 +9726,8 @@
           "symbol": "NWSA",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "NWS",
@@ -9383,7 +9752,8 @@
           "symbol": "NWS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "NEE",
@@ -9408,7 +9778,8 @@
           "symbol": "NEE",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "NKE",
@@ -9433,7 +9804,8 @@
           "symbol": "NKE",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "NI",
@@ -9458,7 +9830,8 @@
           "symbol": "NI",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "NDSN",
@@ -9483,7 +9856,8 @@
           "symbol": "NDSN",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "NSC",
@@ -9508,7 +9882,8 @@
           "symbol": "NSC",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "NTRS",
@@ -9533,7 +9908,8 @@
           "symbol": "NTRS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "NOC",
@@ -9558,7 +9934,8 @@
           "symbol": "NOC",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "NCLH",
@@ -9583,7 +9960,8 @@
           "symbol": "NCLH",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "NRG",
@@ -9608,7 +9986,8 @@
           "symbol": "NRG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "NUE",
@@ -9633,7 +10012,8 @@
           "symbol": "NUE",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "NVR",
@@ -9658,7 +10038,8 @@
           "symbol": "NVR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "NXPI",
@@ -9683,7 +10064,8 @@
           "symbol": "NXPI",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ORLY",
@@ -9708,7 +10090,8 @@
           "symbol": "ORLY",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "OXY",
@@ -9733,7 +10116,8 @@
           "symbol": "OXY",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ODFL",
@@ -9758,7 +10142,8 @@
           "symbol": "ODFL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "OMC",
@@ -9783,7 +10168,8 @@
           "symbol": "OMC",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ON",
@@ -9808,7 +10194,8 @@
           "symbol": "ON",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "OKE",
@@ -9833,7 +10220,8 @@
           "symbol": "OKE",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ORCL",
@@ -9858,7 +10246,8 @@
           "symbol": "ORCL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "OTIS",
@@ -9883,7 +10272,8 @@
           "symbol": "OTIS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PCAR",
@@ -9908,7 +10298,8 @@
           "symbol": "PCAR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PKG",
@@ -9933,7 +10324,8 @@
           "symbol": "PKG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PANW",
@@ -9958,7 +10350,8 @@
           "symbol": "PANW",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PH",
@@ -9983,7 +10376,8 @@
           "symbol": "PH",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PAYX",
@@ -10008,7 +10402,8 @@
           "symbol": "PAYX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PYPL",
@@ -10033,7 +10428,8 @@
           "symbol": "PYPL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PNR",
@@ -10058,7 +10454,8 @@
           "symbol": "PNR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PEP",
@@ -10083,7 +10480,8 @@
           "symbol": "PEP",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PFE",
@@ -10108,7 +10506,8 @@
           "symbol": "PFE",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PCG",
@@ -10133,7 +10532,8 @@
           "symbol": "PCG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PM",
@@ -10158,7 +10558,8 @@
           "symbol": "PM",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PSX",
@@ -10183,7 +10584,8 @@
           "symbol": "PSX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PNW",
@@ -10208,7 +10610,8 @@
           "symbol": "PNW",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PNC",
@@ -10233,7 +10636,8 @@
           "symbol": "PNC",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PPG",
@@ -10258,7 +10662,8 @@
           "symbol": "PPG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PPL",
@@ -10283,7 +10688,8 @@
           "symbol": "PPL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PFG",
@@ -10308,7 +10714,8 @@
           "symbol": "PFG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PG",
@@ -10333,7 +10740,8 @@
           "symbol": "PG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PGR",
@@ -10358,7 +10766,8 @@
           "symbol": "PGR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PLD",
@@ -10383,7 +10792,8 @@
           "symbol": "PLD",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PRU",
@@ -10408,7 +10818,8 @@
           "symbol": "PRU",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PEG",
@@ -10433,7 +10844,8 @@
           "symbol": "PEG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PTC",
@@ -10458,7 +10870,8 @@
           "symbol": "PTC",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PSA",
@@ -10483,7 +10896,8 @@
           "symbol": "PSA",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PHM",
@@ -10508,7 +10922,8 @@
           "symbol": "PHM",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "PWR",
@@ -10533,7 +10948,8 @@
           "symbol": "PWR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "QCOM",
@@ -10558,7 +10974,8 @@
           "symbol": "QCOM",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "DGX",
@@ -10583,7 +11000,8 @@
           "symbol": "DGX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "Q",
@@ -10608,7 +11026,8 @@
           "symbol": "Q",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "RL",
@@ -10633,7 +11052,8 @@
           "symbol": "RL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "RJF",
@@ -10658,7 +11078,8 @@
           "symbol": "RJF",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "RTX",
@@ -10683,7 +11104,8 @@
           "symbol": "RTX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "O",
@@ -10708,7 +11130,8 @@
           "symbol": "O",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "REG",
@@ -10733,7 +11156,8 @@
           "symbol": "REG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "REGN",
@@ -10758,7 +11182,8 @@
           "symbol": "REGN",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "RF",
@@ -10783,7 +11208,8 @@
           "symbol": "RF",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "RSG",
@@ -10808,7 +11234,8 @@
           "symbol": "RSG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "RMD",
@@ -10833,7 +11260,8 @@
           "symbol": "RMD",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "RVTY",
@@ -10858,7 +11286,8 @@
           "symbol": "RVTY",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ROK",
@@ -10883,7 +11312,8 @@
           "symbol": "ROK",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ROL",
@@ -10908,7 +11338,8 @@
           "symbol": "ROL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ROP",
@@ -10933,7 +11364,8 @@
           "symbol": "ROP",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ROST",
@@ -10958,7 +11390,8 @@
           "symbol": "ROST",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "RCL",
@@ -10983,7 +11416,8 @@
           "symbol": "RCL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "SPGI",
@@ -11008,7 +11442,8 @@
           "symbol": "SPGI",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "CRM",
@@ -11033,7 +11468,8 @@
           "symbol": "CRM",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "SNDK",
@@ -11058,7 +11494,8 @@
           "symbol": "SNDK",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "SBAC",
@@ -11083,7 +11520,8 @@
           "symbol": "SBAC",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "SLB",
@@ -11108,7 +11546,8 @@
           "symbol": "SLB",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "STX",
@@ -11133,7 +11572,8 @@
           "symbol": "STX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "SRE",
@@ -11158,7 +11598,8 @@
           "symbol": "SRE",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "NOW",
@@ -11183,7 +11624,8 @@
           "symbol": "NOW",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "SHW",
@@ -11208,7 +11650,8 @@
           "symbol": "SHW",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "SPG",
@@ -11233,7 +11676,8 @@
           "symbol": "SPG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "SKYD",
@@ -11258,7 +11702,8 @@
           "symbol": "SKYD",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "SWKS",
@@ -11283,7 +11728,8 @@
           "symbol": "SWKS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "SJM",
@@ -11308,7 +11754,8 @@
           "symbol": "SJM",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "SW",
@@ -11333,7 +11780,8 @@
           "symbol": "SW",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "SNA",
@@ -11358,7 +11806,8 @@
           "symbol": "SNA",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "SOLV",
@@ -11383,7 +11832,8 @@
           "symbol": "SOLV",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "SO",
@@ -11408,7 +11858,8 @@
           "symbol": "SO",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "LUV",
@@ -11433,7 +11884,8 @@
           "symbol": "LUV",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "SWK",
@@ -11458,7 +11910,8 @@
           "symbol": "SWK",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "SBUX",
@@ -11483,7 +11936,8 @@
           "symbol": "SBUX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "STT",
@@ -11508,7 +11962,8 @@
           "symbol": "STT",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "STLD",
@@ -11533,7 +11988,8 @@
           "symbol": "STLD",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "STE",
@@ -11558,7 +12014,8 @@
           "symbol": "STE",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "SYK",
@@ -11583,7 +12040,8 @@
           "symbol": "SYK",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "SMCI",
@@ -11608,7 +12066,8 @@
           "symbol": "SMCI",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "SYF",
@@ -11633,7 +12092,8 @@
           "symbol": "SYF",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "SNPS",
@@ -11658,7 +12118,8 @@
           "symbol": "SNPS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "SYY",
@@ -11683,7 +12144,8 @@
           "symbol": "SYY",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "TMUS",
@@ -11708,7 +12170,8 @@
           "symbol": "TMUS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "TROW",
@@ -11733,7 +12196,8 @@
           "symbol": "TROW",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "TTWO",
@@ -11758,7 +12222,8 @@
           "symbol": "TTWO",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "TPR",
@@ -11783,7 +12248,8 @@
           "symbol": "TPR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "TRGP",
@@ -11808,7 +12274,8 @@
           "symbol": "TRGP",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "TGT",
@@ -11833,7 +12300,8 @@
           "symbol": "TGT",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "TEL",
@@ -11858,7 +12326,8 @@
           "symbol": "TEL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "TDY",
@@ -11883,7 +12352,8 @@
           "symbol": "TDY",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "TER",
@@ -11908,7 +12378,8 @@
           "symbol": "TER",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "TXN",
@@ -11933,7 +12404,8 @@
           "symbol": "TXN",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "TPL",
@@ -11958,7 +12430,8 @@
           "symbol": "TPL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "TXT",
@@ -11983,7 +12456,8 @@
           "symbol": "TXT",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "TMO",
@@ -12008,7 +12482,8 @@
           "symbol": "TMO",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "TJX",
@@ -12033,7 +12508,8 @@
           "symbol": "TJX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "TKO",
@@ -12058,7 +12534,8 @@
           "symbol": "TKO",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "TSCO",
@@ -12083,7 +12560,8 @@
           "symbol": "TSCO",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "TT",
@@ -12108,7 +12586,8 @@
           "symbol": "TT",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "TDG",
@@ -12133,7 +12612,8 @@
           "symbol": "TDG",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "TRV",
@@ -12158,7 +12638,8 @@
           "symbol": "TRV",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "TRMB",
@@ -12183,7 +12664,8 @@
           "symbol": "TRMB",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "TFC",
@@ -12208,7 +12690,8 @@
           "symbol": "TFC",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "TWLO",
@@ -12233,7 +12716,8 @@
           "symbol": "TWLO",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "TYL",
@@ -12258,7 +12742,8 @@
           "symbol": "TYL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "TSN",
@@ -12283,7 +12768,8 @@
           "symbol": "TSN",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "USB",
@@ -12308,7 +12794,8 @@
           "symbol": "USB",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "UBER",
@@ -12333,7 +12820,8 @@
           "symbol": "UBER",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "UDR",
@@ -12358,7 +12846,8 @@
           "symbol": "UDR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ULTA",
@@ -12383,7 +12872,8 @@
           "symbol": "ULTA",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "UNP",
@@ -12408,7 +12898,8 @@
           "symbol": "UNP",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "UAL",
@@ -12433,7 +12924,8 @@
           "symbol": "UAL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "UPS",
@@ -12458,7 +12950,8 @@
           "symbol": "UPS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "URI",
@@ -12483,7 +12976,8 @@
           "symbol": "URI",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "UNH",
@@ -12508,7 +13002,8 @@
           "symbol": "UNH",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "UHS",
@@ -12533,7 +13028,8 @@
           "symbol": "UHS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "VLO",
@@ -12558,7 +13054,8 @@
           "symbol": "VLO",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "VEEV",
@@ -12583,7 +13080,8 @@
           "symbol": "VEEV",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "VTR",
@@ -12608,7 +13106,8 @@
           "symbol": "VTR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "VLTO",
@@ -12633,7 +13132,8 @@
           "symbol": "VLTO",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "VRSN",
@@ -12658,7 +13158,8 @@
           "symbol": "VRSN",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "VRSK",
@@ -12683,7 +13184,8 @@
           "symbol": "VRSK",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "VZ",
@@ -12708,7 +13210,8 @@
           "symbol": "VZ",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "VRTX",
@@ -12733,7 +13236,8 @@
           "symbol": "VRTX",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "VRT",
@@ -12758,7 +13262,8 @@
           "symbol": "VRT",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "VTRS",
@@ -12783,7 +13288,8 @@
           "symbol": "VTRS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "VICI",
@@ -12808,7 +13314,8 @@
           "symbol": "VICI",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "V",
@@ -12833,7 +13340,8 @@
           "symbol": "V",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "VST",
@@ -12858,7 +13366,8 @@
           "symbol": "VST",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "VMRK",
@@ -12883,7 +13392,8 @@
           "symbol": "VMRK",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "VMC",
@@ -12908,7 +13418,8 @@
           "symbol": "VMC",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "VYLR",
@@ -12933,7 +13444,8 @@
           "symbol": "VYLR",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "WRB",
@@ -12958,7 +13470,8 @@
           "symbol": "WRB",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "GWW",
@@ -12983,7 +13496,8 @@
           "symbol": "GWW",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "WAB",
@@ -13008,7 +13522,8 @@
           "symbol": "WAB",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "WMT",
@@ -13033,7 +13548,8 @@
           "symbol": "WMT",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "DIS",
@@ -13058,7 +13574,8 @@
           "symbol": "DIS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "WM",
@@ -13083,7 +13600,8 @@
           "symbol": "WM",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "WAT",
@@ -13108,7 +13626,8 @@
           "symbol": "WAT",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "WEC",
@@ -13133,7 +13652,8 @@
           "symbol": "WEC",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "WFC",
@@ -13158,7 +13678,8 @@
           "symbol": "WFC",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "WELL",
@@ -13183,7 +13704,8 @@
           "symbol": "WELL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "WST",
@@ -13208,7 +13730,8 @@
           "symbol": "WST",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "WDC",
@@ -13233,7 +13756,8 @@
           "symbol": "WDC",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "WY",
@@ -13258,7 +13782,8 @@
           "symbol": "WY",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "WSM",
@@ -13283,7 +13808,8 @@
           "symbol": "WSM",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "WMB",
@@ -13308,7 +13834,8 @@
           "symbol": "WMB",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "WTW",
@@ -13333,7 +13860,8 @@
           "symbol": "WTW",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "WDAY",
@@ -13358,7 +13886,8 @@
           "symbol": "WDAY",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "WYNN",
@@ -13383,7 +13912,8 @@
           "symbol": "WYNN",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "XEL",
@@ -13408,7 +13938,8 @@
           "symbol": "XEL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "XYL",
@@ -13433,7 +13964,8 @@
           "symbol": "XYL",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "YUM",
@@ -13458,7 +13990,8 @@
           "symbol": "YUM",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ZBRA",
@@ -13483,7 +14016,8 @@
           "symbol": "ZBRA",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ZBH",
@@ -13508,7 +14042,8 @@
           "symbol": "ZBH",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     },
     {
       "id": "ZTS",
@@ -13533,7 +14068,8 @@
           "symbol": "ZTS",
           "priority": 3
         }
-      }
+      },
+      "currency": "USD"
     }
   ]
 }

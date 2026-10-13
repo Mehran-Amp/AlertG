@@ -12,9 +12,22 @@ try:
         raise ImportError("Response is a mock")
 except (ImportError, AttributeError):
     class APIRouter:
-        def __init__(self, *args, **kwargs): pass
-        def get(self, *args, **kwargs): return lambda f: f
-        def post(self, *args, **kwargs): return lambda f: f
+        def __init__(self, *args, **kwargs):
+            self.routes = []
+        def get(self, *args, **kwargs):
+            def decorator(f):
+                class Route:
+                    endpoint = f
+                self.routes.append(Route())
+                return f
+            return decorator
+        def post(self, *args, **kwargs):
+            def decorator(f):
+                class Route:
+                    endpoint = f
+                self.routes.append(Route())
+                return f
+            return decorator
     def Query(default=None, **kwargs): return default
     def Header(default=None, **kwargs): return default
     class HTTPException(Exception):

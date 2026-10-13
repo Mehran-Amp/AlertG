@@ -252,6 +252,74 @@ class TestCatalogCorrectionsAndMultiSource(unittest.TestCase):
             is_valid, errors = validate_catalog_file(full_path)
             self.assertTrue(is_valid, f"{path} failed offline validation: {errors}")
 
+    def test_08_dow_equity_vs_dowjones_index_resolution(self):
+        """Verify Dow Inc. (id=DOW) resolves to equity 'DOW', not the '^DJI' index."""
+        from app.engine.categories import resolve_symbol_category
+        # 1. resolve_yf_symbol for 'DOW' and ('global_stocks', 'DOW') != '^DJI'
+        self.assertNotEqual(resolve_yf_symbol('global_stocks', 'DOW'), '^DJI')
+        self.assertEqual(resolve_yf_symbol('global_stocks', 'DOW'), 'DOW')
+        self.assertEqual(resolve_yf_symbol('DOW'), 'DOW')
+
+        # 2. DJI and DOWJONES resolve to '^DJI'
+        self.assertEqual(resolve_yf_symbol('DJI'), '^DJI')
+        self.assertEqual(resolve_yf_symbol('global_stocks', 'DJI'), '^DJI')
+        self.assertEqual(resolve_yf_symbol('DOWJONES'), '^DJI')
+
+        # 3. Category for DOW is 'stock', whereas DJI is 'index'
+        self.assertEqual(resolve_symbol_category('global_stocks', 'DOW'), 'stock')
+        self.assertEqual(resolve_symbol_category('global_stocks', 'DJI'), 'index')
+
+        # 4. 'DOW' is not an index alias in EXACT_YF_MAP
+        self.assertNotIn('DOW', EXACT_YF_MAP)
+
+    def test_09_no_two_non_alias_ids_share_same_provider_symbol_in_catalog(self):
+        """Global test verifying that no two non-alias IDs share the same provider_symbol in catalog.json."""
+        cat_path = os.path.join(ROOT, 'catalog.json')
+        with open(cat_path, 'r', encoding='utf-8') as f:
+            cat_data = json.load(f)
+
+        symbols = cat_data.get('symbols', [])
+        # Provider symbol mapping: provider_symbol -> list of item ids
+        provider_map_seen = {}
+        for item in symbols:
+            item_id = item.get('id')
+            prov_map = item.get('provider_map')
+            if prov_map and isinstance(prov_map, dict):
+                for p_name, p_info in prov_map.items():
+                    if isinstance(p_info, dict) and 'symbol' in p_info:
+                        key = (p_name, p_info['symbol'])
+                        provider_map_seen.setdefault(key, []).append(item_id)
+            else:
+                # Fallback to resolved Yahoo symbol
+                yf_sym = resolve_yf_symbol(item.get('symbol', item_id))
+                key = ('yahoo_resolved', yf_sym)
+                provider_map_seen.setdefault(key, []).append(item_id)
+
+        conflicts = {k: v for k, v in provider_map_seen.items() if len(v) > 1}
+        self.assertEqual(conflicts, {}, f"Found multiple non-alias IDs mapped to the same provider symbol: {conflicts}")
+
+    def test_10_usdcny_duplicate_removed_and_aliased(self):
+        """Verify USDCNY is removed from catalog.json and aliased to USD_CNY."""
+        cat_path = os.path.join(ROOT, 'catalog.json')
+        with open(cat_path, 'r', encoding='utf-8') as f:
+            cat_data = json.load(f)
+
+        ids = [s.get('id') for s in cat_data.get('symbols', [])]
+        self.assertNotIn('USDCNY', ids, "USDCNY duplicate must be removed from catalog.json")
+        self.assertIn('USD_CNY', ids, "Canonical USD_CNY must exist in catalog.json")
+        self.assertEqual(resolve_symbol_alias('USDCNY'), 'USD_CNY')
+
+    def test_11_all_symbols_have_currency_populated(self):
+        """Verify currency field is populated (non-None) for all symbols in catalog.json."""
+        cat_path = os.path.join(ROOT, 'catalog.json')
+        with open(cat_path, 'r', encoding='utf-8') as f:
+            cat_data = json.load(f)
+
+        symbols = cat_data.get('symbols', [])
+        missing_currency = [s.get('id') for s in symbols if not s.get('currency')]
+        self.assertEqual(missing_currency, [], f"Symbols missing currency in catalog.json: {missing_currency}")
+
 
 if __name__ == '__main__':
     unittest.main()
+

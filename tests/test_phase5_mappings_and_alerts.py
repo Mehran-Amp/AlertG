@@ -216,9 +216,10 @@ class TestPhase5MappingsAndAlerts(unittest.TestCase):
         self.assertEqual(resolve_symbol_alias('NASDAQ'), 'NASDAQ100')
         self.assertEqual(resolve_symbol_alias('NDX'), 'NASDAQ100')
         self.assertEqual(resolve_symbol_alias('^NDX'), 'NASDAQ100')
-        self.assertEqual(resolve_symbol_alias('DOW'), 'DOWJONES')
+        self.assertEqual(resolve_symbol_alias('DOW'), 'DOW')
         self.assertEqual(resolve_symbol_alias('DJI'), 'DOWJONES')
         self.assertEqual(resolve_symbol_alias('^DJI'), 'DOWJONES')
+        self.assertEqual(resolve_symbol_alias('USDCNY'), 'USD_CNY')
 
         # Treasury Yields
         self.assertEqual(resolve_symbol_alias('US10Y'), 'US10Y')

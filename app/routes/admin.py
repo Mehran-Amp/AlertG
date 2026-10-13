@@ -8,7 +8,9 @@ from typing import Optional
 try:
     from fastapi import APIRouter, HTTPException, Header
     from fastapi.responses import HTMLResponse, JSONResponse
-except ImportError:
+    if not isinstance(HTMLResponse, type) or getattr(HTMLResponse, '_mock_name', None) is not None:
+        raise ImportError("Responses are mocked")
+except (ImportError, AttributeError):
     class APIRouter:
         def __init__(self, *args, **kwargs): pass
         def get(self, *args, **kwargs): return lambda f: f

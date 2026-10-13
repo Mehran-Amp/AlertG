@@ -55,14 +55,22 @@ def sample_pid_memory_mb(pid: int) -> float:
     """RSS (MB) of another process, e.g. the running server (cat server.pid)."""
     try:
         import psutil
-    except ImportError as e:
-        raise RuntimeError("psutil is required for --server-pid (pip install psutil)") from e
-    try:
         return psutil.Process(pid).memory_info().rss / (1024 * 1024)
-    except psutil.NoSuchProcess as e:
-        raise RuntimeError(f"Server process {pid} not found.") from e
-    except psutil.AccessDenied as e:
-        raise RuntimeError(f"No permission to read memory of process {pid}.") from e
+    except ImportError:
+        try:
+            with open(f"/proc/{pid}/statm", "r") as f:
+                rss_pages = int(f.read().split()[1])
+                import resource
+                page_size = resource.getpagesize()
+                return (rss_pages * page_size) / (1024 * 1024)
+        except Exception as e:
+            raise RuntimeError(f"psutil or readable /proc/{pid}/statm is required for --server-pid") from e
+    except Exception as e:
+        if "NoSuchProcess" in type(e).__name__:
+            raise RuntimeError(f"Server process {pid} not found.") from e
+        elif "AccessDenied" in type(e).__name__:
+            raise RuntimeError(f"No permission to read memory of process {pid}.") from e
+        raise
 
 
 def compute_memory_slope_mb_per_hour(samples: List[Dict[str, Any]], warmup_seconds: float = 0.0) -> Optional[float]:

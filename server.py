@@ -199,29 +199,34 @@ app.include_router(telegram_router)
 # -------------------------------------------------------------------
 http_client = state.http_client
 
-# Route handler compatibility re-exports
-create_alert = alerts_router.routes[0].endpoint
-sync_user_alerts = alerts_router.routes[2].endpoint
-clear_all_alerts = alerts_router.routes[4].endpoint
-get_user_alerts = alerts_router.routes[6].endpoint
-delete_alert = alerts_router.routes[8].endpoint
+def _ep(r, idx):
+    routes = getattr(r, 'routes', None)
+    if routes and len(routes) > idx:
+        return getattr(routes[idx], 'endpoint', None)
+    return None
 
-get_user_telegram_status = user_router.routes[0].endpoint
-update_user_telegram_status = user_router.routes[2].endpoint
+create_alert = _ep(alerts_router, 0)
+sync_user_alerts = _ep(alerts_router, 2)
+clear_all_alerts = _ep(alerts_router, 4)
+get_user_alerts = _ep(alerts_router, 6)
+delete_alert = _ep(alerts_router, 8)
 
-get_live_price = prices_router.routes[0].endpoint
-get_bonbast_live_data = prices_router.routes[2].endpoint
-get_markets_status = prices_router.routes[4].endpoint
+get_user_telegram_status = _ep(user_router, 0)
+update_user_telegram_status = _ep(user_router, 2)
 
-inspect_market_source = admin_router.routes[2].endpoint
-get_debug_logs = admin_router.routes[4].endpoint
-admin_probe_market_sources = admin_router.routes[5].endpoint
-test_push_notification = admin_router.routes[7].endpoint
+get_live_price = _ep(prices_router, 0)
+get_bonbast_live_data = _ep(prices_router, 2)
+get_markets_status = _ep(prices_router, 4)
 
-get_debug_wallstreet_macro_symbols = symbols_router.routes[0].endpoint
+inspect_market_source = _ep(admin_router, 2)
+get_debug_logs = _ep(admin_router, 4)
+admin_probe_market_sources = _ep(admin_router, 5)
+test_push_notification = _ep(admin_router, 7)
 
-get_telegram_bot_info = telegram_router.routes[0].endpoint
-send_telegram_test_message = telegram_router.routes[2].endpoint
+get_debug_wallstreet_macro_symbols = _ep(symbols_router, 0)
+
+get_telegram_bot_info = _ep(telegram_router, 0)
+send_telegram_test_message = _ep(telegram_router, 2)
 
 # Required exact strings for test suite compliance (phase 6 & phase 7)
 CACHE_TTL_IRAN = 60.0

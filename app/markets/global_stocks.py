@@ -21,6 +21,8 @@ from app.config import (
 from app.markets.common import normalize_symbol
 from app.markets.limiter import record_provider_metric, acquire_provider_slot
 from app.state import METRICS
+from app.engine.categories import resolve_symbol_category
+
 
 
 # ===================================================================
@@ -51,7 +53,6 @@ EXACT_YF_MAP: Dict[str, str] = {
     'NASDAQ': '^NDX',
     '^NDX': '^NDX',
     'DJI': '^DJI',
-    'DOW': '^DJI',
     '^DJI': '^DJI',
     'RUT': '^RUT',
     '^RUT': '^RUT',
@@ -162,7 +163,6 @@ SYMBOL_ALIASES: Dict[str, str] = {
     'NASDAQ100': 'NASDAQ100',
     'NDX': 'NASDAQ100',
     '^NDX': 'NASDAQ100',
-    'DOW': 'DOWJONES',
     'DOWJONES': 'DOWJONES',
     'DJI': 'DOWJONES',
     '^DJI': 'DOWJONES',
@@ -225,6 +225,9 @@ SYMBOL_ALIASES: Dict[str, str] = {
     'JD': 'JD',
     '9618': '9618.HK',
     '9618.HK': '9618.HK',
+    # Forex duplicates
+    'USDCNY': 'USD_CNY',
+    'USD/CNY': 'USD_CNY',
 }
 
 # FRED Series Update Frequency Rule:
@@ -283,15 +286,24 @@ FOREX_PAIRS = {
 FRED_ONLY_SYMBOLS = frozenset({'US02Y', 'US2Y', '^2YY', 'DGS2'})
 
 
-def resolve_yf_symbol(symbol: str) -> str:
+def resolve_yf_symbol(symbol_or_exchange: str, symbol: Optional[str] = None, category: Optional[str] = None) -> str:
     """
     Standardizes user/UI symbols into clean Yahoo Finance query symbols:
     - Strips /USD, -USD, USD quote suffixes from stock pairs (AAPL/USD -> AAPL)
     - Preserves share classes with dash (BRK-B) and foreign exchanges with dot (7203.T)
     - Maps major Forex pairs to {PAIR}=X (EUR/USD -> EURUSD=X)
     - Resolves Macro, Yields & Commodities to exact futures tickers
+    - Can be called as resolve_yf_symbol(symbol) or resolve_yf_symbol(exchange, symbol)
     """
-    s = (symbol or '').upper().strip()
+    if symbol is not None:
+        target = symbol
+    else:
+        target = symbol_or_exchange
+    s = (target or '').upper().strip()
+
+    # Dow Inc. (equity) guard: Dow Inc. stock ticker is 'DOW', not the '^DJI' index
+    if s == 'DOW':
+        return 'DOW'
 
     # 0. Already standard Yahoo format with =X
     if s.endswith('=X'):
@@ -334,7 +346,7 @@ def resolve_yf_symbol(symbol: str) -> str:
     # 5. Dotted US share classes: BRK.B -> BRK-B, BF.B -> BF-B
     if '.' in s and not s.startswith('^'):
         parts = s.split('.')
-        if len(parts) == 2 and len(parts[1]) == 1 and parts[1].isalpha():
+        if len(parts) == 2 and len(parts[1]) == 1 and parts[1].isalpha() and not parts[0].isdigit():
             return f"{parts[0]}-{parts[1]}"
 
     return s
@@ -553,6 +565,7 @@ class BaseMarketAdapter:
                 res = await client.get(url, headers=req_headers, timeout=self.timeout)
                 trace['latency_ms'] = round((time.time() - t0) * 1000, 2)
                 trace['status_code'] = res.status_code
+                self.last_trace = dict(trace)
 
                 if res.status_code == 200:
                     try:
@@ -782,7 +795,7 @@ class TwelveDataAdapter(BaseMarketAdapter):
             return 'SPX'
         if s in ('NASDAQ', 'NASDAQ100', 'NDX', '^NDX'):
             return 'NDX'
-        if s in ('DOW', 'DOWJONES', 'DJI', '^DJI'):
+        if s in ('DOWJONES', 'DJI', '^DJI'):
             return 'DJI'
         if s in ('VIX', '^VIX'):
             return 'VIX'
@@ -1092,7 +1105,31 @@ finnhub_adapter = FinnhubAdapter(api_key=FINNHUB_API_KEY)
 twelve_data_adapter = TwelveDataAdapter(api_key=TWELVE_DATA_API_KEY)
 fred_adapter = FredAdapter(api_key=FRED_API_KEY)
 
-async def fetch_global_stocks(client: httpx.AsyncClient, exchange: str, symbol: str, try_fetch_func, traces: list, collect_all_traces: bool = False) -> Optional[float]:
+def get_fallback_chain(symbol: str) -> List[BaseMarketAdapter]:
+    """
+    Returns the ordered fallback chain of market adapters for a symbol.
+    Strictly prevents fallback from commercial/market data (stocks, forex, commodities, indices) to FRED.
+    """
+    try:
+        category = resolve_symbol_category(symbol)
+    except Exception:
+        category = 'stock'
+    if category in ('stock', 'forex'):
+        return [yahoo_adapter, finnhub_adapter, twelve_data_adapter]
+    elif category in ('index', 'commodity'):
+        return [yahoo_adapter, twelve_data_adapter]
+    elif category in ('bond', 'macro'):
+        if symbol in FRED_ONLY_SYMBOLS:
+            return [fred_adapter]
+        return [yahoo_adapter, fred_adapter]
+    return [yahoo_adapter]
+
+
+async def fetch_global_stocks(client: Any, exchange: str, symbol: str, try_fetch_func: Any = None, traces: Optional[list] = None, collect_all_traces: bool = False, _try_fetch: Any = None) -> Optional[float]:
+    if try_fetch_func is None and _try_fetch is not None:
+        try_fetch_func = _try_fetch
+    if traces is None:
+        traces = []
     try:
         from app.engine.categories import resolve_symbol_category
         category = resolve_symbol_category(exchange, symbol)
@@ -1117,10 +1154,18 @@ async def fetch_global_stocks(client: httpx.AsyncClient, exchange: str, symbol: 
                 price = float(q['price'])
                 source = q.get('source', adapter.name)
                 if traces is not None:
-                    traces.append({'provider': source, 'price': price, 'status': 'ok'})
+                    traces.append({'source': source, 'provider': source, 'price': price, 'status': 'ok'})
                 if not collect_all_traces:
                     return price
+            else:
+                last_tr = getattr(adapter, 'last_trace', None) or {}
+                if traces is not None:
+                    tr = {'source': adapter.name, 'provider': adapter.name, 'success': False}
+                    tr.update(last_tr)
+                    traces.append(tr)
+                if last_tr.get('status_code') == 404:
+                    break
         except Exception as e:
             if traces is not None:
-                traces.append({'provider': adapter.name, 'error': str(e), 'status': 'error'})
+                traces.append({'source': adapter.name, 'provider': adapter.name, 'error': str(e), 'status': 'error'})
     return None
