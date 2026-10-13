@@ -17,23 +17,12 @@ import java.util.Locale
  * Handles App Lifecycle, Background Minification, Widget State, Native Text-To-Speech (TTS),
  * and 1-Tap Direct OEM Autostart Launchers for Xiaomi, Samsung, Huawei, Oppo, Vivo, etc.
  */
-class MainActivity : FlutterActivity(), TextToSpeech.OnInitListener {
+class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.example.bitcoin_checker/app_lifecycle"
-    private var tts: TextToSpeech? = null
-    private var isTtsReady = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        try {
-            tts = TextToSpeech(applicationContext, this)
-        } catch (_: Exception) {}
-    }
-
-    override fun onInit(status: Int) {
-        if (status == TextToSpeech.SUCCESS) {
-            isTtsReady = true
-            tts?.language = Locale.US
-        }
+        AlarmerTtsEngine.init(applicationContext)
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -43,27 +32,29 @@ class MainActivity : FlutterActivity(), TextToSpeech.OnInitListener {
                 "speak" -> {
                     val text = call.argument<String>("text") ?: ""
                     val langCode = call.argument<String>("lang") ?: "en"
-                    val rate = call.argument<Double>("rate") ?: 1.0
-                    val pitch = call.argument<Double>("pitch") ?: 1.0
-
-                    if (tts == null) {
-                        try {
-                            tts = TextToSpeech(applicationContext) { initStatus ->
-                                if (initStatus == TextToSpeech.SUCCESS) {
-                                    isTtsReady = true
-                                    performSpeak(text, langCode, rate.toFloat(), pitch.toFloat())
-                                }
-                            }
-                        } catch (_: Exception) {}
-                    } else {
-                        performSpeak(text, langCode, rate.toFloat(), pitch.toFloat())
-                    }
+                    val rate = (call.argument<Double>("rate") ?: 1.0).toFloat()
+                    val pitch = (call.argument<Double>("pitch") ?: 1.0).toFloat()
+                    AlarmerTtsEngine.speak(applicationContext, text, langCode, rate, pitch)
                     result.success(true)
                 }
                 "stopSpeak" -> {
-                    try {
-                        tts?.stop()
-                    } catch (_: Exception) {}
+                    AlarmerTtsEngine.stop()
+                    result.success(true)
+                }
+                "playAlarm" -> {
+                    val soundName = call.argument<String>("sound") ?: "alarm_siren"
+                    val vibrate = call.argument<Boolean>("vibrate") ?: true
+                    val volume = (call.argument<Double>("volume") ?: 1.0).toFloat()
+                    AlarmerAlertPlayer.playAlarm(applicationContext, soundName, vibrate, volume)
+                    result.success(true)
+                }
+                "vibrate" -> {
+                    AlarmerAlertPlayer.triggerVibration(applicationContext)
+                    result.success(true)
+                }
+                "stopAlarm" -> {
+                    AlarmerAlertPlayer.stop(applicationContext)
+                    AlarmerTtsEngine.stop()
                     result.success(true)
                 }
                 "sendToBackground" -> {
@@ -188,43 +179,5 @@ class MainActivity : FlutterActivity(), TextToSpeech.OnInitListener {
         } catch (_: Exception) {}
 
         return false
-    }
-
-    private fun performSpeak(text: String, langCode: String, rate: Float, pitch: Float) {
-        if (text.isEmpty()) return
-        try {
-            val locale = when (langCode.lowercase()) {
-                "fa" -> Locale("fa", "IR")
-                "ar" -> Locale("ar", "SA")
-                "de" -> Locale.GERMAN
-                "fr" -> Locale.FRENCH
-                "es" -> Locale("es", "ES")
-                "tr" -> Locale("tr", "TR")
-                "zh" -> Locale.CHINESE
-                "ru" -> Locale("ru", "RU")
-                "ckb" -> Locale("ar", "IQ")
-                else -> Locale.US
-            }
-
-            tts?.setSpeechRate(rate)
-            tts?.setPitch(pitch)
-
-            val langResult = tts?.setLanguage(locale)
-            if (langResult == TextToSpeech.LANG_MISSING_DATA || langResult == TextToSpeech.LANG_NOT_SUPPORTED) {
-                // Fallback to English if device does not have target locale pack installed
-                tts?.setLanguage(Locale.US)
-            }
-
-            // Use QUEUE_ADD so multiple concurrent notifications queue their speech sequentially without overlapping
-            tts?.speak(text, TextToSpeech.QUEUE_ADD, null, "AlarmerSpeech_${System.currentTimeMillis()}")
-        } catch (_: Exception) {}
-    }
-
-    override fun onDestroy() {
-        try {
-            tts?.stop()
-            tts?.shutdown()
-        } catch (_: Exception) {}
-        super.onDestroy()
     }
 }

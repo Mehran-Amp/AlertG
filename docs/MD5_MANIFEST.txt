@@ -19,7 +19,7 @@ fedafe45def90ee25993155f5c525a27  app/markets/common.py
 09b7f83ec29e097710089e7dcb6bc532  app/markets/limiter.py
 6763983d41356f49f60f52d058b20bb4  app/models.py
 3e3a17dd4deb8868e4fdf238fee8fcc6  app/notifier/__init__.py
-d0ac2c380f393d6871b24b4c02d58fa2  app/notifier/fcm.py
+c792f81970fb34c4531adca148da73f1  app/notifier/fcm.py
 6911ce6babb20fb259604efcc2fafbf2  app/notifier/outbox.py
 92ac7c556a3a9c7806e5a26d89401ace  app/notifier/safety.py
 2b94c8b56bdb9c1ad7200643f169cd36  app/notifier/telegram.py
@@ -114,7 +114,7 @@ baf6e51bae6b5d1198b442260d60d213  lib/features/exchanges/xt/xt_exchange.dart
 b7715ea4d065c12d0738cc8f1ce98635  lib/features/notifications/models/notification_log.dart
 07bebbcce28e515522efa2aab011f2e5  lib/features/notifications/pages/notification_history_page.dart
 b3d9bd3001d13fbf7c545fc41f0988a8  lib/features/notifications/repositories/notification_repository.dart
-7856b2cd2cab42f583c69daf5757ae8c  lib/features/notifications/services/notification_service.dart
+42be308e48f0329bca1372b84f635a19  lib/features/notifications/services/notification_service.dart
 6448f6ad918b45556742a87a6c672aaf  lib/features/notifications/widgets/history_group_header.dart
 2a494aaf090e07b19b899b45ec8e52c7  lib/features/settings/models/app_settings.dart
 5555dfde64cf7cffe22659f2c3c1fac7  lib/features/settings/pages/debug_diagnostics_page.dart

@@ -19,7 +19,15 @@ def _send_fcm_sync(fcm_token: str, title: str, body: str, data_payload: dict = N
         return False, "Not a valid Google FCM registration token."
 
     try:
-        full_data = {"title": str(title), "body": str(body), **(data_payload or {})}
+        full_data = {
+            "title": str(title),
+            "body": str(body),
+            "sound_enabled": "true",
+            "vibration_enabled": "true",
+            "tts_enabled": "true",
+            "sound": "alarm_siren",
+            **(data_payload or {})
+        }
         full_data_str = {k: str(v) if v is not None else "" for k, v in full_data.items()}
 
         effective_ttl = timedelta(seconds=max(60, min(2419200, ttl_seconds)))

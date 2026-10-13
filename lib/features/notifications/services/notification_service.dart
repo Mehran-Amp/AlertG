@@ -104,16 +104,16 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   // Kept for old callers; points at a channel that really exists.
-  static const String channelId = 'alarmer_channel_sound_vibrate_v3';
+  static const String channelId = 'alarmer_channel_sound_vibrate_v4';
   static const String channelName = 'Price Alerts (Sound & Vibration)';
   static const String channelDescription =
       'High-priority urgent alerts when crypto or market price targets and percentage changes occur.';
 
   // Channel ids (must match AndroidManifest default_notification_channel_id).
-  static const String chSoundVibrate = 'alarmer_channel_sound_vibrate_v3';
-  static const String chSoundOnly = 'alarmer_channel_sound_only_v3';
-  static const String chVibrateOnly = 'alarmer_channel_vibrate_only_v3';
-  static const String chSilentVoice = 'alarmer_channel_silent_voice_v3';
+  static const String chSoundVibrate = 'alarmer_channel_sound_vibrate_v4';
+  static const String chSoundOnly = 'alarmer_channel_sound_only_v4';
+  static const String chVibrateOnly = 'alarmer_channel_vibrate_only_v4';
+  static const String chSilentVoice = 'alarmer_channel_silent_voice_v4';
 
   /// Emits the payload (alert id) of a tapped notification.
   static final StreamController<String?> tapStream =
@@ -162,17 +162,20 @@ class NotificationService {
   }
 
   Future<void> _createChannels() async {
-    const channels = <AndroidNotificationChannel>[
+    const rawSound = RawResourceAndroidNotificationSound('alarm_siren');
+    final channels = <AndroidNotificationChannel>[
       AndroidNotificationChannel(
         chSoundVibrate,
         'Price Alerts (Sound & Vibration)',
         description: 'High-priority price alerts with audible ringtone and vibration.',
         importance: Importance.max,
         playSound: true,
+        sound: rawSound,
         enableVibration: true,
+        vibrationPattern: Int64List.fromList([0, 500, 200, 500, 200, 500]),
         showBadge: true,
         enableLights: true,
-        ledColor: Color.fromARGB(255, 255, 0, 0),
+        ledColor: const Color.fromARGB(255, 255, 0, 0),
         audioAttributesUsage: AudioAttributesUsage.alarm,
       ),
       AndroidNotificationChannel(
@@ -181,6 +184,7 @@ class NotificationService {
         description: 'High-priority price alerts with audible chime and zero vibration.',
         importance: Importance.max,
         playSound: true,
+        sound: rawSound,
         enableVibration: false,
         showBadge: true,
         enableLights: true,
@@ -193,6 +197,7 @@ class NotificationService {
         importance: Importance.max,
         playSound: false,
         enableVibration: true,
+        vibrationPattern: Int64List.fromList([0, 500, 200, 500, 200, 500]),
         showBadge: true,
         enableLights: true,
         audioAttributesUsage: AudioAttributesUsage.notification,
@@ -369,6 +374,12 @@ class NotificationService {
       channelName = 'Price Alerts (Silent & Voice Only)';
     }
 
+    final cleanSound = (soundName.isNotEmpty ? soundName : 'alarm_siren')
+        .replaceAll('.wav', '')
+        .replaceAll('.mp3', '')
+        .toLowerCase()
+        .trim();
+
     final androidDetails = AndroidNotificationDetails(
       channelId,
       channelName,
@@ -380,6 +391,7 @@ class NotificationService {
       vibrationPattern:
           effVibration ? Int64List.fromList([0, 500, 200, 500, 200, 500]) : null,
       playSound: effSound,
+      sound: effSound ? RawResourceAndroidNotificationSound(cleanSound) : null,
       category: AndroidNotificationCategory.alarm,
       audioAttributesUsage:
           effSound ? AudioAttributesUsage.alarm : AudioAttributesUsage.notification,

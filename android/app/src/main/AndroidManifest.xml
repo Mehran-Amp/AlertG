@@ -99,7 +99,7 @@
         <!-- FCM Default Notification Channel for Max Priority Lockscreen alerts -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="alarmer_channel_sound_vibrate_v3" />
+            android:value="alarmer_channel_sound_vibrate_v4" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@mipmap/ic_launcher" />
