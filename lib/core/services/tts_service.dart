@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'asset_naming_service.dart';
 
 /// Professional Financial Market Text-to-Speech (TTS) Engine.
 /// Always speaks in clear, fluent English with comprehensive financial asset recognition.
@@ -393,7 +394,18 @@ class TtsService {
 
   /// Resolves the authentic spoken name and appropriate currency/unit
   static _ResolvedSpokenInfo _resolveAssetSpokenInfo(String base, String counter) {
-    // 1. Check Macro / Yields / Commodities / Forex
+    // 1. Primary: Check AssetNamingService for authentic exact name across Stocks, HK equities, Crypto, Yields, Forex & Commodities
+    final spokenName = AssetNamingService.resolveTtsSpokenName(base, baseCurrency: base, counterCurrency: counter);
+    if (spokenName.isNotEmpty && spokenName.toUpperCase() != base.toUpperCase()) {
+      final isYield = AssetNamingService.isYieldAsset(base) || base.contains('13W') || base.contains('IRX') || base.contains('TNX') || base.contains('TYX');
+      final isIndex = AssetNamingService.isIndexAsset(base);
+      final unit = isYield
+          ? 'percent'
+          : (isIndex ? 'points' : _getSpokenCurrency(counter));
+      return _ResolvedSpokenInfo(spokenName, unit, isYield: isYield);
+    }
+
+    // 2. Check Macro / Yields / Commodities / Forex
     if (_macroAssetDirectory.containsKey(base)) {
       final info = _macroAssetDirectory[base]!;
       final unit = info.overrideUnit ?? _getSpokenCurrency(counter);
@@ -401,21 +413,21 @@ class TtsService {
       return _ResolvedSpokenInfo(info.spokenName, unit, isYield: isYield);
     }
 
-    // 2. Check Cryptocurrencies
+    // 3. Check Cryptocurrencies
     if (_cryptoAssetNames.containsKey(base)) {
       final name = _cryptoAssetNames[base]!;
       final unit = _getSpokenCurrency(counter);
       return _ResolvedSpokenInfo(name, unit);
     }
 
-    // 3. Check Global Stocks
+    // 4. Check Global Stocks
     if (_stockAssetNames.containsKey(base)) {
       final name = _stockAssetNames[base]!;
       final unit = _getSpokenCurrency(counter);
       return _ResolvedSpokenInfo(name, unit);
     }
 
-    // 4. Fallback for unlisted tickers: spell letter-by-letter with space separation (e.g. "W I F")
+    // 5. Fallback for unlisted tickers: spell letter-by-letter with space separation (e.g. "W I F")
     final spelledOut = base.length <= 5 ? base.split('').join(' ') : base;
     final unit = _getSpokenCurrency(counter);
     return _ResolvedSpokenInfo(spelledOut, unit);
@@ -448,6 +460,8 @@ class TtsService {
       case 'DAI':
       case 'FDUSD':
         return 'dollars';
+      case 'HKD':
+        return 'Hong Kong dollars';
       case 'EUR':
         return 'euros';
       case 'GBP':

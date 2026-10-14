@@ -6,6 +6,7 @@ import '../../../core/localization/app_strings.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/utils/crypto_icons.dart';
 import '../../../core/utils/format_utils.dart';
+import '../../../core/services/asset_naming_service.dart';
 import '../../settings/services/settings_service.dart';
 import '../models/alert_rule.dart';
 import 'cooldown_timer.dart';
@@ -523,21 +524,13 @@ class AlertRow extends StatelessWidget {
     );
   }
 
-  /// Resolves full English asset name for cryptocurrencies, totals and macro indices
+  /// Resolves full English asset name for all markets (Stocks, HK equities, Crypto, Forex, Commodities, Bonds)
   String _resolveFullEnglishName(String baseCurrency) {
-    final clean = baseCurrency.toUpperCase().trim();
-    if (clean == 'TOTAL') return 'CRYPTO TOTAL MARKET';
-    if (clean == 'TOTAL2') return 'CRYPTO TOTAL EXCL BTC';
-    if (clean == 'TOTAL3') return 'CRYPTO TOTAL EXCL BTC & ETH';
-    if (clean == 'BTC.D' || clean == 'BTCD') return 'Bitcoin Dominance';
-    if (clean == 'USDT.D') return 'Tether Dominance';
-    if (clean == 'OTHERS.D') return 'Altcoin Dominance';
-
-    final name = CryptoIcons.getName(clean);
-    if (name.isNotEmpty && name != clean) {
-      return name;
-    }
-    return clean;
+    return AssetNamingService.resolveFullName(
+      baseCurrency,
+      baseCurrency: baseCurrency,
+      counterCurrency: rule.counterCurrency,
+    );
   }
 
   /// Builds live price widget with small font size for Toman / IRT unit

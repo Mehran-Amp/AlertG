@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:provider/provider.dart';
 import '../../../core/localization/app_strings.dart';
+import '../../../core/services/asset_naming_service.dart';
 import '../../../core/services/google_auth_service.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/utils/crypto_icons.dart';
@@ -811,7 +812,7 @@ class _WatchlistPageState extends State<WatchlistPage> {
                                   const SizedBox(height: 2),
                                   // Full English Name (No Exchange Badge!)
                                   Text(
-                                    _resolveFullEnglishName(rule.baseCurrency),
+                                    _resolveFullEnglishName(rule.baseCurrency, counterCurrency: rule.counterCurrency),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
@@ -1174,21 +1175,13 @@ class _WatchlistPageState extends State<WatchlistPage> {
     );
   }
 
-  /// Resolves full English asset name for cryptocurrencies, totals and macro indices
-  String _resolveFullEnglishName(String baseCurrency) {
-    final clean = baseCurrency.toUpperCase().trim();
-    if (clean == 'TOTAL') return 'CRYPTO TOTAL MARKET';
-    if (clean == 'TOTAL2') return 'CRYPTO TOTAL EXCL BTC';
-    if (clean == 'TOTAL3') return 'CRYPTO TOTAL EXCL BTC & ETH';
-    if (clean == 'BTC.D' || clean == 'BTCD') return 'Bitcoin Dominance';
-    if (clean == 'USDT.D') return 'Tether Dominance';
-    if (clean == 'OTHERS.D') return 'Altcoin Dominance';
-
-    final name = CryptoIcons.getName(clean);
-    if (name.isNotEmpty && name != clean) {
-      return name;
-    }
-    return clean;
+  /// Resolves full English asset name for all markets (Stocks, HK equities, Crypto, Forex, Commodities, Bonds)
+  String _resolveFullEnglishName(String baseCurrency, {String? counterCurrency}) {
+    return AssetNamingService.resolveFullName(
+      baseCurrency,
+      baseCurrency: baseCurrency,
+      counterCurrency: counterCurrency,
+    );
   }
 
   Widget _buildEmptyState(String lang, ThemeData theme) {
@@ -1272,23 +1265,31 @@ class _WatchlistPageState extends State<WatchlistPage> {
     }
 
     final diff = Duration(seconds: remainingSecs);
+    final days = diff.inDays;
+    final hours = diff.inHours % 24;
+    final mins = diff.inMinutes % 60;
 
-    if (diff.inHours >= 1) {
+    // Show ONLY days, hours, and minutes. Never show seconds!
+    if (days >= 1) {
+      if (hours > 0 && mins > 0) {
+        return isFa ? '$days روز و $hours ساعت و $mins دقیقه تا پایش' : 'In ${days}d ${hours}h ${mins}m';
+      } else if (hours > 0) {
+        return isFa ? '$days روز و $hours ساعت تا پایش' : 'In ${days}d ${hours}h';
+      } else if (mins > 0) {
+        return isFa ? '$days روز و $mins دقیقه تا پایش' : 'In ${days}d ${mins}m';
+      }
+      return isFa ? '$days روز تا پایش' : 'In ${days}d';
+    } else if (diff.inHours >= 1) {
       final h = diff.inHours;
-      final m = diff.inMinutes % 60;
-      if (m == 0) {
+      if (mins == 0) {
         return isFa ? '$h ساعت تا پایش' : 'In ${h}h';
       }
-      return isFa ? '$h ساعت و $m دقیقه تا پایش' : 'In ${h}h ${m}m';
+      return isFa ? '$h ساعت و $mins دقیقه تا پایش' : 'In ${h}h ${mins}m';
     } else if (diff.inMinutes >= 1) {
-      final m = diff.inMinutes;
-      final s = diff.inSeconds % 60;
-      if (s == 0) {
-        return isFa ? '$m دقیقه تا پایش' : 'In ${m}m';
-      }
-      return isFa ? '$m دقیقه و $s ثانیه تا پایش' : 'In ${m}m ${s}s';
+      return isFa ? '$mins دقیقه تا پایش' : 'In ${mins}m';
     } else {
-      return isFa ? '${diff.inSeconds} ثانیه تا پایش' : 'In ${diff.inSeconds}s';
+      // Remaining time is under 1 minute (less than 60s): never show seconds
+      return isFa ? '< ۱ دقیقه تا پایش' : 'In < 1m';
     }
   }
 

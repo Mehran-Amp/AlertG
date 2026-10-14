@@ -68,9 +68,20 @@ class _CooldownTimerState extends State<CooldownTimer> {
     }
 
     final totalSecs = _remaining.inSeconds;
-    final mins = totalSecs ~/ 60;
-    final secs = totalSecs % 60;
-    final formattedTime = mins > 0 ? '${mins}m ${secs}s remaining' : '${secs}s remaining';
+    final days = _remaining.inDays;
+    final hours = _remaining.inHours % 24;
+    final mins = _remaining.inMinutes % 60;
+
+    String formattedTime;
+    if (days > 0) {
+      formattedTime = hours > 0 ? '${days}d ${hours}h remaining' : '${days}d remaining';
+    } else if (hours > 0) {
+      formattedTime = mins > 0 ? '${hours}h ${mins}m remaining' : '${hours}h remaining';
+    } else if (mins > 0) {
+      formattedTime = '${mins}m remaining';
+    } else {
+      formattedTime = '< 1m remaining';
+    }
     final progress = (totalSecs / _totalCooldownSeconds).clamp(0.0, 1.0);
 
     return Column(

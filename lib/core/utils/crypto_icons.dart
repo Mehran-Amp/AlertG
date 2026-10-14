@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/asset_naming_service.dart';
 
 /// Helper utility for authentic cryptocurrency logos, global stocks, US bonds,
 /// commodities, forex, brand colors, and alias/rebranding name mapping.
@@ -125,7 +126,11 @@ class CryptoIcons {
   /// Returns official human readable display name with alias indicator
   static String getName(String symbol) {
     final clean = _cleanSymbol(symbol);
-    return _metadata[clean]?.name ?? clean;
+    final metaName = _metadata[clean]?.name;
+    if (metaName != null && metaName.isNotEmpty) {
+      return metaName;
+    }
+    return AssetNamingService.resolveFullName(clean);
   }
 
   /// Returns all aliases/former names for search filtering
