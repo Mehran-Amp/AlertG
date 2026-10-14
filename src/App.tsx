@@ -379,10 +379,17 @@ const MACRO_ASSETS: Record<string, MacroAssetMeta> = {
   META: { symbol: 'META', name: 'Meta Platforms (Facebook)', nameFa: 'سهام متا (فیسبوک)', category: 'stock', marketName: 'NASDAQ', icon: 'https://companiesmarketcap.com/img/company-logos/64/META.png', currentPrice: 585.20, unit: '$', change24h: 2.1 },
   PLTR: { symbol: 'PLTR', name: 'Palantir Technologies', nameFa: 'سهام پالانتیر (Palantir)', category: 'stock', marketName: 'NYSE', icon: 'https://companiesmarketcap.com/img/company-logos/64/PLTR.png', currentPrice: 44.10, unit: '$', change24h: 5.6 },
   BRKB: { symbol: 'BRK.B', name: 'Berkshire Hathaway', nameFa: 'برکشایر هاتاوی (وارن بافت)', category: 'stock', marketName: 'NYSE', icon: 'https://companiesmarketcap.com/img/company-logos/64/BRK-B.png', currentPrice: 462.10, unit: '$', change24h: 0.5 },
+  SMCI: { symbol: 'SMCI', name: 'Super Micro Computer Inc.', nameFa: 'سوپرمایکرو (Supermicro)', category: 'stock', marketName: 'NASDAQ', icon: 'https://companiesmarketcap.com/img/company-logos/64/SMCI.png', currentPrice: 47.80, unit: '$', change24h: 4.1 },
+  UBER: { symbol: 'UBER', name: 'Uber Technologies Inc.', nameFa: 'سهام اوبر (Uber)', category: 'stock', marketName: 'NYSE', icon: 'https://companiesmarketcap.com/img/company-logos/64/UBER.png', currentPrice: 79.20, unit: '$', change24h: 1.8 },
+  LLY: { symbol: 'LLY', name: 'Eli Lilly and Company', nameFa: 'سهام الای لیلی (Eli Lilly)', category: 'stock', marketName: 'NYSE', icon: 'https://companiesmarketcap.com/img/company-logos/64/LLY.png', currentPrice: 915.40, unit: '$', change24h: 2.3 },
+  WMT: { symbol: 'WMT', name: 'Walmart Inc.', nameFa: 'سهام والمارت (Walmart)', category: 'stock', marketName: 'NYSE', icon: 'https://companiesmarketcap.com/img/company-logos/64/WMT.png', currentPrice: 82.50, unit: '$', change24h: 0.7 },
+  JPM: { symbol: 'JPM', name: 'JPMorgan Chase & Co.', nameFa: 'سهام جی‌پی‌مورگان چیس (JPMorgan)', category: 'stock', marketName: 'NYSE', icon: 'https://companiesmarketcap.com/img/company-logos/64/JPM.png', currentPrice: 224.30, unit: '$', change24h: 1.2 },
+  V: { symbol: 'V', name: 'Visa Inc.', nameFa: 'سهام ویزا (Visa)', category: 'stock', marketName: 'NYSE', icon: 'https://companiesmarketcap.com/img/company-logos/64/V.png', currentPrice: 288.60, unit: '$', change24h: 0.9 },
 
   // Commercial Space, Aerospace & Elon Musk Ventures
   TSLA: { symbol: 'TSLA', name: 'Tesla Inc.', nameFa: 'سهام تسلا (خودروهای برقی، هوش مصنوعی، ربات اپتیموس و انرژی ایلان ماسک)', category: 'stock', marketName: 'NASDAQ', icon: 'https://companiesmarketcap.com/img/company-logos/64/TSLA.png', currentPrice: 255.40, unit: '$', change24h: -1.9 },
-  SPACEX: { symbol: 'SPACEX', name: 'SpaceX (Starship & Space Exploration)', nameFa: 'اسپیس‌ایکس (فناوری‌های فضایی، استارشیپ و ماموریت‌های مریخ ایلان ماسک)', category: 'stock', marketName: 'Pre-IPO Benchmark', icon: 'https://cdn-icons-png.flaticon.com/512/3209/3209994.png', currentPrice: 112.00, unit: '$', change24h: 4.8 },
+  SPCX: { symbol: 'SPCX', name: 'SpaceX (Starship & Space Exploration)', nameFa: 'اسپیس‌ایکس (فناوری‌های فضایی، استارشیپ و ماموریت‌های مریخ ایلان ماسک)', category: 'stock', marketName: 'Pre-IPO Benchmark', icon: 'https://cdn-icons-png.flaticon.com/512/3209/3209994.png', currentPrice: 112.00, unit: '$', change24h: 4.8 },
+  SPACEX: { symbol: 'SPCX', name: 'SpaceX (Starship & Space Exploration)', nameFa: 'اسپیس‌ایکس (فناوری‌های فضایی، استارشیپ و ماموریت‌های مریخ ایلان ماسک)', category: 'stock', marketName: 'Pre-IPO Benchmark', icon: 'https://cdn-icons-png.flaticon.com/512/3209/3209994.png', currentPrice: 112.00, unit: '$', change24h: 4.8 },
   STARLINK: { symbol: 'STARLINK', name: 'Starlink (SpaceX Satellite Constellation)', nameFa: 'استارلینک (شبکه اینترنت ماهواره‌ای جهانی ایلان ماسک)', category: 'stock', marketName: 'Pre-IPO Benchmark', icon: 'https://cdn-icons-png.flaticon.com/512/3209/3209994.png', currentPrice: 85.00, unit: '$', change24h: 3.9 },
   XAI: { symbol: 'XAI', name: 'xAI (Grok AI & Colossus)', nameFa: 'شرکت هوش مصنوعی xAI (خالق Grok و سوپرکامپیوتر کلوسوس ایلان ماسک)', category: 'stock', marketName: 'Pre-IPO Benchmark', icon: 'https://cdn-icons-png.flaticon.com/512/12222/12222560.png', currentPrice: 45.00, unit: '$', change24h: 6.5 },
   X_CORP: { symbol: 'X_CORP', name: 'X Corp (Twitter - Everything App)', nameFa: 'ایکس / توییتر سابق (شبکه اجتماعی جهانی و اپلیکیشن همه‌کاره ایلان ماسک)', category: 'stock', marketName: 'Pre-IPO Benchmark', icon: 'https://cdn-icons-png.flaticon.com/512/5969/5969020.png', currentPrice: 38.50, unit: '$', change24h: 2.1 },
@@ -587,7 +594,7 @@ export default function App() {
       const saved = localStorage.getItem('alarmer_macro_prices');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed && typeof parsed === 'object') return { ...MACRO_ASSETS, ...parsed };
+        if (parsed && typeof parsed === 'object') return { ...parsed, ...MACRO_ASSETS };
       }
     } catch (_) {}
     return MACRO_ASSETS;

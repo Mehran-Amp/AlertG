@@ -121,6 +121,7 @@ class CryptoIcons {
     'BTC.D': _AssetMeta('Bitcoin Dominance Index', Color(0xFFF7931A), '', customIcon: Icons.percent_rounded, aliases: 'BTCD BTC.D DOMINANCE'),
     'USDT.D': _AssetMeta('Tether Dominance Index', Color(0xFF26A17B), '', customIcon: Icons.percent_rounded, aliases: 'USDTD USDT.D'),
     'OTHERS.D': _AssetMeta('Altcoin Dominance Index', Color(0xFF8B5CF6), '', customIcon: Icons.percent_rounded, aliases: 'OTHERS.D'),
+    'SPCX': _AssetMeta('SpaceX', Color(0xFF005288), '', customIcon: Icons.rocket_launch_rounded, aliases: 'SPACEX SPCX STARLINK ELON_MUSK'),
   };
 
   /// Returns official human readable display name with alias indicator

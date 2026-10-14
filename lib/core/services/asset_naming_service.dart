@@ -625,6 +625,7 @@ class AssetNamingService {
     'SOL': 'Solana',
     'SOLV': 'Solventum',
     'SP500': 'S&P 500 Index',
+    'SPCX': 'SpaceX',
     'SPG': 'Simon Property Group',
     'SPGI': 'S&P Global',
     'SPX': 'S&P 500 Index',
@@ -951,6 +952,7 @@ class AssetNamingService {
       return 'US 13-Week Treasury Yield';
     }
     if (name.contains('Solana') || symbol.toUpperCase() == 'SOL') return 'Solana';
+    if (name.contains('SpaceX') || symbol.toUpperCase().contains('SPCX')) return 'SpaceX';
 
     // For all other assets, remove bracketed clarifications like "(Google)" or parenthetical notes
     var spoken = name

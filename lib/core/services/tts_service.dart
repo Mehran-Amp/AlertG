@@ -281,6 +281,7 @@ class TtsService {
   // 3. GLOBAL STOCKS DICTIONARY
   // -------------------------------------------------------------
   static const Map<String, String> _stockAssetNames = {
+    'SPCX': 'SpaceX',
     'AAPL': 'Apple',
     'TSLA': 'Tesla',
     'NVDA': 'Nvidia',

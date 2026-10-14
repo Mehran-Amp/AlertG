@@ -8002,6 +8002,19 @@
       "source": "default",
       "added_at": "2026-10-12T14:17:47.309157+00:00",
       "currency": "USD"
+    },
+    {
+      "id": "SPCX",
+      "symbol": "SPCX",
+      "nameEn": "SpaceX",
+      "nameFa": "سهام اسپیس‌ایکس (SpaceX)",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "is_active": 1,
+      "delisted_at": null,
+      "added_at": "2026-10-14T14:35:00.000000+00:00",
+      "currency": "USD"
     }
   ]
 }
