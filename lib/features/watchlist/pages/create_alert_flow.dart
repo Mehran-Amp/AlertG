@@ -2920,7 +2920,6 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
 
         Material(
           color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
             side: BorderSide(color: theme.dividerColor),
@@ -3059,7 +3058,6 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
               // 3.4 Text-to-Speech (TTS) Voice Announcer
               Material(
                 color: theme.scaffoldBackgroundColor.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                   side: BorderSide(

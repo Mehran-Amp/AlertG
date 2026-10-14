@@ -183,7 +183,6 @@ class _AssetSearchFieldState extends State<AssetSearchField> {
             constraints: const BoxConstraints(maxHeight: 260),
             child: Material(
               color: AppTokens.surface,
-              borderRadius: AppTokens.borderMedium,
               shape: const RoundedRectangleBorder(
                 borderRadius: AppTokens.borderMedium,
                 side: BorderSide(color: AppTokens.borderSubtle),

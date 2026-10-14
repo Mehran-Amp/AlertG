@@ -544,7 +544,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
           Material(
             color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(14),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
               side: BorderSide(color: theme.dividerColor),
