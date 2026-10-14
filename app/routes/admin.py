@@ -5,31 +5,8 @@ import html
 import asyncio
 from datetime import datetime
 from typing import Optional
-try:
-    from fastapi import APIRouter, HTTPException, Header
-    from fastapi.responses import HTMLResponse, JSONResponse
-    if not isinstance(HTMLResponse, type) or getattr(HTMLResponse, '_mock_name', None) is not None:
-        raise ImportError("Responses are mocked")
-except (ImportError, AttributeError):
-    class APIRouter:
-        def __init__(self, *args, **kwargs): pass
-        def get(self, *args, **kwargs): return lambda f: f
-        def post(self, *args, **kwargs): return lambda f: f
-    def Header(default=None, **kwargs): return default
-    class HTTPException(Exception):
-        def __init__(self, status_code=500, detail=""):
-            self.status_code = status_code
-            self.detail = detail
-    class HTMLResponse:
-        def __init__(self, content="", status_code=200, **kwargs):
-            self.content = content
-            self.status_code = status_code
-            self.body = content.encode("utf-8") if isinstance(content, str) else content
-    class JSONResponse:
-        def __init__(self, content=None, status_code=200, **kwargs):
-            self.content = content
-            self.status_code = status_code
-            self.body = json.dumps(content).encode("utf-8")
+from fastapi import APIRouter, HTTPException, Header
+from fastapi.responses import HTMLResponse, JSONResponse
 
 try:
     import firebase_admin
@@ -763,6 +740,7 @@ async def test_push_notification(fcm_token: Optional[str] = None, title: Optiona
             "vibration_enabled": "true",
             "tts_enabled": "true",
             "sound": "alarm_siren",
+            "channel_id": "alarmer_channel_sound_vibrate_v5",
             "type": "test_ping",
             "timestamp": str(time.time()),
             "source": "api_test_endpoint"

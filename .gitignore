@@ -33,10 +33,16 @@ __pycache__/
 # Runtime data
 user_profiles.json
 fcm_outbox.json
+sync_runs.json
+*.tmp.*
 catalog.db
 backups/
 *.tar.gz
 tmp/
+
+# Flutter Generated Plugin Registrant
+GeneratedPluginRegistrant.java
+**/GeneratedPluginRegistrant.java
 
 # Catalog single-writer lock
 catalog.json.lock

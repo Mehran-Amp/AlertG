@@ -558,7 +558,7 @@ class TtsService {
     _processQueue();
   }
 
-  /// Speaks the given text using the platform English TTS engine
+  /// Speaks the given text using the native platform TTS engine
   Future<void> speak({
     required String text,
     String lang = 'en',
@@ -566,10 +566,12 @@ class TtsService {
     double pitch = 1.0,
   }) async {
     try {
-      debugPrint('[TTS] Speaking (English): "$text"');
+      final hasPersian = RegExp(r'[\u0600-\u06FF]').hasMatch(text);
+      final effectiveLang = hasPersian ? 'fa' : lang;
+      debugPrint('[TTS] Speaking ($effectiveLang): "$text"');
       await _channel.invokeMethod('speak', {
         'text': text,
-        'lang': 'en',
+        'lang': effectiveLang,
         'rate': rate,
         'pitch': pitch,
       });

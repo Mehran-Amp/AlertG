@@ -75,8 +75,10 @@ class TestPhase7WeeklyCatalogSync(unittest.IsolatedAsyncioTestCase):
 
         self.orig_cat_file = sync_module.CATALOG_FILE
         self.orig_snap_dir = sync_module.CATALOG_SNAPSHOTS_DIR
+        self.orig_sync_runs = sync_module.SYNC_RUNS_FILE
         sync_module.CATALOG_FILE = self.test_cat_file
         sync_module.CATALOG_SNAPSHOTS_DIR = self.test_snap_dir
+        sync_module.SYNC_RUNS_FILE = os.path.join(self.test_dir, "sync_runs.json")
 
         self.orig_alerts = list(storage.ALERTS_DB)
         storage.ALERTS_DB.clear()
@@ -111,6 +113,7 @@ class TestPhase7WeeklyCatalogSync(unittest.IsolatedAsyncioTestCase):
     def tearDown(self):
         sync_module.CATALOG_FILE = self.orig_cat_file
         sync_module.CATALOG_SNAPSHOTS_DIR = self.orig_snap_dir
+        sync_module.SYNC_RUNS_FILE = self.orig_sync_runs
         storage.ALERTS_DB.clear()
         storage.ALERTS_DB.extend(self.orig_alerts)
         if os.path.exists(self.test_dir):

@@ -87,6 +87,20 @@ async def fetch_price_with_trace(
             'error': f'Category {category} is disabled by kill switch',
             'success': False
         })
+    LEGACY_CRYPTO_METRICS = frozenset({'TOTAL', 'TOTAL2', 'TOTAL3', 'BTC.D', 'USDT.D', 'ETH.D'})
+    if sym_clean.upper() in LEGACY_CRYPTO_METRICS:
+        traces.append({
+            'source': 'legacy_crypto_metric',
+            'url': '',
+            'status_code': 200,
+            'latency_ms': 0.0,
+            'parsed_price': None,
+            'state': 'unsupported_legacy',
+            'currency': 'USD',
+            'alert_eligible': False,
+            'error': f"Legacy metric '{symbol}' is deprecated and unsupported",
+            'success': True
+        })
         return None, traces
 
     # Helper function for tracing with Bulk Response Caching, Rate Limiting and metadata extraction

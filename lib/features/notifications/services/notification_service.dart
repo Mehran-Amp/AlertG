@@ -104,16 +104,16 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   // Kept for old callers; points at a channel that really exists.
-  static const String channelId = 'alarmer_channel_sound_vibrate_v4';
+  static const String channelId = 'alarmer_channel_sound_vibrate_v5';
   static const String channelName = 'Price Alerts (Sound & Vibration)';
   static const String channelDescription =
       'High-priority urgent alerts when crypto or market price targets and percentage changes occur.';
 
   // Channel ids (must match AndroidManifest default_notification_channel_id).
-  static const String chSoundVibrate = 'alarmer_channel_sound_vibrate_v4';
-  static const String chSoundOnly = 'alarmer_channel_sound_only_v4';
-  static const String chVibrateOnly = 'alarmer_channel_vibrate_only_v4';
-  static const String chSilentVoice = 'alarmer_channel_silent_voice_v4';
+  static const String chSoundVibrate = 'alarmer_channel_sound_vibrate_v5';
+  static const String chSoundOnly = 'alarmer_channel_sound_only_v5';
+  static const String chVibrateOnly = 'alarmer_channel_vibrate_only_v5';
+  static const String chSilentVoice = 'alarmer_channel_silent_voice_v5';
 
   /// Emits the payload (alert id) of a tapped notification.
   static final StreamController<String?> tapStream =
@@ -216,6 +216,21 @@ class NotificationService {
     ];
     final android = _plugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+
+    // Delete legacy/cached channels so Android applies updated audio & vibration settings
+    const oldChannelIds = [
+      'alarmer_channel_sound_vibrate_v4',
+      'alarmer_channel_sound_only_v4',
+      'alarmer_channel_vibrate_only_v4',
+      'alarmer_channel_silent_voice_v4',
+      'alarmer_critical_price_alerts',
+    ];
+    for (final oldId in oldChannelIds) {
+      try {
+        await android?.deleteNotificationChannel(oldId);
+      } catch (_) {}
+    }
+
     for (final c in channels) {
       try {
         await android?.createNotificationChannel(c);
@@ -430,24 +445,30 @@ class NotificationService {
       await _plugin.show(id, title, body, details, payload: payload);
     }
 
-    // 2. Extra in-app feedback, never blocks and never runs in the FCM isolate.
-    if (!inAppFeedback) return;
-    if (effSound) {
+    // 2. Audible alarm & physical vibration via native engine (works in both foreground & background)
+    if (effSound || effVibration) {
       unawaited(() async {
         try {
-          await SoundManager().playPreset(soundName, volume: volume);
+          const mChannel = MethodChannel('com.example.bitcoin_checker/app_lifecycle');
+          await mChannel.invokeMethod('playAlarm', {
+            'sound': cleanSound,
+            'vibrate': effVibration,
+            'soundEnabled': effSound,
+            'volume': volume,
+          });
         } catch (e) {
-          debugPrint('⚠️ [NotificationService] playPreset failed: $e');
+          debugPrint('⚠️ [NotificationService] native playAlarm note: $e');
+          if (inAppFeedback && effSound) {
+            try {
+              await SoundManager().playPreset(soundName, volume: volume);
+            } catch (_) {}
+          }
+          if (inAppFeedback && effVibration) {
+            try {
+              await HapticFeedback.heavyImpact();
+            } catch (_) {}
+          }
         }
-      }());
-    }
-    if (effVibration) {
-      unawaited(() async {
-        try {
-          await HapticFeedback.heavyImpact();
-          await Future.delayed(const Duration(milliseconds: 150));
-          await HapticFeedback.heavyImpact();
-        } catch (_) {}
       }());
     }
   }

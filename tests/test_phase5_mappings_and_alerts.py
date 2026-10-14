@@ -79,6 +79,40 @@ class TestPhase5MappingsAndAlerts(unittest.TestCase):
         self.assertEqual(twelve_data_adapter.resolve_symbol('BFB'), 'BF.B')
         self.assertEqual(twelve_data_adapter.resolve_symbol('BF-B'), 'BF.B')
 
+    def test_01b_exchange_suffixes_preserved_in_resolve_yf_symbol(self):
+        """
+        Verify foreign exchange suffixes (.L, .T, .HK, .SS, .SZ, .DE, .PA, .AX, .TO, etc.)
+        are strictly preserved with dot notation in resolve_yf_symbol and NEVER converted to dashes.
+        Specifically, HSBA.L must remain HSBA.L and never become HSBA-L.
+        Only US multi-class shares (e.g. BRK.B, BF.B, BRK.A) convert to dash.
+        """
+        # London Stock Exchange (.L)
+        self.assertEqual(resolve_yf_symbol('HSBA.L'), 'HSBA.L')
+        self.assertEqual(resolve_yf_symbol('BP.L'), 'BP.L')
+        self.assertEqual(resolve_yf_symbol('SHEL.L'), 'SHEL.L')
+
+        # Tokyo Stock Exchange (.T)
+        self.assertEqual(resolve_yf_symbol('7203.T'), '7203.T')
+        self.assertEqual(resolve_yf_symbol('SONY.T'), 'SONY.T')
+
+        # Hong Kong (.HK), Germany (.DE), Paris (.PA), Australia (.AX), Toronto (.TO)
+        self.assertEqual(resolve_yf_symbol('9988.HK'), '9988.HK')
+        self.assertEqual(resolve_yf_symbol('SAP.DE'), 'SAP.DE')
+        self.assertEqual(resolve_yf_symbol('MC.PA'), 'MC.PA')
+        self.assertEqual(resolve_yf_symbol('BHP.AX'), 'BHP.AX')
+        self.assertEqual(resolve_yf_symbol('SHOP.TO'), 'SHOP.TO')
+
+        # US Multi-Class shares MUST convert to dash
+        self.assertEqual(resolve_yf_symbol('BRK.B'), 'BRK-B')
+        self.assertEqual(resolve_yf_symbol('BF.B'), 'BF-B')
+        self.assertEqual(resolve_yf_symbol('BRK.A'), 'BRK-A')
+
+        # Crypto metric dominance must be preserved
+        self.assertEqual(resolve_yf_symbol('BTC.D'), 'BTC.D')
+        self.assertEqual(resolve_yf_symbol('USDT.D'), 'USDT.D')
+        self.assertEqual(resolve_yf_symbol('ETH.D'), 'ETH.D')
+        self.assertEqual(resolve_yf_symbol('TOTAL'), 'TOTAL')
+
     def test_02_forex_symbols_mapping_per_provider(self):
         """
         Verify forex pairs map to appropriate provider representations:

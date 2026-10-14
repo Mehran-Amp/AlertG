@@ -8,37 +8,8 @@ except ImportError:
 
 http_client = None
 
-try:
-    from apscheduler.schedulers.asyncio import AsyncIOScheduler
-    scheduler = AsyncIOScheduler()
-except ImportError:
-    from datetime import timedelta
-    class _MockTrigger:
-        def __init__(self, seconds=0, desc=""):
-            self.interval = timedelta(seconds=seconds)
-            self.desc = desc
-        def __str__(self):
-            return self.desc or f"interval[{self.interval}]"
-    class _MockJob:
-        def __init__(self, id, func=None, seconds=0, desc=""):
-            self.id = id
-            self.func = func
-            self.trigger = _MockTrigger(seconds, desc=desc)
-    class _MockScheduler:
-        def __init__(self):
-            self.jobs = {}
-        def add_job(self, func, trigger='interval', id=None, seconds=None, hours=None, day_of_week=None, hour=None, **kwargs):
-            sec = seconds if seconds is not None else ((hours * 3600) if hours is not None else 0)
-            desc = f"cron[day_of_week={day_of_week}, hour={hour}]" if trigger == 'cron' else f"interval[{sec}s]"
-            job = _MockJob(id, func=func, seconds=sec, desc=desc)
-            self.jobs[id] = job
-            return job
-        def get_job(self, job_id):
-            return self.jobs.get(job_id)
-        def start(self): pass
-        def shutdown(self): pass
-    AsyncIOScheduler = _MockScheduler
-    scheduler = _MockScheduler()
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+scheduler = AsyncIOScheduler()
 _db_lock = asyncio.Lock()
 _prof_lock = asyncio.Lock()
 

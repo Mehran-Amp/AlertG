@@ -19,13 +19,13 @@ fedafe45def90ee25993155f5c525a27  app/markets/common.py
 09b7f83ec29e097710089e7dcb6bc532  app/markets/limiter.py
 6763983d41356f49f60f52d058b20bb4  app/models.py
 3e3a17dd4deb8868e4fdf238fee8fcc6  app/notifier/__init__.py
-c792f81970fb34c4531adca148da73f1  app/notifier/fcm.py
+69ce732cc243f27a23c3f219dce14251  app/notifier/fcm.py
 6911ce6babb20fb259604efcc2fafbf2  app/notifier/outbox.py
 92ac7c556a3a9c7806e5a26d89401ace  app/notifier/safety.py
 2b94c8b56bdb9c1ad7200643f169cd36  app/notifier/telegram.py
 915361d79aa2696d68fbf202f27eaa61  app/notifier/webhook.py
 db0ae3fb9a3c9a91e0d3abf7fc7ba52c  app/routes/__init__.py
-5f4f03e2d9d534bdf8283655d80db8bb  app/routes/admin.py
+0b2a2b97a39e6e47896f7c284639b05d  app/routes/admin.py
 e0435fa56dbddd23850d88720d3b2199  app/routes/alerts.py
 250bf7eda58b8cbadbbad9e0b2d37ce3  app/routes/prices.py
 4c4fa4d4937f9ee9587b3eda09e22f81  app/routes/symbols.py
@@ -43,7 +43,7 @@ ad37cb4bec289b1abfdb6208076e89df  lib/core/services/catalog_sync_service.dart
 fa3357b74c903da8a30e0b24b4a3a390  lib/core/services/google_auth_service.dart
 9d2be8f60aa9e5405191fa4376836ee0  lib/core/services/native_widget_sync_service.dart
 5f06a8203305bf1ad274e0d503380e97  lib/core/services/server_alert_service.dart
-455f229603466870b19c75e36a8eb1df  lib/core/services/tts_service.dart
+35f2bb2bae71d4fc0627a9258acbcf44  lib/core/services/tts_service.dart
 08974d8da9a730d006bcf1ff5fba79f5  lib/core/theme/tokens.dart
 53e6c1de57aca302fe98206ca6b74fce  lib/core/utils/app_lifecycle_helper.dart
 5bc1ed4582cd6c529c444e87ea379732  lib/core/utils/crypto_icons.dart
@@ -114,7 +114,7 @@ baf6e51bae6b5d1198b442260d60d213  lib/features/exchanges/xt/xt_exchange.dart
 b7715ea4d065c12d0738cc8f1ce98635  lib/features/notifications/models/notification_log.dart
 07bebbcce28e515522efa2aab011f2e5  lib/features/notifications/pages/notification_history_page.dart
 b3d9bd3001d13fbf7c545fc41f0988a8  lib/features/notifications/repositories/notification_repository.dart
-42be308e48f0329bca1372b84f635a19  lib/features/notifications/services/notification_service.dart
+6df68f2c98edfc3fbe5582128bdeb971  lib/features/notifications/services/notification_service.dart
 6448f6ad918b45556742a87a6c672aaf  lib/features/notifications/widgets/history_group_header.dart
 2a494aaf090e07b19b899b45ec8e52c7  lib/features/settings/models/app_settings.dart
 5555dfde64cf7cffe22659f2c3c1fac7  lib/features/settings/pages/debug_diagnostics_page.dart

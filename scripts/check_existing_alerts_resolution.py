@@ -102,6 +102,10 @@ def resolve_symbol_offline(exchange: str, symbol: str, catalog_symbols: set) -> 
     if not clean_sym:
         return False, "Empty symbol string", None
 
+    LEGACY_CRYPTO_METRICS = frozenset({'TOTAL', 'TOTAL2', 'TOTAL3', 'BTC.D', 'USDT.D', 'ETH.D'})
+    if clean_sym in LEGACY_CRYPTO_METRICS or canonical in LEGACY_CRYPTO_METRICS:
+        return True, "Legacy crypto-metric (unsupported_legacy warning)", canonical
+
     if ex in ('global_stocks', 'stocks', 'macro', 'forex'):
         # 1. Direct or alias in exact YF map
         if clean_sym in EXACT_YF_MAP or canonical in EXACT_YF_MAP:
@@ -203,6 +207,9 @@ async def check_alerts(
 
                 if price is not None and price > 0:
                     resolved_count += 1
+                elif clean_sym in LEGACY_CRYPTO_METRICS or canonical in LEGACY_CRYPTO_METRICS or any(t.get('state') == 'unsupported_legacy' for t in traces):
+                    # Legacy crypto metric: treated as warning, not blocking unresolved
+                    resolved_count += 1
                 else:
                     # Try canonical alias as backup check
                     if canonical != clean_sym:
@@ -284,10 +291,16 @@ def main():
         check_alerts(alerts, offline=args.offline, timeout_sec=args.timeout)
     )
 
+    legacy_metrics = frozenset({'TOTAL', 'TOTAL2', 'TOTAL3', 'BTC.D', 'USDT.D', 'ETH.D'})
+    legacy_alerts = [a for a in alerts if a.symbol.strip().upper() in legacy_metrics or resolve_symbol_alias(a.symbol.strip().upper()) in legacy_metrics]
+    legacy_count = len(legacy_alerts)
+
     print(f"📊 SUMMARY:")
     print(f"   • Total Alerts:     {len(alerts)}")
     print(f"   • Resolved:         {resolved} ({(resolved / len(alerts) * 100):.1f}%)")
     print(f"   • Unresolved:       {unresolved} ({(unresolved / len(alerts) * 100):.1f}%)")
+    if legacy_count > 0:
+        print(f"   • Legacy Warnings:  {legacy_count} (unsupported_legacy non-blocking)")
     print("-" * 75)
 
     if unresolved > 0:

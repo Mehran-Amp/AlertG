@@ -29,6 +29,22 @@ async def get_live_price(exchange: str, symbol: str):
     cached_entry = PRICE_CACHE.get(cache_key)
     meta = cached_entry[2] if (cached_entry and len(cached_entry) > 2 and isinstance(cached_entry[2], dict)) else {}
 
+    sym_clean = normalize_symbol(symbol).upper()
+    if sym_clean in {'TOTAL', 'TOTAL2', 'TOTAL3', 'BTC.D', 'USDT.D', 'ETH.D'} or meta.get('state') == 'unsupported_legacy':
+        return {
+            "status": "unsupported_legacy",
+            "exchange": exchange,
+            "symbol": symbol,
+            "price": None,
+            "source": meta.get("source", "legacy"),
+            "asOf": meta.get("asOf", int(time.time())),
+            "state": "unsupported_legacy",
+            "currency": "USD",
+            "alert_eligible": False,
+            "message": f"Legacy crypto metric '{symbol}' is deprecated and unsupported.",
+            "timestamp": time.time()
+        }
+
     if (price is not None and price > 0) or meta.get('state') in ['no_data', 'no_trade_today', 'closed']:
         res = {
             "status": "ok",

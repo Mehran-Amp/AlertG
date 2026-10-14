@@ -115,7 +115,7 @@ async def get_cached_price(client: httpx.AsyncClient, exchange: str, symbol: str
         return price
 
     for tr in traces:
-        if tr.get('success') and tr.get('state') in ['no_data', 'no_trade_today', 'closed']:
+        if tr.get('success') and tr.get('state') in ['no_data', 'no_trade_today', 'closed', 'unsupported_legacy']:
             meta = {
                 'source': tr.get('source'),
                 'asOf': tr.get('asOf'),

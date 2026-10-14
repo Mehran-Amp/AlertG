@@ -163,6 +163,17 @@ try:
             body=body
         ),
         data={
+            "alert_id": f"test_ping_{int(time.time())}",
+            "symbol": "BTC/USDT",
+            "price": "68500",
+            "title": title,
+            "body": body,
+            "note": "تست دریافت از سرور",
+            "sound_enabled": "true",
+            "vibration_enabled": "true",
+            "tts_enabled": "true",
+            "sound": "alarm_siren",
+            "channel_id": "alarmer_channel_sound_vibrate_v5",
             "type": "test_ping",
             "timestamp": str(time.time()),
             "source": "terminal_cli_test"
@@ -173,11 +184,11 @@ try:
             ttl=timedelta(days=1),
             direct_boot_ok=True,
             notification=messaging.AndroidNotification(
-                sound="default",
-                channel_id="alarmer_critical_price_alerts",
+                sound="alarm_siren",
+                channel_id="alarmer_channel_sound_vibrate_v5",
                 priority="max",
                 visibility="public",
-                default_sound=True,
+                default_sound=False,
                 default_vibrate_timings=True,
                 default_light_settings=True
             )
@@ -185,7 +196,7 @@ try:
         apns=messaging.APNSConfig(
             payload=messaging.APNSPayload(
                 aps=messaging.Aps(
-                    sound="default",
+                    sound="alarm_siren.wav",
                     badge=1,
                     content_available=True,
                     custom_data={"interruption-level": "time-sensitive"}

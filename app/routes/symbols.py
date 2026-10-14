@@ -4,47 +4,8 @@ import hashlib
 import gzip
 import re
 from typing import Optional, List, Dict, Any
-try:
-    from fastapi import APIRouter, Query, HTTPException, Header, Response, Request
-    from fastapi.responses import JSONResponse
-    # If imported as MagicMock in test environment, fallback to concrete classes
-    if not isinstance(Response, type) or getattr(Response, '_mock_name', None) is not None:
-        raise ImportError("Response is a mock")
-except (ImportError, AttributeError):
-    class APIRouter:
-        def __init__(self, *args, **kwargs):
-            self.routes = []
-        def get(self, *args, **kwargs):
-            def decorator(f):
-                class Route:
-                    endpoint = f
-                self.routes.append(Route())
-                return f
-            return decorator
-        def post(self, *args, **kwargs):
-            def decorator(f):
-                class Route:
-                    endpoint = f
-                self.routes.append(Route())
-                return f
-            return decorator
-    def Query(default=None, **kwargs): return default
-    def Header(default=None, **kwargs): return default
-    class HTTPException(Exception):
-        def __init__(self, status_code=500, detail=""):
-            self.status_code = status_code
-            self.detail = detail
-    class Response:
-        def __init__(self, content=b"", status_code=200, headers=None, media_type=None):
-            self.content = content if isinstance(content, bytes) else str(content).encode("utf-8")
-            self.status_code = status_code
-            self.headers = headers or {}
-            self.media_type = media_type
-    class JSONResponse(Response):
-        def __init__(self, content=None, status_code=200, headers=None):
-            body = json.dumps(content).encode("utf-8")
-            super().__init__(content=body, status_code=status_code, headers=headers, media_type="application/json")
-            self.json_data = content
+from fastapi import APIRouter, Query, HTTPException, Header, Response, Request
+from fastapi.responses import JSONResponse
 from app.markets.global_stocks import WALLSTREET_MACRO_SYMBOLS
 from app.engine.sync import load_catalog, get_catalog_delta
 from app.engine.calendar import get_symbol_market_detail

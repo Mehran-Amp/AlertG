@@ -285,12 +285,22 @@ FOREX_PAIRS = {
 # 2-year Treasury yield exists only on FRED (DGS2). Yahoo's ^IRX is the 13-week bill, never a 2Y proxy.
 FRED_ONLY_SYMBOLS = frozenset({'US02Y', 'US2Y', '^2YY', 'DGS2'})
 
+# Foreign exchange suffixes on Yahoo Finance (.L, .T, .HK, .SS, .SZ, .DE, .PA, .AX, .TO, etc.)
+# These MUST be preserved with dot notation and NEVER converted to dashes.
+YF_EXCHANGE_SUFFIXES = frozenset({
+    'L', 'T', 'HK', 'SS', 'SZ', 'DE', 'PA', 'AX', 'TO', 'V', 'F',
+    'MI', 'MC', 'AS', 'BR', 'LS', 'VI', 'SW', 'CO', 'ST', 'OL',
+    'HE', 'IC', 'IR', 'TA', 'SA', 'MX', 'BA', 'SN', 'JK', 'KL',
+    'BK', 'SI', 'KS', 'KQ', 'TW', 'TWO', 'NZ', 'JO', 'SG', 'SR',
+    'VN', 'WA', 'IS', 'AT', 'BE', 'CH', 'CN', 'DK', 'ES', 'FI', 'FR'
+})
+
 
 def resolve_yf_symbol(symbol_or_exchange: str, symbol: Optional[str] = None, category: Optional[str] = None) -> str:
     """
     Standardizes user/UI symbols into clean Yahoo Finance query symbols:
     - Strips /USD, -USD, USD quote suffixes from stock pairs (AAPL/USD -> AAPL)
-    - Preserves share classes with dash (BRK-B) and foreign exchanges with dot (7203.T)
+    - Preserves share classes with dash (BRK-B) and foreign exchanges with dot (7203.T, HSBA.L)
     - Maps major Forex pairs to {PAIR}=X (EUR/USD -> EURUSD=X)
     - Resolves Macro, Yields & Commodities to exact futures tickers
     - Can be called as resolve_yf_symbol(symbol) or resolve_yf_symbol(exchange, symbol)
@@ -344,10 +354,17 @@ def resolve_yf_symbol(symbol_or_exchange: str, symbol: Optional[str] = None, cat
                 return candidate
 
     # 5. Dotted US share classes: BRK.B -> BRK-B, BF.B -> BF-B
+    # Foreign exchange suffixes (.L, .T, .HK, .SS, .SZ, .DE, .PA, .AX, .TO, etc.) and crypto metrics (.D) MUST NOT be converted.
     if '.' in s and not s.startswith('^'):
         parts = s.split('.')
-        if len(parts) == 2 and len(parts[1]) == 1 and parts[1].isalpha() and not parts[0].isdigit():
-            return f"{parts[0]}-{parts[1]}"
+        if len(parts) == 2 and not parts[0].isdigit():
+            base = parts[0].upper()
+            suffix = parts[1].upper()
+            if (suffix not in YF_EXCHANGE_SUFFIXES and
+                suffix not in {'D'} and
+                base not in {'BTC', 'USDT', 'ETH', 'TOTAL'} and
+                len(suffix) == 1 and suffix.isalpha()):
+                return f"{parts[0]}-{parts[1]}"
 
     return s
 
