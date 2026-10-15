@@ -2070,7 +2070,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final theme = Theme.of(context);
     final isRtl = AppStrings.isRtl(lang);
     final telegramColor = const Color(0xFF229ED9);
-    const botUsername = '@aisocialfeedbot';
+    const botUsername = '@aegkalair_bot';
 
     showDialog(
       context: context,

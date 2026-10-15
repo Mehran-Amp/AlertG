@@ -558,9 +558,22 @@ export default function App() {
   // TAB NAVIGATION: ALERTS IS IN THE MIDDLE (INDEX 1) AND IS THE DEFAULT
   const [mobileScreen, setMobileScreen] = useState<'history' | 'alerts' | 'settings'>('alerts');
   
-  // Persistent Offline-First Alert Rules Cache
+  // Persistent Offline-First Alert Rules Cache (prioritizes account profile if logged in)
   const [rules, setRules] = useState<AlertRule[]>(() => {
     try {
+      const savedGoogle = localStorage.getItem('alarmer_google_user');
+      if (savedGoogle) {
+        const u = JSON.parse(savedGoogle);
+        if (u?.email) {
+          const profile = localStorage.getItem(`alarmer_account_profile_${u.email.toLowerCase()}`);
+          if (profile) {
+            const parsedProf = JSON.parse(profile);
+            if (Array.isArray(parsedProf.rules) && parsedProf.rules.length > 0) {
+              return parsedProf.rules;
+            }
+          }
+        }
+      }
       const saved = localStorage.getItem('alarmer_rules');
       if (saved) {
         const parsed = JSON.parse(saved);
@@ -631,11 +644,67 @@ export default function App() {
     return 'alarm_siren';
   });
 
+  const [isTelegramConnected, setIsTelegramConnected] = useState<boolean>(() => {
+    try {
+      const savedGoogle = localStorage.getItem('alarmer_google_user');
+      if (savedGoogle) {
+        const u = JSON.parse(savedGoogle);
+        if (u?.email) {
+          const profile = localStorage.getItem(`alarmer_account_profile_${u.email.toLowerCase()}`);
+          if (profile) {
+            const parsedProf = JSON.parse(profile);
+            if (parsedProf.isTelegramConnected !== undefined) {
+              return Boolean(parsedProf.isTelegramConnected);
+            }
+          }
+        }
+      }
+      return localStorage.getItem('alarmer_telegram_connected') === 'true';
+    } catch (_) {
+      return false;
+    }
+  });
+
+  const [telegramAlertsEnabled, setTelegramAlertsEnabled] = useState<boolean>(() => {
+    try {
+      const savedGoogle = localStorage.getItem('alarmer_google_user');
+      if (savedGoogle) {
+        const u = JSON.parse(savedGoogle);
+        if (u?.email) {
+          const profile = localStorage.getItem(`alarmer_account_profile_${u.email.toLowerCase()}`);
+          if (profile) {
+            const parsedProf = JSON.parse(profile);
+            if (parsedProf.telegramAlertsEnabled !== undefined) {
+              return Boolean(parsedProf.telegramAlertsEnabled);
+            }
+          }
+        }
+      }
+      const saved = localStorage.getItem('alarmer_telegram_enabled');
+      return saved !== null ? saved === 'true' : true;
+    } catch (_) {
+      return true;
+    }
+  });
+
   const [telegramChatId, setTelegramChatId] = useState<string>(() => {
     try {
-      return localStorage.getItem('alarmer_telegram_chat_id') || '@Mehran_Test_Chat';
+      const savedGoogle = localStorage.getItem('alarmer_google_user');
+      if (savedGoogle) {
+        const u = JSON.parse(savedGoogle);
+        if (u?.email) {
+          const profile = localStorage.getItem(`alarmer_account_profile_${u.email.toLowerCase()}`);
+          if (profile) {
+            const parsedProf = JSON.parse(profile);
+            if (parsedProf.telegramChatId) {
+              return parsedProf.telegramChatId;
+            }
+          }
+        }
+      }
+      return localStorage.getItem('alarmer_telegram_chat_id') || '@aegkalair_bot';
     } catch (_) {
-      return '@Mehran_Test_Chat';
+      return '@aegkalair_bot';
     }
   });
   const [isTestingTelegram, setIsTestingTelegram] = useState<boolean>(false);
@@ -657,6 +726,18 @@ export default function App() {
       localStorage.setItem('alarmer_selected_ringtone', selectedRingtone);
     } catch (_) {}
   }, [selectedRingtone]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('alarmer_telegram_connected', isTelegramConnected ? 'true' : 'false');
+    } catch (_) {}
+  }, [isTelegramConnected]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('alarmer_telegram_enabled', telegramAlertsEnabled ? 'true' : 'false');
+    } catch (_) {}
+  }, [telegramAlertsEnabled]);
 
   useEffect(() => {
     try {
@@ -760,6 +841,28 @@ export default function App() {
     return saved ? JSON.parse(saved) : null;
   });
   const [showGoogleModal, setShowGoogleModal] = useState<boolean>(false);
+
+  // Synchronize active account profile whenever rules or telegram status change while logged in
+  useEffect(() => {
+    if (googleUser?.email) {
+      const hasActive = rules.some(r => r.isActive);
+      if (hasActive || isTelegramConnected) {
+        try {
+          const key = `alarmer_account_profile_${googleUser.email.toLowerCase()}`;
+          const currentProfile = localStorage.getItem(key);
+          const existing = currentProfile ? JSON.parse(currentProfile) : {};
+          localStorage.setItem(key, JSON.stringify({
+            ...existing,
+            rules: rules,
+            isTelegramConnected: isTelegramConnected,
+            telegramAlertsEnabled: telegramAlertsEnabled,
+            telegramChatId: telegramChatId,
+            lastUpdated: new Date().toISOString()
+          }));
+        } catch (_) {}
+      }
+    }
+  }, [googleUser, rules, isTelegramConnected, telegramAlertsEnabled, telegramChatId]);
 
   // === DUAL-MODE CREATE ALERT MODAL ===
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
@@ -1696,11 +1799,181 @@ export default function App() {
     } catch (_) {}
   };
 
+  const handleConnectTelegram = () => {
+    setIsTelegramConnected(true);
+    setTelegramAlertsEnabled(true);
+    try {
+      localStorage.setItem('alarmer_telegram_connected', 'true');
+      localStorage.setItem('alarmer_telegram_enabled', 'true');
+      if (!telegramChatId || telegramChatId === '@Mehran_Test_Chat') {
+        setTelegramChatId('@aegkalair_bot');
+        localStorage.setItem('alarmer_telegram_chat_id', '@aegkalair_bot');
+      }
+    } catch (_) {}
+
+    // Deep link directly to Telegram app on mobile
+    // Using tg://resolve?domain=aegkalair_bot launches native Telegram app on iOS / Android
+    // Fallback opens https://t.me/aegkalair_bot (web / app chooser)
+    const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile) {
+      try {
+        window.location.href = 'tg://resolve?domain=aegkalair_bot';
+        setTimeout(() => {
+          window.open('https://t.me/aegkalair_bot', '_blank');
+        }, 800);
+      } catch (_) {
+        window.open('https://t.me/aegkalair_bot', '_blank');
+      }
+    } else {
+      window.open('https://t.me/aegkalair_bot', '_blank');
+    }
+
+    showToast(tAuthTg.telegramConnectedToast);
+  };
+
+  const handleDisconnectTelegram = () => {
+    setIsTelegramConnected(false);
+    setTelegramAlertsEnabled(false);
+    try {
+      localStorage.setItem('alarmer_telegram_connected', 'false');
+      localStorage.setItem('alarmer_telegram_enabled', 'false');
+    } catch (_) {}
+    showToast(tAuthTg.telegramDisconnectedToast);
+  };
+
+  const handleGoogleSignIn = (user = {
+    name: 'Mehran Aminpoor',
+    email: 'Mehran.Aminpoor@gmail.com',
+    isPremium: true,
+  }) => {
+    // 1. Establish Google Account user state
+    setGoogleUser(user);
+    try {
+      localStorage.setItem('alarmer_google_user', JSON.stringify(user));
+    } catch (_) {}
+
+    // 2. Restore account profile (rules & telegram connection)
+    const key = `alarmer_account_profile_${user.email.toLowerCase()}`;
+    let restored = false;
+    try {
+      const savedProfile = localStorage.getItem(key);
+      if (savedProfile) {
+        const parsed = JSON.parse(savedProfile);
+        if (parsed) {
+          // Restore user rules & active states
+          if (Array.isArray(parsed.rules) && parsed.rules.length > 0) {
+            const restoredRules = parsed.rules.map((r: AlertRule) => ({
+              ...r,
+              isActive: r.isActive !== undefined ? r.isActive : true,
+            }));
+            setRules(restoredRules);
+            localStorage.setItem('alarmer_rules', JSON.stringify(restoredRules));
+          } else {
+            setRules((prev) => {
+              const activated = prev.map((r) => ({ ...r, isActive: true }));
+              localStorage.setItem('alarmer_rules', JSON.stringify(activated));
+              return activated;
+            });
+          }
+
+          // Restore Telegram connection
+          const shouldConnectTg = parsed.isTelegramConnected !== undefined ? Boolean(parsed.isTelegramConnected) : true;
+          setIsTelegramConnected(shouldConnectTg);
+          setTelegramAlertsEnabled(shouldConnectTg);
+          localStorage.setItem('alarmer_telegram_connected', shouldConnectTg ? 'true' : 'false');
+          localStorage.setItem('alarmer_telegram_enabled', shouldConnectTg ? 'true' : 'false');
+
+          const chatId = parsed.telegramChatId || '@aegkalair_bot';
+          setTelegramChatId(chatId);
+          localStorage.setItem('alarmer_telegram_chat_id', chatId);
+
+          restored = true;
+        }
+      }
+    } catch (_) {}
+
+    if (!restored) {
+      // First login or clean state: reactivate current rules and auto-connect Telegram bot
+      setRules((prev) => {
+        const activated = prev.map((r) => ({ ...r, isActive: true }));
+        try {
+          localStorage.setItem('alarmer_rules', JSON.stringify(activated));
+        } catch (_) {}
+        return activated;
+      });
+      setIsTelegramConnected(true);
+      setTelegramAlertsEnabled(true);
+      try {
+        localStorage.setItem('alarmer_telegram_connected', 'true');
+        localStorage.setItem('alarmer_telegram_enabled', 'true');
+        setTelegramChatId('@aegkalair_bot');
+        localStorage.setItem('alarmer_telegram_chat_id', '@aegkalair_bot');
+      } catch (_) {}
+    }
+
+    setShowGoogleModal(false);
+    showToast(tAuthTg.signedInToast);
+  };
+
+  const handleGoogleSignOut = () => {
+    // 0. Backup account state BEFORE clearing session
+    if (googleUser?.email) {
+      try {
+        const key = `alarmer_account_profile_${googleUser.email.toLowerCase()}`;
+        const profileSnapshot = {
+          rules: rules,
+          isTelegramConnected: isTelegramConnected,
+          telegramAlertsEnabled: telegramAlertsEnabled,
+          telegramChatId: telegramChatId,
+          lastUpdated: new Date().toISOString(),
+        };
+        localStorage.setItem(key, JSON.stringify(profileSnapshot));
+      } catch (_) {}
+    }
+
+    // 1. Clear Google Account session
+    setGoogleUser(null);
+    try {
+      localStorage.removeItem('alarmer_google_user');
+    } catch (_) {}
+
+    // 2. Disconnect Telegram bot
+    setIsTelegramConnected(false);
+    setTelegramAlertsEnabled(false);
+    try {
+      localStorage.setItem('alarmer_telegram_connected', 'false');
+      localStorage.setItem('alarmer_telegram_enabled', 'false');
+    } catch (_) {}
+
+    // 3. Deactivate all active alarm rules so NO alarms will trigger on app or Telegram
+    setRules((prev) => {
+      const deactivated = prev.map((r) => ({ ...r, isActive: false }));
+      try {
+        localStorage.setItem('alarmer_rules', JSON.stringify(deactivated));
+      } catch (_) {}
+      return deactivated;
+    });
+
+    // 4. Stop any playing audio, speech, and cancel active queued notification
+    setActiveQueueNotification(null);
+    notificationQueueRef.current = [];
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+
+    // 5. Close Google Modal if open
+    setShowGoogleModal(false);
+
+    // 6. Show toast notification to user
+    showToast(tAuthTg.googleLogoutWithAlertsOffToast);
+  };
+
   const handleTestTelegramMessage = async () => {
-    if (!telegramChatId.trim()) {
-      showToast(tAuthTg.telegramEmptyChatIdToast);
+    if (!isTelegramConnected) {
+      handleConnectTelegram();
       return;
     }
+    const targetChat = telegramChatId.trim() || '@aegkalair_bot';
     setIsTestingTelegram(true);
     try {
       const res = await fetch('/api/telegram/test-message', {
@@ -1710,8 +1983,8 @@ export default function App() {
           'X-API-Key': 'e4b7a1d92f6c8035a9e2b7d4f1c6083e',
         },
         body: JSON.stringify({
-          chat_id: telegramChatId.trim(),
-          message: '🤖 [SignalAlert Engine] Telegram test dispatch successful.',
+          chat_id: targetChat,
+          message: '🤖 [Alarmer Engine] هماهنگی و اتصال ربات تلگرام aegkalair_bot با موفقیت تأیید شد.',
         }),
       });
       if (res.ok) {
@@ -1954,6 +2227,23 @@ export default function App() {
 
       // Enqueue to Sequential Queue (Request 4: No overlap, sequential playback)
       enqueueNotification(notifItem);
+
+      // Dispatch to Telegram bot ONLY if connected and alerts enabled
+      if (isTelegramConnected && telegramAlertsEnabled && telegramChatId.trim()) {
+        try {
+          fetch('/api/telegram/test-message', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-API-Key': 'e4b7a1d92f6c8035a9e2b7d4f1c6083e',
+            },
+            body: JSON.stringify({
+              chat_id: telegramChatId.trim(),
+              message: `🚨 *${notifItem.title}*\n${notifItem.body}\n💰 مقدار: ${notifItem.value}\n🏛️ صرافی/بازار: ${rule.exchangeName}\n⏰ زمان: ${now.toLocaleTimeString('fa-IR')}`,
+            }),
+          }).catch(() => {});
+        } catch (_) {}
+      }
     }
 
     setRules((prev) =>
@@ -2619,11 +2909,7 @@ export default function App() {
 
                         {googleUser ? (
                           <button
-                            onClick={() => {
-                              setGoogleUser(null);
-                              localStorage.removeItem('alarmer_google_user');
-                              showToast(tAuthTg.signedOutToast);
-                            }}
+                            onClick={handleGoogleSignOut}
                             className="px-3 py-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 text-rose-400 text-[11px] font-bold hover:bg-rose-500/20 transition-all cursor-pointer shrink-0"
                           >
                             {tAuthTg.signOutBtn}
@@ -2645,73 +2931,111 @@ export default function App() {
                     <div className={`p-4 rounded-2xl border transition-all ${isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'} space-y-3`}>
                       <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
                         <div className="flex items-center gap-2">
-                          <Send className="h-4 w-4 text-blue-400" />
+                          <Send className="h-4 w-4 text-sky-400" />
                           <h4 className="font-bold text-xs text-white">
                             {tAuthTg.telegramSectionTitle}
                           </h4>
                         </div>
-                        <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-bold shrink-0">
-                          {tAuthTg.telegramOnlineBadge}
-                        </span>
+                        {isTelegramConnected ? (
+                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-bold shrink-0 flex items-center gap-1.5 shadow-sm">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            {tAuthTg.telegramConnectedBadge}
+                          </span>
+                        ) : (
+                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-400 font-bold shrink-0">
+                            {tAuthTg.telegramDisconnectedBadge}
+                          </span>
+                        )}
                       </div>
 
                       {/* Telegram Bot Card */}
                       <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2.5">
-                            <div className="h-9 w-9 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold text-base shrink-0">
-                              🤖
+                            <div className="h-10 w-10 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400 font-bold text-lg shrink-0">
+                              <Send className="h-5 w-5" />
                             </div>
                             <div>
-                              <div className="flex items-center gap-1.5">
+                              <div className="flex items-center gap-1.5 flex-wrap">
                                 <span className="font-bold text-xs text-white block">
                                   {tAuthTg.telegramBotName}
                                 </span>
-                                <span className="text-[10px] font-mono text-blue-400 bg-blue-950/60 px-1.5 py-0.2 rounded border border-blue-800/50">
-                                  {tAuthTg.telegramBotHandle}
-                                </span>
+                                <a
+                                  href="https://t.me/aegkalair_bot"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[10px] font-mono text-sky-400 bg-sky-950/60 px-2 py-0.5 rounded-md border border-sky-800/50 hover:bg-sky-900/60 transition-colors flex items-center gap-1"
+                                >
+                                  <span>{tAuthTg.telegramBotHandle}</span>
+                                  <ExternalLink className="h-2.5 w-2.5" />
+                                </a>
                               </div>
-                              <span className="text-[10px] text-slate-400 block mt-0.5">
+                              <span className="text-[10.5px] text-slate-400 block mt-0.5">
                                 {tAuthTg.telegramBotSubtitle}
                               </span>
                             </div>
                           </div>
                         </div>
 
-                        {/* Guide Steps */}
-                        <div className="p-2.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-[10.5px] text-blue-200 leading-relaxed space-y-1">
-                          <div className="flex items-start gap-1.5">
-                            <span className="text-blue-400 font-bold">۱.</span>
-                            <span>{tAuthTg.telegramStep1}</span>
-                          </div>
-                          <div className="flex items-start gap-1.5">
-                            <span className="text-blue-400 font-bold">۲.</span>
-                            <span>{tAuthTg.telegramStep2}</span>
-                          </div>
-                        </div>
-
-                        <div className="space-y-1.5 pt-0.5">
-                          <label className="block text-[10px] text-slate-400 font-medium">
-                            {tAuthTg.telegramInputLabel}
-                          </label>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="text"
-                              value={telegramChatId}
-                              onChange={(e) => setTelegramChatId(e.target.value)}
-                              placeholder={tAuthTg.telegramInputPlaceholder}
-                              className="flex-1 min-w-0 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white font-mono placeholder:text-slate-600 focus:outline-none focus:border-blue-500"
-                            />
+                        {/* Connection State & Actions */}
+                        {!isTelegramConnected ? (
+                          <div className="space-y-2 pt-1">
+                            <p className="text-[11px] text-slate-300 leading-relaxed bg-sky-500/10 border border-sky-500/20 p-2.5 rounded-xl">
+                              {currentLang === 'fa'
+                                ? 'برای دریافت بلادرنگ و ۲۴ ساعته هشدارهای قیمت روی گوشی، روی دکمه زیر کلیک کنید تا ربات تلگرام در اپلیکیشن تلگرام شما باز شده و اتصال فعال گردد.'
+                                : 'To receive instant 24/7 price alerts on your device, click the button below to connect with our official Telegram bot.'}
+                            </p>
                             <button
-                              onClick={handleTestTelegramMessage}
-                              disabled={isTestingTelegram}
-                              className="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-[11px] flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 shrink-0 shadow-sm"
+                              onClick={handleConnectTelegram}
+                              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20 transition-all cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
                             >
-                              <Zap className={`h-3.5 w-3.5 ${isTestingTelegram ? 'animate-spin' : ''}`} />
-                              <span>{isTestingTelegram ? tAuthTg.telegramTestingBtn : tAuthTg.telegramTestBtn}</span>
+                              <Send className="h-4 w-4" />
+                              <span>{tAuthTg.telegramConnectBtn} (@aegkalair_bot)</span>
+                              <ExternalLink className="h-3.5 w-3.5 opacity-80" />
                             </button>
                           </div>
-                        </div>
+                        ) : (
+                          <div className="space-y-3 pt-1">
+                            <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-emerald-300 leading-relaxed flex items-center gap-2">
+                              <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                              <span>
+                                {currentLang === 'fa'
+                                  ? 'ربات متصل است: تمامی هشدارهای فعال شما به‌طور همزمان به ربات aegkalair_bot ارسال می‌شوند.'
+                                  : 'Bot connected: All active market alerts are dispatched instantly to @aegkalair_bot.'}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={handleDisconnectTelegram}
+                                className="flex-1 py-2 px-3 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 font-bold text-[11px] hover:bg-rose-500/20 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                              >
+                                <VolumeX className="h-3.5 w-3.5" />
+                                <span>{tAuthTg.telegramDisconnectBtn}</span>
+                              </button>
+                              <button
+                                onClick={handleTestTelegramMessage}
+                                disabled={isTestingTelegram}
+                                className="flex-1 py-2 px-3 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-[11px] transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5 shadow-sm"
+                              >
+                                <Zap className={`h-3.5 w-3.5 ${isTestingTelegram ? 'animate-spin' : ''}`} />
+                                <span>{isTestingTelegram ? tAuthTg.telegramTestingBtn : tAuthTg.telegramTestBtn}</span>
+                              </button>
+                            </div>
+
+                            <div className="text-center">
+                              <a
+                                href="https://t.me/aegkalair_bot"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[10px] text-sky-400 hover:underline inline-flex items-center gap-1"
+                              >
+                                <span>{tAuthTg.telegramOpenBotBtn} (https://t.me/aegkalair_bot)</span>
+                                <ExternalLink className="h-2.5 w-2.5" />
+                              </a>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -5197,12 +5521,7 @@ export default function App() {
 
                 <div className="flex items-center justify-between gap-2 pt-2">
                   <button
-                    onClick={() => {
-                      setGoogleUser(null);
-                      localStorage.removeItem('alarmer_google_user');
-                      setShowGoogleModal(false);
-                      showToast(tAuthTg.signedOutToast);
-                    }}
+                    onClick={handleGoogleSignOut}
                     className="flex-1 py-2.5 rounded-xl border border-rose-500/40 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 font-bold text-xs"
                   >
                     {tAuthTg.signOutGoogleModalBtn}
@@ -5234,17 +5553,7 @@ export default function App() {
 
                 <div className="pt-2 space-y-2">
                   <button
-                    onClick={() => {
-                      const user = {
-                        name: 'Mehran Aminpoor',
-                        email: 'Mehran.Aminpoor@gmail.com',
-                        isPremium: true,
-                      };
-                      setGoogleUser(user);
-                      localStorage.setItem('alarmer_google_user', JSON.stringify(user));
-                      setShowGoogleModal(false);
-                      showToast(tAuthTg.signedInToast);
-                    }}
+                    onClick={() => handleGoogleSignIn()}
                     className="w-full py-3 rounded-2xl bg-white hover:bg-slate-100 text-slate-900 font-bold text-xs flex items-center justify-center gap-2.5 shadow-lg transition-all"
                   >
                     <img
