@@ -1,6 +1,9 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import '../../../core/localization/app_strings.dart';
@@ -303,6 +306,323 @@ class _SettingsPageState extends State<SettingsPage> {
     ).whenComplete(() {
       SoundManager().stop();
     });
+  }
+
+  Widget _buildTelegramStepItem({
+    required String stepNum,
+    required String text,
+    required ThemeData theme,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 22,
+          height: 22,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: const Color(0xFF0288D1).withValues(alpha: 0.18),
+            shape: BoxShape.circle,
+          ),
+          child: Text(
+            stepNum,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0288D1),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 11,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.85),
+              height: 1.35,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showTelegramConnectSheet(BuildContext context, SettingsService settingsService, String currentLang) {
+    final theme = Theme.of(context);
+    final isRtl = AppStrings.isRtl(currentLang);
+    final isFa = currentLang == 'fa' || currentLang == 'ar' || currentLang == 'ckb';
+    final currentChatId = settingsService.settings.telegramChatId;
+    final textController = TextEditingController(text: currentChatId != null && currentChatId != '@aegkalair_bot' ? currentChatId : '');
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: theme.colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setSheetState) => Directionality(
+          textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 20,
+              bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title Bar
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF29B6F6).withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.send_rounded, color: Color(0xFF29B6F6), size: 22),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            isFa ? 'اتصال به تلگرام و ثبت شناسه چت' : 'Connect Telegram & Set ID',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.close_rounded, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+
+                  // 3-Step Guidance Box
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF29B6F6).withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFF29B6F6).withValues(alpha: 0.25), width: 1),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isFa ? 'راهنمای ۳ مرحله‌ای فعال‌سازی هشدارها در تلگرام:' : '3-Step Setup Guide:',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF0288D1),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildTelegramStepItem(
+                          stepNum: '۱',
+                          text: isFa
+                              ? 'روی دکمهٔ «۱. باز کردن ربات تلگرام» در زیر بزنید و در تلگرام گزینه Start یا /start را ارسال کنید.'
+                              : 'Tap "1. Open Telegram Bot" below and send /start in Telegram.',
+                          theme: theme,
+                        ),
+                        const SizedBox(height: 6),
+                        _buildTelegramStepItem(
+                          stepNum: '۲',
+                          text: isFa
+                              ? 'ربات بلافاصله شناسهٔ اختصاصی عددی (Chat ID) شما را می‌فرستد؛ آن را لمس کرده و کپی کنید.'
+                              : 'The bot replies with your unique numerical Chat ID; tap to copy it.',
+                          theme: theme,
+                        ),
+                        const SizedBox(height: 6),
+                        _buildTelegramStepItem(
+                          stepNum: '۳',
+                          text: isFa
+                              ? 'به اینجا برگردید، شناسه را در کادر زیر وارد (یا Paste) کرده و دکمهٔ «۲. تأیید و اتصال نهایی» را بزنید.'
+                              : 'Paste your Chat ID into the box below and tap "2. Confirm & Connect".',
+                          theme: theme,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Button 1: Open Bot directly
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        await AppLifecycleHelper.openTelegramBot();
+                      },
+                      icon: const Icon(Icons.open_in_new_rounded, size: 18),
+                      label: Text(
+                        isFa ? '۱. باز کردن ربات تلگرام (@aegkalair_bot)' : '1. Open Telegram Bot (@aegkalair_bot)',
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF0288D1),
+                        side: const BorderSide(color: Color(0xFF0288D1), width: 1.5),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    isFa
+                        ? '💡 با لمس دکمه بالا، ربات در تلگرام باز می‌شود. دکمه Start را بزنید، شناسه عددی را کپی کرده و به این پنجره بازگردید.'
+                        : '💡 Tapping opens the bot in Telegram. Tap Start, copy your unique Chat ID, and return to this window.',
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
+                      height: 1.3,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Text Box for Chat ID
+                  Text(
+                    isFa ? 'شناسه تلگرام شما (Chat ID عددی یا نام کاربری):' : 'Your Telegram Chat ID (Number or @username):',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: textController,
+                    keyboardType: TextInputType.text,
+                    style: const TextStyle(fontSize: 14, fontFamily: 'monospace', fontWeight: FontWeight.bold),
+                    decoration: InputDecoration(
+                      hintText: isFa ? 'مثلاً: 123456789 یا @username' : 'e.g. 123456789 or @username',
+                      hintStyle: TextStyle(
+                        fontSize: 12,
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.35),
+                        fontFamily: 'sans-serif',
+                      ),
+                      prefixIcon: const Icon(Icons.badge_rounded, color: Color(0xFF29B6F6), size: 20),
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.content_paste_rounded, size: 18),
+                        tooltip: isFa ? 'جای‌گذاری از کلیپ‌بورد' : 'Paste from clipboard',
+                        onPressed: () async {
+                          final data = await Clipboard.getData(Clipboard.kTextPlain);
+                          if (data?.text != null && data!.text!.trim().isNotEmpty) {
+                            textController.text = data.text!.trim();
+                          }
+                        },
+                      ),
+                      filled: true,
+                      fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: theme.dividerColor),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFF0288D1), width: 1.8),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Button 2: Save and Connect
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        final entered = textController.text.trim();
+                        if (entered.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(isFa ? 'لطفاً شناسه تلگرام (Chat ID) خود را وارد کنید.' : 'Please enter your Telegram Chat ID.'),
+                              backgroundColor: AppTokens.negative,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                          return;
+                        }
+
+                        // 1. Save chat ID in settings
+                        await settingsService.setTelegramChatId(entered);
+
+                        // 2. Persist to disk files
+                        final email = settingsService.settings.userEmail;
+                        final targetUid = (email != null && email.trim().isNotEmpty) ? email.trim() : 'user_default';
+                        try {
+                          final dir = await getApplicationDocumentsDirectory();
+                          final lastTgFile = File('${dir.path}/last_telegram_chat.txt');
+                          await lastTgFile.writeAsString(entered);
+
+                          if (email != null && email.trim().isNotEmpty) {
+                            final profFile = File('${dir.path}/account_profile_${email.trim().toLowerCase()}.json');
+                            await profFile.writeAsString(jsonEncode({
+                              'email': email,
+                              'telegram_chat_id': entered,
+                              'is_connected': true,
+                              'last_updated': DateTime.now().toIso8601String(),
+                            }));
+                          }
+                        } catch (_) {}
+
+                        // 3. Save to server profile and sync all active alert rules
+                        ServerAlertService.saveUserTelegramStatus(
+                          userId: targetUid,
+                          chatId: entered,
+                          isConnected: true,
+                        );
+                        if (context.mounted) {
+                          try {
+                            final repo = context.read<JsonAlertRuleRepository>();
+                            if (repo.allRules.isNotEmpty) {
+                              ServerAlertService.syncAllRulesToServer(repo.allRules, userId: targetUid);
+                            }
+                          } catch (_) {}
+
+                          ServerAlertService.syncWithServer(context);
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(isFa ? '🎉 شناسه تلگرام ($entered) ثبت شد! وضعیت: متصل به تلگرام ✅' : '🎉 Telegram ID ($entered) saved! Status: CONNECTED ✅'),
+                              backgroundColor: AppTokens.positive,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.check_circle_rounded, size: 18),
+                      label: Text(
+                        isFa ? '۲. تأیید و اتصال به تلگرام (Connect)' : '2. Confirm & Connect',
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0288D1),
+                        foregroundColor: Colors.white,
+                        elevation: 2,
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _testAlarm(BuildContext context, String lang) async {
@@ -1655,6 +1975,26 @@ class _SettingsPageState extends State<SettingsPage> {
               if (isSignedIn)
                 TextButton.icon(
                   onPressed: () async {
+                    // 0. Snapshot account state BEFORE signing out so alerts and telegram state are preserved
+                    final currentEmail = settingsService.settings.userEmail;
+                    final currentChatId = settingsService.settings.telegramChatId;
+                    if (currentEmail != null && currentEmail.trim().isNotEmpty) {
+                      try {
+                        final dir = await getApplicationDocumentsDirectory();
+                        final profFile = File('${dir.path}/account_profile_${currentEmail.trim().toLowerCase()}.json');
+                        await profFile.writeAsString(jsonEncode({
+                          'email': currentEmail,
+                          'telegram_chat_id': currentChatId ?? '@aegkalair_bot',
+                          'is_connected': currentChatId != null && currentChatId.isNotEmpty,
+                          'last_updated': DateTime.now().toIso8601String(),
+                        }));
+                        if (currentChatId != null && currentChatId.isNotEmpty) {
+                          final lastTgFile = File('${dir.path}/last_telegram_chat.txt');
+                          await lastTgFile.writeAsString(currentChatId);
+                        }
+                      } catch (_) {}
+                    }
+
                     await settingsService.signOut();
                     if (context.mounted) {
                       try {
@@ -1842,24 +2182,75 @@ class _SettingsPageState extends State<SettingsPage> {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: AppTokens.positive.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: AppTokens.positive.withValues(alpha: 0.3), width: 1),
               ),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.check_circle_rounded, size: 20, color: AppTokens.positive),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      isFa
-                          ? 'ربات متصل است: تمامی هشدارهای فعال شما به‌طور بلادرنگ به ربات aegkalair_bot@ ارسال می‌شوند.'
-                          : 'Telegram Bot Connected: All active price alerts are sent in real time to @aegkalair_bot.',
-                      style: const TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.bold,
-                        color: AppTokens.positive,
-                        height: 1.3,
+                  Row(
+                    children: [
+                      const Icon(Icons.check_circle_rounded, size: 20, color: AppTokens.positive),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          isFa
+                              ? 'ربات متصل است: تمامی هشدارهای فعال شما به‌طور بلادرنگ به تلگرام ارسال می‌شوند.'
+                              : 'Telegram Bot Connected: All active price alerts are sent in real time.',
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                            color: AppTokens.positive,
+                            height: 1.3,
+                          ),
+                        ),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppTokens.positive.withValues(alpha: 0.2)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.badge_rounded, size: 14, color: theme.colorScheme.primary),
+                            const SizedBox(width: 6),
+                            Text(
+                              isFa ? 'شناسه چت شما:' : 'Your Chat ID:',
+                              style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurface.withValues(alpha: 0.7)),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              settings.telegramChatId ?? '@aegkalair_bot',
+                              style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, fontFamily: 'monospace'),
+                            ),
+                          ],
+                        ),
+                        InkWell(
+                          onTap: () => _showTelegramConnectSheet(context, settingsService, lang),
+                          borderRadius: BorderRadius.circular(6),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            child: Row(
+                              children: [
+                                Icon(Icons.edit_rounded, size: 13, color: theme.colorScheme.primary),
+                                const SizedBox(width: 3),
+                                Text(
+                                  isFa ? 'ویرایش آیدی' : 'Edit ID',
+                                  style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: theme.colorScheme.primary),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -1872,6 +2263,24 @@ class _SettingsPageState extends State<SettingsPage> {
                   child: OutlinedButton.icon(
                     onPressed: () async {
                       await settingsService.setTelegramChatId(null);
+                      try {
+                        final dir = await getApplicationDocumentsDirectory();
+                        final lastTgFile = File('${dir.path}/last_telegram_chat.txt');
+                        if (await lastTgFile.exists()) {
+                          await lastTgFile.delete();
+                        }
+                        final email = settingsService.settings.userEmail;
+                        if (email != null && email.trim().isNotEmpty) {
+                          final profFile = File('${dir.path}/account_profile_${email.trim().toLowerCase()}.json');
+                          await profFile.writeAsString(jsonEncode({
+                            'email': email,
+                            'telegram_chat_id': null,
+                            'is_connected': false,
+                            'last_updated': DateTime.now().toIso8601String(),
+                          }));
+                        }
+                      } catch (_) {}
+
                       if (context.mounted) {
                         ServerAlertService.syncWithServer(context);
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -1899,6 +2308,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () async {
+                      final targetChat = settings.telegramChatId ?? '@aegkalair_bot';
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(isFa ? '⏳ در حال ارسال پیام تست به تلگرام...' : '⏳ Sending test alert to Telegram...'),
@@ -1906,7 +2316,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           behavior: SnackBarBehavior.floating,
                         ),
                       );
-                      final res = await ServerAlertService.sendTelegramTestAlert('@aegkalair_bot');
+                      final res = await ServerAlertService.sendTelegramTestAlert(targetChat);
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).hideCurrentSnackBar();
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -1970,8 +2380,8 @@ class _SettingsPageState extends State<SettingsPage> {
                       Expanded(
                         child: Text(
                           isFa
-                              ? 'اتصال مستقیم به ربات تلگرام'
-                              : 'Direct Telegram Bot Connection',
+                              ? 'اتصال به ربات تلگرام و ثبت آیدی'
+                              : 'Connect Telegram Bot & Set ID',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -1984,8 +2394,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   const SizedBox(height: 6),
                   Text(
                     isFa
-                        ? 'با کلیک روی دکمهٔ زیر، مستقیماً اپلیکیشن تلگرام شما برای ربات aegkalair_bot@ باز شده و وضعیت اتصال فوراً فعال می‌گردد.'
-                        : 'Tap the button below to open Telegram directly with @aegkalair_bot. Instant connection is activated.',
+                        ? 'برای فعال‌سازی و دریافت ۲۴ ساعته اعلان‌های قیمت در تلگرام، روی دکمهٔ زیر بزنید تا پنجرهٔ راهنما، باز کردن ربات و کادر وارد کردن آیدی باز شود.'
+                        : 'Tap the button below to open the setup window with bot link, instructions, and Chat ID input box.',
                     style: TextStyle(
                       fontSize: 11,
                       color: theme.colorScheme.onSurface.withValues(alpha: 0.75),
@@ -1999,24 +2409,8 @@ class _SettingsPageState extends State<SettingsPage> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () async {
-                  // 1. Immediately activate telegram connection in settings
-                  await settingsService.setTelegramChatId('@aegkalair_bot');
-                  
-                  // 2. Open Telegram app via deep link (tg://resolve?domain=aegkalair_bot) or web fallback
-                  await AppLifecycleHelper.openTelegramBot();
-                  
-                  // 3. Sync state with server
-                  if (context.mounted) {
-                    ServerAlertService.syncWithServer(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(isFa ? '🎉 اتصال تلگرام فعال شد! وضعیت: متصل به تلگرام ✅' : '🎉 Telegram connected! Status: CONNECTED ✅'),
-                        backgroundColor: AppTokens.positive,
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  }
+                onPressed: () {
+                  _showTelegramConnectSheet(context, settingsService, lang);
                 },
                 icon: const Icon(Icons.send_rounded, size: 18),
                 label: Text(

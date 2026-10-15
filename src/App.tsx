@@ -16,6 +16,7 @@ import {
   Copy,
   Database,
   Download,
+  Edit,
   ExternalLink,
   FileJson,
   Flame,
@@ -841,6 +842,8 @@ export default function App() {
     return saved ? JSON.parse(saved) : null;
   });
   const [showGoogleModal, setShowGoogleModal] = useState<boolean>(false);
+  const [showTelegramModal, setShowTelegramModal] = useState<boolean>(false);
+  const [telegramInputVal, setTelegramInputVal] = useState<string>('');
 
   // Synchronize active account profile whenever rules or telegram status change while logged in
   useEffect(() => {
@@ -1799,21 +1802,12 @@ export default function App() {
     } catch (_) {}
   };
 
-  const handleConnectTelegram = () => {
-    setIsTelegramConnected(true);
-    setTelegramAlertsEnabled(true);
-    try {
-      localStorage.setItem('alarmer_telegram_connected', 'true');
-      localStorage.setItem('alarmer_telegram_enabled', 'true');
-      if (!telegramChatId || telegramChatId === '@Mehran_Test_Chat') {
-        setTelegramChatId('@aegkalair_bot');
-        localStorage.setItem('alarmer_telegram_chat_id', '@aegkalair_bot');
-      }
-    } catch (_) {}
+  const handleOpenTelegramModal = () => {
+    setTelegramInputVal(telegramChatId && telegramChatId !== '@aegkalair_bot' ? telegramChatId : '');
+    setShowTelegramModal(true);
+  };
 
-    // Deep link directly to Telegram app on mobile
-    // Using tg://resolve?domain=aegkalair_bot launches native Telegram app on iOS / Android
-    // Fallback opens https://t.me/aegkalair_bot (web / app chooser)
+  const handleOpenTelegramBotDirect = () => {
     const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     if (isMobile) {
       try {
@@ -1827,8 +1821,54 @@ export default function App() {
     } else {
       window.open('https://t.me/aegkalair_bot', '_blank');
     }
+  };
 
-    showToast(tAuthTg.telegramConnectedToast);
+  const handleConfirmTelegramConnect = (inputVal?: string) => {
+    const targetId = (inputVal !== undefined ? inputVal : telegramInputVal).trim();
+    if (!targetId) {
+      showToast(currentLang === 'fa' ? 'لطفاً شناسه چت تلگرام خود را وارد کنید.' : 'Please enter your Telegram Chat ID.');
+      return;
+    }
+
+    setTelegramChatId(targetId);
+    setIsTelegramConnected(true);
+    setTelegramAlertsEnabled(true);
+    try {
+      localStorage.setItem('alarmer_telegram_connected', 'true');
+      localStorage.setItem('alarmer_telegram_enabled', 'true');
+      localStorage.setItem('alarmer_telegram_chat_id', targetId);
+      if (googleUser?.email) {
+        const key = `alarmer_account_profile_${googleUser.email.toLowerCase()}`;
+        const saved = localStorage.getItem(key);
+        const prev = saved ? JSON.parse(saved) : {};
+        localStorage.setItem(key, JSON.stringify({
+          ...prev,
+          telegramChatId: targetId,
+          isTelegramConnected: true,
+          telegramAlertsEnabled: true,
+          lastUpdated: new Date().toISOString(),
+        }));
+      }
+    } catch (_) {}
+
+    // Sync state with cloud backend
+    try {
+      const userToSync = googleUser?.email || 'Mehran.Aminpoor@gmail.com';
+      fetch(`/api/user/${encodeURIComponent(userToSync)}/telegram`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': 'e4b7a1d92f6c8035a9e2b7d4f1c6083e',
+        },
+        body: JSON.stringify({
+          chat_id: targetId,
+          is_connected: true,
+        }),
+      }).catch(() => {});
+    } catch (_) {}
+
+    setShowTelegramModal(false);
+    showToast(currentLang === 'fa' ? `🎉 اتصال تلگرام با شناسه ${targetId} فعال شد! ✅` : `🎉 Telegram connected with ID ${targetId}! ✅`);
   };
 
   const handleDisconnectTelegram = () => {
@@ -1970,7 +2010,7 @@ export default function App() {
 
   const handleTestTelegramMessage = async () => {
     if (!isTelegramConnected) {
-      handleConnectTelegram();
+      handleOpenTelegramModal();
       return;
     }
     const targetChat = telegramChatId.trim() || '@aegkalair_bot';
@@ -2976,11 +3016,11 @@ export default function App() {
                           <div className="space-y-2 pt-1">
                             <p className="text-[11px] text-slate-300 leading-relaxed bg-sky-500/10 border border-sky-500/20 p-2.5 rounded-xl">
                               {currentLang === 'fa'
-                                ? 'برای دریافت بلادرنگ و ۲۴ ساعته هشدارهای قیمت روی گوشی، روی دکمهٔ بزرگ زیر کلیک کنید تا ربات تلگرام در اپلیکیشن تلگرام شما باز شده و اتصال فعال گردد.'
-                                : 'To receive instant 24/7 price alerts on your device, tap the button below to connect with our official Telegram bot.'}
+                                ? 'برای فعال‌سازی و دریافت ۲۴ ساعته اعلان‌های قیمت روی تلگرام، روی دکمهٔ زیر کلیک کنید تا پنجرهٔ راهنما، باز کردن ربات و کادر ثبت آیدی (Chat ID) باز شود.'
+                                : 'To receive instant 24/7 price alerts on Telegram, tap below to open the setup window with instructions and Chat ID input.'}
                             </p>
                             <button
-                              onClick={handleConnectTelegram}
+                              onClick={handleOpenTelegramModal}
                               className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20 transition-all cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
                             >
                               <Send className="h-4 w-4" />
@@ -2990,13 +3030,29 @@ export default function App() {
                           </div>
                         ) : (
                           <div className="space-y-3 pt-1">
-                            <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-emerald-300 leading-relaxed flex items-center gap-2">
-                              <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-                              <span>
-                                {currentLang === 'fa'
-                                  ? 'ربات متصل است: تمامی هشدارهای فعال شما به‌طور همزمان به ربات aegkalair_bot ارسال می‌شوند.'
-                                  : 'Bot connected: All active market alerts are dispatched instantly to @aegkalair_bot.'}
-                              </span>
+                            <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-emerald-300 space-y-2">
+                              <div className="flex items-center gap-2">
+                                <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                                <span className="font-bold">
+                                  {currentLang === 'fa'
+                                    ? 'ربات متصل است: تمامی هشدارهای فعال شما به‌طور همزمان به تلگرام ارسال می‌شوند.'
+                                    : 'Bot connected: All active market alerts are dispatched instantly to Telegram.'}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between bg-slate-900/80 px-2.5 py-1.5 rounded-lg border border-emerald-500/20 text-[10.5px]">
+                                <div className="flex items-center gap-1.5 font-mono">
+                                  <span className="text-slate-400">{currentLang === 'fa' ? 'شناسه چت شما:' : 'Your Chat ID:'}</span>
+                                  <span className="font-bold text-white">{telegramChatId || '@aegkalair_bot'}</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={handleOpenTelegramModal}
+                                  className="text-[10px] text-sky-400 hover:text-sky-300 font-bold flex items-center gap-1 cursor-pointer"
+                                >
+                                  <Edit className="h-3 w-3" />
+                                  <span>{currentLang === 'fa' ? 'ویرایش آیدی' : 'Edit ID'}</span>
+                                </button>
+                              </div>
                             </div>
 
                             <div className="flex items-center gap-2">
@@ -5567,6 +5623,146 @@ export default function App() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Telegram Connect & Chat ID Modal Window */}
+      {showTelegramModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div
+            className={`bg-slate-900 border border-slate-700/80 rounded-3xl w-full max-w-md p-6 space-y-4 shadow-2xl animate-in fade-in zoom-in-95 ${
+              currentLang === 'fa' ? 'text-right' : 'text-left'
+            }`}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-2xl bg-sky-500/20 text-sky-400">
+                  <Send className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white">
+                    {currentLang === 'fa' ? 'اتصال به ربات تلگرام و ثبت آیدی' : 'Connect Telegram & Set ID'}
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    @aegkalair_bot • Official Alert Engine
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowTelegramModal(false)}
+                className="p-1 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition-all cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Step-by-Step Instructions */}
+            <div className="p-3.5 rounded-2xl bg-sky-950/30 border border-sky-500/30 space-y-2.5 text-xs text-slate-300">
+              <span className="font-bold text-sky-400 block text-[11.5px]">
+                {currentLang === 'fa' ? 'راهنمای ۳ مرحله‌ای فعال‌سازی هشدارها در تلگرام:' : '3-Step Setup Guide:'}
+              </span>
+              <div className="flex items-start gap-2">
+                <span className="w-4 h-4 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
+                  ۱
+                </span>
+                <p className="text-[11px] leading-relaxed">
+                  {currentLang === 'fa'
+                    ? 'روی دکمهٔ «۱. باز کردن ربات تلگرام» در زیر بزنید و در تلگرام گزینه Start یا /start را ارسال کنید.'
+                    : 'Click "1. Open Telegram Bot" below and send /start in Telegram.'}
+                </p>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="w-4 h-4 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
+                  ۲
+                </span>
+                <p className="text-[11px] leading-relaxed">
+                  {currentLang === 'fa'
+                    ? 'ربات بلافاصله شناسهٔ اختصاصی عددی (Chat ID) شما را ارسال می‌کند؛ آن را کپی کنید.'
+                    : 'The bot replies with your unique numerical Chat ID; copy it.'}
+                </p>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="w-4 h-4 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
+                  ۳
+                </span>
+                <p className="text-[11px] leading-relaxed">
+                  {currentLang === 'fa'
+                    ? 'به این پنجره بازگردید، شناسه را در کادر زیر وارد (یا Paste) کرده و دکمهٔ «۲. تأیید و اتصال» را بزنید.'
+                    : 'Paste your Chat ID into the box below and click "2. Confirm & Connect".'}
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={handleOpenTelegramBotDirect}
+              className="w-full py-2.5 px-4 rounded-xl border border-sky-500/50 bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+            >
+              <ExternalLink className="w-4 h-4" />
+              <span>
+                {currentLang === 'fa'
+                  ? '۱. باز کردن ربات تلگرام (@aegkalair_bot)'
+                  : '1. Open Telegram Bot (@aegkalair_bot)'}
+              </span>
+            </button>
+            <p className="text-[10px] text-slate-400 leading-normal">
+              {currentLang === 'fa'
+                ? '💡 با کلیک روی دکمه بالا، ربات باز می‌شود؛ در ربات Start یا /start بزنید، شناسه عددی را کپی کرده و به این پنجره برگردید.'
+                : '💡 Tapping opens the bot in Telegram. Send /start, copy your numerical Chat ID, and return to this window.'}
+            </p>
+
+            {/* Text Box for Chat ID */}
+            <div className="space-y-1.5 pt-1">
+              <label className="text-[11px] font-bold text-slate-300 block">
+                {currentLang === 'fa'
+                  ? 'شناسه تلگرام شما (Chat ID عددی یا نام کاربری):'
+                  : 'Your Telegram Chat ID (Number or @username):'}
+              </label>
+              <div className="relative flex items-center">
+                <input
+                  type="text"
+                  dir="ltr"
+                  value={telegramInputVal}
+                  onChange={(e) => setTelegramInputVal(e.target.value)}
+                  placeholder={currentLang === 'fa' ? 'مثلاً: 123456789 یا @username' : 'e.g. 123456789 or @username'}
+                  className="w-full py-2.5 px-3 pr-20 rounded-xl bg-slate-950 border border-slate-700 focus:border-sky-500 text-white font-mono text-xs outline-none transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      const text = await navigator.clipboard.readText();
+                      if (text && text.trim()) setTelegramInputVal(text.trim());
+                    } catch (_) {}
+                  }}
+                  className="absolute left-2 text-[10px] px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-sky-400 font-bold transition-all cursor-pointer"
+                >
+                  {currentLang === 'fa' ? 'جای‌گذاری' : 'Paste'}
+                </button>
+              </div>
+            </div>
+
+            {/* Button 2: Save and Connect */}
+            <div className="pt-2 space-y-2">
+              <button
+                onClick={() => handleConfirmTelegramConnect()}
+                className="w-full py-3 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20 transition-all cursor-pointer"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>
+                  {currentLang === 'fa'
+                    ? '۲. تأیید و اتصال به تلگرام (Connect)'
+                    : '2. Confirm & Connect'}
+                </span>
+              </button>
+              <button
+                onClick={() => setShowTelegramModal(false)}
+                className="w-full py-2 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-400 hover:text-white font-bold text-xs transition-all cursor-pointer"
+              >
+                {currentLang === 'fa' ? 'انصراف' : 'Cancel'}
+              </button>
+            </div>
           </div>
         </div>
       )}

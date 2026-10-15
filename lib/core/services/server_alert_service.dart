@@ -390,10 +390,37 @@ class ServerAlertService {
               }
             }
           }
+          // Extract any active Telegram Chat ID from restored alerts to maintain connection
+          String? cloudChatId;
+          for (final item in decoded) {
+            if (item is Map && item['telegram_chat_id'] != null) {
+              final c = item['telegram_chat_id'].toString().trim();
+              if (c.isNotEmpty) {
+                cloudChatId = c;
+                break;
+              }
+            }
+          }
+          if (cloudChatId != null && cloudChatId.isNotEmpty) {
+            try {
+              final dir = await getApplicationDocumentsDirectory();
+              final lastTgFile = File('${dir.path}/last_telegram_chat.txt');
+              await lastTgFile.writeAsString(cloudChatId);
+
+              final profFile = File('${dir.path}/account_profile_${cleanUser}.json');
+              await profFile.writeAsString(jsonEncode({
+                'email': cleanUser,
+                'telegram_chat_id': cloudChatId,
+                'is_connected': true,
+                'last_updated': DateTime.now().toIso8601String(),
+              }));
+            } catch (_) {}
+          }
+
           if (imported > 0) {
             await repo.load();
           }
-          debugPrint('☁️ Successfully restored $imported alert(s) from cloud for $cleanUser');
+          debugPrint('☁️ Successfully restored $imported alert(s) from cloud for $cleanUser (Telegram Chat ID: $cloudChatId)');
           return imported;
         }
       } else {

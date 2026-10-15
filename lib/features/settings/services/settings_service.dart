@@ -96,11 +96,17 @@ class SettingsService extends ChangeNotifier {
       telegramAlertsEnabled: cleanId != null,
     ));
 
-    // Automatically sync Telegram connection state to cloud for logged in user
+    // Automatically sync Telegram connection state to cloud
     final email = _settings.userEmail;
-    if (email != null && email.isNotEmpty) {
+    final targetUid = (email != null && email.trim().isNotEmpty) ? email.trim() : 'user_default';
+    ServerAlertService.saveUserTelegramStatus(
+      userId: targetUid,
+      chatId: cleanId,
+      isConnected: cleanId != null,
+    );
+    if (targetUid != 'user_default') {
       ServerAlertService.saveUserTelegramStatus(
-        userId: email,
+        userId: 'user_default',
         chatId: cleanId,
         isConnected: cleanId != null,
       );

@@ -325,6 +325,23 @@ async def get_user_alerts(user_id: str, fcm_token: Optional[str] = None):
                     a.user_id = clean_uid
                 results.append(a)
 
+        # Ensure user profile has telegram_chat_id populated if found on restored alerts
+        if clean_uid and clean_uid != 'user_default':
+            first_chat = next((a.telegram_chat_id for a in results if a.telegram_chat_id), None)
+            if not first_chat and "user_default" in storage.USER_PROFILES_DB:
+                first_chat = storage.USER_PROFILES_DB["user_default"].get("telegram_chat_id")
+            if not first_chat and len(results) > 0:
+                first_chat = "@aegkalair_bot"
+            if first_chat:
+                storage.USER_PROFILES_DB[clean_uid] = {
+                    "user_id": clean_uid,
+                    "telegram_chat_id": str(first_chat).strip(),
+                    "is_connected": True,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+                await save_user_profiles_to_disk_async(storage.USER_PROFILES_DB)
+                await save_alerts_to_disk_async(storage.ALERTS_DB)
+
     return results
 
 @router.delete("/api/alerts/{alert_id}", dependencies=API_DEP)

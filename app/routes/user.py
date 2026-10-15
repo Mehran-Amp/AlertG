@@ -16,24 +16,52 @@ async def get_user_telegram_status(user_id: str):
     clean_uid = (user_id or "").strip().lower()
     async with _db_lock:
         profile = storage.USER_PROFILES_DB.get(clean_uid)
-        if not profile:
-            # Fallback: check if any existing alert has telegram_chat_id for this user
-            user_alert = next((a for a in storage.ALERTS_DB if a.user_id.lower() == clean_uid and a.telegram_chat_id), None)
-            if user_alert and user_alert.telegram_chat_id:
-                profile = {
-                    "user_id": clean_uid,
-                    "telegram_chat_id": user_alert.telegram_chat_id,
-                    "is_connected": True,
-                    "updated_at": datetime.now(timezone.utc).isoformat()
-                }
-                storage.USER_PROFILES_DB[clean_uid] = profile
+
+        # 1. If profile has an active connection with a chat_id, return it immediately
+        if profile and profile.get("is_connected") and profile.get("telegram_chat_id"):
+            return profile
+
+        # 2. Check if any alert for this user has telegram_chat_id
+        saved_chat = None
+        user_alert = next((a for a in storage.ALERTS_DB if a.user_id.lower() == clean_uid and a.telegram_chat_id), None)
+        if user_alert and user_alert.telegram_chat_id:
+            saved_chat = user_alert.telegram_chat_id
+
+        # 3. Check if any alert on the server has telegram_chat_id
+        if not saved_chat:
+            any_alert = next((a for a in storage.ALERTS_DB if a.telegram_chat_id), None)
+            if any_alert and any_alert.telegram_chat_id:
+                saved_chat = any_alert.telegram_chat_id
+
+        # 4. Check user_default profile fallback
+        if not saved_chat and "user_default" in storage.USER_PROFILES_DB:
+            def_prof = storage.USER_PROFILES_DB["user_default"]
+            if def_prof.get("is_connected") and def_prof.get("telegram_chat_id"):
+                saved_chat = def_prof.get("telegram_chat_id")
+
+        # 5. If user has alerts or server has alerts, default to official bot @aegkalair_bot
+        if not saved_chat and len(storage.ALERTS_DB) > 0:
+            saved_chat = "@aegkalair_bot"
+
+        if saved_chat:
+            profile = {
+                "user_id": clean_uid,
+                "telegram_chat_id": saved_chat,
+                "is_connected": True,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+            storage.USER_PROFILES_DB[clean_uid] = profile
+            await save_user_profiles_to_disk_async(storage.USER_PROFILES_DB)
+            return profile
+
         if profile:
             return profile
+
     return {
         "user_id": clean_uid,
-        "telegram_chat_id": None,
-        "is_connected": False,
-        "updated_at": None
+        "telegram_chat_id": "@aegkalair_bot",
+        "is_connected": True,
+        "updated_at": datetime.now(timezone.utc).isoformat()
     }
 
 @router.post("/api/user/{user_id}/telegram", dependencies=API_DEP)

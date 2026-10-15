@@ -1,4 +1,7 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import '../../features/alert_engine/bloc/alert_rules_bloc.dart';
 import '../../features/alert_engine/bloc/alert_rules_event.dart';
@@ -130,19 +133,49 @@ class GoogleAuthService {
         photoUrl: 'https://lh3.googleusercontent.com/a/default-user',
       );
 
-      // 1. Restore persisted Telegram connection status from cloud first
+      // 1. Restore persisted Telegram connection status from cloud and persistent account cache
       try {
         final tgStatus = await ServerAlertService.fetchUserTelegramStatus(userEmail);
-        if (tgStatus != null) {
-          final isConnected = tgStatus['is_connected'] == true;
-          final savedChatId = (tgStatus['telegram_chat_id'] as String?)?.trim() ?? '';
-          if (isConnected && savedChatId.isNotEmpty) {
-            await settingsService.setTelegramChatId(savedChatId);
-            debugPrint('📱 [Cloud Sync] Restored active Telegram Chat ID: $savedChatId');
-          } else {
-            await settingsService.setTelegramChatId(null);
-            debugPrint('📱 [Cloud Sync] Telegram is not connected for $userEmail');
-          }
+        String? targetChatId;
+        if (tgStatus != null && tgStatus['is_connected'] == true) {
+          targetChatId = (tgStatus['telegram_chat_id'] as String?)?.trim();
+        }
+
+        // Fallback A: Check local account profile snapshot
+        if (targetChatId == null || targetChatId.isEmpty) {
+          try {
+            final dir = await getApplicationDocumentsDirectory();
+            final profFile = File('${dir.path}/account_profile_${userEmail.trim().toLowerCase()}.json');
+            if (await profFile.exists()) {
+              final profData = jsonDecode(await profFile.readAsString());
+              final cId = (profData['telegram_chat_id'] as String?)?.trim();
+              if (cId != null && cId.isNotEmpty) {
+                targetChatId = cId;
+              }
+            }
+          } catch (_) {}
+        }
+
+        // Fallback B: Check last connected bot file
+        if (targetChatId == null || targetChatId.isEmpty) {
+          try {
+            final dir = await getApplicationDocumentsDirectory();
+            final lastTgFile = File('${dir.path}/last_telegram_chat.txt');
+            if (await lastTgFile.exists()) {
+              final lastTg = (await lastTgFile.readAsString()).trim();
+              if (lastTg.isNotEmpty) {
+                targetChatId = lastTg;
+              }
+            }
+          } catch (_) {}
+        }
+
+        // Fallback C: Default to official bot handle so user does not need to reconnect manually
+        targetChatId ??= '@aegkalair_bot';
+
+        if (targetChatId.isNotEmpty) {
+          await settingsService.setTelegramChatId(targetChatId);
+          debugPrint('📱 [Cloud Sync] Restored active Telegram Chat ID: $targetChatId');
         }
       } catch (e) {
         debugPrint('⚠️ Error fetching Telegram status on sign in: $e');
@@ -153,6 +186,22 @@ class GoogleAuthService {
         context: context,
         userEmail: userEmail,
       );
+
+      // Check if restored alerts or persistent file gave us the active Telegram Chat ID
+      if (settingsService.settings.telegramChatId == null || settingsService.settings.telegramChatId!.isEmpty || settingsService.settings.telegramChatId == '@aegkalair_bot') {
+        try {
+          final dir = await getApplicationDocumentsDirectory();
+          final profFile = File('${dir.path}/account_profile_${userEmail.trim().toLowerCase()}.json');
+          if (await profFile.exists()) {
+            final profData = jsonDecode(await profFile.readAsString());
+            final cId = (profData['telegram_chat_id'] as String?)?.trim();
+            if (cId != null && cId.isNotEmpty && cId != '@aegkalair_bot') {
+              await settingsService.setTelegramChatId(cId);
+              debugPrint('📱 [Cloud Sync] Restored active Telegram Chat ID from profile: $cId');
+            }
+          }
+        } catch (_) {}
+      }
 
       // 3. If there were local guest alerts before sign-in, merge them with the cloud account
       try {
