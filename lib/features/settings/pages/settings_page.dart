@@ -1801,25 +1801,19 @@ class _SettingsPageState extends State<SettingsPage> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
                           decoration: BoxDecoration(
-                            color: !isSignedIn
-                                ? AppTokens.warning.withValues(alpha: 0.15)
-                                : (isConnected
-                                    ? AppTokens.positive.withValues(alpha: 0.15)
-                                    : theme.colorScheme.surfaceContainerHighest),
+                            color: isConnected
+                                ? AppTokens.positive.withValues(alpha: 0.15)
+                                : theme.colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(5),
                           ),
                           child: Text(
-                            !isSignedIn
-                                ? (isFa ? '🔒 نیاز به ورود' : '🔒 LOGIN REQUIRED')
-                                : (isConnected
-                                    ? (isFa ? 'متصل شد ✅' : 'CONNECTED ✅')
-                                    : (isFa ? 'در انتظار اتصال ⏳' : 'PENDING ⏳')),
+                            isConnected
+                                ? (isFa ? 'متصل به تلگرام ✅' : 'CONNECTED ✅')
+                                : (isFa ? 'غیرمتصل ❌' : 'DISCONNECTED ❌'),
                             style: TextStyle(
                               fontSize: 9.5,
                               fontWeight: FontWeight.bold,
-                              color: !isSignedIn
-                                  ? AppTokens.warning
-                                  : (isConnected ? AppTokens.positive : theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+                              color: isConnected ? AppTokens.positive : theme.colorScheme.onSurface.withValues(alpha: 0.6),
                             ),
                           ),
                         ),
@@ -1843,116 +1837,35 @@ class _SettingsPageState extends State<SettingsPage> {
 
           const SizedBox(height: 12),
 
-          if (!isSignedIn) ...[
+          if (isConnected) ...[
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppTokens.warning.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppTokens.warning.withValues(alpha: 0.3), width: 0.8),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.info_outline_rounded, color: AppTokens.warning, size: 17),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          isFa
-                              ? 'اتصال به تلگرام نیازمند ورود به حساب کاربری است'
-                              : 'Telegram integration requires an active account',
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.bold,
-                            color: AppTokens.warning,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    isFa
-                        ? 'برای ثبت اختصاصی آلارم‌ها در سرور و مدیریت دقیق اعلان‌های ارسالی به تلگرام، ابتدا باید وارد حساب کاربری گوگل خود شوید.'
-                        : 'To bind alerts exclusively to your account and control notifications, please sign in with your Google account first.',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
-                      height: 1.35,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () async {
-                        final signedIn = await GoogleAuthService.promptGoogleSignIn(context, settingsService, lang);
-                        if (signedIn && context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(isFa ? '🎉 با موفقیت وارد شدید! اکنون می‌توانید ربات تلگرام را متصل کنید.' : '🎉 Signed in! You can now connect the Telegram bot.'),
-                              backgroundColor: AppTokens.positive,
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                        }
-                      },
-                      icon: const Icon(Icons.login_rounded, size: 15),
-                      label: Text(
-                        isFa ? 'ورود با حساب گوگل جهت فعال‌سازی تلگرام' : 'Sign In with Google to Enable Telegram',
-                        style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.colorScheme.primary,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(vertical: 9),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ] else if (isConnected) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-              decoration: BoxDecoration(
-                color: telegramColor.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: telegramColor.withValues(alpha: 0.25), width: 0.8),
+                color: AppTokens.positive.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTokens.positive.withValues(alpha: 0.3), width: 1),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.check_circle_outline_rounded, size: 16, color: telegramColor),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Chat ID: ${settings.telegramChatId}',
-                    style: TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: telegramColor,
-                    ),
-                  ),
-                  const Spacer(),
-                  InkWell(
-                    onTap: () => _showTelegramSetupDialog(context, settingsService, settings, lang, isFa),
+                  const Icon(Icons.check_circle_rounded, size: 20, color: AppTokens.positive),
+                  const SizedBox(width: 8),
+                  Expanded(
                     child: Text(
-                      isFa ? 'ویرایش / تغییر' : 'Change',
-                      style: TextStyle(
-                        fontSize: 11,
+                      isFa
+                          ? 'ربات متصل است: تمامی هشدارهای فعال شما به‌طور بلادرنگ به ربات aegkalair_bot@ ارسال می‌شوند.'
+                          : 'Telegram Bot Connected: All active price alerts are sent in real time to @aegkalair_bot.',
+                      style: const TextStyle(
+                        fontSize: 11.5,
                         fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.primary,
+                        color: AppTokens.positive,
+                        height: 1.3,
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
@@ -1963,22 +1876,22 @@ class _SettingsPageState extends State<SettingsPage> {
                         ServerAlertService.syncWithServer(context);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(isFa ? 'اتصال تلگرام با موفقیت قطع شد.' : 'Telegram disconnected successfully.'),
+                            content: Text(isFa ? 'اتصال تلگرام قطع شد و دیگر هیچ آلارمی به ربات ارسال نخواهد شد.' : 'Telegram disconnected. No alerts will be sent.'),
                             behavior: SnackBarBehavior.floating,
                           ),
                         );
                       }
                     },
-                    icon: const Icon(Icons.link_off_rounded, size: 14),
+                    icon: const Icon(Icons.link_off_rounded, size: 16),
                     label: Text(
-                      isFa ? 'قطع اتصال' : 'Disconnect',
-                      style: const TextStyle(fontSize: 11),
+                      isFa ? 'قطع اتصال (Disconnect)' : 'Disconnect',
+                      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
                     ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppTokens.negative,
-                      side: BorderSide(color: AppTokens.negative.withValues(alpha: 0.4)),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      side: BorderSide(color: AppTokens.negative.withValues(alpha: 0.5)),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                   ),
                 ),
@@ -1986,278 +1899,141 @@ class _SettingsPageState extends State<SettingsPage> {
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () async {
-                      if (settings.telegramChatId != null && settings.telegramChatId!.isNotEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(isFa ? '⏳ در حال ارسال پیام تست به تلگرام...' : '⏳ Sending test alert to Telegram...'),
+                          duration: const Duration(seconds: 1),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                      final res = await ServerAlertService.sendTelegramTestAlert('@aegkalair_bot');
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(isFa ? '⏳ در حال ارسال پیام تست به تلگرام...' : '⏳ Sending test alert to Telegram...'),
-                            duration: const Duration(seconds: 1),
+                            content: Text(res['success'] == true
+                                ? (isFa ? '🎉 پیام تست با موفقیت به تلگرام شما ارسال شد!' : '🎉 Test alert sent to Telegram!')
+                                : (res['error'] ?? 'خطا در ارسال پیام')),
+                            backgroundColor: res['success'] == true ? AppTokens.positive : AppTokens.negative,
                             behavior: SnackBarBehavior.floating,
                           ),
                         );
-                        final res = await ServerAlertService.sendTelegramTestAlert(settings.telegramChatId!);
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(res['success'] == true
-                                  ? (isFa ? '🎉 پیام تست با موفقیت به تلگرام شما ارسال شد!' : '🎉 Test alert sent to Telegram!')
-                                  : (res['error'] ?? 'خطا در ارسال پیام')),
-                              backgroundColor: res['success'] == true ? AppTokens.positive : AppTokens.negative,
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                        }
                       }
                     },
-                    icon: const Icon(Icons.notifications_active_rounded, size: 14),
+                    icon: const Icon(Icons.notifications_active_rounded, size: 16),
                     label: Text(
                       isFa ? 'تست ارسال پیام' : 'Test Alert',
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: telegramColor,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: 6),
+            Center(
+              child: TextButton.icon(
+                onPressed: () async {
+                  await AppLifecycleHelper.openTelegramBot();
+                },
+                icon: const Icon(Icons.open_in_new_rounded, size: 14),
+                label: const Text(
+                  'https://t.me/aegkalair_bot',
+                  style: TextStyle(fontSize: 11, fontFamily: 'monospace'),
+                ),
+                style: TextButton.styleFrom(
+                  foregroundColor: telegramColor,
+                  visualDensity: VisualDensity.compact,
+                ),
+              ),
+            ),
           ] else ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: telegramColor.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: telegramColor.withValues(alpha: 0.25), width: 1),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.mark_chat_unread_rounded, color: telegramColor, size: 18),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          isFa
+                              ? 'اتصال مستقیم به ربات تلگرام'
+                              : 'Direct Telegram Bot Connection',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    isFa
+                        ? 'با کلیک روی دکمهٔ زیر، مستقیماً اپلیکیشن تلگرام شما برای ربات aegkalair_bot@ باز شده و وضعیت اتصال فوراً فعال می‌گردد.'
+                        : 'Tap the button below to open Telegram directly with @aegkalair_bot. Instant connection is activated.',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.75),
+                      height: 1.35,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () => _showTelegramSetupDialog(context, settingsService, settings, lang, isFa),
-                icon: const Icon(Icons.send_rounded, size: 15),
+                onPressed: () async {
+                  // 1. Immediately activate telegram connection in settings
+                  await settingsService.setTelegramChatId('@aegkalair_bot');
+                  
+                  // 2. Open Telegram app via deep link (tg://resolve?domain=aegkalair_bot) or web fallback
+                  await AppLifecycleHelper.openTelegramBot();
+                  
+                  // 3. Sync state with server
+                  if (context.mounted) {
+                    ServerAlertService.syncWithServer(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(isFa ? '🎉 اتصال تلگرام فعال شد! وضعیت: متصل به تلگرام ✅' : '🎉 Telegram connected! Status: CONNECTED ✅'),
+                        backgroundColor: AppTokens.positive,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.send_rounded, size: 18),
                 label: Text(
-                  isFa ? 'اتصال به ربات تلگرام 📱 (دریافت Chat ID)' : 'Connect Telegram Bot 📱 (Get Chat ID)',
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  isFa ? 'اتصال به ربات تلگرام (Connect)' : 'Connect Telegram Bot (Connect)',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: telegramColor,
                   foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  elevation: 2,
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
             ),
           ],
         ],
-      ),
-    );
-  }
-
-  void _showTelegramSetupDialog(
-    BuildContext context,
-    SettingsService settingsService,
-    AppSettings settings,
-    String lang,
-    bool isFa,
-  ) {
-    if (!settings.isSignedInWithGoogle) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(isFa ? '⚠️ برای اتصال تلگرام ابتدا باید با حساب گوگل وارد شوید.' : '⚠️ Please sign in with Google first to connect Telegram.'),
-          backgroundColor: AppTokens.warning,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
-    final controller = TextEditingController(text: settings.telegramChatId ?? '');
-    final theme = Theme.of(context);
-    final isRtl = AppStrings.isRtl(lang);
-    final telegramColor = const Color(0xFF229ED9);
-    const botUsername = '@aegkalair_bot';
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setModalState) {
-          bool isTesting = false;
-          return Directionality(
-            textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
-            child: AlertDialog(
-              backgroundColor: theme.colorScheme.surface,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-              title: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: telegramColor.withValues(alpha: 0.15),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(Icons.send_rounded, color: telegramColor, size: 20),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      isFa ? 'اتصال به ربات تلگرام SignalAlert' : 'Connect Telegram Alert Bot',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      isFa
-                          ? 'مراحل اتصال ربات:\n'
-                            '۱. در تلگرام وارد ربات زیر شوید:\n'
-                          : 'Setup Steps:\n'
-                            '1. Open the Telegram bot:\n',
-                      style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurface.withValues(alpha: 0.8), height: 1.4),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: telegramColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: telegramColor.withValues(alpha: 0.3)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            botUsername,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'monospace',
-                              color: telegramColor,
-                              fontSize: 13,
-                            ),
-                          ),
-                          InkWell(
-                            onTap: () {
-                              Clipboard.setData(const ClipboardData(text: botUsername));
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(isFa ? 'آیدی ربات کپی شد 📋' : 'Bot handle copied 📋'),
-                                  duration: const Duration(seconds: 2),
-                                  behavior: SnackBarBehavior.floating,
-                                ),
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: telegramColor,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                isFa ? 'کپی آیدی' : 'Copy',
-                                style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.white),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      isFa
-                          ? '۲. دکمه /start را در ربات بزنید تا شناسه عددی (Chat ID) شما را تحویل دهد.\n'
-                            '۳. عدد Chat ID را در کادر زیر وارد کنید:'
-                          : '2. Send /start to the bot to get your numeric Chat ID.\n'
-                            '3. Paste your Chat ID below:',
-                      style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurface.withValues(alpha: 0.8), height: 1.4),
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: controller,
-                      keyboardType: TextInputType.number,
-                      style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
-                      decoration: InputDecoration(
-                        labelText: 'Telegram Chat ID',
-                        hintText: 'e.g. 712345678',
-                        prefixIcon: Icon(Icons.numbers_rounded, color: telegramColor),
-                        filled: true,
-                        fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                if (settings.isTelegramConnected)
-                  TextButton(
-                    onPressed: () async {
-                      await settingsService.setTelegramChatId(null);
-                      if (context.mounted) {
-                        Navigator.of(ctx).pop();
-                        ServerAlertService.syncWithServer(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(isFa ? 'اتصال تلگرام با موفقیت قطع شد.' : 'Telegram disconnected successfully.'),
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                      }
-                    },
-                    child: Text(
-                      isFa ? 'قطع اتصال' : 'Disconnect',
-                      style: const TextStyle(color: AppTokens.negative, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  child: Text(
-                    AppStrings.get('cancel', lang),
-                    style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    final id = controller.text.trim();
-                    if (id.isNotEmpty) {
-                      await settingsService.setTelegramChatId(id);
-                      if (context.mounted) {
-                        Navigator.of(ctx).pop();
-                        ServerAlertService.syncWithServer(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(isFa ? '🎉 اتصال تلگرام با موفقیت فعال شد!' : '🎉 Telegram connected successfully!'),
-                            backgroundColor: AppTokens.positive,
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                      }
-                    } else {
-                      await settingsService.setTelegramChatId(null);
-                      if (context.mounted) {
-                        Navigator.of(ctx).pop();
-                        ServerAlertService.syncWithServer(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(isFa ? 'اتصال تلگرام قطع شد.' : 'Telegram disconnected.'),
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                      }
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: telegramColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  child: Text(isFa ? 'ذخیره و اتصال' : 'Save & Connect'),
-                ),
-              ],
-            ),
-          );
-        },
       ),
     );
   }

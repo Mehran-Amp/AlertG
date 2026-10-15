@@ -49,4 +49,14 @@ class AppLifecycleHelper {
       return false;
     }
   }
+
+  /// Opens the Telegram bot directly using native deep link (tg://resolve?domain=aegkalair_bot) or browser fallback
+  static Future<bool> openTelegramBot() async {
+    try {
+      final result = await _channel.invokeMethod<bool>('openTelegramBot');
+      return result == true;
+    } catch (_) {
+      return false;
+    }
+  }
 }

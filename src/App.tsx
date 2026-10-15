@@ -2960,15 +2960,9 @@ export default function App() {
                                 <span className="font-bold text-xs text-white block">
                                   {tAuthTg.telegramBotName}
                                 </span>
-                                <a
-                                  href="https://t.me/aegkalair_bot"
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-[10px] font-mono text-sky-400 bg-sky-950/60 px-2 py-0.5 rounded-md border border-sky-800/50 hover:bg-sky-900/60 transition-colors flex items-center gap-1"
-                                >
-                                  <span>{tAuthTg.telegramBotHandle}</span>
-                                  <ExternalLink className="h-2.5 w-2.5" />
-                                </a>
+                                <span className="text-[10px] text-sky-400 bg-sky-950/60 px-2 py-0.5 rounded-md border border-sky-800/50 flex items-center gap-1">
+                                  <span>{isTelegramConnected ? tAuthTg.telegramConnectedBadge : (currentLang === 'fa' ? 'ربات رسمی اعلان‌ها' : 'Official Alert Bot')}</span>
+                                </span>
                               </div>
                               <span className="text-[10.5px] text-slate-400 block mt-0.5">
                                 {tAuthTg.telegramBotSubtitle}
@@ -2982,15 +2976,15 @@ export default function App() {
                           <div className="space-y-2 pt-1">
                             <p className="text-[11px] text-slate-300 leading-relaxed bg-sky-500/10 border border-sky-500/20 p-2.5 rounded-xl">
                               {currentLang === 'fa'
-                                ? 'برای دریافت بلادرنگ و ۲۴ ساعته هشدارهای قیمت روی گوشی، روی دکمه زیر کلیک کنید تا ربات تلگرام در اپلیکیشن تلگرام شما باز شده و اتصال فعال گردد.'
-                                : 'To receive instant 24/7 price alerts on your device, click the button below to connect with our official Telegram bot.'}
+                                ? 'برای دریافت بلادرنگ و ۲۴ ساعته هشدارهای قیمت روی گوشی، روی دکمهٔ بزرگ زیر کلیک کنید تا ربات تلگرام در اپلیکیشن تلگرام شما باز شده و اتصال فعال گردد.'
+                                : 'To receive instant 24/7 price alerts on your device, tap the button below to connect with our official Telegram bot.'}
                             </p>
                             <button
                               onClick={handleConnectTelegram}
-                              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20 transition-all cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
+                              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20 transition-all cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
                             >
                               <Send className="h-4 w-4" />
-                              <span>{tAuthTg.telegramConnectBtn} (@aegkalair_bot)</span>
+                              <span>{tAuthTg.telegramConnectBtn}</span>
                               <ExternalLink className="h-3.5 w-3.5 opacity-80" />
                             </button>
                           </div>

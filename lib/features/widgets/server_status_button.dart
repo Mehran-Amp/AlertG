@@ -298,10 +298,10 @@ class _ServerStatusButtonState extends State<ServerStatusButton> {
             } catch (_) {}
 
             final bool isTelegramConnected = settings?.isTelegramConnected ?? false;
-            final String tgChatId = settings?.telegramChatId ?? '';
+            final String tgChatId = settings?.telegramChatId ?? '@aegkalair_bot';
             final String tgDisplay = isTelegramConnected
-                ? (isFa ? 'متصل (Chat ID: $tgChatId)' : 'Connected ($tgChatId)')
-                : (isFa ? 'غیرفعال (تنظیم در تنظیمات)' : 'Not Connected');
+                ? (isFa ? 'متصل به ربات @aegkalair_bot ✅' : 'Connected to @aegkalair_bot ✅')
+                : (isFa ? 'غیرمتصل (کلیک در تنظیمات)' : 'Not Connected');
             final Color tgColor = isTelegramConnected ? Colors.green : Colors.grey;
 
             final bool isFcmReal = FCMNotificationService.isRealFCMActive;

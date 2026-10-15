@@ -61,6 +61,10 @@ class MainActivity : FlutterActivity() {
                     val moved = moveTaskToBack(true)
                     result.success(moved)
                 }
+                "openTelegramBot" -> {
+                    val opened = openTelegramBotDeepLink()
+                    result.success(opened)
+                }
                 "openAutostartSettings" -> {
                     val opened = openAutostartPermissionScreen()
                     result.success(opened)
@@ -179,5 +183,30 @@ class MainActivity : FlutterActivity() {
         } catch (_: Exception) {}
 
         return false
+    }
+
+    private fun openTelegramBotDeepLink(): Boolean {
+        // 1. Prioritize native Telegram protocol deep link (tg://resolve?domain=aegkalair_bot)
+        try {
+            val tgIntent = Intent(Intent.ACTION_VIEW, Uri.parse("tg://resolve?domain=aegkalair_bot")).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(tgIntent)
+            return true
+        } catch (_: Exception) {
+            // 2. Fallback: Standard Telegram Web Link with app chooser / browser
+            try {
+                val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/aegkalair_bot")).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                val chooser = Intent.createChooser(webIntent, "Open Telegram").apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                startActivity(chooser)
+                return true
+            } catch (_: Exception) {
+                return false
+            }
+        }
     }
 }
