@@ -244,5 +244,49 @@ void main() {
       expect(service.items.length, equals(80));
       expect(service.items.first.symbol, equals('RECOVERED_0'));
     });
+
+    test('5. After full download, subsequent sync does not re-download full catalog on persistent count difference', () async {
+      final items = List.generate(
+        50,
+        (i) => CatalogItem(
+          id: 'ITEM_$i',
+          symbol: 'ITEM_$i',
+          nameEn: 'Item $i',
+          nameFa: 'نماد $i',
+          category: 'stock',
+        ),
+      );
+
+      // Assume version 2 was already fully synced, but items.length (50) != server total_count (52)
+      service.resetForTesting(version: 2, items: items, lastFullCatalogVersion: 2);
+      expect(service.localVersion, equals(2));
+      expect(service.items.length, equals(50));
+      expect(service.lastFullCatalogVersion, equals(2));
+
+      final requestedUrls = <Uri>[];
+      final mockClient = MockClient((request) async {
+        requestedUrls.add(request.url);
+        // Server reports up_to_date at v2 with total_count=52
+        return http.Response(
+          jsonEncode({
+            'status': 'up_to_date',
+            'catalog_version': 2,
+            'total_count': 52,
+          }),
+          200,
+          headers: {'content-type': 'application/json; charset=utf-8'},
+        );
+      });
+
+      service.client = mockClient;
+
+      final success = await service.syncDelta();
+
+      expect(success, isTrue);
+      // Only 1 request was made (since_version=2). It did NOT request since_version=0 again!
+      expect(requestedUrls.length, equals(1));
+      expect(requestedUrls[0].queryParameters['since_version'], equals('2'));
+      expect(service.items.length, equals(50));
+    });
   });
 }

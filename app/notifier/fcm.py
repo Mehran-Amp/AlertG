@@ -44,8 +44,8 @@ def _send_fcm_sync(fcm_token: str, title: str, body: str, data_payload: dict = N
             full_data["tts_enabled"] = "true" if user_prof["tts_enabled"] else "false"
 
         # 3. Sound and channel resolution
-        sound_setting = full_data.get("sound") or user_prof.get("sound") or "default"
-        channel_setting = full_data.get("channel_id") or user_prof.get("channel_id") or "alarmer_critical_price_alerts"
+        sound_setting = full_data.get("sound") or user_prof.get("sound") or "alarm_siren"
+        channel_setting = full_data.get("channel_id") or user_prof.get("channel_id") or "alarmer_channel_sound_vibrate_v5"
 
         full_data["channel_id"] = channel_setting
         if sound_setting:

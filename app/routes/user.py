@@ -27,22 +27,7 @@ async def get_user_telegram_status(user_id: str):
         if user_alert and user_alert.telegram_chat_id:
             saved_chat = user_alert.telegram_chat_id
 
-        # 3. Check if any alert on the server has telegram_chat_id
-        if not saved_chat:
-            any_alert = next((a for a in storage.ALERTS_DB if a.telegram_chat_id), None)
-            if any_alert and any_alert.telegram_chat_id:
-                saved_chat = any_alert.telegram_chat_id
-
-        # 4. Check user_default profile fallback
-        if not saved_chat and "user_default" in storage.USER_PROFILES_DB:
-            def_prof = storage.USER_PROFILES_DB["user_default"]
-            if def_prof.get("is_connected") and def_prof.get("telegram_chat_id"):
-                saved_chat = def_prof.get("telegram_chat_id")
-
-        # 5. If user has alerts or server has alerts, default to official bot @aegkalair_bot
-        if not saved_chat and len(storage.ALERTS_DB) > 0:
-            saved_chat = "@aegkalair_bot"
-
+        # 3. No fallbacks to other users, user_default, or bots
         if saved_chat:
             profile = {
                 "user_id": clean_uid,
@@ -55,12 +40,17 @@ async def get_user_telegram_status(user_id: str):
             return profile
 
         if profile:
-            return profile
+            return {
+                "user_id": clean_uid,
+                "telegram_chat_id": profile.get("telegram_chat_id") if profile.get("is_connected") else None,
+                "is_connected": bool(profile.get("is_connected") and profile.get("telegram_chat_id")),
+                "updated_at": profile.get("updated_at") or datetime.now(timezone.utc).isoformat()
+            }
 
     return {
         "user_id": clean_uid,
-        "telegram_chat_id": "@aegkalair_bot",
-        "is_connected": True,
+        "telegram_chat_id": None,
+        "is_connected": False,
         "updated_at": datetime.now(timezone.utc).isoformat()
     }
 

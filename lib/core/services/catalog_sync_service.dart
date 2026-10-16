@@ -122,13 +122,16 @@ class CatalogSyncService extends ChangeNotifier {
   CatalogSyncService._internal();
 
   int _localVersion = 0;
+  int? _lastFullCatalogVersion;
   DateTime? _lastSyncAt;
   List<CatalogItem> _items = [];
   bool _isInitialized = false;
   bool _isSyncing = false;
   http.Client? _client;
+  http.Client? _sharedClient;
 
   int get localVersion => _localVersion;
+  int? get lastFullCatalogVersion => _lastFullCatalogVersion;
   DateTime? get lastSyncAt => _lastSyncAt;
   List<CatalogItem> get items => _items;
   bool get isSyncing => _isSyncing;
@@ -136,13 +139,20 @@ class CatalogSyncService extends ChangeNotifier {
   @visibleForTesting
   set client(http.Client? client) => _client = client;
 
-  http.Client get _effectiveClient => _client ?? http.Client();
+  http.Client get _effectiveClient => _client ?? (_sharedClient ??= http.Client());
+
+  /// Closes the shared HTTP client if allocated
+  void close() {
+    _sharedClient?.close();
+    _sharedClient = null;
+  }
 
   @visibleForTesting
   void resetForTesting({
     int version = 0,
     List<CatalogItem>? items,
     http.Client? client,
+    int? lastFullCatalogVersion,
   }) {
     _items = items != null ? List<CatalogItem>.from(items) : <CatalogItem>[];
     if (_items.isEmpty || _items.length <= maxOfflineFallbackSymbols) {
@@ -153,6 +163,7 @@ class CatalogSyncService extends ChangeNotifier {
     _isInitialized = false;
     _isSyncing = false;
     _lastSyncAt = null;
+    _lastFullCatalogVersion = lastFullCatalogVersion;
     if (client != null) _client = client;
   }
 
@@ -180,8 +191,10 @@ class CatalogSyncService extends ChangeNotifier {
         // If loaded items is empty or from fallback (<= 20 symbols), local version remains 0
         if (_items.isEmpty || _items.length <= maxOfflineFallbackSymbols) {
           _localVersion = 0;
+          _lastFullCatalogVersion = null;
         } else {
           _localVersion = data['catalog_version'] as int? ?? 0;
+          _lastFullCatalogVersion = data['last_full_catalog_version'] as int?;
         }
         debugPrint('📦 [CatalogCache] Loaded ${_items.length} cached symbols from disk (v$_localVersion)');
       }
@@ -275,7 +288,8 @@ class CatalogSyncService extends ChangeNotifier {
           _lastSyncAt = syncTime;
 
           // Self-healing: if count mismatch, perform full resync with since_version=0
-          if (totalCount != null && _items.length != totalCount) {
+          // Capped at 1 full download attempt per catalog version to prevent repeated 190KB downloads
+          if (totalCount != null && _items.length != totalCount && _lastFullCatalogVersion != newVersion) {
             debugPrint('⚠️ [CatalogSync] Total count mismatch in up_to_date (local: ${_items.length}, server: $totalCount). Self-healing with since_version=0...');
             result = await _fetchFullCatalog(baseUrl, headers);
           } else {
@@ -309,7 +323,8 @@ class CatalogSyncService extends ChangeNotifier {
           debugPrint('✅ [CatalogSync] Applied delta: +${added.length}, ~${updated.length}, -${delistedSymbols.length}. Version: $_localVersion');
 
           // Self-healing: if count mismatch after applying delta, perform full resync with since_version=0
-          if (totalCount != null && _items.length != totalCount) {
+          // Capped at 1 full download attempt per catalog version to prevent repeated 190KB downloads
+          if (totalCount != null && _items.length != totalCount && _lastFullCatalogVersion != newVersion) {
             debugPrint('⚠️ [CatalogSync] Total count mismatch in delta_success (local: ${_items.length}, server: $totalCount). Self-healing with since_version=0...');
             result = await _fetchFullCatalog(baseUrl, headers);
           } else {
@@ -321,6 +336,7 @@ class CatalogSyncService extends ChangeNotifier {
           if (fullList.isNotEmpty) {
             _items = fullList.where((item) => item.isActive).toList();
             _localVersion = newVersion;
+            _lastFullCatalogVersion = newVersion;
             _lastSyncAt = syncTime;
             await _saveToDisk();
             debugPrint('✅ [CatalogSync] Full catalog refreshed with ${_items.length} symbols. Version: $_localVersion');
@@ -360,6 +376,7 @@ class CatalogSyncService extends ChangeNotifier {
         if (fullList.isNotEmpty) {
           _items = fullList;
           _localVersion = newVersion;
+          _lastFullCatalogVersion = newVersion;
           _lastSyncAt = syncTime;
           await _saveToDisk();
           debugPrint('🔄 [CatalogSync] Self-healing complete: ${_items.length} symbols replaced (v$_localVersion).');
@@ -378,6 +395,7 @@ class CatalogSyncService extends ChangeNotifier {
       final cacheFile = File('${dir.path}/catalog_cache.json');
       final data = {
         'catalog_version': _localVersion,
+        'last_full_catalog_version': _lastFullCatalogVersion,
         'last_sync_at': _lastSyncAt?.toIso8601String(),
         'symbols': _items.map((e) => e.toJson()).toList(),
       };

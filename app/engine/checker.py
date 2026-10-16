@@ -357,8 +357,6 @@ async def check_alerts_job():
             if not effective_chat_id:
                 user_prof = USER_PROFILES_DB.get(alert.user_id.lower(), {})
                 effective_chat_id = (user_prof.get('telegram_chat_id') or "").strip()
-            if not effective_chat_id and 'user_default' in USER_PROFILES_DB:
-                effective_chat_id = (USER_PROFILES_DB['user_default'].get('telegram_chat_id') or "").strip()
 
             if effective_chat_id:
                 tg_lines = [
@@ -570,8 +568,6 @@ async def check_macro_alerts_job():
             if not effective_chat_id:
                 user_prof = USER_PROFILES_DB.get(alert.user_id.lower(), {})
                 effective_chat_id = (user_prof.get('telegram_chat_id') or "").strip()
-            if not effective_chat_id and 'user_default' in USER_PROFILES_DB:
-                effective_chat_id = (USER_PROFILES_DB['user_default'].get('telegram_chat_id') or "").strip()
 
             if effective_chat_id:
                 tg_lines = [

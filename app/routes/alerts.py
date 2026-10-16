@@ -151,12 +151,6 @@ async def create_alert(alert_in: AlertCreate):
         if not effective_chat_id:
             user_prof = storage.USER_PROFILES_DB.get(new_alert.user_id.lower(), {})
             effective_chat_id = (user_prof.get('telegram_chat_id') or "").strip()
-        if not effective_chat_id and 'user_default' in storage.USER_PROFILES_DB:
-            effective_chat_id = (storage.USER_PROFILES_DB['user_default'].get('telegram_chat_id') or "").strip()
-        if not effective_chat_id:
-            any_chat = next((a.telegram_chat_id for a in storage.ALERTS_DB if a.telegram_chat_id and (a.user_id.lower() == new_alert.user_id.lower() or a.user_id == 'user_default')), None)
-            if any_chat:
-                effective_chat_id = str(any_chat).strip()
 
         if effective_chat_id and state.http_client is not None:
             tg_conf_msg = format_alert_registered_telegram_msg(new_alert)
@@ -325,13 +319,9 @@ async def get_user_alerts(user_id: str, fcm_token: Optional[str] = None):
                     a.user_id = clean_uid
                 results.append(a)
 
-        # Ensure user profile has telegram_chat_id populated if found on restored alerts
+        # Ensure user profile has telegram_chat_id populated only if found on this user's own alerts
         if clean_uid and clean_uid != 'user_default':
-            first_chat = next((a.telegram_chat_id for a in results if a.telegram_chat_id), None)
-            if not first_chat and "user_default" in storage.USER_PROFILES_DB:
-                first_chat = storage.USER_PROFILES_DB["user_default"].get("telegram_chat_id")
-            if not first_chat and len(results) > 0:
-                first_chat = "@aegkalair_bot"
+            first_chat = next((a.telegram_chat_id for a in results if a.telegram_chat_id and a.user_id.lower() == clean_uid), None)
             if first_chat:
                 storage.USER_PROFILES_DB[clean_uid] = {
                     "user_id": clean_uid,
