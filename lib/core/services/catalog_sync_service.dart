@@ -121,16 +121,40 @@ class CatalogSyncService extends ChangeNotifier {
 
   CatalogSyncService._internal();
 
-  int _localVersion = 1;
+  int _localVersion = 0;
   DateTime? _lastSyncAt;
   List<CatalogItem> _items = [];
   bool _isInitialized = false;
   bool _isSyncing = false;
+  http.Client? _client;
 
   int get localVersion => _localVersion;
   DateTime? get lastSyncAt => _lastSyncAt;
   List<CatalogItem> get items => _items;
   bool get isSyncing => _isSyncing;
+
+  @visibleForTesting
+  set client(http.Client? client) => _client = client;
+
+  http.Client get _effectiveClient => _client ?? http.Client();
+
+  @visibleForTesting
+  void resetForTesting({
+    int version = 0,
+    List<CatalogItem>? items,
+    http.Client? client,
+  }) {
+    _items = items != null ? List<CatalogItem>.from(items) : <CatalogItem>[];
+    if (_items.isEmpty || _items.length <= maxOfflineFallbackSymbols) {
+      _localVersion = 0;
+    } else {
+      _localVersion = version;
+    }
+    _isInitialized = false;
+    _isSyncing = false;
+    _lastSyncAt = null;
+    if (client != null) _client = client;
+  }
 
   /// Loads cached catalog from disk on app start
   Future<void> initialize() async {
@@ -143,7 +167,6 @@ class CatalogSyncService extends ChangeNotifier {
       if (await cacheFile.exists()) {
         final content = await cacheFile.readAsString();
         final Map<String, dynamic> data = jsonDecode(content);
-        _localVersion = data['catalog_version'] as int? ?? 1;
         if (data['last_sync_at'] != null) {
           _lastSyncAt = DateTime.tryParse(data['last_sync_at'].toString());
         }
@@ -153,6 +176,13 @@ class CatalogSyncService extends ChangeNotifier {
             .map((e) => CatalogItem.fromJson(e))
             .where((item) => item.isActive)
             .toList();
+
+        // If loaded items is empty or from fallback (<= 20 symbols), local version remains 0
+        if (_items.isEmpty || _items.length <= maxOfflineFallbackSymbols) {
+          _localVersion = 0;
+        } else {
+          _localVersion = data['catalog_version'] as int? ?? 0;
+        }
         debugPrint('📦 [CatalogCache] Loaded ${_items.length} cached symbols from disk (v$_localVersion)');
       }
     } catch (e) {
@@ -162,6 +192,9 @@ class CatalogSyncService extends ChangeNotifier {
     // Seed defaults if empty
     if (_items.isEmpty) {
       _seedDefaultCatalog();
+      _localVersion = 0;
+    } else if (_items.length <= maxOfflineFallbackSymbols) {
+      _localVersion = 0;
     }
 
     notifyListeners();
@@ -176,6 +209,7 @@ class CatalogSyncService extends ChangeNotifier {
 
   /// Minimal offline fallback used only when there is no disk cache yet and the server is unreachable.
   void _seedDefaultCatalog() {
+    _localVersion = 0;
     _items = [
       // Top Macro & Global
       CatalogItem(id: 'CPI', symbol: 'CPI', nameEn: 'Consumer Price Index (US CPI)', nameFa: 'شاخص تورم مصرف‌کننده آمریکا (CPI)', category: 'macro', unit: 'pts', source: 'FRED'),
@@ -209,6 +243,7 @@ class CatalogSyncService extends ChangeNotifier {
     _isSyncing = true;
     notifyListeners();
 
+    bool result = false;
     try {
       final baseUrl = ServerAlertService.effectiveBaseUrl;
       final uri = Uri.parse('$baseUrl/api/symbols/catalog').replace(
@@ -225,7 +260,7 @@ class CatalogSyncService extends ChangeNotifier {
         headers['X-API-Key'] = apiKey;
       }
 
-      final response = await http.get(uri, headers: headers).timeout(const Duration(seconds: 10));
+      final response = await _effectiveClient.get(uri, headers: headers).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> body = jsonDecode(utf8.decode(response.bodyBytes));
@@ -233,10 +268,19 @@ class CatalogSyncService extends ChangeNotifier {
         final isDelta = body['is_delta'] == true;
         final newVersion = body['catalog_version'] as int? ?? _localVersion;
         final syncTime = body['last_sync_at'] != null ? DateTime.tryParse(body['last_sync_at'].toString()) : DateTime.now();
+        final totalCount = body['total_count'] as int?;
 
         if (status == 'up_to_date') {
           debugPrint('🔄 [CatalogSync] Catalog is up to date at version $_localVersion');
           _lastSyncAt = syncTime;
+
+          // Self-healing: if count mismatch, perform full resync with since_version=0
+          if (totalCount != null && _items.length != totalCount) {
+            debugPrint('⚠️ [CatalogSync] Total count mismatch in up_to_date (local: ${_items.length}, server: $totalCount). Self-healing with since_version=0...');
+            result = await _fetchFullCatalog(baseUrl, headers);
+          } else {
+            result = true;
+          }
         } else if (isDelta && status == 'delta_success') {
           // Apply Delta Changes
           final added = (body['added'] as List? ?? []).whereType<Map<String, dynamic>>().map((e) => CatalogItem.fromJson(e)).toList();
@@ -263,6 +307,14 @@ class CatalogSyncService extends ChangeNotifier {
           _lastSyncAt = syncTime;
           await _saveToDisk();
           debugPrint('✅ [CatalogSync] Applied delta: +${added.length}, ~${updated.length}, -${delistedSymbols.length}. Version: $_localVersion');
+
+          // Self-healing: if count mismatch after applying delta, perform full resync with since_version=0
+          if (totalCount != null && _items.length != totalCount) {
+            debugPrint('⚠️ [CatalogSync] Total count mismatch in delta_success (local: ${_items.length}, server: $totalCount). Self-healing with since_version=0...');
+            result = await _fetchFullCatalog(baseUrl, headers);
+          } else {
+            result = true;
+          }
         } else {
           // Full catalog received
           final fullList = (body['symbols'] as List? ?? []).whereType<Map<String, dynamic>>().map((e) => CatalogItem.fromJson(e)).toList();
@@ -273,17 +325,50 @@ class CatalogSyncService extends ChangeNotifier {
             await _saveToDisk();
             debugPrint('✅ [CatalogSync] Full catalog refreshed with ${_items.length} symbols. Version: $_localVersion');
           }
+          result = true;
         }
-        _isSyncing = false;
-        notifyListeners();
-        return true;
       }
     } catch (e) {
       debugPrint('⚠️ [CatalogSync] Sync error (using local cache): $e');
+    } finally {
+      _isSyncing = false;
+      notifyListeners();
     }
 
-    _isSyncing = false;
-    notifyListeners();
+    return result;
+  }
+
+  /// Fetches the full catalog with since_version=0 and replaces local items (self-healing)
+  Future<bool> _fetchFullCatalog(String baseUrl, Map<String, String> headers) async {
+    try {
+      final fullUri = Uri.parse('$baseUrl/api/symbols/catalog').replace(
+        queryParameters: {
+          'since_version': '0',
+        },
+      );
+      final response = await _effectiveClient.get(fullUri, headers: headers).timeout(const Duration(seconds: 15));
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> body = jsonDecode(utf8.decode(response.bodyBytes));
+        final newVersion = body['catalog_version'] as int? ?? _localVersion;
+        final syncTime = body['last_sync_at'] != null ? DateTime.tryParse(body['last_sync_at'].toString()) : DateTime.now();
+        final fullList = (body['symbols'] as List? ?? [])
+            .whereType<Map<String, dynamic>>()
+            .map((e) => CatalogItem.fromJson(e))
+            .where((item) => item.isActive)
+            .toList();
+
+        if (fullList.isNotEmpty) {
+          _items = fullList;
+          _localVersion = newVersion;
+          _lastSyncAt = syncTime;
+          await _saveToDisk();
+          debugPrint('🔄 [CatalogSync] Self-healing complete: ${_items.length} symbols replaced (v$_localVersion).');
+          return true;
+        }
+      }
+    } catch (e) {
+      debugPrint('⚠️ [CatalogSync] Self-healing resync error: $e');
+    }
     return false;
   }
 
@@ -369,7 +454,7 @@ class CatalogSyncService extends ChangeNotifier {
         headers['X-API-Key'] = apiKey;
       }
 
-      final response = await http.get(uri, headers: headers).timeout(const Duration(seconds: 6));
+      final response = await _effectiveClient.get(uri, headers: headers).timeout(const Duration(seconds: 6));
       if (response.statusCode == 200) {
         return jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>?;
       }
