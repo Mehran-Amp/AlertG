@@ -8,10 +8,53 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional, Tuple
 
+import app.config as config
 from app.config import (
     DATA_DIR, CATALOG_FILE, CATALOG_SNAPSHOTS_DIR, SYNC_RUNS_FILE,
     APP_VERSION, SYMBOL_RE, CATALOG_SCHEMA_VERSION
 )
+
+WIKIPEDIA_SP500_URL = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
+USER_AGENT = "SignalAlertSeedBot/3.2.0 (contact: admin@signalalert.internal)"
+DELIST_CONSECUTIVE_FAILURES_THRESHOLD = 3
+
+def get_catalog_file() -> str:
+    cfg_cat = getattr(config, "CATALOG_FILE", None)
+    data_dir = getattr(config, "DATA_DIR", ".")
+    if cfg_cat and cfg_cat != "catalog.json":
+        return cfg_cat
+    mod_cat = globals().get("CATALOG_FILE")
+    if mod_cat and mod_cat != "catalog.json":
+        return mod_cat
+    if data_dir and data_dir != ".":
+        return os.path.join(data_dir, "catalog.json")
+    return cfg_cat or mod_cat or "catalog.json"
+
+def get_snapshots_dir() -> str:
+    cfg_snaps = getattr(config, "CATALOG_SNAPSHOTS_DIR", None)
+    data_dir = getattr(config, "DATA_DIR", ".")
+    if cfg_snaps and cfg_snaps != "catalog_snapshots":
+        return cfg_snaps
+    mod_snaps = globals().get("CATALOG_SNAPSHOTS_DIR")
+    if mod_snaps and mod_snaps != "catalog_snapshots":
+        return mod_snaps
+    if data_dir and data_dir != ".":
+        return os.path.join(data_dir, "catalog_snapshots")
+    return cfg_snaps or mod_snaps or "catalog_snapshots"
+
+def get_sync_runs_file(filepath: Optional[str] = None) -> str:
+    if filepath:
+        return filepath
+    cfg_runs = getattr(config, "SYNC_RUNS_FILE", None)
+    data_dir = getattr(config, "DATA_DIR", ".")
+    if cfg_runs and cfg_runs != "sync_runs.json":
+        return cfg_runs
+    mod_runs = globals().get("SYNC_RUNS_FILE")
+    if mod_runs and mod_runs != "sync_runs.json":
+        return mod_runs
+    if data_dir and data_dir != ".":
+        return os.path.join(data_dir, "sync_runs.json")
+    return cfg_runs or mod_runs or "sync_runs.json"
 from app.state import METRICS
 from app.markets.global_stocks import (
     WALLSTREET_MACRO_SYMBOLS,
@@ -76,7 +119,8 @@ def catalog_write_lock():
     fd = None
     try:
         if fcntl is not None:
-            lock_path = f"{CATALOG_FILE}.lock"
+            target_cat = get_catalog_file()
+            lock_path = f"{target_cat}.lock"
             os.makedirs(os.path.dirname(os.path.abspath(lock_path)), exist_ok=True)
             fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
             try:
@@ -121,22 +165,23 @@ def get_initial_catalog_data() -> Dict[str, Any]:
 
 def load_catalog() -> Dict[str, Any]:
     """Loads current catalog from disk or initializes it if missing."""
-    if os.path.exists(CATALOG_FILE):
+    target_cat = get_catalog_file()
+    if os.path.exists(target_cat):
         try:
-            with open(CATALOG_FILE, "r", encoding="utf-8") as f:
+            with open(target_cat, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 if isinstance(data, dict) and "symbols" in data and "catalog_version" in data:
                     file_schema = data.get("schema_version", 1)  # files written before v3.1.0 have no field
                     if isinstance(file_schema, int) and file_schema > CATALOG_SCHEMA_VERSION:
                         raise CatalogSchemaError(
-                            f"{CATALOG_FILE} has schema_version {file_schema} > supported {CATALOG_SCHEMA_VERSION}."
+                            f"{target_cat} has schema_version {file_schema} > supported {CATALOG_SCHEMA_VERSION}."
                         )
                     data.setdefault("schema_version", CATALOG_SCHEMA_VERSION)
                     return data
         except CatalogSchemaError:
             raise  # never reinitialize (overwrite) a file written by a newer version
         except Exception as e:
-            print(f"⚠️ [CatalogSync] Error reading {CATALOG_FILE}: {e}. Reinitializing.")
+            print(f"⚠️ [CatalogSync] Error reading {target_cat}: {e}. Reinitializing.")
 
     initial = get_initial_catalog_data()
     save_catalog(initial)
@@ -145,11 +190,12 @@ def load_catalog() -> Dict[str, Any]:
 
 def save_catalog(catalog: Dict[str, Any]) -> None:
     """Atomically saves catalog to disk using a temporary file and rename."""
-    os.makedirs(os.path.dirname(os.path.abspath(CATALOG_FILE)), exist_ok=True)
-    tmp_path = f"{CATALOG_FILE}.tmp.{time.time()}"
+    target_cat = get_catalog_file()
+    os.makedirs(os.path.dirname(os.path.abspath(target_cat)), exist_ok=True)
+    tmp_path = f"{target_cat}.tmp.{time.time()}"
     with open(tmp_path, "w", encoding="utf-8") as f:
         json.dump(catalog, f, ensure_ascii=False, indent=2)
-    os.replace(tmp_path, CATALOG_FILE)
+    os.replace(tmp_path, target_cat)
 
 
 def save_catalog_snapshot(catalog: Dict[str, Any]) -> str:
@@ -157,11 +203,12 @@ def save_catalog_snapshot(catalog: Dict[str, Any]) -> str:
     Saves a snapshot of current catalog before applying changes.
     Enables guaranteed rollback to previous versions.
     """
-    os.makedirs(CATALOG_SNAPSHOTS_DIR, exist_ok=True)
+    target_dir = get_snapshots_dir()
+    os.makedirs(target_dir, exist_ok=True)
     ver = catalog.get("catalog_version", 1)
     ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     filename = f"snapshot_v{ver}_{ts}.json"
-    snapshot_path = os.path.join(CATALOG_SNAPSHOTS_DIR, filename)
+    snapshot_path = os.path.join(target_dir, filename)
 
     tmp_path = f"{snapshot_path}.tmp"
     with open(tmp_path, "w", encoding="utf-8") as f:
@@ -173,7 +220,7 @@ def save_catalog_snapshot(catalog: Dict[str, Any]) -> str:
 
 def list_catalog_snapshots() -> List[Dict[str, Any]]:
     """Returns sorted list of available snapshots for rollback."""
-    snapshots_dir = CATALOG_SNAPSHOTS_DIR
+    snapshots_dir = get_snapshots_dir()
     if not os.path.exists(snapshots_dir):
         return []
     snapshots = []
@@ -241,7 +288,7 @@ def rollback_catalog(target_version: Optional[int] = None) -> Dict[str, Any]:
 
 def load_sync_runs(filepath: Optional[str] = None) -> Dict[str, Any]:
     """Loads existing sync_runs.json file or initializes structure."""
-    target = filepath or SYNC_RUNS_FILE
+    target = get_sync_runs_file(filepath)
     if os.path.exists(target):
         try:
             with open(target, "r", encoding="utf-8") as f:
@@ -263,7 +310,7 @@ def record_sync_run(run_record: Dict[str, Any], filepath: Optional[str] = None) 
     Atomically appends a new run to sync_runs.json.
     Thread-safe and cross-process safe using temporary file and atomic replace.
     """
-    target = filepath or SYNC_RUNS_FILE
+    target = get_sync_runs_file(filepath)
     os.makedirs(os.path.dirname(os.path.abspath(target)), exist_ok=True)
     history = load_sync_runs(target)
 
@@ -365,23 +412,210 @@ def get_catalog_delta(since_version: Optional[int] = None) -> Dict[str, Any]:
     }
 
 
-# -------------------------------------------------------------------------
-# 2. SEVEN-STAGE PIPELINE: FETCH -> NORMALIZE -> VALIDATE -> DIFF -> PROBE -> DRY-RUN -> APPLY
-# -------------------------------------------------------------------------
-def fetch_candidate_catalog() -> List[Dict[str, Any]]:
+def fetch_sp500_constituents_live() -> List[Dict[str, Any]]:
+    """
+    Live extraction of S&P 500 constituents from Wikipedia with User-Agent and schema validation.
+    Halts and raises CatalogValidationError if table structure or mandatory headers change.
+    """
+    import urllib.request
+    import html
+
+    req = urllib.request.Request(
+        WIKIPEDIA_SP500_URL,
+        headers={"User-Agent": USER_AGENT, "Accept": "text/html,application/xhtml+xml"}
+    )
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        content = resp.read().decode("utf-8")
+
+    # Locate constituents table
+    table_match = re.search(r'<table[^>]*id=["\']constituents["\'][^>]*>(.*?)</table>', content, re.DOTALL | re.IGNORECASE)
+    if not table_match:
+        table_match = re.search(r'<table[^>]*class=["\'][^"\']*wikitable[^"\']*["\'][^>]*>(.*?)</table>', content, re.DOTALL | re.IGNORECASE)
+        if not table_match:
+            raise CatalogValidationError("S&P 500 table not found in Wikipedia HTML response.")
+
+    table_html = table_match.group(1)
+    header_row_match = re.search(r'<tr[^>]*>(.*?)</tr>', table_html, re.DOTALL | re.IGNORECASE)
+    if not header_row_match:
+        raise CatalogValidationError("Could not extract header row from S&P 500 table.")
+
+    header_cells = re.findall(r'<th[^>]*>(.*?)</th>', header_row_match.group(1), re.DOTALL | re.IGNORECASE)
+    clean_headers = [re.sub(r'<[^>]+>', '', h).strip() for h in header_cells]
+
+    expected_mandatory_headers = ["Symbol", "Security"]
+    for expected in expected_mandatory_headers:
+        if not any(expected.lower() in h.lower() for h in clean_headers):
+            raise CatalogValidationError(
+                f"S&P 500 table schema changed! Expected header '{expected}' missing from headers: {clean_headers}. Halting execution."
+            )
+
+    symbol_idx = -1
+    security_idx = -1
+    for idx, h in enumerate(clean_headers):
+        if "symbol" in h.lower() and symbol_idx == -1:
+            symbol_idx = idx
+        elif "security" in h.lower() and security_idx == -1:
+            security_idx = idx
+
+    if symbol_idx == -1 or security_idx == -1:
+        raise CatalogValidationError(f"Unable to resolve Symbol/Security column indices. Headers: {clean_headers}")
+
+    rows = re.findall(r'<tr[^>]*>(.*?)</tr>', table_html, re.DOTALL | re.IGNORECASE)
+    results: List[Dict[str, Any]] = []
+
+    for row_content in rows[1:]:
+        cells = re.findall(r'<td[^>]*>(.*?)</td>', row_content, re.DOTALL | re.IGNORECASE)
+        if len(cells) <= max(symbol_idx, security_idx):
+            continue
+
+        raw_sym = re.sub(r'<[^>]+>', '', cells[symbol_idx]).strip()
+        raw_name = html.unescape(re.sub(r'<[^>]+>', '', cells[security_idx]).strip())
+        if not raw_sym:
+            continue
+
+        sym_id = raw_sym.replace('/', '.')
+        yf_sym = raw_sym.replace('.', '-')
+
+        results.append({
+            "id": sym_id,
+            "symbol": sym_id,
+            "nameEn": raw_name,
+            "nameFa": raw_name,
+            "category": "stock",
+            "marketName": "NYSE" if "." in sym_id else "NASDAQ",
+            "unit": "$",
+            "is_active": 1,
+            "delisted_at": None,
+            "provider_map": {
+                "yahoo": {"symbol": yf_sym, "priority": 1},
+                "finnhub": {"symbol": sym_id, "priority": 2},
+                "twelve_data": {"symbol": sym_id, "priority": 3}
+            },
+            "source": "live_sp500"
+        })
+
+    if len(results) < 400:
+        raise CatalogValidationError(f"Extracted only {len(results)} S&P 500 constituents; expected ~500. Table parsing aborted.")
+
+    return results
+
+
+NASDAQ_TRADER_URL = "http://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt"
+
+
+def fetch_nasdaq_trader_live() -> List[Dict[str, Any]]:
+    """
+    Live extraction of symbols from Nasdaq Trader directory with User-Agent and structural validation.
+    Halts and raises CatalogValidationError if table structure or mandatory headers change.
+    """
+    import urllib.request
+    req = urllib.request.Request(
+        NASDAQ_TRADER_URL,
+        headers={"User-Agent": USER_AGENT, "Accept": "text/plain"}
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            content = resp.read().decode("utf-8", errors="ignore")
+    except Exception as e:
+        print(f"⚠️ [CatalogSync] Nasdaq Trader network access skipped/failed: {e}")
+        return []
+
+    lines = [line.strip() for line in content.splitlines() if line.strip()]
+    if not lines:
+        return []
+
+    header = [h.strip() for h in lines[0].split("|")]
+    if not any("symbol" in h.lower() for h in header) or not any("security" in h.lower() for h in header):
+        raise CatalogValidationError(
+            f"Nasdaq Trader table schema changed! Expected 'Symbol' and 'Security Name', got: {header}. Halting execution."
+        )
+
+    sym_idx = -1
+    sec_idx = -1
+    test_idx = -1
+    for idx, h in enumerate(header):
+        if "symbol" in h.lower() and sym_idx == -1:
+            sym_idx = idx
+        elif "security" in h.lower() and sec_idx == -1:
+            sec_idx = idx
+        elif "test" in h.lower() and test_idx == -1:
+            test_idx = idx
+
+    results: List[Dict[str, Any]] = []
+    for line in lines[1:]:
+        if line.startswith("File Creation Time:"):
+            continue
+        parts = line.split("|")
+        if len(parts) <= max(sym_idx, sec_idx):
+            continue
+        if test_idx != -1 and len(parts) > test_idx and parts[test_idx].strip().upper() == "Y":
+            continue
+
+        raw_sym = parts[sym_idx].strip()
+        raw_name = parts[sec_idx].strip()
+        if not raw_sym or not raw_name:
+            continue
+
+        sym_id = raw_sym.replace('/', '.')
+        yf_sym = raw_sym.replace('.', '-')
+
+        results.append({
+            "id": sym_id,
+            "symbol": sym_id,
+            "nameEn": raw_name,
+            "nameFa": raw_name,
+            "category": "stock",
+            "marketName": "NASDAQ",
+            "unit": "$",
+            "is_active": 1,
+            "delisted_at": None,
+            "provider_map": {
+                "yahoo": {"symbol": yf_sym, "priority": 1},
+                "finnhub": {"symbol": sym_id, "priority": 2},
+                "twelve_data": {"symbol": sym_id, "priority": 3}
+            },
+            "source": "live_nasdaq_trader"
+        })
+
+    return results
+
+
+def fetch_candidate_catalog(include_nasdaq_trader: bool = False) -> List[Dict[str, Any]]:
     """
     Stage 1: FETCH
-    Fetches raw symbols catalog from registered provider adapters.
+    Fetches raw symbols catalog from live sources instead of a static list:
+    - S&P 500 constituents live from Wikipedia with User-Agent & structural validation
+    - Nasdaq Trader files when requested with User-Agent & schema validation (column change -> HALT)
+    - Registered provider adapters (Yahoo, Finnhub, Twelve Data, FRED)
+    - Offline fallback to current catalog symbols if live fetch encounters network timeout
     """
     aggregated: List[Dict[str, Any]] = []
 
-    # 1. Start with current catalog symbols as stable baseline
-    current = load_catalog()
-    for s in current.get("symbols", []):
-        if s.get("is_active", 1):
-            aggregated.append(dict(s))
+    # 1. Live fetch of S&P 500 constituents
+    try:
+        sp500_items = fetch_sp500_constituents_live()
+        if sp500_items:
+            aggregated.extend(sp500_items)
+            print(f"📡 [CatalogSync] Successfully fetched {len(sp500_items)} live S&P 500 constituents.")
+    except CatalogValidationError:
+        # Schema change or column mismatch MUST stop execution
+        raise
+    except Exception as e:
+        print(f"⚠️ [CatalogSync] Live S&P 500 fetch failed: {e}")
 
-    # 2. Gather from adapters
+    # 2. Live fetch of Nasdaq Trader directory (if enabled)
+    if include_nasdaq_trader:
+        try:
+            nasdaq_items = fetch_nasdaq_trader_live()
+            if nasdaq_items:
+                aggregated.extend(nasdaq_items)
+                print(f"📡 [CatalogSync] Successfully fetched {len(nasdaq_items)} live Nasdaq Trader constituents.")
+        except CatalogValidationError:
+            raise
+        except Exception as e:
+            print(f"⚠️ [CatalogSync] Live Nasdaq Trader fetch failed: {e}")
+
+    # 3. Gather from registered adapters
     for adapter in (yahoo_adapter, finnhub_adapter, twelve_data_adapter, fred_adapter):
         try:
             items = adapter.fetch_catalog()
@@ -392,6 +626,13 @@ def fetch_candidate_catalog() -> List[Dict[str, Any]]:
                     aggregated.append(c)
         except Exception as e:
             print(f"⚠️ [CatalogSync] Error fetching from adapter {adapter.name}: {e}")
+
+    # 4. Fallback to current catalog only if all live sources returned empty (offline network fallback)
+    if not aggregated:
+        current = load_catalog()
+        for s in current.get("symbols", []):
+            if s.get("is_active", 1):
+                aggregated.append(dict(s))
 
     return aggregated
 
@@ -539,10 +780,18 @@ def validate_candidate_catalog(items: List[Dict[str, Any]], strict: bool = False
     return list(valid.values())
 
 
-def compute_catalog_diff(current_catalog: Dict[str, Any], candidate_items: List[Dict[str, Any]]) -> Dict[str, Any]:
+def compute_catalog_diff(
+    current_catalog: Dict[str, Any],
+    candidate_items: List[Dict[str, Any]],
+    protect_active_alerts: bool = False,
+    require_consecutive_probe_failures: bool = False,
+    consecutive_failures_threshold: int = DELIST_CONSECUTIVE_FAILURES_THRESHOLD
+) -> Dict[str, Any]:
     """
     Stage 4: DIFF
     Calculates differences: added, modified, delisted, unchanged.
+    - Active alert protection: Symbols with active alerts in ALERTS_DB are never automatically delisted (flagged + admin notified).
+    - Consecutive failure threshold: Symbols require N consecutive failed probe/sync runs before delisting.
     """
     existing_all = {s["symbol"]: s for s in current_catalog.get("symbols", [])}
     existing_active = {s["symbol"]: s for s in current_catalog.get("symbols", []) if s.get("is_active", 1)}
@@ -563,6 +812,9 @@ def compute_catalog_diff(current_catalog: Dict[str, Any], candidate_items: List[
             added.append(cand)
         else:
             old = existing_all[sym]
+            # Reset probe failure counter on active candidate
+            if "consecutive_probe_failures" in old:
+                old["consecutive_probe_failures"] = 0
             # Check if metadata changed
             changed = any(
                 old.get(k) != cand.get(k)
@@ -577,10 +829,31 @@ def compute_catalog_diff(current_catalog: Dict[str, Any], candidate_items: List[
             else:
                 unchanged.append(old)
 
+    active_alert_symbols = {a.symbol.upper().strip() for a in ALERTS_DB if getattr(a, "is_active", True)}
+
     # Check existing active symbols missing in candidates -> DELISTED
     for sym, old in existing_active.items():
         if sym not in candidate_map:
-            delisted.append(old)
+            # 1. Protection for symbols with active alerts: never auto delist, flag and notify admin
+            if protect_active_alerts and sym.upper().strip() in active_alert_symbols:
+                old_copy = dict(old)
+                old_copy["flagged_delist_protected"] = True
+                unchanged.append(old_copy)
+                trigger_admin_safety_alert(f"نماد {sym} دارای هشدار فعال کاربر است و از حذف خودکار جلوگیری شد.")
+                continue
+
+            # 2. Delist only after N consecutive failed probe/sync runs
+            if require_consecutive_probe_failures:
+                failed_count = old.get("consecutive_probe_failures", 0) + 1
+                if failed_count < consecutive_failures_threshold:
+                    old_copy = dict(old)
+                    old_copy["consecutive_probe_failures"] = failed_count
+                    unchanged.append(old_copy)
+                    continue
+                else:
+                    delisted.append(old)
+            else:
+                delisted.append(old)
 
     curr_active_count = len(existing_active)
     delisted_ratio = (len(delisted) / curr_active_count) if curr_active_count > 0 else 0.0
@@ -726,7 +999,8 @@ async def notify_users_and_deactivate_delisted(delisted_symbols: List[str]) -> i
 async def run_weekly_catalog_sync(
     candidate_items: Optional[List[Dict[str, Any]]] = None,
     dry_run: bool = False,
-    ignore_safety: bool = False
+    ignore_safety: bool = False,
+    protect_active_alerts: Optional[bool] = None
 ) -> Dict[str, Any]:
     """
     Executes the 7-stage weekly catalog sync transaction:
@@ -747,8 +1021,14 @@ async def run_weekly_catalog_sync(
 
     current_catalog = load_catalog()
 
-    # Stage 4: DIFF
-    diff = compute_catalog_diff(current_catalog, valid_candidates)
+    # Stage 4: DIFF (protect active alerts and enforce consecutive failures threshold on automated sync)
+    should_protect = protect_active_alerts if protect_active_alerts is not None else (candidate_items is None)
+    diff = compute_catalog_diff(
+        current_catalog,
+        valid_candidates,
+        protect_active_alerts=should_protect,
+        require_consecutive_probe_failures=should_protect
+    )
     stats = diff["stats"]
 
     # Stage 5: PRICE PROBE (probe added symbols)
@@ -868,7 +1148,7 @@ async def _apply_catalog_sync(
         "version_to": new_version,
         "mode": "production",
         "status": "SUCCESS",
-        "target_file": CATALOG_FILE,
+        "target_file": get_catalog_file(),
         "snapshot_path": snapshot_path,
         "total_symbols": len(all_symbols),
         "active_symbols": len(active_symbols),
@@ -881,7 +1161,7 @@ async def _apply_catalog_sync(
             "delisted": [s["symbol"] for s in diff.get("delisted", [])]
         }
     }
-    record_sync_run(run_record)
+    record_sync_run(run_record, filepath=get_sync_runs_file())
     report["run_id"] = run_id
 
     METRICS["catalog_version"] = new_version

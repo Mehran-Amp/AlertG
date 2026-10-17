@@ -2,7 +2,17 @@ import uuid
 import math
 from datetime import datetime, timezone
 from typing import Optional, List
-from fastapi import APIRouter, HTTPException
+try:
+    from fastapi import APIRouter, HTTPException
+except ImportError:
+    class APIRouter:
+        def get(self, *a, **k): return lambda f: f
+        def post(self, *a, **k): return lambda f: f
+        def delete(self, *a, **k): return lambda f: f
+    class HTTPException(Exception):
+        def __init__(self, status_code=500, detail=""):
+            self.status_code = status_code
+            self.detail = detail
 
 from app.config import (
     SYMBOL_RE, EXCHANGE_RE, CHAT_ID_RE,

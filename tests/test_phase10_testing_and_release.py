@@ -280,11 +280,13 @@ class TestPhase10TestingAndRelease(unittest.IsolatedAsyncioTestCase):
         mock_http.get.return_value = mock_response
         state.http_client = mock_http
 
-        with patch('app.engine.checker.enqueue_alert_push') as mock_push:
+        with patch('app.engine.checker.enqueue_alert_push') as mock_push, \
+             patch('app.engine.checker.save_alerts_to_disk_async', new_callable=AsyncMock) as mock_save:
             await check_alerts_job()
             self.assertFalse(alert.is_active)
             self.assertEqual(alert.last_eval_price, 67200.0)
             mock_push.assert_called_once()
+            mock_save.assert_awaited()
 
         ALERTS_DB.remove(alert)
 

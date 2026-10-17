@@ -201,14 +201,35 @@ class TestCompare(unittest.TestCase):
 class TestCatalogIntegrity(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         import app.engine.sync as sync_module
+        import app.config as config
         self.sync = sync_module
+        import app.storage as storage
         self.tmp = tempfile.mkdtemp()
-        self.orig = (sync_module.CATALOG_FILE, sync_module.CATALOG_SNAPSHOTS_DIR)
-        sync_module.CATALOG_FILE = os.path.join(self.tmp, "catalog.json")
-        sync_module.CATALOG_SNAPSHOTS_DIR = os.path.join(self.tmp, "catalog_snapshots")
+        self.orig_sync = (sync_module.CATALOG_FILE, sync_module.CATALOG_SNAPSHOTS_DIR, getattr(sync_module, "SYNC_RUNS_FILE", None))
+        self.orig_cfg = (config.CATALOG_FILE, config.CATALOG_SNAPSHOTS_DIR, config.SYNC_RUNS_FILE, config.DATA_DIR, getattr(config, "ALERTS_DATA_FILE", None))
+        self.orig_db = getattr(storage, "DB_FILE", None)
+
+        test_cat = os.path.join(self.tmp, "catalog.json")
+        test_snaps = os.path.join(self.tmp, "catalog_snapshots")
+        test_runs = os.path.join(self.tmp, "sync_runs.json")
+        test_db = os.path.join(self.tmp, "alerts_data.json")
+
+        sync_module.CATALOG_FILE = test_cat
+        sync_module.CATALOG_SNAPSHOTS_DIR = test_snaps
+        sync_module.SYNC_RUNS_FILE = test_runs
+        config.CATALOG_FILE = test_cat
+        config.CATALOG_SNAPSHOTS_DIR = test_snaps
+        config.SYNC_RUNS_FILE = test_runs
+        config.ALERTS_DATA_FILE = test_db
+        config.DATA_DIR = self.tmp
+        storage.DB_FILE = test_db
 
     def tearDown(self):
-        self.sync.CATALOG_FILE, self.sync.CATALOG_SNAPSHOTS_DIR = self.orig
+        import app.config as config
+        import app.storage as storage
+        self.sync.CATALOG_FILE, self.sync.CATALOG_SNAPSHOTS_DIR, self.sync.SYNC_RUNS_FILE = self.orig_sync
+        config.CATALOG_FILE, config.CATALOG_SNAPSHOTS_DIR, config.SYNC_RUNS_FILE, config.DATA_DIR, config.ALERTS_DATA_FILE = self.orig_cfg
+        storage.DB_FILE = self.orig_db
         shutil.rmtree(self.tmp, ignore_errors=True)
 
     def _seed(self, **extra):

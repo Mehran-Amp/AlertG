@@ -78,11 +78,13 @@ except Exception:
                 class JSONResponse:
                     def __init__(self, content=None, status_code=200, headers=None, **kwargs):
                         self.content = json.dumps(content).encode('utf-8') if isinstance(content, (dict, list)) else (content or b'')
+                        self.body = self.content
                         self.status_code = status_code
                         self.headers = headers or {}
                 class Response:
                     def __init__(self, content=b'', status_code=200, headers=None, media_type=None, **kwargs):
                         self.content = content if isinstance(content, bytes) else str(content).encode('utf-8')
+                        self.body = self.content
                         self.status_code = status_code
                         self.headers = headers or {}
                 m.JSONResponse = JSONResponse

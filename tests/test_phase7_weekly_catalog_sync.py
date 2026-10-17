@@ -32,6 +32,7 @@ import shutil
 
 from app.models import Alert
 from app.config import DATA_DIR, CATALOG_FILE, CATALOG_SNAPSHOTS_DIR, APP_VERSION
+import app.config as config
 import app.storage as storage
 import app.state as state
 from app.state import METRICS
@@ -76,9 +77,22 @@ class TestPhase7WeeklyCatalogSync(unittest.IsolatedAsyncioTestCase):
         self.orig_cat_file = sync_module.CATALOG_FILE
         self.orig_snap_dir = sync_module.CATALOG_SNAPSHOTS_DIR
         self.orig_sync_runs = sync_module.SYNC_RUNS_FILE
+        self.orig_cfg_cat = getattr(config, "CATALOG_FILE", None)
+        self.orig_cfg_snap = getattr(config, "CATALOG_SNAPSHOTS_DIR", None)
+        self.orig_cfg_runs = getattr(config, "SYNC_RUNS_FILE", None)
+        self.orig_cfg_db = getattr(config, "ALERTS_DATA_FILE", None)
+        self.orig_cfg_data = getattr(config, "DATA_DIR", None)
+        self.orig_storage_db = getattr(storage, "DB_FILE", None)
+
         sync_module.CATALOG_FILE = self.test_cat_file
         sync_module.CATALOG_SNAPSHOTS_DIR = self.test_snap_dir
         sync_module.SYNC_RUNS_FILE = os.path.join(self.test_dir, "sync_runs.json")
+        config.CATALOG_FILE = self.test_cat_file
+        config.CATALOG_SNAPSHOTS_DIR = self.test_snap_dir
+        config.SYNC_RUNS_FILE = os.path.join(self.test_dir, "sync_runs.json")
+        config.ALERTS_DATA_FILE = os.path.join(self.test_dir, "alerts_data.json")
+        config.DATA_DIR = self.test_dir
+        storage.DB_FILE = os.path.join(self.test_dir, "alerts_data.json")
 
         self.orig_alerts = list(storage.ALERTS_DB)
         storage.ALERTS_DB.clear()
@@ -114,6 +128,12 @@ class TestPhase7WeeklyCatalogSync(unittest.IsolatedAsyncioTestCase):
         sync_module.CATALOG_FILE = self.orig_cat_file
         sync_module.CATALOG_SNAPSHOTS_DIR = self.orig_snap_dir
         sync_module.SYNC_RUNS_FILE = self.orig_sync_runs
+        config.CATALOG_FILE = self.orig_cfg_cat
+        config.CATALOG_SNAPSHOTS_DIR = self.orig_cfg_snap
+        config.SYNC_RUNS_FILE = self.orig_cfg_runs
+        config.ALERTS_DATA_FILE = self.orig_cfg_db
+        config.DATA_DIR = self.orig_cfg_data
+        storage.DB_FILE = self.orig_storage_db
         storage.ALERTS_DB.clear()
         storage.ALERTS_DB.extend(self.orig_alerts)
         if os.path.exists(self.test_dir):

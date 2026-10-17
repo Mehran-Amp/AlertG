@@ -130,16 +130,22 @@ class TestDataIsolation(unittest.TestCase):
                 "import app.markets.global_stocks as gs\n"
                 "chk.is_market_open = lambda *a, **k: True\n"
                 "mock_prices = [1.1900, 1.2100]\n"
-                "def next_price():\n"
-                "    return mock_prices[0] if len(mock_prices) == 1 else mock_prices.pop(0)\n"
+                "call_index = 0\n"
+                "base_ts = int(time.time())\n"
+                "def next_sample():\n"
+                "    global call_index\n"
+                "    p = mock_prices[0] if len(mock_prices) == 1 else mock_prices.pop(0)\n"
+                "    ts = base_ts + call_index\n"
+                "    call_index += 1\n"
+                "    return p, ts\n"
                 "async def mock_fetch(*a, **k):\n"
-                "    p = next_price()\n"
-                "    return p, [{'success': True, 'parsed_price': p, 'state': 'REGULAR', 'currency': 'USD', 'asOf': int(time.time()), 'source': 'mock_provider'}]\n"
+                "    p, ts = next_sample()\n"
+                "    return p, [{'success': True, 'parsed_price': p, 'state': 'REGULAR', 'currency': 'USD', 'asOf': ts, 'source': 'mock_provider'}]\n"
                 "chk.fetch_price_with_trace = mock_fetch\n"
                 "mb.fetch_price_with_trace = mock_fetch\n"
                 "async def mock_quote(sym, client=None):\n"
-                "    p = next_price()\n"
-                "    return {'price': p, 'currency': 'USD', 'market_state': 'REGULAR', 'timestamp': int(time.time()), 'source': 'mock_provider'}\n"
+                "    p, ts = next_sample()\n"
+                "    return {'price': p, 'currency': 'USD', 'market_state': 'REGULAR', 'timestamp': ts, 'asOf': ts, 'source': 'mock_provider'}\n"
                 "gs.yahoo_adapter.fetch_quote = mock_quote\n"
                 "class DummyClient:\n"
                 "    async def get(self, *a, **k):\n"
@@ -173,8 +179,11 @@ class TestDataIsolation(unittest.TestCase):
             ) % (SCRIPTS, ROOT, ROOT)
             env = {k: v for k, v in os.environ.items() if k not in ("DATA_DIR", common.ISOLATION_ENV_FLAG)}
             res = subprocess.run([sys.executable, "-c", code], cwd=folder, env=env, capture_output=True, text=True, timeout=90)
-            self.assertEqual(res.returncode, 0, res.stdout + res.stderr)
-            self.assertIn("[TRIGGER]", res.stdout, "price must cross the target so the persistence path is exercised")
+            if res.returncode != 0 or "[TRIGGER]" not in res.stdout:
+                print("--- SUBPROCESS STDOUT ---\n", res.stdout)
+                print("--- SUBPROCESS STDERR ---\n", res.stderr)
+            self.assertEqual(res.returncode, 0, f"Subprocess failed:\nSTDOUT:\n{res.stdout}\nSTDERR:\n{res.stderr}")
+            self.assertIn("[TRIGGER]", res.stdout, f"price must cross the target so the persistence path is exercised.\nSTDOUT:\n{res.stdout}\nSTDERR:\n{res.stderr}")
             self.assertIn("DB_EXISTS True True", res.stdout)
             self._assert_untouched(folder, files)
 

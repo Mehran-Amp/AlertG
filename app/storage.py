@@ -3,12 +3,36 @@ import os
 import json
 import asyncio
 from typing import Optional, List, Dict, Any
-from app.config import DATA_DIR
+import app.config as config
 from app.models import Alert
 from app.state import _db_lock, _prof_lock
 
-DB_FILE = os.path.join(DATA_DIR, "alerts_data.json") if DATA_DIR != "." else "alerts_data.json"
-PROFILES_FILE = os.path.join(DATA_DIR, "user_profiles.json") if DATA_DIR != "." else "user_profiles.json"
+def get_db_file() -> str:
+    cfg_db = getattr(config, "ALERTS_DATA_FILE", None) or getattr(config, "DB_FILE", None)
+    data_dir = getattr(config, "DATA_DIR", ".")
+    if cfg_db and cfg_db != "alerts_data.json":
+        return cfg_db
+    mod_db = globals().get("DB_FILE")
+    if mod_db and mod_db != "alerts_data.json":
+        return mod_db
+    if data_dir and data_dir != ".":
+        return os.path.join(data_dir, "alerts_data.json")
+    return cfg_db or mod_db or "alerts_data.json"
+
+def get_profiles_file() -> str:
+    cfg_prof = getattr(config, "USER_PROFILES_FILE", None) or getattr(config, "PROFILES_FILE", None)
+    data_dir = getattr(config, "DATA_DIR", ".")
+    if cfg_prof and cfg_prof != "user_profiles.json":
+        return cfg_prof
+    mod_prof = globals().get("PROFILES_FILE")
+    if mod_prof and mod_prof != "user_profiles.json":
+        return mod_prof
+    if data_dir and data_dir != ".":
+        return os.path.join(data_dir, "user_profiles.json")
+    return cfg_prof or mod_prof or "user_profiles.json"
+
+DB_FILE = get_db_file()
+PROFILES_FILE = get_profiles_file()
 
 def has_perso_arabic(s: str) -> bool:
     """Checks if a string contains valid Persian or Arabic characters."""
@@ -58,8 +82,9 @@ def repair_mojibake(s: Optional[str]) -> Optional[str]:
     return current
 
 def load_alerts_from_disk() -> List[Alert]:
-    targets = [DB_FILE]
-    fallback = os.path.join(DATA_DIR, "alerts.json") if DATA_DIR != "." else "alerts.json"
+    eff_db = get_db_file()
+    targets = [eff_db]
+    fallback = os.path.join(config.DATA_DIR, "alerts.json") if config.DATA_DIR != "." else "alerts.json"
     if fallback not in targets:
         targets.append(fallback)
 
@@ -141,13 +166,14 @@ async def save_alerts_to_disk_async(alerts: List[Alert]):
             data = [a.model_dump() if hasattr(a, 'model_dump') else a.dict() for a in alerts]
         json_str = json.dumps(data, ensure_ascii=False, indent=2)
 
+        target_db = get_db_file()
         def _write():
-            tmp_file = f"{DB_FILE}.tmp"
+            tmp_file = f"{target_db}.tmp"
             with open(tmp_file, "w", encoding="utf-8") as f:
                 f.write(json_str)
                 f.flush()
                 os.fsync(f.fileno())
-            os.replace(tmp_file, DB_FILE)
+            os.replace(tmp_file, target_db)
 
         await loop.run_in_executor(None, _write)
     except Exception as e:
@@ -156,9 +182,10 @@ async def save_alerts_to_disk_async(alerts: List[Alert]):
 ALERTS_DB: List[Alert] = load_alerts_from_disk()
 
 def load_user_profiles_from_disk() -> Dict[str, Dict[str, Any]]:
-    if os.path.exists(PROFILES_FILE):
+    eff_prof = get_profiles_file()
+    if os.path.exists(eff_prof):
         try:
-            with open(PROFILES_FILE, "r", encoding="utf-8") as f:
+            with open(eff_prof, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception as e:
             print(f"⚠️ Error loading user profiles disk DB: {e}")
@@ -171,13 +198,14 @@ async def save_user_profiles_to_disk_async(profiles: Dict[str, Dict[str, Any]]):
             prof_copy = dict(profiles)
         json_str = json.dumps(prof_copy, ensure_ascii=False, indent=2)
 
+        target_prof = get_profiles_file()
         def _write():
-            tmp_file = f"{PROFILES_FILE}.tmp"
+            tmp_file = f"{target_prof}.tmp"
             with open(tmp_file, "w", encoding="utf-8") as f:
                 f.write(json_str)
                 f.flush()
                 os.fsync(f.fileno())
-            os.replace(tmp_file, PROFILES_FILE)
+            os.replace(tmp_file, target_prof)
 
         await loop.run_in_executor(None, _write)
     except Exception as e:
