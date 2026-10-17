@@ -53,7 +53,7 @@ for mod in [
 import app.storage as storage
 from app.models import Alert, UserTelegramUpdateRequest, AlertCreate
 from app.routes.user import get_user_telegram_status, update_user_telegram_status
-from app.routes.alerts import create_alert, get_user_alerts
+from app.routes.alerts import create_alert, get_user_alerts, claim_guest_alerts
 import app.state as state
 
 
@@ -173,6 +173,88 @@ class TestTelegramUserIsolation(unittest.IsolatedAsyncioTestCase):
         if prof_b:
             self.assertIsNone(prof_b.get("telegram_chat_id"))
             self.assertFalse(prof_b.get("is_connected", False))
+
+    async def test_prefix_fcm_token_does_not_leak_alerts(self):
+        """Two users with tokens where one is a prefix of the other must NEVER see each other's alerts."""
+        token_short = "device_token_abc"
+        token_long = "device_token_abcdef"
+
+        storage.ALERTS_DB.append(Alert(
+            id="alert_short_token",
+            user_id="user_default",
+            symbol="BTCUSDT",
+            exchange="binance",
+            target_price=65000.0,
+            condition="ABOVE",
+            is_active=True,
+            fcm_token=token_short
+        ))
+        storage.ALERTS_DB.append(Alert(
+            id="alert_long_token",
+            user_id="user_default",
+            symbol="ETHUSDT",
+            exchange="binance",
+            target_price=3500.0,
+            condition="ABOVE",
+            is_active=True,
+            fcm_token=token_long
+        ))
+
+        # Query with short token -> must only return short token alert
+        res_short = await get_user_alerts("user_default", fcm_token=token_short)
+        self.assertEqual(len(res_short), 1)
+        self.assertEqual(res_short[0].id, "alert_short_token")
+        self.assertEqual(res_short[0].symbol, "BTCUSDT")
+
+        # Query with long token -> must only return long token alert
+        res_long = await get_user_alerts("user_default", fcm_token=token_long)
+        self.assertEqual(len(res_long), 1)
+        self.assertEqual(res_long[0].id, "alert_long_token")
+        self.assertEqual(res_long[0].symbol, "ETHUSDT")
+
+    async def test_new_user_does_not_adopt_orphan_or_mismatched_alerts(self):
+        """A new user querying GET /alerts must NEVER inherit orphan alerts or alerts without fcm_token."""
+        # Orphan alert without fcm_token
+        storage.ALERTS_DB.append(Alert(
+            id="orphan_alert_1",
+            user_id="user_default",
+            symbol="XAUUSD",
+            exchange="forex",
+            target_price=2600.0,
+            condition="ABOVE",
+            is_active=True,
+            fcm_token=None
+        ))
+        # Another user_default alert for a different device
+        storage.ALERTS_DB.append(Alert(
+            id="other_device_alert",
+            user_id="user_default",
+            symbol="TSLA",
+            exchange="global_stocks",
+            target_price=250.0,
+            condition="ABOVE",
+            is_active=True,
+            fcm_token="device_token_other_device"
+        ))
+
+        # New user logs in from a new device
+        new_uid = "user_brand_new"
+        new_fcm = "device_token_new_user_device"
+
+        # GET /alerts/user_brand_new
+        user_alerts = await get_user_alerts(new_uid, fcm_token=new_fcm)
+        self.assertEqual(len(user_alerts), 0, "New user must not receive any orphan or other device alerts")
+
+        # Check ownership of the alerts in DB: must still belong to user_default!
+        orphan = next(a for a in storage.ALERTS_DB if a.id == "orphan_alert_1")
+        self.assertEqual(orphan.user_id, "user_default")
+        other = next(a for a in storage.ALERTS_DB if a.id == "other_device_alert")
+        self.assertEqual(other.user_id, "user_default")
+
+        # Even with explicit claim attempt, orphan alert without token is NEVER claimed
+        claim_res = await claim_guest_alerts({"user_id": new_uid, "fcm_token": new_fcm})
+        self.assertEqual(claim_res["claimed_count"], 0)
+        self.assertEqual(orphan.user_id, "user_default")
 
 
 if __name__ == "__main__":

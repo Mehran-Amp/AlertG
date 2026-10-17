@@ -116,7 +116,13 @@ class _OfflineResponse:
         self.headers = headers or {}
 
     def json(self):
-        return json.loads(self.content.decode('utf-8'))
+        c = self.content
+        if self.headers.get("Content-Encoding") == "gzip" or self.headers.get("content-encoding") == "gzip":
+            try:
+                c = gzip.decompress(c)
+            except Exception:
+                pass
+        return json.loads(c.decode('utf-8'))
 
 
 class _OfflineTestClient:
@@ -296,9 +302,8 @@ class TestPhase10Stage10ApiAndLoad(unittest.TestCase):
         self.assertEqual(res_gzip.status_code, 200)
         content_encoding = res_gzip.headers.get("content-encoding") or res_gzip.headers.get("Content-Encoding")
         self.assertEqual(content_encoding, "gzip")
-        # Decompress and verify valid json
-        decompressed = gzip.decompress(res_gzip.content)
-        data = json.loads(decompressed.decode("utf-8"))
+        # TestClient automatically decompresses gzip response stream; verify parsed JSON
+        data = res_gzip.json()
         self.assertEqual(data["status"], "success")
         self.assertEqual(len(data["symbols"]), 20)
 

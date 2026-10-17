@@ -302,21 +302,18 @@ async def get_user_alerts(user_id: str, fcm_token: Optional[str] = None):
             is_match = False
             # 1. Exact or lowercase user_id match
             if clean_uid and a_uid == clean_uid:
-                is_match = True
-            # 2. Matching device FCM token
-            elif clean_fcm and a_fcm and (a_fcm == clean_fcm or clean_fcm.startswith(a_fcm) or a_fcm.startswith(clean_fcm)):
-                is_match = True
-            # 3. If user is logging in from guest mode on the same device, adopt alerts
-            elif clean_uid and clean_uid != 'user_default' and (a_uid == 'user_default' or not a_uid):
-                if clean_fcm and a_fcm and a_fcm == clean_fcm:
+                if clean_uid == 'user_default':
+                    # Guest users must strictly match exact device FCM token
+                    if clean_fcm and a_fcm and a_fcm == clean_fcm:
+                        is_match = True
+                else:
                     is_match = True
-                elif not a_fcm or a_fcm.startswith('dev_'):
-                    is_match = True
+            # 2. Guest user query with exact device FCM token (never startswith)
+            elif clean_uid == 'user_default' and clean_fcm and a_fcm and a_fcm == clean_fcm:
+                is_match = True
 
             if is_match and a.id not in seen_ids:
                 seen_ids.add(a.id)
-                if clean_uid and clean_uid != 'user_default' and (a_uid == 'user_default' or not a_uid):
-                    a.user_id = clean_uid
                 results.append(a)
 
         # Ensure user profile has telegram_chat_id populated only if found on this user's own alerts
@@ -333,6 +330,35 @@ async def get_user_alerts(user_id: str, fcm_token: Optional[str] = None):
                 await save_alerts_to_disk_async(storage.ALERTS_DB)
 
     return results
+ 
+@router.post("/api/alerts/claim", dependencies=API_DEP)
+@router.post("/alerts/claim", dependencies=API_DEP)
+async def claim_guest_alerts(payload: dict):
+    """
+    Explicitly claims guest alerts belonging to 'user_default' for the caller's user_id,
+    requiring strict, exact match of the device FCM token.
+    Alerts without an FCM token or with mismatched tokens are NEVER transferred.
+    """
+    target_uid = str(payload.get("user_id") or "").strip().lower()
+    clean_fcm = str(payload.get("fcm_token") or "").strip()
+
+    if not target_uid or target_uid == "user_default" or not clean_fcm or len(clean_fcm) < 5:
+        raise HTTPException(status_code=400, detail="Valid target user_id and exact fcm_token required.")
+
+    claimed_count = 0
+    async with _db_lock:
+        for a in storage.ALERTS_DB:
+            a_uid = (a.user_id or "").strip().lower()
+            a_fcm = (a.fcm_token or "").strip()
+            # Strictly match exact device FCM token AND user_default ownership
+            if a_uid == "user_default" and a_fcm and a_fcm == clean_fcm:
+                a.user_id = target_uid
+                claimed_count += 1
+
+        if claimed_count > 0:
+            await save_alerts_to_disk_async(storage.ALERTS_DB)
+
+    return {"status": "success", "claimed_count": claimed_count}
 
 @router.delete("/api/alerts/{alert_id}", dependencies=API_DEP)
 @router.delete("/alerts/{alert_id}", dependencies=API_DEP)

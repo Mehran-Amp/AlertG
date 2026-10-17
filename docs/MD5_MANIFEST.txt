@@ -26,7 +26,7 @@ a1720968af9805dcd47dde74eec0575e  app/notifier/fcm.py
 915361d79aa2696d68fbf202f27eaa61  app/notifier/webhook.py
 db0ae3fb9a3c9a91e0d3abf7fc7ba52c  app/routes/__init__.py
 97697cb51fb5efb6d0ee82dd4f97452f  app/routes/admin.py
-105b69c1cbc41fc99bb73ae506737d28  app/routes/alerts.py
+082f99266587078b90bc9a43acf13cb2  app/routes/alerts.py
 11aef84d291c7cddd4a9870ed4502803  app/routes/prices.py
 a944c725edbba57416659849aaac7cc7  app/routes/symbols.py
 075ffe1d02ec099b299117364747220c  app/routes/telegram.py
@@ -150,7 +150,7 @@ fec96050d5869dac1be57f9560d9bd52  scripts/soak_test_48h.py
 7e921b29d6eff58ba2e2840770c44c48  scripts/validate_catalog_offline.py
 f150293f1c74f6050b34a296dd4ecdce  scripts/verify_alerts_real_data.py
 7abf91a77819dd93f26b41f140409ff6  server.py
-810e7a1645af6d2d1f44034a0367758c  tests/test_phase10_stage10_api_and_load.py
+708637b2271fb4bc86f6a7782d21a18e  tests/test_phase10_stage10_api_and_load.py
 269237f762fc79b26f1ea063fda2c2ae  tests/test_phase10_testing_and_release.py
 90bae8f486134a9a4618971fedea1535  tests/test_phase2_global_stocks.py
 4aec10d31302c3676cc57ab52ff818fe  tests/test_phase3_baseline_and_catalog.py
@@ -172,4 +172,4 @@ a89c861c2a79460c3d472c75d43695ff  tests/test_phase7_iran_market_separation.py
 c79dca002b30312b34e530180dfe5920  tests/test_phase9_observability.py
 de1fc0ed64115088dc8101dd10cc3524  tests/test_server_phase1.py
 fdd6ab077461881461a1043986336a03  tests/test_stage_soak_safety.py
-3b90e05d00fc998ae1798c05319d008a  tests/test_user_telegram_isolation.py
+23d5656e5c8f7e11939bd1667415d209  tests/test_user_telegram_isolation.py
