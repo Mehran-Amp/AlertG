@@ -115,6 +115,16 @@ class ServerAlertService {
   /// Get current API key
   static String get apiKey => _apiKey;
 
+  @visibleForTesting
+  static void setApiKeyForTesting(String key) {
+    _apiKey = key;
+  }
+
+  @visibleForTesting
+  static void setBaseUrlForTesting(String url) {
+    _baseUrl = url;
+  }
+
   /// Helper to handle response status codes with friendly Iranian error messages
   static String _parseErrorMessage(http.Response response) {
     if (response.statusCode == 401) {
@@ -250,6 +260,65 @@ class ServerAlertService {
       debugPrint('Sync with server error: $e');
       return false;
     }
+  }
+
+  /// Explicitly claims guest alerts belonging to 'user_default' for the logged-in user on this device.
+  /// Resulting claimed_count is logged and returned. Any error is gracefully caught and never disrupts sign-in.
+  static Future<int> claimGuestAlerts({
+    required String userId,
+    String? fcmToken,
+    String? apiKey,
+    http.Client? client,
+  }) async {
+    final cleanUid = userId.trim().toLowerCase();
+    if (cleanUid.isEmpty || cleanUid == 'user_default') return 0;
+
+    try {
+      final token = (fcmToken != null && fcmToken.isNotEmpty)
+          ? fcmToken
+          : await FCMNotificationService.getFCMToken();
+
+      if (token.isEmpty) {
+        debugPrint('ℹ️ [ClaimAlerts] No device FCM token available to claim guest alerts.');
+        return 0;
+      }
+
+      final url = Uri.parse('$effectiveBaseUrl/api/alerts/claim');
+      final payload = jsonEncode({
+        'user_id': cleanUid,
+        'fcm_token': token,
+      });
+
+      final effectiveClient = client ?? http.Client();
+      try {
+        final headers = _buildHeaders(extra: {
+          if (apiKey != null && apiKey.isNotEmpty) 'X-API-Key': apiKey,
+        });
+        final response = await effectiveClient.post(
+          url,
+          headers: headers,
+          body: payload,
+        ).timeout(const Duration(seconds: 8));
+
+        if (response.statusCode == 200) {
+          final dynamic data = jsonDecode(utf8.decode(response.bodyBytes));
+          final claimedCount = (data is Map && data['claimed_count'] is num)
+              ? (data['claimed_count'] as num).toInt()
+              : 0;
+          debugPrint('🎉 [ClaimAlerts] Claimed $claimedCount guest alert(s) for $cleanUid');
+          return claimedCount;
+        } else {
+          debugPrint('⚠️ [ClaimAlerts] Claim failed HTTP ${response.statusCode}: ${response.body}');
+        }
+      } finally {
+        if (client == null) {
+          effectiveClient.close();
+        }
+      }
+    } catch (e) {
+      debugPrint('⚠️ [ClaimAlerts] Non-fatal error claiming guest alerts: $e');
+    }
+    return 0;
   }
 
   /// Restores user alerts from cloud server when signing in or reinstalling app

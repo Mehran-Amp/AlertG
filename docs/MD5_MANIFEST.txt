@@ -41,9 +41,9 @@ bfe9bfe68a0ba8d084a06c20f94b734c  app/routes/user.py
 fb928d76f71d3b547b5311278d19201c  lib/core/services/asset_naming_service.dart
 cd09d055a43e256272fafb00c030c379  lib/core/services/catalog_sync_service.dart
 83ea4cfd89ac8e2f03f2dc1a070c4735  lib/core/services/fcm_notification_service.dart
-48d8ee01079b21e9ec654b10836f22f2  lib/core/services/google_auth_service.dart
+b107de1d5a4f5ddd51cd08b3d93f96ac  lib/core/services/google_auth_service.dart
 9d2be8f60aa9e5405191fa4376836ee0  lib/core/services/native_widget_sync_service.dart
-a4fb52bc1ce2c74fe0a418eaa4d785f9  lib/core/services/server_alert_service.dart
+916ebc0184c23d3902b957c2efb36bf4  lib/core/services/server_alert_service.dart
 5ac5dc6194526d2d269ce3687be8e17c  lib/core/services/tts_service.dart
 08974d8da9a730d006bcf1ff5fba79f5  lib/core/theme/tokens.dart
 b691c1c6b704029fcde3c6bb6b0bbbd8  lib/core/utils/app_lifecycle_helper.dart
@@ -171,5 +171,5 @@ a89c861c2a79460c3d472c75d43695ff  tests/test_phase7_iran_market_separation.py
 144696bc623b6de7dbf03aa400899d7f  tests/test_phase8_apply_catalog.py
 c79dca002b30312b34e530180dfe5920  tests/test_phase9_observability.py
 de1fc0ed64115088dc8101dd10cc3524  tests/test_server_phase1.py
-fdd6ab077461881461a1043986336a03  tests/test_stage_soak_safety.py
+21347c8df764f906662a05172b2f0c8a  tests/test_stage_soak_safety.py
 23d5656e5c8f7e11939bd1667415d209  tests/test_user_telegram_isolation.py

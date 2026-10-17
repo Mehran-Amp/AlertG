@@ -7,6 +7,7 @@ import '../../features/alert_engine/bloc/alert_rules_bloc.dart';
 import '../../features/alert_engine/bloc/alert_rules_event.dart';
 import '../../features/alert_engine/repositories/json_alert_rule_repository.dart';
 import '../../features/settings/services/settings_service.dart';
+import 'fcm_notification_service.dart';
 import 'server_alert_service.dart';
 
 /// Service managing optional Google Account Authentication and Cloud Sync preparation.
@@ -170,10 +171,7 @@ class GoogleAuthService {
           } catch (_) {}
         }
 
-        // Fallback C: Default to official bot handle so user does not need to reconnect manually
-        targetChatId ??= '@aegkalair_bot';
-
-        if (targetChatId.isNotEmpty) {
+        if (targetChatId != null && targetChatId.isNotEmpty) {
           await settingsService.setTelegramChatId(targetChatId);
           debugPrint('📱 [Cloud Sync] Restored active Telegram Chat ID: $targetChatId');
         }
@@ -181,21 +179,34 @@ class GoogleAuthService {
         debugPrint('⚠️ Error fetching Telegram status on sign in: $e');
       }
 
-      // 2. Restore any existing cloud alerts from user's account
+      // 2. Explicitly claim any guest alerts created on this device under 'user_default'
+      int claimedCount = 0;
+      try {
+        final fcmToken = await FCMNotificationService.getFCMToken();
+        claimedCount = await ServerAlertService.claimGuestAlerts(
+          userId: userEmail,
+          fcmToken: fcmToken,
+        );
+        debugPrint('🎉 [GoogleAuth] Claimed $claimedCount guest alert(s) for $userEmail');
+      } catch (e) {
+        debugPrint('⚠️ Error claiming guest alerts on sign in: $e');
+      }
+
+      // 3. Restore all cloud alerts from user's account (including newly claimed alerts)
       final restoredCount = await ServerAlertService.restoreUserAlertsFromCloud(
         context: context,
         userEmail: userEmail,
       );
 
       // Check if restored alerts or persistent file gave us the active Telegram Chat ID
-      if (settingsService.settings.telegramChatId == null || settingsService.settings.telegramChatId!.isEmpty || settingsService.settings.telegramChatId == '@aegkalair_bot') {
+      if (settingsService.settings.telegramChatId == null || settingsService.settings.telegramChatId!.isEmpty) {
         try {
           final dir = await getApplicationDocumentsDirectory();
           final profFile = File('${dir.path}/account_profile_${userEmail.trim().toLowerCase()}.json');
           if (await profFile.exists()) {
             final profData = jsonDecode(await profFile.readAsString());
             final cId = (profData['telegram_chat_id'] as String?)?.trim();
-            if (cId != null && cId.isNotEmpty && cId != '@aegkalair_bot') {
+            if (cId != null && cId.isNotEmpty) {
               await settingsService.setTelegramChatId(cId);
               debugPrint('📱 [Cloud Sync] Restored active Telegram Chat ID from profile: $cId');
             }
@@ -203,7 +214,7 @@ class GoogleAuthService {
         } catch (_) {}
       }
 
-      // 3. If there were local guest alerts before sign-in, merge them with the cloud account
+      // 4. If there were local guest alerts before sign-in, merge them with the cloud account
       try {
         final repo = context.read<JsonAlertRuleRepository>();
         if (repo.allRules.isNotEmpty) {
@@ -216,12 +227,13 @@ class GoogleAuthService {
           context.read<AlertRulesBloc>().add(const LoadAlertRules());
         } catch (_) {}
 
-        if (restoredCount > 0) {
+        final totalAlerts = restoredCount + claimedCount;
+        if (totalAlerts > 0) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(isFa
-                  ? '☁️ $restoredCount هشدار ابری شما با موفقیت بازیابی و فعال شدند.'
-                  : '☁️ Successfully restored $restoredCount cloud alert(s).'),
+                  ? '☁️ $totalAlerts هشدار با موفقیت بازیابی و به حساب شما منتقل شدند.'
+                  : '☁️ Successfully restored $totalAlerts alert(s) to your account.'),
               behavior: SnackBarBehavior.floating,
               backgroundColor: theme.colorScheme.primary,
             ),
