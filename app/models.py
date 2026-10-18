@@ -99,6 +99,12 @@ class AlertPublic(BaseModel):
 class UserTelegramUpdateRequest(BaseModel):
     chat_id: Optional[str] = None
     is_connected: bool = True
+    events_notification_enabled: Optional[bool] = None
+    events_telegram_enabled: Optional[bool] = None
+    events_crypto_enabled: Optional[bool] = None
+    events_macro_enabled: Optional[bool] = None
+    events_energy_enabled: Optional[bool] = None
+    events_stocks_enabled: Optional[bool] = None
 
 class TelegramTestRequest(BaseModel):
     chat_id: str

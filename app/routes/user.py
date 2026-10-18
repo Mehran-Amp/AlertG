@@ -66,12 +66,27 @@ async def update_user_telegram_status(user_id: str, req: UserTelegramUpdateReque
         raise HTTPException(status_code=400, detail="Invalid telegram_chat_id.")
 
     async with _db_lock:
+        existing_prof = storage.USER_PROFILES_DB.get(clean_uid, {})
         profile = {
+            **existing_prof,
             "user_id": clean_uid,
             "telegram_chat_id": clean_chat if req.is_connected else None,
             "is_connected": req.is_connected and bool(clean_chat),
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
+        if req.events_notification_enabled is not None:
+            profile["events_notification_enabled"] = req.events_notification_enabled
+        if req.events_telegram_enabled is not None:
+            profile["events_telegram_enabled"] = req.events_telegram_enabled
+        if req.events_crypto_enabled is not None:
+            profile["events_crypto_enabled"] = req.events_crypto_enabled
+        if req.events_macro_enabled is not None:
+            profile["events_macro_enabled"] = req.events_macro_enabled
+        if req.events_energy_enabled is not None:
+            profile["events_energy_enabled"] = req.events_energy_enabled
+        if req.events_stocks_enabled is not None:
+            profile["events_stocks_enabled"] = req.events_stocks_enabled
+
         storage.USER_PROFILES_DB[clean_uid] = profile
 
         # Synchronize active user alerts with their latest Telegram state

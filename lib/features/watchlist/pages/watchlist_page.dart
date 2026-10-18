@@ -16,6 +16,7 @@ import '../../exchanges/registry/exchange_registry.dart';
 import '../../settings/services/settings_service.dart';
 import '../../widgets/alert_home_widget.dart';
 import '../../widgets/server_status_button.dart';
+import '../../market_events/widgets/market_event_banner.dart';
 import 'create_alert_flow.dart';
 
 /// The Main Screen of Alarmer: Personal Price Alerts.

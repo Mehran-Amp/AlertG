@@ -68,6 +68,8 @@ from app.routes.prices import router as prices_router
 from app.routes.admin import router as admin_router, PROBE_TARGETS
 from app.routes.symbols import router as symbols_router
 from app.routes.telegram import router as telegram_router
+from app.routes.market_events import router as market_events_router
+from app.engine.market_events import refresh_market_events
 
 def setup_scheduler_jobs(sched):
     """Registers periodic jobs on the scheduler: 2s price alert job, daily macro alert job & weekly catalog sync job."""
@@ -101,6 +103,15 @@ def setup_scheduler_jobs(sched):
         misfire_grace_time=7200,
         id='weekly_catalog_sync_job'
     )
+    sched.add_job(
+        refresh_market_events,
+        'interval',
+        hours=6,
+        max_instances=1,
+        coalesce=True,
+        misfire_grace_time=1800,
+        id='market_events_6h_job'
+    )
 
 # -------------------------------------------------------------------
 # FastAPI Lifespan Context Manager (Modern Startup & Shutdown)
@@ -126,6 +137,7 @@ async def lifespan(app: FastAPI):
         await init_telegram_bot(state.http_client)
         tg_task = asyncio.create_task(telegram_bot_polling_loop())
     outbox_task = asyncio.create_task(outbox_worker_loop())
+    await refresh_market_events(state.http_client)
 
     setup_scheduler_jobs(scheduler)
     scheduler.start()
@@ -193,6 +205,7 @@ app.include_router(prices_router)
 app.include_router(admin_router)
 app.include_router(symbols_router)
 app.include_router(telegram_router)
+app.include_router(market_events_router)
 
 # -------------------------------------------------------------------
 # Compatibility Re-exports & Constants so existing tests and scripts continue working seamlessly

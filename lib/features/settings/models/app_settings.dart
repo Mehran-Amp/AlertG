@@ -31,6 +31,13 @@ class AppSettings {
   final String accountType; // 'guest' | 'google'
   final String? telegramChatId;
   final bool telegramAlertsEnabled;
+  final bool showMarketEventsBanner;
+  final bool eventsNotificationEnabled;
+  final bool eventsTelegramEnabled;
+  final bool eventsCryptoEnabled;
+  final bool eventsMacroEnabled;
+  final bool eventsEnergyEnabled;
+  final bool eventsStocksEnabled;
 
   const AppSettings({
     this.themePalette = AppThemePalette.lightPurpleBlue,
@@ -50,6 +57,13 @@ class AppSettings {
     this.accountType = 'guest',
     this.telegramChatId,
     this.telegramAlertsEnabled = false,
+    this.showMarketEventsBanner = true,
+    this.eventsNotificationEnabled = true,
+    this.eventsTelegramEnabled = false,
+    this.eventsCryptoEnabled = true,
+    this.eventsMacroEnabled = true,
+    this.eventsEnergyEnabled = true,
+    this.eventsStocksEnabled = true,
   });
 
   /// Helper whether user is logged in with Google
@@ -82,6 +96,13 @@ class AppSettings {
     String? accountType,
     Object? telegramChatId = _sentinel,
     bool? telegramAlertsEnabled,
+    bool? showMarketEventsBanner,
+    bool? eventsNotificationEnabled,
+    bool? eventsTelegramEnabled,
+    bool? eventsCryptoEnabled,
+    bool? eventsMacroEnabled,
+    bool? eventsEnergyEnabled,
+    bool? eventsStocksEnabled,
   }) {
     return AppSettings(
       themePalette: themePalette ?? this.themePalette,
@@ -101,6 +122,13 @@ class AppSettings {
       accountType: accountType ?? this.accountType,
       telegramChatId: identical(telegramChatId, _sentinel) ? this.telegramChatId : (telegramChatId as String?),
       telegramAlertsEnabled: telegramAlertsEnabled ?? this.telegramAlertsEnabled,
+      showMarketEventsBanner: showMarketEventsBanner ?? this.showMarketEventsBanner,
+      eventsNotificationEnabled: eventsNotificationEnabled ?? this.eventsNotificationEnabled,
+      eventsTelegramEnabled: eventsTelegramEnabled ?? this.eventsTelegramEnabled,
+      eventsCryptoEnabled: eventsCryptoEnabled ?? this.eventsCryptoEnabled,
+      eventsMacroEnabled: eventsMacroEnabled ?? this.eventsMacroEnabled,
+      eventsEnergyEnabled: eventsEnergyEnabled ?? this.eventsEnergyEnabled,
+      eventsStocksEnabled: eventsStocksEnabled ?? this.eventsStocksEnabled,
     );
   }
 
@@ -122,6 +150,13 @@ class AppSettings {
         'accountType': accountType,
         'telegramChatId': telegramChatId,
         'telegramAlertsEnabled': telegramAlertsEnabled,
+        'showMarketEventsBanner': showMarketEventsBanner,
+        'eventsNotificationEnabled': eventsNotificationEnabled,
+        'eventsTelegramEnabled': eventsTelegramEnabled,
+        'eventsCryptoEnabled': eventsCryptoEnabled,
+        'eventsMacroEnabled': eventsMacroEnabled,
+        'eventsEnergyEnabled': eventsEnergyEnabled,
+        'eventsStocksEnabled': eventsStocksEnabled,
       };
 
   factory AppSettings.fromJson(Map<String, dynamic> json) {
@@ -154,6 +189,13 @@ class AppSettings {
       accountType: (json['accountType'] as String?) ?? 'guest',
       telegramChatId: json['telegramChatId'] as String?,
       telegramAlertsEnabled: (json['telegramAlertsEnabled'] as bool?) ?? false,
+      showMarketEventsBanner: (json['showMarketEventsBanner'] as bool?) ?? true,
+      eventsNotificationEnabled: (json['eventsNotificationEnabled'] as bool?) ?? true,
+      eventsTelegramEnabled: (json['eventsTelegramEnabled'] as bool?) ?? false,
+      eventsCryptoEnabled: (json['eventsCryptoEnabled'] as bool?) ?? true,
+      eventsMacroEnabled: (json['eventsMacroEnabled'] as bool?) ?? true,
+      eventsEnergyEnabled: (json['eventsEnergyEnabled'] as bool?) ?? true,
+      eventsStocksEnabled: (json['eventsStocksEnabled'] as bool?) ?? true,
     );
   }
 
