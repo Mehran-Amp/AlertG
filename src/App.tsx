@@ -555,6 +555,75 @@ const INITIAL_RULES: AlertRule[] = [
   },
 ];
 
+interface MarketEventItem {
+  id: string;
+  category: 'crypto' | 'macro' | 'energy' | 'stocks';
+  market: string;
+  title: string;
+  summary: string;
+  impact: 'high';
+  timeUtc: string;
+  badgeColorHex: string;
+  symbol: string;
+  categoryEmoji: string;
+  categoryLabel: string;
+}
+
+const CURATED_MARKET_EVENTS: MarketEventItem[] = [
+  {
+    id: 'macro_fomc_rate',
+    category: 'macro',
+    market: 'Forex & Global',
+    title: 'US Fed Interest Rate Decision (FOMC)',
+    summary: 'Federal Reserve monetary policy announcement & benchmark rate decision.',
+    impact: 'high',
+    timeUtc: 'Wednesday 18:00 UTC',
+    badgeColorHex: '#0284C7',
+    symbol: 'USD',
+    categoryEmoji: '🌐',
+    categoryLabel: 'MACRO & FOREX',
+  },
+  {
+    id: 'crypto_eth_upgrade',
+    category: 'crypto',
+    market: 'Ethereum Ecosystem',
+    title: 'Ethereum Network Upgrade & Hard Fork',
+    summary: 'Major Ethereum consensus and execution client upgrade activated.',
+    impact: 'high',
+    timeUtc: 'Friday 14:00 UTC',
+    badgeColorHex: '#10B981',
+    symbol: 'ETH',
+    categoryEmoji: '🪙',
+    categoryLabel: 'CRYPTO CATALYST',
+  },
+  {
+    id: 'energy_eia_crude',
+    category: 'energy',
+    market: 'Crude Oil & Commodities',
+    title: 'EIA US Crude Oil Inventories Report',
+    summary: 'Weekly change in commercial crude oil barrels held by US firms.',
+    impact: 'high',
+    timeUtc: 'Wednesday 14:30 UTC',
+    badgeColorHex: '#F59E0B',
+    symbol: 'WTI',
+    categoryEmoji: '🛢️',
+    categoryLabel: 'ENERGY & OIL',
+  },
+  {
+    id: 'stocks_nvda_earnings',
+    category: 'stocks',
+    market: 'NASDAQ / S&P 500',
+    title: 'NVIDIA (NVDA) Q3 Fiscal Earnings Release',
+    summary: 'Nvidia reports quarterly revenue, data center GPU sales & AI guidance.',
+    impact: 'high',
+    timeUtc: 'Thursday 20:00 UTC',
+    badgeColorHex: '#8B5CF6',
+    symbol: 'NVDA',
+    categoryEmoji: '📈',
+    categoryLabel: 'MEGA-CAP STOCKS',
+  },
+];
+
 export default function App() {
   // TAB NAVIGATION: ALERTS IS IN THE MIDDLE (INDEX 1) AND IS THE DEFAULT
   const [mobileScreen, setMobileScreen] = useState<'history' | 'alerts' | 'settings'>('alerts');
@@ -636,6 +705,27 @@ export default function App() {
     } catch (_) {}
     return 30;
   });
+
+  // Market Events Radar States
+  const [showMarketEventsBanner, setShowMarketEventsBanner] = useState<boolean>(true);
+  const [enableMarketEventNotifications, setEnableMarketEventNotifications] = useState<boolean>(true);
+  const [sendEventsToTelegram, setSendEventsToTelegram] = useState<boolean>(true);
+  const [eventCategories, setEventCategories] = useState<{ crypto: boolean; macro: boolean; energy: boolean; stocks: boolean }>({
+    crypto: true,
+    macro: true,
+    energy: true,
+    stocks: true,
+  });
+  const [currentEventIndex, setCurrentEventIndex] = useState<number>(0);
+
+  useEffect(() => {
+    const filteredEvents = CURATED_MARKET_EVENTS.filter(e => eventCategories[e.category]);
+    if (filteredEvents.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentEventIndex(prev => (prev + 1) % filteredEvents.length);
+    }, 7000);
+    return () => clearInterval(timer);
+  }, [eventCategories]);
 
   const [selectedRingtone, setSelectedRingtone] = useState<string>(() => {
     try {
@@ -2757,6 +2847,47 @@ export default function App() {
         </div>
       </div>
 
+      {/* Market Events Radar Banner (Single-line below Bonbast bar, no close button, with emoji share button 🔗) */}
+      {showMarketEventsBanner && (() => {
+        const filteredEvents = CURATED_MARKET_EVENTS.filter(e => eventCategories[e.category]);
+        if (filteredEvents.length === 0) return null;
+        const curEv = filteredEvents[currentEventIndex < filteredEvents.length ? currentEventIndex : 0];
+        return (
+          <div className={`w-full py-2 px-4 lg:px-8 border-b ${isLight ? 'bg-indigo-50/90 border-indigo-200 text-slate-800' : 'bg-slate-900/95 border-slate-800 text-slate-200'} text-xs flex items-center justify-between gap-3 shadow-xs`}>
+            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 font-bold text-[10.5px] shrink-0">
+                <span>{curEv.categoryEmoji}</span>
+                <span>{curEv.categoryLabel}</span>
+              </span>
+              <span className="font-bold text-white truncate text-xs flex items-center gap-2">
+                <span className="text-amber-400">🔴</span>
+                <span>{curEv.title}</span>
+                <span className="text-slate-400 font-normal hidden sm:inline">• {curEv.timeUtc}</span>
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  const shareText = `🔔 Market Event Alert [${curEv.categoryLabel}]:\n${curEv.title}\n🕒 ${curEv.timeUtc}\n💡 ${curEv.summary}\n\nGenerated by Alarmer Studio`;
+                  if (navigator.clipboard) {
+                    navigator.clipboard.writeText(shareText);
+                    showToast('🔗 اطلاعات رویداد کپی شد و آماده اشتراک‌گذاری است!');
+                  }
+                }}
+                className={`p-1.5 rounded-lg border text-xs flex items-center justify-center transition-all cursor-pointer ${
+                  isLight ? 'border-slate-300 bg-white hover:bg-slate-100 text-slate-700' : 'border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200'
+                }`}
+                title="اشتراک‌گذاری رویداد (Share)"
+              >
+                <span className="text-base leading-none">🔗</span>
+              </button>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Toast Alert */}
       {toastMessage && (
         <div className={`fixed bottom-6 left-6 z-50 ${isLight ? 'bg-white border-emerald-500 shadow-xl text-slate-900' : 'bg-slate-900 border-emerald-500/50 text-emerald-300 shadow-2xl'} text-xs px-4 py-3 rounded-2xl border flex items-center gap-2 animate-bounce`}>
@@ -3086,6 +3217,116 @@ export default function App() {
                             </div>
                           </div>
                         )}
+                      </div>
+                    </div>
+
+                    {/* ======================================================== */}
+                    {/* SECTION 2.5: رویدادهای کلیدی بازار (MARKET CATALYSTS RADAR) */}
+                    {/* ======================================================== */}
+                    <div className={`p-4 rounded-2xl border transition-all ${isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'} space-y-3.5`}>
+                      <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                        <div className="flex items-center gap-2">
+                          <Flame className="h-4 w-4 text-indigo-400" />
+                          <h4 className="font-bold text-xs text-white">
+                            {currentLang === 'fa' ? 'رادار رویدادهای کلیدی بازار (Market Catalysts Radar)' : 'Market Catalysts Radar'}
+                          </h4>
+                        </div>
+                        <span className="text-[9px] px-2 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 font-bold">
+                          6h Scan
+                        </span>
+                      </div>
+
+                      <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+                        {/* 1. Toggle Banner Display */}
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="font-bold text-xs text-white block">
+                              {currentLang === 'fa' ? 'نمایش نوار رویدادها زیر تیتربار' : 'Display Ticker Bar below Titlebar'}
+                            </span>
+                            <span className="text-[10px] text-slate-400 block">
+                              {currentLang === 'fa' ? 'نمایش تک‌خطی رویدادهای مهم کریپتو، فارکس، انرژی و سهام' : 'Show single-line high-impact market events ticker'}
+                            </span>
+                          </div>
+                          <div dir="ltr">
+                            <button
+                              type="button"
+                              onClick={() => setShowMarketEventsBanner(!showMarketEventsBanner)}
+                              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                                showMarketEventsBanner ? 'bg-indigo-600' : 'bg-slate-800'
+                              }`}
+                            >
+                              <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition duration-200 ${showMarketEventsBanner ? 'translate-x-5' : 'translate-x-0'}`} />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* 2. Toggle Notifications */}
+                        <div className="flex items-center justify-between pt-2 border-t border-slate-800/60">
+                          <div>
+                            <span className="font-bold text-xs text-white block">
+                              {currentLang === 'fa' ? 'دریافت ناتیفیکیشن برای رویدادهای مهم' : 'Receive Notifications for Key Events'}
+                            </span>
+                            <span className="text-[10px] text-slate-400 block">
+                              {currentLang === 'fa' ? 'ارسال خودکار هشدار به اپلیکیشن و ربات تلگرام' : 'Send push and Telegram alert for major catalysts'}
+                            </span>
+                          </div>
+                          <div dir="ltr">
+                            <button
+                              type="button"
+                              onClick={() => setEnableMarketEventNotifications(!enableMarketEventNotifications)}
+                              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                                enableMarketEventNotifications ? 'bg-indigo-600' : 'bg-slate-800'
+                              }`}
+                            >
+                              <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition duration-200 ${enableMarketEventNotifications ? 'translate-x-5' : 'translate-x-0'}`} />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* 3. Category Toggles */}
+                        <div className="pt-2 border-t border-slate-800/60 space-y-2">
+                          <span className="text-[11px] font-bold text-slate-300 block">
+                            {currentLang === 'fa' ? 'انتخاب بازارهای هدف (رادار رویدادها):' : 'Select Target Market Categories:'}
+                          </span>
+                          <div className="grid grid-cols-2 gap-2">
+                            <label className="flex items-center gap-2 p-2 rounded-lg bg-slate-900 border border-slate-800 text-[11px] text-slate-200 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={eventCategories.crypto}
+                                onChange={e => setEventCategories({ ...eventCategories, crypto: e.target.checked })}
+                                className="rounded border-slate-700 bg-slate-950 text-indigo-500 focus:ring-0"
+                              />
+                              <span>🪙 کریپتو (Crypto)</span>
+                            </label>
+                            <label className="flex items-center gap-2 p-2 rounded-lg bg-slate-900 border border-slate-800 text-[11px] text-slate-200 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={eventCategories.macro}
+                                onChange={e => setEventCategories({ ...eventCategories, macro: e.target.checked })}
+                                className="rounded border-slate-700 bg-slate-950 text-indigo-500 focus:ring-0"
+                              />
+                              <span>🌐 فارکس و کلان (Macro)</span>
+                            </label>
+                            <label className="flex items-center gap-2 p-2 rounded-lg bg-slate-900 border border-slate-800 text-[11px] text-slate-200 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={eventCategories.energy}
+                                onChange={e => setEventCategories({ ...eventCategories, energy: e.target.checked })}
+                                className="rounded border-slate-700 bg-slate-950 text-indigo-500 focus:ring-0"
+                              />
+                              <span>🛢️ نفت و انرژی (Energy)</span>
+                            </label>
+                            <label className="flex items-center gap-2 p-2 rounded-lg bg-slate-900 border border-slate-800 text-[11px] text-slate-200 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={eventCategories.stocks}
+                                onChange={e => setEventCategories({ ...eventCategories, stocks: e.target.checked })}
+                                className="rounded border-slate-700 bg-slate-950 text-indigo-500 focus:ring-0"
+                              />
+                              <span>📈 سهام مگا-کپ (Stocks)</span>
+                            </label>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
