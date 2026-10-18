@@ -53,6 +53,8 @@ class SettingsService extends ChangeNotifier {
     }
   }
 
+  Future<void> updateSettings(AppSettings newSettings) => update(newSettings);
+
   Future<void> setPalette(AppThemePalette palette) async {
     await update(_settings.copyWith(themePalette: palette));
   }
