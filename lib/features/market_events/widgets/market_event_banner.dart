@@ -7,10 +7,10 @@ import '../models/market_event.dart';
 import '../services/market_events_service.dart';
 import 'social_event_card.dart';
 
-/// Sleek single-line TV Breaking News Marquee Banner positioned directly below the Titlebar.
+/// TV Breaking News Continuous Marquee Ticker Banner positioned directly below the Titlebar.
 /// Features:
-/// - Category Pill (Crypto, Macro, Energy, Stocks)
-/// - Continuous 4.5s Auto-cycling TV Ticker with Right-to-Left Slide Transition
+/// - Continuous smooth horizontal scrolling stream (like TV news tickers)
+/// - Category Badges & Live Breaking News Indicators
 /// - Compact Share Button featuring the Share Emoji (📤) with ZERO text
 /// - ZERO Close (×) button (managed purely from Settings)
 class MarketEventBanner extends StatefulWidget {
@@ -21,8 +21,6 @@ class MarketEventBanner extends StatefulWidget {
 }
 
 class _MarketEventBannerState extends State<MarketEventBanner> {
-  int _currentIndex = 0;
-  Timer? _cycleTimer;
   List<MarketEvent> _events = [];
 
   @override
@@ -31,31 +29,13 @@ class _MarketEventBannerState extends State<MarketEventBanner> {
     _loadEvents();
   }
 
-  @override
-  void dispose() {
-    _cycleTimer?.cancel();
-    super.dispose();
-  }
-
   Future<void> _loadEvents() async {
     final events = await MarketEventsService.instance.fetchEvents();
     if (mounted) {
       setState(() {
         _events = events;
       });
-      _startTimer();
     }
-  }
-
-  void _startTimer() {
-    _cycleTimer?.cancel();
-    _cycleTimer = Timer.periodic(const Duration(milliseconds: 4500), (_) {
-      if (mounted && _events.isNotEmpty) {
-        setState(() {
-          _currentIndex = (_currentIndex + 1) % _events.length;
-        });
-      }
-    });
   }
 
   @override
@@ -73,10 +53,8 @@ class _MarketEventBannerState extends State<MarketEventBanner> {
       return const SizedBox.shrink();
     }
 
-    final activeIndex = _currentIndex < filtered.length ? _currentIndex : 0;
-    final currentEvent = filtered[activeIndex];
     final theme = Theme.of(context);
-    final accentColor = currentEvent.categoryColor;
+    final primaryAccent = filtered.first.categoryColor;
 
     return Container(
       height: 36,
@@ -85,7 +63,7 @@ class _MarketEventBannerState extends State<MarketEventBanner> {
         color: theme.colorScheme.surface,
         border: Border(
           bottom: BorderSide(
-            color: accentColor.withValues(alpha: 0.35),
+            color: primaryAccent.withValues(alpha: 0.35),
             width: 1.0,
           ),
         ),
@@ -94,30 +72,26 @@ class _MarketEventBannerState extends State<MarketEventBanner> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // 1. Category Pill (e.g. 🌐 MACRO or 🪙 CRYPTO)
+          // 1. Live Breaking Badge
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: accentColor.withValues(alpha: 0.15),
+              color: Colors.red.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(4),
               border: Border.all(
-                color: accentColor.withValues(alpha: 0.5),
+                color: Colors.red.withValues(alpha: 0.5),
                 width: 0.8,
               ),
             ),
-            child: Row(
+            child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                Text('🔴 ', style: TextStyle(fontSize: 8)),
                 Text(
-                  currentEvent.categoryEmoji,
-                  style: const TextStyle(fontSize: 10),
-                ),
-                const SizedBox(width: 3),
-                Text(
-                  currentEvent.categoryLabel,
+                  'NEWS TICKER',
                   style: TextStyle(
-                    color: accentColor,
-                    fontSize: 9.5,
+                    color: Colors.redAccent,
+                    fontSize: 9.0,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 0.4,
                   ),
@@ -127,58 +101,12 @@ class _MarketEventBannerState extends State<MarketEventBanner> {
           ),
           const SizedBox(width: 8),
 
-          // 2. TV Breaking News Right-to-Left Ticker Banner
+          // 2. Continuous Infinite Scrolling TV Marquee Ticker Stream
           Expanded(
-            child: InkWell(
-              onTap: () {
-                if (filtered.length > 1) {
-                  setState(() {
-                    _currentIndex = (_currentIndex + 1) % filtered.length;
-                  });
-                }
-              },
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 650),
-                switchInCurve: Curves.easeOutQuart,
-                switchOutCurve: Curves.easeInQuart,
-                transitionBuilder: (child, animation) {
-                  final isNew = child.key == ValueKey(currentEvent.id);
-                  final inOffset = Tween<Offset>(
-                    begin: const Offset(1.2, 0.0), // Slides in smoothly from Right
-                    end: Offset.zero,
-                  ).animate(animation);
-
-                  final outOffset = Tween<Offset>(
-                    begin: const Offset(-1.2, 0.0), // Slides out to Left
-                    end: Offset.zero,
-                  ).animate(animation);
-
-                  return ClipRect(
-                    child: SlideTransition(
-                      position: isNew ? inOffset : outOffset,
-                      child: child,
-                    ),
-                  );
-                },
-                child: Row(
-                  key: ValueKey(currentEvent.id),
-                  children: [
-                    const Text('🔴 ', style: TextStyle(fontSize: 9)),
-                    Expanded(
-                      child: Text(
-                        '${currentEvent.title} • ${currentEvent.timeUtc}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.95),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            child: _ContinuousMarqueeStream(
+              events: filtered,
+              theme: theme,
+              onEventTap: (event) => showEventSocialShareSheet(context, event),
             ),
           ),
           const SizedBox(width: 6),
@@ -189,15 +117,17 @@ class _MarketEventBannerState extends State<MarketEventBanner> {
             child: InkWell(
               borderRadius: BorderRadius.circular(6),
               onTap: () {
-                showEventSocialShareSheet(context, currentEvent);
+                if (filtered.isNotEmpty) {
+                  showEventSocialShareSheet(context, filtered.first);
+                }
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                 decoration: BoxDecoration(
-                  color: accentColor.withValues(alpha: 0.12),
+                  color: primaryAccent.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(
-                    color: accentColor.withValues(alpha: 0.35),
+                    color: primaryAccent.withValues(alpha: 0.35),
                     width: 0.8,
                   ),
                 ),
@@ -209,6 +139,138 @@ class _MarketEventBannerState extends State<MarketEventBanner> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Helper widget that continuously scrolls the text stream smoothly horizontally.
+class _ContinuousMarqueeStream extends StatefulWidget {
+  final List<MarketEvent> events;
+  final ThemeData theme;
+  final Function(MarketEvent) onEventTap;
+
+  const _ContinuousMarqueeStream({
+    required this.events,
+    required this.theme,
+    required this.onEventTap,
+  });
+
+  @override
+  State<_ContinuousMarqueeStream> createState() => _ContinuousMarqueeStreamState();
+}
+
+class _ContinuousMarqueeStreamState extends State<_ContinuousMarqueeStream> {
+  late final ScrollController _scrollController;
+  bool _isScrolling = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _startContinuousScroll());
+  }
+
+  void _startContinuousScroll() async {
+    if (_isScrolling) return;
+    _isScrolling = true;
+
+    while (mounted) {
+      if (!_scrollController.hasClients) {
+        await Future.delayed(const Duration(milliseconds: 300));
+        continue;
+      }
+
+      final maxScroll = _scrollController.position.maxScrollExtent;
+      if (maxScroll <= 0) {
+        await Future.delayed(const Duration(milliseconds: 500));
+        continue;
+      }
+
+      // Smooth TV News ticker scroll speed (e.g. 30px per sec)
+      final durationMs = (maxScroll * 30).toInt();
+
+      await _scrollController.animateTo(
+        maxScroll,
+        duration: Duration(milliseconds: durationMs),
+        curve: Curves.linear,
+      );
+
+      if (!mounted) break;
+      await Future.delayed(const Duration(milliseconds: 200));
+      if (!_scrollController.hasClients) break;
+
+      // Jump back seamlessly to 0 for infinite looping ticker
+      _scrollController.jumpTo(0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Duplicate event list to create a seamless infinite stream loop
+    final streamEvents = [...widget.events, ...widget.events, ...widget.events];
+
+    return SingleChildScrollView(
+      controller: _scrollController,
+      scrollDirection: Axis.horizontal,
+      physics: const NeverScrollableScrollPhysics(),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: streamEvents.map((event) {
+          final accent = event.categoryColor;
+          return InkWell(
+            onTap: () => widget.onEventTap(event),
+            borderRadius: BorderRadius.circular(4),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Category Pill in Stream
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                    decoration: BoxDecoration(
+                      color: accent.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(3),
+                      border: Border.all(color: accent.withValues(alpha: 0.4), width: 0.6),
+                    ),
+                    child: Text(
+                      '${event.categoryEmoji} ${event.categoryLabel}',
+                      style: TextStyle(
+                        color: accent,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    '${event.title} • ${event.timeUtc}',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: widget.theme.colorScheme.onSurface.withValues(alpha: 0.95),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Text(
+                    '❖',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: widget.theme.colorScheme.onSurface.withValues(alpha: 0.3),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
