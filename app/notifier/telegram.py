@@ -8,6 +8,18 @@ from app.state import METRICS
 import app.state as state
 import app.storage as storage
 
+# Two-button persistent menu keyboard for Telegram Bot
+TELEGRAM_BOT_KEYBOARD = {
+    "keyboard": [
+        [
+            {"text": "START"},
+            {"text": "Get Telegram ID"}
+        ]
+    ],
+    "resize_keyboard": True,
+    "is_persistent": True
+}
+
 def get_exchange_display_name(exchange_id: str) -> str:
     mapping = {
         'nobitex': 'Nobitex', 'wallex': 'Wallex', 'binance': 'Binance',
@@ -20,13 +32,26 @@ def get_exchange_display_name(exchange_id: str) -> str:
     }
     return mapping.get((exchange_id or '').lower(), (exchange_id or 'Market').capitalize())
 
-async def send_telegram_alert(client: httpx.AsyncClient, chat_id: str, message: str, bot_token: Optional[str] = None):
+async def send_telegram_alert(
+    client: httpx.AsyncClient,
+    chat_id: str,
+    message: str,
+    bot_token: Optional[str] = None,
+    reply_markup: Optional[dict] = None
+):
     token = bot_token or TELEGRAM_BOT_TOKEN
     if not token or not chat_id:
         return
     try:
         url = f"https://api.telegram.org/bot{token}/sendMessage"
-        await client.post(url, json={"chat_id": chat_id, "text": message, "parse_mode": "HTML", "disable_web_page_preview": True}, timeout=6.0)
+        payload = {
+            "chat_id": chat_id,
+            "text": message,
+            "parse_mode": "HTML",
+            "disable_web_page_preview": True,
+            "reply_markup": reply_markup if reply_markup is not None else TELEGRAM_BOT_KEYBOARD
+        }
+        await client.post(url, json=payload, timeout=6.0)
         METRICS["telegram_sent"] += 1
     except Exception as e:
         print(f"⚠️ [Telegram Dispatch Error] {_scrub(e)}")
@@ -51,7 +76,7 @@ async def notify_admin_telegram(message: str, client: Optional[httpx.AsyncClient
     await send_telegram_alert(c, target_chat, message)
 
 def format_alert_registered_telegram_msg(alert: Any) -> str:
-    """Formats a sleek, clean confirmation message when an alert is added to the server"""
+    """Formats a sleek confirmation message when an alert is added to the server using quotes."""
     display_symbol = getattr(alert, 'symbol', '') or ''
     if '/' not in display_symbol and len(display_symbol) > 3:
         for q in ['USDT', 'USDC', 'BUSD', 'FDUSD', 'EUR', 'USD', 'TMN', 'IRT', 'BTC', 'ETH']:
@@ -110,7 +135,9 @@ def format_alert_registered_telegram_msg(alert: Any) -> str:
             n = n[1:].strip()
         if n:
             lines.append(f"📝 {html.escape(n)}")
-    return "\n".join(lines)
+
+    body = "\n".join(lines)
+    return f"<blockquote>{body}</blockquote>"
 
 def format_telegram_history_card(
     alert: Any,
@@ -120,7 +147,10 @@ def format_telegram_history_card(
     cached_meta: Optional[dict] = None,
     custom_note: Optional[str] = None
 ) -> str:
-    """Formats a rich Telegram notification matching the exact structure and visual fields of the app's History card in English."""
+    """
+    Formats a rich Telegram notification matching the exact structure and visual fields
+    of the app's History card in English, using native Telegram <blockquote> quotes instead of line dividers.
+    """
     from datetime import datetime, timezone
 
     # 1. Symbol & Market
@@ -229,9 +259,7 @@ def format_telegram_history_card(
     # 7. Timestamp
     now_str = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
 
-    card_lines = [
-        "🔔 <b>ALERT TRIGGERED | HISTORY CARD</b>",
-        "━━━━━━━━━━━━━━━━━━━━",
+    details_content = "\n".join([
         f"🏷️ <b>Asset:</b> <code>{html.escape(display_symbol)}</code>",
         f"🏛️ <b>Exchange:</b> <code>{html.escape(exchange_badge)}</code>",
         f"🎯 <b>Condition:</b> <code>{html.escape(cond_type_en)}</code>",
@@ -242,11 +270,20 @@ def format_telegram_history_card(
         "",
         "📢 <b>Summary:</b>",
         f"<i>{html.escape(detail_msg)}</i>" + note_line,
-        "━━━━━━━━━━━━━━━━━━━━",
+    ])
+
+    footer_content = "\n".join([
         f"🕒 <b>Time:</b> <code>{now_str}</code>",
-        f"⚡ <b>Status:</b> ✅ Triggered | {html.escape(mode_str)} {feat_str}".strip()
-    ]
-    return "\n".join(card_lines)
+        f"⚡ <b>Status:</b> ✅ Triggered | {html.escape(mode_str)} {feat_str}".strip(),
+        "🚀 <b>Engine:</b> <i>AlertG Real-Time Radar</i>"
+    ])
+
+    # Formatted with native Telegram quotes instead of line dividers
+    return (
+        f"🔔 <b>ALERT TRIGGERED | HISTORY CARD</b>\n\n"
+        f"<blockquote>{details_content}</blockquote>\n\n"
+        f"<blockquote>{footer_content}</blockquote>"
+    )
 
 def format_telegram_macro_history_card(
     symbol: str,
@@ -256,7 +293,7 @@ def format_telegram_macro_history_card(
     release_date: Optional[str] = None,
     note: Optional[str] = None
 ) -> str:
-    """Formats macro economic alerts matching the History card layout in English."""
+    """Formats macro economic alerts matching the History card layout in English using quotes."""
     from datetime import datetime, timezone
     now_str = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
     note_line = ""
@@ -267,20 +304,26 @@ def format_telegram_macro_history_card(
         if n:
             note_line = f"\n📝 <b>Strategy Note:</b>\n<i>{html.escape(n)}</i>"
 
-    lines = [
-        "🔔 <b>MACRO ALERT | HISTORY CARD</b>",
-        "━━━━━━━━━━━━━━━━━━━━",
+    macro_body = "\n".join([
         f"📊 <b>Indicator:</b> <code>{html.escape(symbol)}</code>",
         f"🏛️ <b>Data Source:</b> <code>{html.escape(source.upper())}</code>",
         f"🎯 <b>Category:</b> <code>Macroeconomic Metric</code>",
         "",
         f"⚡ <b>Reported Value:</b> <b><code>{price:g}</code></b>",
         f"📢 <b>Event:</b> <i>{html.escape(trigger_reason)}</i>" + note_line,
-        "━━━━━━━━━━━━━━━━━━━━",
+    ])
+
+    macro_footer = "\n".join([
         f"🕒 <b>Release Time:</b> <code>{html.escape(release_date or now_str)}</code>",
-        "⚡ <b>Status:</b> ✅ Data Published (Triggered)"
-    ]
-    return "\n".join(lines)
+        "⚡ <b>Status:</b> ✅ Data Published (Triggered)",
+        "🚀 <b>Engine:</b> <i>AlertG Real-Time Radar</i>"
+    ])
+
+    return (
+        f"🔔 <b>MACRO ALERT | HISTORY CARD</b>\n\n"
+        f"<blockquote>{macro_body}</blockquote>\n\n"
+        f"<blockquote>{macro_footer}</blockquote>"
+    )
 
 async def init_telegram_bot(client: httpx.AsyncClient):
     global TELEGRAM_BOT_METADATA
@@ -295,15 +338,30 @@ async def init_telegram_bot(client: httpx.AsyncClient):
             TELEGRAM_BOT_METADATA["id"] = data.get("id", 8597547058)
             TELEGRAM_BOT_METADATA["is_connected"] = True
             print(f"🤖 [Telegram Bot] Connected to @{TELEGRAM_BOT_METADATA['username']} ({TELEGRAM_BOT_METADATA['first_name']})")
+
+            # Register Bot Command Menu (START & Get Telegram ID)
+            try:
+                await client.post(
+                    f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setMyCommands",
+                    json={
+                        "commands": [
+                            {"command": "start", "description": "Start & Main Menu"},
+                            {"command": "id", "description": "Get Telegram Chat ID"}
+                        ]
+                    },
+                    timeout=6.0
+                )
+            except Exception as cmd_err:
+                print(f"⚠️ [Telegram Bot setMyCommands Note] {_scrub(cmd_err)}")
     except Exception as e:
         print(f"⚠️ [Telegram Bot Init Note] {_scrub(e)}")
 
 async def telegram_bot_polling_loop():
-    """Background listener for user interactions: /start, /myalerts, /clear, /stop, /help"""
+    """Background listener for user interactions with two-button menu and quote layout."""
     if not TELEGRAM_BOT_TOKEN:
         return
     offset = 0
-    print("📡 [Telegram Bot] Polling listener active for instant Chat ID onboarding & alert management.")
+    print("📡 [Telegram Bot] Polling listener active with persistent menu [START, Get Telegram ID].")
     while True:
         try:
             if state.http_client is None:
@@ -311,35 +369,81 @@ async def telegram_bot_polling_loop():
                 continue
 
             url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates"
-            params = {"offset": offset, "timeout": 20, "allowed_updates": ["message"]}
+            params = {"offset": offset, "timeout": 20, "allowed_updates": ["message", "callback_query"]}
             res = await state.http_client.get(url, params=params, timeout=25.0)
             if res.status_code == 200:
                 data = res.json()
                 for update in data.get("result", []):
                     offset = update.get("update_id", offset) + 1
                     msg = update.get("message") or {}
-                    chat = msg.get("chat") or {}
-                    chat_id = chat.get("id")
-                    text = (msg.get("text") or "").strip()
-                    user_name = html.escape(str(chat.get("first_name") or chat.get("username") or "کاربر گرامی"))
+                    callback_query = update.get("callback_query") or {}
+
+                    if callback_query:
+                        cb_id = callback_query.get("id")
+                        if cb_id:
+                            try:
+                                await state.http_client.post(
+                                    f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/answerCallbackQuery",
+                                    json={"callback_query_id": cb_id},
+                                    timeout=3.0
+                                )
+                            except Exception:
+                                pass
+                        msg = callback_query.get("message") or {}
+                        chat = msg.get("chat") or {}
+                        chat_id = chat.get("id") or callback_query.get("from", {}).get("id")
+                        text = callback_query.get("data") or ""
+                        user_name = html.escape(str(callback_query.get("from", {}).get("first_name") or "User"))
+                    else:
+                        chat = msg.get("chat") or {}
+                        chat_id = chat.get("id")
+                        text = (msg.get("text") or "").strip()
+                        user_name = html.escape(str(chat.get("first_name") or chat.get("username") or "User"))
 
                     if not chat_id:
                         continue
 
                     reply_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-                    chat_id_str = str(chat_id)
-                    text_lower = text.lower()
+                    text_clean = text.strip()
+                    text_lower = text_clean.lower()
 
-                    welcome_msg = (
-                        f"👋 Hello <b>{user_name}</b>!\n\n"
-                        f"🆔 Your Telegram Chat ID: <code>{chat_id}</code>\n\n"
-                        f"Paste this ID into the <b>AlertG</b> app settings to receive real-time market alert cards directly here."
+                    is_id_request = (
+                        "get telegram id" in text_lower or
+                        text_lower in ("/id", "id", "chat_id", "myid", "my_id", "get_id", "cmd_id")
                     )
+
+                    if is_id_request:
+                        reply_text = (
+                            f"<blockquote>"
+                            f"🆔 <b>Your Telegram Chat ID:</b>\n"
+                            f"<code>{chat_id}</code>"
+                            f"</blockquote>\n\n"
+                            f"<blockquote>"
+                            f"📋 <i>Tap the number above to copy it instantly, then paste it in <b>AlertG App ➔ Settings ➔ Telegram Chat ID</b> to link your alerts.</i>"
+                            f"</blockquote>"
+                        )
+                    else:
+                        reply_text = (
+                            f"👋 Hello <b>{user_name}</b>!\n\n"
+                            f"<blockquote>"
+                            f"⚡ <b>AlertG Real-Time Market Radar</b>\n"
+                            f"Live high-frequency price & volatility alerts for Crypto, Stocks, Gold & Forex."
+                            f"</blockquote>\n\n"
+                            f"<blockquote>"
+                            f"🆔 <b>Your Telegram Chat ID:</b> <code>{chat_id}</code>\n"
+                            f"Tap the number above to copy and paste it into the <b>AlertG</b> app settings to receive real-time alert cards directly here."
+                            f"</blockquote>\n\n"
+                            f"<blockquote>"
+                            f"👇 Use the menu buttons below to interact with the bot anytime."
+                            f"</blockquote>"
+                        )
+
                     await state.http_client.post(reply_url, json={
                         "chat_id": chat_id,
-                        "text": welcome_msg,
+                        "text": reply_text,
                         "parse_mode": "HTML",
-                        "disable_web_page_preview": True
+                        "disable_web_page_preview": True,
+                        "reply_markup": TELEGRAM_BOT_KEYBOARD
                     }, timeout=5.0)
             else:
                 print(f"⚠️ [Telegram Polling] HTTP {res.status_code}: {res.text[:120]}")

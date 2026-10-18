@@ -5,7 +5,7 @@ from app.config import TELEGRAM_BOT_TOKEN, TELEGRAM_BOT_METADATA, CHAT_ID_RE
 from app.security import API_DEP, _scrub
 from app.models import TelegramTestRequest, Alert
 from app.state import METRICS
-from app.notifier.telegram import format_telegram_history_card
+from app.notifier.telegram import format_telegram_history_card, TELEGRAM_BOT_KEYBOARD
 import app.state as state
 
 router = APIRouter()
@@ -66,7 +66,8 @@ async def send_telegram_test_message(req: TelegramTestRequest):
             "chat_id": chat_id,
             "text": test_msg,
             "parse_mode": "HTML",
-            "disable_web_page_preview": True
+            "disable_web_page_preview": True,
+            "reply_markup": TELEGRAM_BOT_KEYBOARD
         }, timeout=8.0)
         if res.status_code == 200:
             METRICS["telegram_sent"] += 1
