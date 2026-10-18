@@ -140,14 +140,26 @@ class _MarketEventBannerState extends State<MarketEventBanner> {
                 }
               },
               child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 350),
-                transitionBuilder: (child, animation) => FadeTransition(
-                  opacity: animation,
-                  child: child,
-                ),
+                duration: const Duration(milliseconds: 550),
+                transitionBuilder: (child, animation) {
+                  final offsetAnimation = Tween<Offset>(
+                    begin: const Offset(1.0, 0.0), // Right to Left Entry
+                    end: Offset.zero,
+                  ).animate(CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeOutCubic,
+                  ));
+                  return ClipRect(
+                    child: SlideTransition(
+                      position: offsetAnimation,
+                      child: child,
+                    ),
+                  );
+                },
                 child: Row(
                   key: ValueKey(currentEvent.id),
                   children: [
+                    const Text('🔴 ', style: TextStyle(fontSize: 9)),
                     Expanded(
                       child: Text(
                         '${currentEvent.title} • ${currentEvent.timeUtc}',
@@ -156,7 +168,7 @@ class _MarketEventBannerState extends State<MarketEventBanner> {
                         style: TextStyle(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w600,
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.9),
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.95),
                         ),
                       ),
                     ),

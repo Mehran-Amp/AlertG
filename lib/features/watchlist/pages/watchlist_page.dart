@@ -559,6 +559,7 @@ class _WatchlistPageState extends State<WatchlistPage> {
             right: 16,
             bottom: _recentlyDeletedRule != null ? 20 : -100,
             child: _buildUndoToast(lang, theme, repository),
+          ),
         ],
       ),
     ),
