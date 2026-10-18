@@ -112,6 +112,174 @@ def format_alert_registered_telegram_msg(alert: Any) -> str:
             lines.append(f"📝 {html.escape(n)}")
     return "\n".join(lines)
 
+def format_telegram_history_card(
+    alert: Any,
+    current_price: float,
+    triggered_target: Optional[float] = None,
+    previous_price: Optional[float] = None,
+    cached_meta: Optional[dict] = None,
+    custom_note: Optional[str] = None
+) -> str:
+    """Formats a rich Telegram notification matching the exact structure and visual fields of the app's History card."""
+    from datetime import datetime, timezone
+
+    # 1. Symbol & Market
+    display_symbol = getattr(alert, 'symbol', '') or ''
+    if '/' not in display_symbol and len(display_symbol) > 3:
+        for q in ['USDT', 'USDC', 'BUSD', 'FDUSD', 'EUR', 'USD', 'TMN', 'IRT', 'BTC', 'ETH']:
+            if display_symbol.endswith(q) and len(display_symbol) > len(q):
+                display_symbol = f"{display_symbol[:-len(q)]}/{q}"
+                break
+
+    raw_exchange = str(getattr(alert, 'exchange', '') or '')
+    exchange_name = get_exchange_display_name(raw_exchange)
+    exchange_badge = exchange_name.upper()
+
+    # 2. Condition Type & Direction
+    cond_type_raw = str(getattr(alert, 'condition_type', '') or 'priceThreshold')
+    type_map = {
+        'priceThreshold': 'آستانه قیمت (Price Threshold)',
+        'percentChange': 'تغییر درصدی (Percent Move)',
+        'absolutePriceChange': 'تغییر قدرمطلق (Abs Change)',
+        'volumeChange': 'تغییر حجم (Volume Spike)',
+        'macro': 'شاخص اقتصاد کلان (Macro Metric)'
+    }
+    cond_type_fa = type_map.get(cond_type_raw, cond_type_raw)
+
+    direction_raw = str(getattr(alert, 'direction', '') or getattr(alert, 'condition', '') or 'above').lower()
+    if direction_raw in ('above', 'up'):
+        dir_label = "صعودی / عبور به بالا ▲"
+    elif direction_raw in ('below', 'down'):
+        dir_label = "نزولی / افت به پایین ▼"
+    else:
+        dir_label = "دوطرفه (OCO / Dual) ⇅"
+
+    # Price Formatter
+    is_tmn = raw_exchange.lower() in ('nobitex', 'tse', 'iran_market') or display_symbol.endswith(('TMN', 'IRT'))
+    def _fmt(val: Optional[float]) -> str:
+        if val is None:
+            return "-"
+        if is_tmn:
+            return f"{int(val):,} تومان"
+        if val < 1:
+            return f"${val:,.4f}".rstrip('0').rstrip('.')
+        return f"${val:,.2f}"
+
+    curr_fmt = _fmt(current_price)
+
+    # Reference Price for Movement Calculation
+    ref_price = triggered_target or previous_price or getattr(alert, 'base_price', None) or getattr(alert, 'target_price', None)
+    pct_str = ""
+    arrow_icon = "🟢 ▲"
+
+    if ref_price and ref_price > 0:
+        diff = current_price - ref_price
+        is_upward = diff >= 0
+        move_pct = (diff / ref_price) * 100.0
+        sign = "+" if is_upward else ""
+        pct_str = f"{sign}{move_pct:.2f}%"
+        arrow_icon = "🟢 ▲" if is_upward else "🔴 ▼"
+    else:
+        arrow_icon = "🟢" if direction_raw in ('above', 'up') else "🔴"
+
+    # 3. Price Movement Box
+    price_lines = []
+    if ref_price and ref_price > 0 and abs(current_price - ref_price) > 1e-6:
+        ref_fmt = _fmt(ref_price)
+        price_lines.append(f"🎯 <b>قیمت تارگت / مبدا:</b> <code>{ref_fmt}</code>")
+        price_lines.append(f"⚡ <b>قیمت لحظه‌ای تریگر:</b> <b><code>{curr_fmt}</code></b>")
+        if pct_str:
+            price_lines.append(f"📈 <b>میزان جابجایی:</b> <code>{pct_str}</code> {arrow_icon}")
+    else:
+        price_lines.append(f"⚡ <b>قیمت لحظه‌ای تریگر:</b> <b><code>{curr_fmt}</code></b> {arrow_icon}")
+
+    # 4. Detail description
+    if cond_type_raw == 'percentChange' and pct_str:
+        detail_msg = f"قیمت نماد {display_symbol} با نوسان {pct_str} به {curr_fmt} رسید و شرط درصدی محقق شد."
+    elif ref_price and ref_price > 0:
+        detail_msg = f"قیمت {display_symbol} به {curr_fmt} رسید و شرط تارگت {_fmt(ref_price)} را با موفقیت رد کرد."
+    else:
+        detail_msg = f"شرط تعیین‌شده برای نماد {display_symbol} در قیمت {curr_fmt} فعال گردید."
+
+    # 5. Note block
+    note_val = custom_note or getattr(alert, 'note', None) or getattr(alert, 'upper_note', None) or getattr(alert, 'lower_note', None)
+    note_line = ""
+    if note_val and str(note_val).strip():
+        clean_n = str(note_val).strip()
+        if clean_n.startswith('📝'):
+            clean_n = clean_n[1:].strip()
+        if clean_n:
+            note_line = f"\n📝 <b>یادداشت استراتژی:</b>\n<i>{html.escape(clean_n)}</i>"
+
+    # 6. Mode & Features
+    mode_raw = getattr(alert, 'trigger_mode', 'oneShot')
+    mode_str = "یک‌بار مصرف (One-Shot)" if mode_raw == "oneShot" else "پایش مداوم (Recurring)"
+
+    features = []
+    if getattr(alert, 'sound_enabled', True):
+        features.append("🔊")
+    if getattr(alert, 'vibration_enabled', True):
+        features.append("📳")
+    if getattr(alert, 'tts_enabled', False):
+        features.append("🗣️")
+    feat_str = " ".join(features)
+
+    # 7. Timestamp
+    now_str = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
+
+    card_lines = [
+        "🔔 <b>کارت هشدار | تاریخچه اعلان‌ها</b>",
+        "━━━━━━━━━━━━━━━━━━━━",
+        f"🏷️ <b>نماد:</b> <code>{html.escape(display_symbol)}</code>",
+        f"🏛️ <b>صرافی:</b> <code>{html.escape(exchange_badge)}</code>",
+        f"🎯 <b>نوع شرط:</b> <code>{html.escape(cond_type_fa)}</code>",
+        f"🧭 <b>جهت:</b> {html.escape(dir_label)}",
+        "",
+        "📊 <b>اطلاعات تریگر قیمت:</b>",
+        *price_lines,
+        "",
+        "📢 <b>شرح وضعیت:</b>",
+        f"<i>{html.escape(detail_msg)}</i>" + note_line,
+        "━━━━━━━━━━━━━━━━━━━━",
+        f"🕒 <b>زمان ثبت:</b> <code>{now_str}</code>",
+        f"⚡ <b>وضعیت:</b> ✅ اجرا شده (Triggered) | {html.escape(mode_str)} {feat_str}".strip()
+    ]
+    return "\n".join(card_lines)
+
+def format_telegram_macro_history_card(
+    symbol: str,
+    price: float,
+    source: str,
+    trigger_reason: str,
+    release_date: Optional[str] = None,
+    note: Optional[str] = None
+) -> str:
+    """Formats macro economic alerts matching the History card layout."""
+    from datetime import datetime, timezone
+    now_str = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
+    note_line = ""
+    if note and str(note).strip():
+        n = str(note).strip()
+        if n.startswith('📝'):
+            n = n[1:].strip()
+        if n:
+            note_line = f"\n📝 <b>یادداشت استراتژی:</b>\n<i>{html.escape(n)}</i>"
+
+    lines = [
+        "🔔 <b>کارت هشدار اقتصاد کلان | تاریخچه اعلان‌ها</b>",
+        "━━━━━━━━━━━━━━━━━━━━",
+        f"📊 <b>شاخص:</b> <code>{html.escape(symbol)}</code>",
+        f"🏛️ <b>مرجع داده:</b> <code>{html.escape(source.upper())}</code>",
+        f"🎯 <b>نوع شرط:</b> <code>شاخص اقتصاد کلان (Macro Metric)</code>",
+        "",
+        f"⚡ <b>مقدار گزارش‌شده:</b> <b><code>{price:g}</code></b>",
+        f"📢 <b>رویداد انتشار:</b> <i>{html.escape(trigger_reason)}</i>" + note_line,
+        "━━━━━━━━━━━━━━━━━━━━",
+        f"🕒 <b>زمان انتشار:</b> <code>{html.escape(release_date or now_str)}</code>",
+        "⚡ <b>وضعیت:</b> ✅ داده جدید منتشر شد (Triggered)"
+    ]
+    return "\n".join(lines)
+
 async def init_telegram_bot(client: httpx.AsyncClient):
     global TELEGRAM_BOT_METADATA
     if not TELEGRAM_BOT_TOKEN:

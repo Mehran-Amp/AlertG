@@ -3,8 +3,9 @@ from fastapi import APIRouter, HTTPException
 
 from app.config import TELEGRAM_BOT_TOKEN, TELEGRAM_BOT_METADATA, CHAT_ID_RE
 from app.security import API_DEP, _scrub
-from app.models import TelegramTestRequest
+from app.models import TelegramTestRequest, Alert
 from app.state import METRICS
+from app.notifier.telegram import format_telegram_history_card
 import app.state as state
 
 router = APIRouter()
@@ -34,13 +35,29 @@ async def send_telegram_test_message(req: TelegramTestRequest):
     if not chat_id or not CHAT_ID_RE.match(chat_id):
         raise HTTPException(status_code=400, detail="Valid chat_id is required.")
 
-    test_msg = (
-        "🚨 <b>هشدار فعال شد:</b>\n"
-        "📊🟢 <b>^TNX/USD $5.31 ▲3.12%</b>\n"
-        "🎯 <b>قیمت تارگت:</b> $5.90\n"
-        "🏛️ Global Stocks\n"
-        f"🕒 <b>زمان:</b> <code>{datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}</code>\n"
-        "⚡ <i>ارسال شده توسط ربات هوشمند SignalAlert Enterprise</i>"
+    sample_alert = Alert(
+        id="test_sample_alert",
+        user_id="test_user",
+        symbol="BTCUSDT",
+        exchange="binance",
+        condition_type="priceThreshold",
+        direction="above",
+        condition="ABOVE",
+        target_price=68000.0,
+        base_price=67200.0,
+        trigger_mode="oneShot",
+        sound_enabled=True,
+        vibration_enabled=True,
+        tts_enabled=True,
+        note="تست دریافت هشدار در ساختار کارت تاریخچه"
+    )
+
+    test_msg = format_telegram_history_card(
+        alert=sample_alert,
+        current_price=68450.0,
+        triggered_target=68000.0,
+        previous_price=67200.0,
+        custom_note="تست دریافت هشدار در ساختار کارت تاریخچه"
     )
 
     try:

@@ -20,7 +20,8 @@ from app.engine.categories import (
 from app.engine.calendar import is_market_open
 from app.notifier import (
     get_exchange_display_name, enqueue_alert_push,
-    send_telegram_alert, send_webhook_alert
+    send_telegram_alert, send_webhook_alert,
+    format_telegram_history_card, format_telegram_macro_history_card
 )
 from app.notifier.outbox import _spawn
 import app.state as state
@@ -355,18 +356,14 @@ async def check_alerts_job():
                 effective_chat_id = (user_prof.get('telegram_chat_id') or "").strip()
 
             if effective_chat_id:
-                tg_lines = [
-                    f"{emoji} <b>{html.escape(display_symbol)}</b> {pct_str} {price_formatted} {arrow}".replace('  ', ' '),
-                    f"🏛️ {html.escape(exchange_name)}"
-                ]
-                if triggered_note and triggered_note.strip():
-                    clean_n = triggered_note.strip()
-                    if clean_n.startswith('📝'):
-                        clean_n = clean_n[1:].strip()
-                    if clean_n:
-                        tg_lines.append(f"📝 {html.escape(clean_n)}")
-
-                tg_msg = "\n".join(tg_lines)
+                tg_msg = format_telegram_history_card(
+                    alert=alert,
+                    current_price=current_price,
+                    triggered_target=triggered_target,
+                    previous_price=getattr(alert, 'last_eval_price', None) or getattr(alert, 'base_price', None),
+                    cached_meta=cached_meta,
+                    custom_note=triggered_note
+                )
                 _spawn(send_telegram_alert(client, effective_chat_id, tg_msg))
 
             # 3. Optional Webhook with SSRF Protection
@@ -566,14 +563,14 @@ async def check_macro_alerts_job():
                 effective_chat_id = (user_prof.get('telegram_chat_id') or "").strip()
 
             if effective_chat_id:
-                tg_lines = [
-                    f"📊 <b>{html.escape(alert.symbol)}</b> (داده اقتصاد کلان)",
-                    f"🏛️ {html.escape(source)}",
-                    f"📢 {html.escape(trigger_reason)}"
-                ]
-                if alert.note and alert.note.strip():
-                    tg_lines.append(f"📝 {html.escape(alert.note.strip())}")
-                tg_msg = "\n".join(tg_lines)
+                tg_msg = format_telegram_macro_history_card(
+                    symbol=alert.symbol,
+                    price=price,
+                    source=source,
+                    trigger_reason=trigger_reason,
+                    release_date=release_date,
+                    note=alert.note
+                )
                 _spawn(send_telegram_alert(client, effective_chat_id, tg_msg))
 
             # 3. Webhook

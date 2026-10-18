@@ -7,6 +7,7 @@ from app.notifier.outbox import (
 from app.notifier.telegram import (
     get_exchange_display_name, send_telegram_alert,
     format_alert_registered_telegram_msg, init_telegram_bot,
-    notify_admin_telegram
+    notify_admin_telegram, format_telegram_history_card,
+    format_telegram_macro_history_card
 )
 from app.notifier.webhook import send_webhook_alert
