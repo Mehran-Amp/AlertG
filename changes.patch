@@ -1,0 +1,406 @@
+diff --git a/app/storage.py b/app/storage.py
+--- a/app/storage.py
++++ b/app/storage.py
+@@ -10,10 +10,28 @@
+ def get_db_file() -> str:
+-    return getattr(config, "ALERTS_DATA_FILE", None) or getattr(config, "DB_FILE", None) or (os.path.join(config.DATA_DIR, "alerts_data.json") if config.DATA_DIR != "." else "alerts_data.json")
++    cfg_db = getattr(config, "ALERTS_DATA_FILE", None) or getattr(config, "DB_FILE", None)
++    data_dir = getattr(config, "DATA_DIR", ".")
++    if cfg_db and cfg_db != "alerts_data.json":
++        return cfg_db
++    mod_db = globals().get("DB_FILE")
++    if mod_db and mod_db != "alerts_data.json":
++        return mod_db
++    if data_dir and data_dir != ".":
++        return os.path.join(data_dir, "alerts_data.json")
++    return cfg_db or mod_db or "alerts_data.json"
+ 
+ def get_profiles_file() -> str:
+-    return getattr(config, "USER_PROFILES_FILE", None) or getattr(config, "PROFILES_FILE", None) or (os.path.join(config.DATA_DIR, "user_profiles.json") if config.DATA_DIR != "." else "user_profiles.json")
++    cfg_prof = getattr(config, "USER_PROFILES_FILE", None) or getattr(config, "PROFILES_FILE", None)
++    data_dir = getattr(config, "DATA_DIR", ".")
++    if cfg_prof and cfg_prof != "user_profiles.json":
++        return cfg_prof
++    mod_prof = globals().get("PROFILES_FILE")
++    if mod_prof and mod_prof != "user_profiles.json":
++        return mod_prof
++    if data_dir and data_dir != ".":
++        return os.path.join(data_dir, "user_profiles.json")
++    return cfg_prof or mod_prof or "user_profiles.json"
+ 
+ DB_FILE = get_db_file()
+ PROFILES_FILE = get_profiles_file()
+@@ -82,3 +100,3 @@
+ def load_alerts_from_disk() -> List[Alert]:
+-    eff_db = DB_FILE if DB_FILE != "alerts_data.json" else get_db_file()
++    eff_db = get_db_file()
+     targets = [eff_db]
+@@ -166,3 +184,3 @@
+-        target_db = DB_FILE if DB_FILE != "alerts_data.json" else get_db_file()
++        target_db = get_db_file()
+         def _write():
+@@ -182,3 +200,3 @@
+ def load_user_profiles_from_disk() -> Dict[str, Dict[str, Any]]:
+-    eff_prof = PROFILES_FILE if PROFILES_FILE != "user_profiles.json" else get_profiles_file()
++    eff_prof = get_profiles_file()
+     if os.path.exists(eff_prof):
+@@ -198,3 +216,3 @@
+-        target_prof = PROFILES_FILE if PROFILES_FILE != "user_profiles.json" else get_profiles_file()
++        target_prof = get_profiles_file()
+         def _write():
+diff --git a/app/engine/sync.py b/app/engine/sync.py
+--- a/app/engine/sync.py
++++ b/app/engine/sync.py
+@@ -21,10 +21,28 @@
+ def get_catalog_file() -> str:
+-    return getattr(config, "CATALOG_FILE", None) or (CATALOG_FILE if CATALOG_FILE != "catalog.json" else os.path.join(getattr(config, "DATA_DIR", "."), "catalog.json"))
++    cfg_cat = getattr(config, "CATALOG_FILE", None)
++    data_dir = getattr(config, "DATA_DIR", ".")
++    if cfg_cat and cfg_cat != "catalog.json":
++        return cfg_cat
++    mod_cat = globals().get("CATALOG_FILE")
++    if mod_cat and mod_cat != "catalog.json":
++        return mod_cat
++    if data_dir and data_dir != ".":
++        return os.path.join(data_dir, "catalog.json")
++    return cfg_cat or mod_cat or "catalog.json"
+ 
+ def get_snapshots_dir() -> str:
+-    return getattr(config, "CATALOG_SNAPSHOTS_DIR", None) or (CATALOG_SNAPSHOTS_DIR if CATALOG_SNAPSHOTS_DIR != "catalog_snapshots" else os.path.join(getattr(config, "DATA_DIR", "."), "catalog_snapshots"))
++    cfg_snaps = getattr(config, "CATALOG_SNAPSHOTS_DIR", None)
++    data_dir = getattr(config, "DATA_DIR", ".")
++    if cfg_snaps and cfg_snaps != "catalog_snapshots":
++        return cfg_snaps
++    mod_snaps = globals().get("CATALOG_SNAPSHOTS_DIR")
++    if mod_snaps and mod_snaps != "catalog_snapshots":
++        return mod_snaps
++    if data_dir and data_dir != ".":
++        return os.path.join(data_dir, "catalog_snapshots")
++    return cfg_snaps or mod_snaps or "catalog_snapshots"
+ 
+ def get_sync_runs_file(filepath: Optional[str] = None) -> str:
+     if filepath:
+         return filepath
+-    return getattr(config, "SYNC_RUNS_FILE", None) or (SYNC_RUNS_FILE if SYNC_RUNS_FILE != "sync_runs.json" else os.path.join(getattr(config, "DATA_DIR", "."), "sync_runs.json"))
++    cfg_runs = getattr(config, "SYNC_RUNS_FILE", None)
++    data_dir = getattr(config, "DATA_DIR", ".")
++    if cfg_runs and cfg_runs != "sync_runs.json":
++        return cfg_runs
++    mod_runs = globals().get("SYNC_RUNS_FILE")
++    if mod_runs and mod_runs != "sync_runs.json":
++        return mod_runs
++    if data_dir and data_dir != ".":
++        return os.path.join(data_dir, "sync_runs.json")
++    return cfg_runs or mod_runs or "sync_runs.json"
+@@ -500,18 +518,83 @@
++NASDAQ_TRADER_URL = "http://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt"
++
++
++def fetch_nasdaq_trader_live() -> List[Dict[str, Any]]:
++    """
++    Live extraction of symbols from Nasdaq Trader directory with User-Agent and structural validation.
++    Halts and raises CatalogValidationError if table structure or mandatory headers change.
++    """
++    import urllib.request
++    req = urllib.request.Request(
++        NASDAQ_TRADER_URL,
++        headers={"User-Agent": USER_AGENT, "Accept": "text/plain"}
++    )
++    try:
++        with urllib.request.urlopen(req, timeout=15) as resp:
++            content = resp.read().decode("utf-8", errors="ignore")
++    except Exception as e:
++        print(f"⚠️ [CatalogSync] Nasdaq Trader network access skipped/failed: {e}")
++        return []
++
++    lines = [line.strip() for line in content.splitlines() if line.strip()]
++    if not lines:
++        return []
++
++    header = [h.strip() for h in lines[0].split("|")]
++    if not any("symbol" in h.lower() for h in header) or not any("security" in h.lower() for h in header):
++        raise CatalogValidationError(
++            f"Nasdaq Trader table schema changed! Expected 'Symbol' and 'Security Name', got: {header}. Halting execution."
++        )
++
++    sym_idx = -1
++    sec_idx = -1
++    test_idx = -1
++    for idx, h in enumerate(header):
++        if "symbol" in h.lower() and sym_idx == -1:
++            sym_idx = idx
++        elif "security" in h.lower() and sec_idx == -1:
++            sec_idx = idx
++        elif "test" in h.lower() and test_idx == -1:
++            test_idx = idx
++
++    results: List[Dict[str, Any]] = []
++    for line in lines[1:]:
++        if line.startswith("File Creation Time:"):
++            continue
++        parts = line.split("|")
++        if len(parts) <= max(sym_idx, sec_idx):
++            continue
++        if test_idx != -1 and len(parts) > test_idx and parts[test_idx].strip().upper() == "Y":
++            continue
++
++        raw_sym = parts[sym_idx].strip()
++        raw_name = parts[sec_idx].strip()
++        if not raw_sym or not raw_name:
++            continue
++
++        sym_id = raw_sym.replace('/', '.')
++        yf_sym = raw_sym.replace('.', '-')
++
++        results.append({
++            "id": sym_id,
++            "symbol": sym_id,
++            "nameEn": raw_name,
++            "nameFa": raw_name,
++            "category": "stock",
++            "marketName": "NASDAQ",
++            "unit": "$",
++            "is_active": 1,
++            "delisted_at": None,
++            "provider_map": {
++                "yahoo": {"symbol": yf_sym, "priority": 1},
++                "finnhub": {"symbol": sym_id, "priority": 2},
++                "twelve_data": {"symbol": sym_id, "priority": 3}
++            },
++            "source": "live_nasdaq_trader"
++        })
++
++    return results
++
++
+-def fetch_candidate_catalog() -> List[Dict[str, Any]]:
++def fetch_candidate_catalog(include_nasdaq_trader: bool = False) -> List[Dict[str, Any]]:
+     """
+     Stage 1: FETCH
+-    Fetches raw symbols catalog from live sources:
++    Fetches raw symbols catalog from live sources instead of a static list:
+     - S&P 500 constituents live from Wikipedia with User-Agent & structural validation
++    - Nasdaq Trader files when requested with User-Agent & schema validation (column change -> HALT)
+     - Registered provider adapters (Yahoo, Finnhub, Twelve Data, FRED)
+-    - Fallback to current catalog symbols if live fetch encounters network timeout
++    - Offline fallback to current catalog symbols if live fetch encounters network timeout
+     """
+     aggregated: List[Dict[str, Any]] = []
+ 
+-    # 1. Start with current catalog symbols as stable baseline
+-    current = load_catalog()
+-    for s in current.get("symbols", []):
+-        if s.get("is_active", 1):
+-            aggregated.append(dict(s))
+-
+-    # 2. Live fetch of S&P 500 constituents
++    # 1. Live fetch of S&P 500 constituents
+     try:
+         sp500_items = fetch_sp500_constituents_live()
+         if sp500_items:
+             aggregated.extend(sp500_items)
+             print(f"📡 [CatalogSync] Successfully fetched {len(sp500_items)} live S&P 500 constituents.")
+     except CatalogValidationError:
+         # Schema change or column mismatch MUST stop execution
+         raise
+     except Exception as e:
+-        print(f"⚠️ [CatalogSync] Live S&P 500 fetch failed (network/offline fallback): {e}")
++        print(f"⚠️ [CatalogSync] Live S&P 500 fetch failed: {e}")
++
++    # 2. Live fetch of Nasdaq Trader directory (if enabled)
++    if include_nasdaq_trader:
++        try:
++            nasdaq_items = fetch_nasdaq_trader_live()
++            if nasdaq_items:
++                aggregated.extend(nasdaq_items)
++                print(f"📡 [CatalogSync] Successfully fetched {len(nasdaq_items)} live Nasdaq Trader constituents.")
++        except CatalogValidationError:
++            raise
++        except Exception as e:
++            print(f"⚠️ [CatalogSync] Live Nasdaq Trader fetch failed: {e}")
+ 
+-    # 3. Gather from registered adapters
++    # 3. Gather from registered adapters
+     for adapter in (yahoo_adapter, finnhub_adapter, twelve_data_adapter, fred_adapter):
+@@ -533,3 +616,10 @@
++    # 4. Fallback to current catalog only if all live sources returned empty (offline network fallback)
++    if not aggregated:
++        current = load_catalog()
++        for s in current.get("symbols", []):
++            if s.get("is_active", 1):
++                aggregated.append(dict(s))
++
+     return aggregated
+diff --git a/tests/test_stage_soak_safety.py b/tests/test_stage_soak_safety.py
+--- a/tests/test_stage_soak_safety.py
++++ b/tests/test_stage_soak_safety.py
+@@ -131,11 +131,11 @@
+                 "chk.is_market_open = lambda *a, **k: True\n"
+                 "mock_prices = [1.1900, 1.2100]\n"
+                 "call_index = 0\n"
+-                "base_ts = 1700000000\n"
++                "base_ts = int(time.time())\n"
+                 "def next_sample():\n"
+                 "    global call_index\n"
+                 "    p = mock_prices[0] if len(mock_prices) == 1 else mock_prices.pop(0)\n"
+-                "    ts = base_ts + call_index * 60\n"
++                "    ts = base_ts + call_index\n"
+                 "    call_index += 1\n"
+                 "    return p, ts\n"
+                 "async def mock_fetch(*a, **k):\n"
+@@ -144,7 +144,7 @@
+                 "mb.fetch_price_with_trace = mock_fetch\n"
+                 "async def mock_quote(sym, client=None):\n"
+                 "    p, ts = next_sample()\n"
+-                "    return {'price': p, 'currency': 'USD', 'market_state': 'REGULAR', 'timestamp': ts, 'source': 'mock_provider'}\n"
++                "    return {'price': p, 'currency': 'USD', 'market_state': 'REGULAR', 'timestamp': ts, 'asOf': ts, 'source': 'mock_provider'}\n"
+                 "gs.yahoo_adapter.fetch_quote = mock_quote\n"
+diff --git a/tests/test_phase7_weekly_catalog_sync.py b/tests/test_phase7_weekly_catalog_sync.py
+--- a/tests/test_phase7_weekly_catalog_sync.py
++++ b/tests/test_phase7_weekly_catalog_sync.py
+@@ -34,3 +34,4 @@
+ from app.config import DATA_DIR, CATALOG_FILE, CATALOG_SNAPSHOTS_DIR, APP_VERSION
++import app.config as config
+ import app.storage as storage
+@@ -76,9 +77,22 @@
+         self.orig_cat_file = sync_module.CATALOG_FILE
+         self.orig_snap_dir = sync_module.CATALOG_SNAPSHOTS_DIR
+         self.orig_sync_runs = sync_module.SYNC_RUNS_FILE
++        self.orig_cfg_cat = getattr(config, "CATALOG_FILE", None)
++        self.orig_cfg_snap = getattr(config, "CATALOG_SNAPSHOTS_DIR", None)
++        self.orig_cfg_runs = getattr(config, "SYNC_RUNS_FILE", None)
++        self.orig_cfg_db = getattr(config, "ALERTS_DATA_FILE", None)
++        self.orig_cfg_data = getattr(config, "DATA_DIR", None)
++        self.orig_storage_db = getattr(storage, "DB_FILE", None)
++
+         sync_module.CATALOG_FILE = self.test_cat_file
+         sync_module.CATALOG_SNAPSHOTS_DIR = self.test_snap_dir
+         sync_module.SYNC_RUNS_FILE = os.path.join(self.test_dir, "sync_runs.json")
++        config.CATALOG_FILE = self.test_cat_file
++        config.CATALOG_SNAPSHOTS_DIR = self.test_snap_dir
++        config.SYNC_RUNS_FILE = os.path.join(self.test_dir, "sync_runs.json")
++        config.ALERTS_DATA_FILE = os.path.join(self.test_dir, "alerts_data.json")
++        config.DATA_DIR = self.test_dir
++        storage.DB_FILE = os.path.join(self.test_dir, "alerts_data.json")
+@@ -113,3 +127,9 @@
+         sync_module.CATALOG_FILE = self.orig_cat_file
+         sync_module.CATALOG_SNAPSHOTS_DIR = self.orig_snap_dir
+         sync_module.SYNC_RUNS_FILE = self.orig_sync_runs
++        config.CATALOG_FILE = self.orig_cfg_cat
++        config.CATALOG_SNAPSHOTS_DIR = self.orig_cfg_snap
++        config.SYNC_RUNS_FILE = self.orig_cfg_runs
++        config.ALERTS_DATA_FILE = self.orig_cfg_db
++        config.DATA_DIR = self.orig_cfg_data
++        storage.DB_FILE = self.orig_storage_db
+diff --git a/tests/test_phase3_baseline_and_catalog.py b/tests/test_phase3_baseline_and_catalog.py
+--- a/tests/test_phase3_baseline_and_catalog.py
++++ b/tests/test_phase3_baseline_and_catalog.py
+@@ -204,6 +204,9 @@
+         import app.config as config
+         self.sync = sync_module
++        import app.storage as storage
++        self.tmp = tempfile.mkdtemp()
+         self.orig_sync = (sync_module.CATALOG_FILE, sync_module.CATALOG_SNAPSHOTS_DIR, getattr(sync_module, "SYNC_RUNS_FILE", None))
+-        self.orig_cfg = (config.CATALOG_FILE, config.CATALOG_SNAPSHOTS_DIR, config.SYNC_RUNS_FILE, config.DATA_DIR)
++        self.orig_cfg = (config.CATALOG_FILE, config.CATALOG_SNAPSHOTS_DIR, config.SYNC_RUNS_FILE, config.DATA_DIR, getattr(config, "ALERTS_DATA_FILE", None))
++        self.orig_db = getattr(storage, "DB_FILE", None)
+ 
+@@ -212,3 +215,4 @@
+         test_runs = os.path.join(self.tmp, "sync_runs.json")
++        test_db = os.path.join(self.tmp, "alerts_data.json")
+ 
+@@ -219,4 +223,6 @@
+         config.SYNC_RUNS_FILE = test_runs
++        config.ALERTS_DATA_FILE = test_db
+         config.DATA_DIR = self.tmp
++        storage.DB_FILE = test_db
+ 
+     def tearDown(self):
+@@ -224,3 +230,5 @@
+         import app.config as config
++        import app.storage as storage
+         self.sync.CATALOG_FILE, self.sync.CATALOG_SNAPSHOTS_DIR, self.sync.SYNC_RUNS_FILE = self.orig_sync
+-        config.CATALOG_FILE, config.CATALOG_SNAPSHOTS_DIR, config.SYNC_RUNS_FILE, config.DATA_DIR = self.orig_cfg
++        config.CATALOG_FILE, config.CATALOG_SNAPSHOTS_DIR, config.SYNC_RUNS_FILE, config.DATA_DIR, config.ALERTS_DATA_FILE = self.orig_cfg
++        storage.DB_FILE = self.orig_db
+diff --git a/tests/test_phase10_testing_and_release.py b/tests/test_phase10_testing_and_release.py
+--- a/tests/test_phase10_testing_and_release.py
++++ b/tests/test_phase10_testing_and_release.py
+@@ -283,5 +283,7 @@
+-        with patch('app.engine.checker.enqueue_alert_push') as mock_push:
++        with patch('app.engine.checker.enqueue_alert_push') as mock_push, \
++             patch('app.engine.checker.save_alerts_to_disk_async', new_callable=AsyncMock) as mock_save:
+             await check_alerts_job()
+             self.assertFalse(alert.is_active)
+             self.assertEqual(alert.last_eval_price, 67200.0)
+             mock_push.assert_called_once()
++            mock_save.assert_awaited()
+diff --git a/tests/conftest.py b/tests/conftest.py
+new file mode 100644
+--- /dev/null
++++ b/tests/conftest.py
+@@ -0,0 +1,58 @@
++import os
++import shutil
++import pytest
++import app.config as config
++import app.engine.sync as sync_module
++import app.storage as storage
++
++
++@pytest.fixture(autouse=True)
++def isolate_test_environment(tmp_path, monkeypatch):
++    """
++    Guarantees zero tests write into real sync_runs.json, catalog.json, or alerts_data.json.
++    All storage and sync paths are bound to a clean isolated tmp_path directory for every test.
++    """
++    temp_dir = str(tmp_path)
++    test_cat = os.path.join(temp_dir, "catalog.json")
++    test_snaps = os.path.join(temp_dir, "catalog_snapshots")
++    test_runs = os.path.join(temp_dir, "sync_runs.json")
++    test_db = os.path.join(temp_dir, "alerts_data.json")
++    test_prof = os.path.join(temp_dir, "user_profiles.json")
++
++    # Seed with real catalog.json so read-only tests succeed seamlessly
++    real_cat = os.path.abspath("catalog.json")
++    if os.path.exists(real_cat):
++        shutil.copy2(real_cat, test_cat)
++
++    # Monkeypatch config
++    monkeypatch.setattr(config, "DATA_DIR", temp_dir)
++    monkeypatch.setattr(config, "CATALOG_FILE", test_cat)
++    monkeypatch.setattr(config, "CATALOG_SNAPSHOTS_DIR", test_snaps)
++    monkeypatch.setattr(config, "SYNC_RUNS_FILE", test_runs)
++    monkeypatch.setattr(config, "ALERTS_DATA_FILE", test_db)
++    monkeypatch.setattr(config, "USER_PROFILES_FILE", test_prof)
++
++    # Monkeypatch module-level overrides
++    monkeypatch.setattr(sync_module, "CATALOG_FILE", test_cat)
++    monkeypatch.setattr(sync_module, "CATALOG_SNAPSHOTS_DIR", test_snaps)
++    monkeypatch.setattr(sync_module, "SYNC_RUNS_FILE", test_runs)
++    monkeypatch.setattr(storage, "DB_FILE", test_db)
++    monkeypatch.setattr(storage, "PROFILES_FILE", test_prof)
++
++    def _read_bytes(path):
++        if os.path.exists(path):
++            with open(path, "rb") as f:
++                return f.read()
++        return None
++
++    root_sentinels = {
++        "catalog.json": _read_bytes("catalog.json"),
++        "sync_runs.json": _read_bytes("sync_runs.json"),
++        "alerts_data.json": _read_bytes("alerts_data.json"),
++    }
++
++    yield
++
++    for filename, before_content in root_sentinels.items():
++        after_content = _read_bytes(filename)
++        if before_content is None and after_content is not None:
++            os.remove(filename)
++            raise AssertionError(f"Test leaked created artifact into real workspace file: {filename}")
++        elif before_content is not None and after_content != before_content:
++            with open(filename, "wb") as f:
++                f.write(before_content)
++            raise AssertionError(f"Test modified real workspace file: {filename}")
