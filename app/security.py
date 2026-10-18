@@ -1,15 +1,7 @@
 import hmac
 import math
 from typing import Optional, Any, Dict
-try:
-    from fastapi import Header, HTTPException, Depends
-except ImportError:
-    class HTTPException(Exception):
-        def __init__(self, status_code=500, detail=""):
-            self.status_code = status_code
-            self.detail = detail
-    def Header(default=None): return default
-    def Depends(dependency=None): return dependency
+from fastapi import Header, HTTPException, Depends
 from app.config import (
     API_KEY, ADMIN_KEY, TELEGRAM_BOT_TOKEN,
     SYMBOL_RE, EXCHANGE_RE, CHAT_ID_RE,

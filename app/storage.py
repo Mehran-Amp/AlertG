@@ -8,28 +8,10 @@ from app.models import Alert
 from app.state import _db_lock, _prof_lock
 
 def get_db_file() -> str:
-    cfg_db = getattr(config, "ALERTS_DATA_FILE", None) or getattr(config, "DB_FILE", None)
-    data_dir = getattr(config, "DATA_DIR", ".")
-    if cfg_db and cfg_db != "alerts_data.json":
-        return cfg_db
-    mod_db = globals().get("DB_FILE")
-    if mod_db and mod_db != "alerts_data.json":
-        return mod_db
-    if data_dir and data_dir != ".":
-        return os.path.join(data_dir, "alerts_data.json")
-    return cfg_db or mod_db or "alerts_data.json"
+    return getattr(config, "ALERTS_DATA_FILE", "alerts_data.json")
 
 def get_profiles_file() -> str:
-    cfg_prof = getattr(config, "USER_PROFILES_FILE", None) or getattr(config, "PROFILES_FILE", None)
-    data_dir = getattr(config, "DATA_DIR", ".")
-    if cfg_prof and cfg_prof != "user_profiles.json":
-        return cfg_prof
-    mod_prof = globals().get("PROFILES_FILE")
-    if mod_prof and mod_prof != "user_profiles.json":
-        return mod_prof
-    if data_dir and data_dir != ".":
-        return os.path.join(data_dir, "user_profiles.json")
-    return cfg_prof or mod_prof or "user_profiles.json"
+    return getattr(config, "USER_PROFILES_FILE", "user_profiles.json")
 
 DB_FILE = get_db_file()
 PROFILES_FILE = get_profiles_file()

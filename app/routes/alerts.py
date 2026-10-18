@@ -2,17 +2,7 @@ import uuid
 import math
 from datetime import datetime, timezone
 from typing import Optional, List
-try:
-    from fastapi import APIRouter, HTTPException
-except ImportError:
-    class APIRouter:
-        def get(self, *a, **k): return lambda f: f
-        def post(self, *a, **k): return lambda f: f
-        def delete(self, *a, **k): return lambda f: f
-    class HTTPException(Exception):
-        def __init__(self, status_code=500, detail=""):
-            self.status_code = status_code
-            self.detail = detail
+from fastapi import APIRouter, HTTPException
 
 from app.config import (
     SYMBOL_RE, EXCHANGE_RE, CHAT_ID_RE,
@@ -42,7 +32,7 @@ async def create_alert(alert_in: AlertCreate):
         raise HTTPException(status_code=400, detail="Invalid exchange or symbol.")
     if not math.isfinite(alert_in.target_price):
         raise HTTPException(status_code=400, detail="Invalid target_price.")
-    if not alert_in.user_id.strip() or len(alert_in.user_id) > 128 or len(alert_in.fcm_token) > 512:
+    if not alert_in.user_id.strip() or len(alert_in.user_id) > 128 or len(alert_in.fcm_token or "") > 512:
         raise HTTPException(status_code=400, detail="Invalid user_id or fcm_token.")
     if alert_in.telegram_chat_id:
         alert_in.telegram_chat_id = alert_in.telegram_chat_id.strip()

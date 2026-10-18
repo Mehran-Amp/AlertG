@@ -1,18 +1,5 @@
 from typing import Optional, Dict, Any
-try:
-    from pydantic import BaseModel
-except ImportError:
-    class BaseModel:
-        def __init__(self, **data):
-            for k, v in data.items():
-                setattr(self, k, v)
-        def dict(self, *args, **kwargs):
-            annotations = {}
-            for cls in reversed(self.__class__.__mro__):
-                annotations.update(getattr(cls, '__annotations__', {}))
-            return {k: getattr(self, k, None) for k in annotations}
-        def model_dump(self, *args, **kwargs):
-            return self.dict()
+from pydantic import BaseModel
 
 class AlertCreate(BaseModel):
     id: Optional[str] = None
@@ -39,7 +26,7 @@ class AlertCreate(BaseModel):
     language: Optional[str] = "fa"
     prefer_server_proxy: bool = False
     raw_rule: Optional[Dict[str, Any]] = None
-    fcm_token: str = ""
+    fcm_token: Optional[str] = ""
     check_interval_seconds: int = 180
     note: Optional[str] = None
     trigger_mode: Optional[str] = "oneShot" # 'oneShot' | 'recurring'

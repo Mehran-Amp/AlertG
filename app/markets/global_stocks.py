@@ -2,15 +2,7 @@ import time
 import random
 import asyncio
 from typing import Dict, Any, List, Optional, Tuple
-try:
-    import httpx
-except ImportError:
-    httpx = None
-
-if httpx is None:
-    class _MockHttpx:
-        AsyncClient = Any
-    httpx = _MockHttpx()
+import httpx
 
 from app.config import (
     APP_VERSION,

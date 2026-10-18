@@ -1,13 +1,5 @@
 from typing import List, Dict, Any, Optional
-try:
-    import httpx
-except ImportError:
-    httpx = None
-
-if httpx is None:
-    class _MockHttpx:
-        AsyncClient = Any
-    httpx = _MockHttpx()
+import httpx
 from app.markets.common import normalize_symbol
 
 async def fetch_crypto(

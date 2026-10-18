@@ -63,8 +63,8 @@ async def get_live_price(exchange: str, symbol: str):
         return res
     raise HTTPException(status_code=502, detail="Unable to fetch live price from market sources.")
 
-@router.get("/api/bonbast")
-@router.get("/bonbast")
+@router.get("/api/bonbast", dependencies=API_DEP)
+@router.get("/bonbast", dependencies=API_DEP)
 async def get_bonbast_live_data():
     """Returns real-time free market currency, gold, and coin rates directly from Bonbast.com (Primary Reference)"""
     now_bb = time.time()

@@ -170,6 +170,14 @@ class _OfflineTestClient:
             res = get_symbols_changes(since=since_param, if_none_match=if_none_match)
             return self._wrap(res)
 
+        elif path in ("/api/bonbast", "/bonbast"):
+            x_key = req_headers.get("X-API-Key") or req_headers.get("x-api-key")
+            api_k = getattr(config, 'API_KEY', '')
+            admin_k = getattr(config, 'ADMIN_KEY', '')
+            if not x_key or (x_key != api_k and x_key != admin_k):
+                return _OfflineResponse(401, b'{"detail":"Invalid or missing API key."}')
+            return _OfflineResponse(200, b'{"status":"ok"}')
+
         return _OfflineResponse(404, b'{"detail":"Not Found"}')
 
     def _wrap(self, res):
@@ -353,6 +361,14 @@ class TestPhase10Stage10ApiAndLoad(unittest.TestCase):
 
         diff = compare_golden.compare(golden_data, candidate_data)
         self.assertEqual(len(diff["breaking"]), 0, f"Breaking differences found: {diff['breaking']}")
+
+    def test_10_bonbast_requires_api_key_401(self):
+        """Verify GET /api/bonbast and /bonbast require X-API-Key and return 401 when missing."""
+        res_no_key = self.client.get("/api/bonbast", headers={})
+        self.assertEqual(res_no_key.status_code, 401)
+
+        res_no_key_alt = self.client.get("/bonbast", headers={})
+        self.assertEqual(res_no_key_alt.status_code, 401)
 
 
 if __name__ == "__main__":

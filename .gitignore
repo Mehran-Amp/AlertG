@@ -20,6 +20,7 @@ serviceAccountKey.json
 *serviceAccount*.json
 *.pem
 *.key
+*.patch
 .last_fcm_token
 alerts_data.json
 

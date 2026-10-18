@@ -3,12 +3,8 @@ import asyncio
 import html
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any, List
-try:
-    import httpx
-except ImportError:
-    class _MockHttpx:
-        AsyncClient = Any
-    httpx = _MockHttpx()
+import httpx
+
 
 from app.state import (
     PRICE_CACHE, METRICS,

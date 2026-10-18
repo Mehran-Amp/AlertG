@@ -4,31 +4,8 @@ import hashlib
 import gzip
 import re
 from typing import Optional, List, Dict, Any
-try:
-    from fastapi import APIRouter, Query, HTTPException, Header, Response, Request
-    from fastapi.responses import JSONResponse
-except ImportError:
-    class APIRouter:
-        def get(self, *a, **k): return lambda f: f
-        def post(self, *a, **k): return lambda f: f
-        def delete(self, *a, **k): return lambda f: f
-    def Query(default=None, **k): return default
-    class HTTPException(Exception):
-        def __init__(self, status_code=500, detail=""):
-            self.status_code = status_code
-            self.detail = detail
-    def Header(default=None, **k): return default
-    class Response:
-        def __init__(self, content=b"", status_code=200, headers=None, media_type=None, **kwargs):
-            self.content = content if isinstance(content, bytes) else str(content).encode("utf-8")
-            self.body = self.content
-            self.status_code = status_code
-            self.headers = headers or {}
-    class Request: pass
-    class JSONResponse(Response):
-        def __init__(self, content=None, status_code=200, headers=None, **kwargs):
-            super().__init__(content=json.dumps(content).encode("utf-8") if isinstance(content, (dict, list)) else (content or b""), status_code=status_code, headers=headers)
-            self.body = self.content
+from fastapi import APIRouter, Query, HTTPException, Header, Response, Request
+from fastapi.responses import JSONResponse
 from app.markets.global_stocks import WALLSTREET_MACRO_SYMBOLS
 from app.engine.sync import load_catalog, get_catalog_delta
 from app.engine.calendar import get_symbol_market_detail

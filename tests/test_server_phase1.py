@@ -237,6 +237,24 @@ class TestServerPhase12(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(price_usdt, 85600.5, "BTCUSDT quote in USDT must NOT be divided by 10!")
 
+    async def test_07_bonbast_requires_api_key_401(self):
+        """Verify /api/bonbast and /bonbast enforce X-API-Key requirement and return 401 when missing or invalid."""
+        from fastapi import HTTPException
+        from app.security import require_api_key
+        with patch('app.config.API_KEY', 'valid_api_secret_key_32bytes'):
+            # Missing header raises 401
+            with self.assertRaises(HTTPException) as ctx:
+                await require_api_key(x_api_key=None)
+            self.assertEqual(ctx.exception.status_code, 401)
+
+            # Invalid header raises 401
+            with self.assertRaises(HTTPException) as ctx:
+                await require_api_key(x_api_key='invalid_key')
+            self.assertEqual(ctx.exception.status_code, 401)
+
+            # Valid header succeeds
+            await require_api_key(x_api_key='valid_api_secret_key_32bytes')
+
 
 if __name__ == '__main__':
     unittest.main()
