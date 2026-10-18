@@ -513,9 +513,13 @@ class _WatchlistPageState extends State<WatchlistPage> {
           ),
         ],
       ),
-      body: Stack(
+      body: Column(
         children: [
-          StreamBuilder<List<AlertRule>>(
+          const MarketEventBanner(),
+          Expanded(
+            child: Stack(
+              children: [
+                StreamBuilder<List<AlertRule>>(
             stream: repository.watchAllRules(),
             builder: (context, snapshot) {
               final rules = snapshot.data ?? repository.allRules;
@@ -555,11 +559,13 @@ class _WatchlistPageState extends State<WatchlistPage> {
             right: 16,
             bottom: _recentlyDeletedRule != null ? 20 : -100,
             child: _buildUndoToast(lang, theme, repository),
-          ),
         ],
       ),
-    );
-  }
+    ),
+  ],
+),
+);
+}
 
   Widget _buildUndoToast(String lang, ThemeData theme, JsonAlertRuleRepository repository) {
     if (_recentlyDeletedRule == null) return const SizedBox.shrink();
