@@ -66,41 +66,30 @@ class MainActivity : FlutterActivity() {
                     val text = call.argument<String>("text") ?: ""
                     try {
                         val file = java.io.File(filePath)
+                        if (!file.exists()) {
+                            result.error("FILE_NOT_FOUND", "File does not exist: $filePath", null)
+                            return@setMethodCallHandler
+                        }
+                        val uri = androidx.core.content.FileProvider.getUriForFile(
+                            applicationContext,
+                            "${applicationContext.packageName}.fileprovider",
+                            file
+                        )
                         val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                            if (file.exists()) {
-                                val uri = androidx.core.content.FileProvider.getUriForFile(
-                                    applicationContext,
-                                    "${applicationContext.packageName}.flutter_local_notifications.provider",
-                                    file
-                                )
-                                type = "image/png"
-                                putExtra(Intent.EXTRA_STREAM, uri)
-                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                            } else {
-                                type = "text/plain"
-                            }
+                            type = "image/png"
+                            putExtra(Intent.EXTRA_STREAM, uri)
                             putExtra(Intent.EXTRA_TEXT, text)
-                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            clipData = android.content.ClipData.newRawUri("Social Alert", uri)
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                         }
                         val chooser = Intent.createChooser(shareIntent, "Share Social Alert").apply {
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         }
                         startActivity(chooser)
                         result.success(true)
                     } catch (e: Exception) {
-                        try {
-                            val textIntent = Intent(Intent.ACTION_SEND).apply {
-                                type = "text/plain"
-                                putExtra(Intent.EXTRA_TEXT, text)
-                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            }
-                            startActivity(Intent.createChooser(textIntent, "Share Social Alert").apply {
-                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            })
-                            result.success(true)
-                        } catch (_: Exception) {
-                            result.success(false)
-                        }
+                        result.error("SHARE_FAILED", e.localizedMessage, null)
                     }
                 }
                 "openTelegramBot" -> {

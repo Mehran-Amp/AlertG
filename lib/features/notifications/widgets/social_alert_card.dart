@@ -584,24 +584,24 @@ void showSocialShareSheet(BuildContext context, NotificationLog log) {
               ),
               const SizedBox(height: 16),
 
-              // Action Buttons: Share Image (Primary) & Copy Post Link
+              // Action Buttons: Share Image (Primary), Save Image & Copy Post Link
               Row(
                 children: [
                   Expanded(
-                    flex: 6,
+                    flex: 5,
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF38BDF8),
                         foregroundColor: const Color(0xFF0F172A),
-                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      icon: const Icon(Icons.share_rounded, size: 18),
+                      icon: const Icon(Icons.share_rounded, size: 17),
                       label: const Text(
                         'Share Image',
-                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13.5),
+                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
                       ),
                       onPressed: () async {
                         try {
@@ -614,14 +614,14 @@ void showSocialShareSheet(BuildContext context, NotificationLog log) {
 
                           final dir = await getTemporaryDirectory();
                           final file = File('${dir.path}/social_alert_${log.uuid}.png');
-                          await file.writeAsBytes(bytes);
+                          await file.writeAsBytes(bytes, flush: true);
 
                           final shareText =
                               '🚨 ${log.marketSymbol} Alert Triggered!\n'
                               'Price: ${FormatUtils.formatPrice(log.triggeredPrice, lang: "en")}\n'
                               'Exchange: ${log.exchangeId.toUpperCase()}\n'
                               '${log.customNote != null && log.customNote!.isNotEmpty ? "Note: ${log.customNote}\n" : ""}'
-                              '⚡ Get free live market alerts on Telegram: @alertsifnalampbot';
+                              '⚡ Real-time price alerts on Telegram: @alertsifnalampbot';
 
                           final shared = await AppLifecycleHelper.shareAlertImage(file.path, shareText);
                           if (!shared) {
@@ -632,7 +632,7 @@ void showSocialShareSheet(BuildContext context, NotificationLog log) {
                             Navigator.pop(ctx);
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('🚀 Opening Share sheet with 1:1 card...'),
+                                content: Text('🚀 Sharing 1:1 image card...'),
                                 backgroundColor: Color(0xFF10B981),
                                 behavior: SnackBarBehavior.floating,
                               ),
@@ -642,7 +642,7 @@ void showSocialShareSheet(BuildContext context, NotificationLog log) {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Error sharing card: $e'),
+                                content: Text('Error sharing card image: $e'),
                                 backgroundColor: Colors.redAccent,
                               ),
                             );
@@ -651,38 +651,53 @@ void showSocialShareSheet(BuildContext context, NotificationLog log) {
                       },
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Expanded(
                     flex: 4,
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF1E293B),
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                           side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
                         ),
                       ),
-                      icon: const Icon(Icons.copy_rounded, size: 16),
-                      label: const Text('Copy Text', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
-                      onPressed: () {
-                        final shareText =
-                            '🚨 ${log.marketSymbol} Alert Triggered!\n'
-                            'Price: ${FormatUtils.formatPrice(log.triggeredPrice, lang: "en")}\n'
-                            'Exchange: ${log.exchangeId.toUpperCase()}\n'
-                            '${log.customNote != null && log.customNote!.isNotEmpty ? "Note: ${log.customNote}\n" : ""}'
-                            '⚡ Track live market alerts for free on Telegram: @alertsifnalampbot';
+                      icon: const Icon(Icons.download_rounded, size: 16),
+                      label: const Text('Save PNG', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      onPressed: () async {
+                        try {
+                          final boundary = repaintKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+                          if (boundary == null) return;
+                          final image = await boundary.toImage(pixelRatio: 3.0);
+                          final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+                          if (byteData == null) return;
+                          final bytes = byteData.buffer.asUint8List();
 
-                        Clipboard.setData(ClipboardData(text: shareText));
-                        Navigator.pop(ctx);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('📋 English share post copied to clipboard!'),
-                            backgroundColor: Color(0xFF38BDF8),
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
+                          final dir = await getApplicationDocumentsDirectory();
+                          final file = File('${dir.path}/alert_${log.uuid}.png');
+                          await file.writeAsBytes(bytes, flush: true);
+
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('✅ 1:1 Image saved to: ${file.path}'),
+                                backgroundColor: const Color(0xFF10B981),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Error saving image: $e'),
+                                backgroundColor: Colors.redAccent,
+                              ),
+                            );
+                          }
+                        }
                       },
                     ),
                   ),
