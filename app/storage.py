@@ -8,10 +8,10 @@ from app.models import Alert
 from app.state import _db_lock, _prof_lock
 
 def get_db_file() -> str:
-    return getattr(config, "ALERTS_DATA_FILE", "alerts_data.json")
+    return config.ALERTS_DATA_FILE
 
 def get_profiles_file() -> str:
-    return getattr(config, "USER_PROFILES_FILE", "user_profiles.json")
+    return config.USER_PROFILES_FILE
 
 DB_FILE = get_db_file()
 PROFILES_FILE = get_profiles_file()
