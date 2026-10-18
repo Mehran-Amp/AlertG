@@ -125,6 +125,24 @@ class ServerAlertService {
     _baseUrl = url;
   }
 
+  /// Generic HTTP GET helper
+  static Future<http.Response> get(String endpoint, {Map<String, String>? headers}) async {
+    final base = effectiveBaseUrl;
+    final url = Uri.parse('$base${endpoint.startsWith('/') ? endpoint : '/$endpoint'}');
+    return await http.get(url, headers: _buildHeaders(extra: headers)).timeout(const Duration(seconds: 10));
+  }
+
+  /// Generic HTTP POST helper
+  static Future<http.Response> post(String endpoint, {Map<String, dynamic>? body, Map<String, String>? headers}) async {
+    final base = effectiveBaseUrl;
+    final url = Uri.parse('$base${endpoint.startsWith('/') ? endpoint : '/$endpoint'}');
+    return await http.post(
+      url,
+      headers: _buildHeaders(extra: headers),
+      body: body != null ? jsonEncode(body) : null,
+    ).timeout(const Duration(seconds: 10));
+  }
+
   /// Helper to handle response status codes with friendly Iranian error messages
   static String _parseErrorMessage(http.Response response) {
     if (response.statusCode == 401) {
