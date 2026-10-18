@@ -858,6 +858,9 @@ class _SettingsPageState extends State<SettingsPage> {
           // Section 2: Telegram Bot VIP Alerts (بخش تلگرام)
           _buildTelegramIntegrationCard(context, settingsService, settings, theme, lang, isFa),
 
+          // Section 2.5: Market Events Radar (بخش رادار رویدادهای بازار)
+          _buildMarketEventsCard(context, settingsService, settings, theme, lang, isFa),
+
           // Section 3: Alarm Sound, Ringtone & Vibration (بخش تنظیمات آلارم‌ها)
           _buildSectionHeader(isFa ? '۳. تنظیمات صدای آلارم و زنگ هشدار' : '3. Alarm Sound & Ringtone', theme),
           const SizedBox(height: AppTokens.space8),
@@ -2428,6 +2431,221 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildMarketEventsCard(
+    BuildContext context,
+    SettingsService settingsService,
+    AppSettings settings,
+    ThemeData theme,
+    String lang,
+    bool isFa,
+  ) {
+    final accentColor = const Color(0xFF6366F1);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppTokens.space20),
+      padding: const EdgeInsets.all(AppTokens.space16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: accentColor.withValues(alpha: 0.35),
+          width: 1.2,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(Icons.local_fire_department_rounded, color: accentColor, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isFa ? 'رادار رویدادهای کلیدی بازار' : 'Market Catalysts Radar',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      isFa ? 'نوار تک‌خطی زیر عنوان + فیلتر ۶ ساعته ۴ بازار' : 'Single-line ticker + 6h scan for 4 markets',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: accentColor.withValues(alpha: 0.3)),
+                ),
+                child: Text(
+                  '6h Scan',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: accentColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppTokens.space12),
+          const Divider(height: 1),
+          const SizedBox(height: AppTokens.space8),
+
+          // 1. Switch for Banner Display
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            title: Text(
+              isFa ? 'نمایش نوار رویدادها زیر عنوان صفحه' : 'Display Market Events Banner',
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+            subtitle: Text(
+              isFa ? 'رویدادهای داغ کریپتو، فارکس، نفت و سهام' : 'Show single-line ticker below titlebar',
+              style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+            ),
+            value: settings.showMarketEventsBanner,
+            activeColor: accentColor,
+            onChanged: (val) {
+              settingsService.updateSettings(settings.copyWith(showMarketEventsBanner: val));
+            },
+          ),
+
+          // 2. Switch for Notifications
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            title: Text(
+              isFa ? 'دریافت ناتیفیکیشن برای رویدادهای مهم' : 'Receive Event Notifications',
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+            subtitle: Text(
+              isFa ? 'ارسال خودکار به اپلیکیشن و ربات تلگرام' : 'Send push and Telegram alert for major events',
+              style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+            ),
+            value: settings.eventsNotificationEnabled,
+            activeColor: accentColor,
+            onChanged: (val) {
+              settingsService.updateSettings(settings.copyWith(eventsNotificationEnabled: val));
+            },
+          ),
+
+          const SizedBox(height: 8),
+          Text(
+            isFa ? 'انتخاب بازارهای هدف:' : 'Target Market Categories:',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+          ),
+          const SizedBox(height: 8),
+
+          // 3. Category Checkboxes Grid
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _buildCategoryFilterChip(
+                label: '🪙 ' + (isFa ? 'کریپتو' : 'Crypto'),
+                isSelected: settings.eventsCryptoEnabled,
+                accentColor: accentColor,
+                theme: theme,
+                onTap: () => settingsService.updateSettings(
+                  settings.copyWith(eventsCryptoEnabled: !settings.eventsCryptoEnabled),
+                ),
+              ),
+              _buildCategoryFilterChip(
+                label: '🌐 ' + (isFa ? 'فارکس و کلان' : 'Macro & Forex'),
+                isSelected: settings.eventsMacroEnabled,
+                accentColor: accentColor,
+                theme: theme,
+                onTap: () => settingsService.updateSettings(
+                  settings.copyWith(eventsMacroEnabled: !settings.eventsMacroEnabled),
+                ),
+              ),
+              _buildCategoryFilterChip(
+                label: '🛢️ ' + (isFa ? 'نفت و انرژی' : 'Energy & Oil'),
+                isSelected: settings.eventsEnergyEnabled,
+                accentColor: accentColor,
+                theme: theme,
+                onTap: () => settingsService.updateSettings(
+                  settings.copyWith(eventsEnergyEnabled: !settings.eventsEnergyEnabled),
+                ),
+              ),
+              _buildCategoryFilterChip(
+                label: '📈 ' + (isFa ? 'سهام مگا-کپ' : 'Mega-Cap Stocks'),
+                isSelected: settings.eventsStocksEnabled,
+                accentColor: accentColor,
+                theme: theme,
+                onTap: () => settingsService.updateSettings(
+                  settings.copyWith(eventsStocksEnabled: !settings.eventsStocksEnabled),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryFilterChip({
+    required String label,
+    required bool isSelected,
+    required Color accentColor,
+    required ThemeData theme,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? accentColor.withValues(alpha: 0.18) : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? accentColor : theme.dividerColor,
+            width: isSelected ? 1.2 : 0.8,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isSelected ? Icons.check_circle_rounded : Icons.circle_outlined,
+              size: 14,
+              color: isSelected ? accentColor : theme.colorScheme.onSurface.withValues(alpha: 0.4),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

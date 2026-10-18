@@ -10,6 +10,7 @@ import '../models/notification_log.dart';
 import '../repositories/notification_repository.dart';
 import '../widgets/history_group_header.dart';
 import '../widgets/social_alert_card.dart';
+import '../../market_events/widgets/market_event_banner.dart';
 
 enum HistoryFilter { all, triggered, suppressed }
 
@@ -80,6 +81,9 @@ class _NotificationHistoryPageState extends State<NotificationHistoryPage> {
       ),
       body: Column(
         children: [
+          // Single-line High-Impact Market Event Banner below AppBar
+          const MarketEventBanner(),
+
           // Filter Chips at Top
           Padding(
             padding: const EdgeInsets.symmetric(
