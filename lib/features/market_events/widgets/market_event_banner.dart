@@ -7,12 +7,11 @@ import '../models/market_event.dart';
 import '../services/market_events_service.dart';
 import 'social_event_card.dart';
 
-/// TV Breaking News Continuous Marquee Ticker Banner positioned directly below the Titlebar.
+/// Full-Width TV Breaking News Continuous Marquee Ticker Banner.
 /// Features:
-/// - Continuous smooth horizontal scrolling stream (like TV news tickers)
-/// - Category Badges & Live Breaking News Indicators
-/// - Compact Share Button featuring the Share Emoji (📤) with ZERO text
-/// - ZERO Close (×) button (managed purely from Settings)
+/// - Clean full-width horizontal ticker stream (No static badges or side share buttons)
+/// - Tapping any scrolling news item opens the FULL Event Modal Card with Image & Share Image capability
+/// - Managed and toggleable purely from Settings
 class MarketEventBanner extends StatefulWidget {
   const MarketEventBanner({super.key});
 
@@ -21,23 +20,6 @@ class MarketEventBanner extends StatefulWidget {
 }
 
 class _MarketEventBannerState extends State<MarketEventBanner> {
-  List<MarketEvent> _events = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadEvents();
-  }
-
-  Future<void> _loadEvents() async {
-    final events = await MarketEventsService.instance.fetchEvents();
-    if (mounted) {
-      setState(() {
-        _events = events;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final settingsService = context.watch<SettingsService>();
@@ -68,73 +50,33 @@ class _MarketEventBannerState extends State<MarketEventBanner> {
           ),
         ),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 6),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // 1. Live Breaking Badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.red.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(
-                color: Colors.red.withValues(alpha: 0.5),
-                width: 0.8,
-              ),
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('🔴 ', style: TextStyle(fontSize: 8)),
-                Text(
-                  'NEWS TICKER',
-                  style: TextStyle(
-                    color: Colors.redAccent,
-                    fontSize: 9.0,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.4,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-
-          // 2. Continuous Infinite Scrolling TV Marquee Ticker Stream
           Expanded(
             child: _ContinuousMarqueeStream(
               events: filtered,
               theme: theme,
-              onEventTap: (event) => showEventSocialShareSheet(context, event),
+              onEventTap: (event) => showMarketEventsListModalSheet(context, filtered),
             ),
           ),
           const SizedBox(width: 6),
-
-          // 3. Compact Share Button (📤)
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(6),
-              onTap: () {
-                if (filtered.isNotEmpty) {
-                  showEventSocialShareSheet(context, filtered.first);
-                }
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                decoration: BoxDecoration(
-                  color: primaryAccent.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: primaryAccent.withValues(alpha: 0.35),
-                    width: 0.8,
-                  ),
+          InkWell(
+            onTap: () => showMarketEventsListModalSheet(context, filtered),
+            borderRadius: BorderRadius.circular(6),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+              decoration: BoxDecoration(
+                color: primaryAccent.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: primaryAccent.withValues(alpha: 0.4),
+                  width: 0.8,
                 ),
-                child: const Text(
-                  '📤',
-                  style: TextStyle(fontSize: 13),
-                ),
+              ),
+              child: const Text(
+                '📅',
+                style: TextStyle(fontSize: 12),
               ),
             ),
           ),
@@ -187,7 +129,7 @@ class _ContinuousMarqueeStreamState extends State<_ContinuousMarqueeStream> {
         continue;
       }
 
-      // Smooth TV News ticker scroll speed (e.g. 30px per sec)
+      // Smooth TV News ticker scroll speed (~30px per sec)
       final durationMs = (maxScroll * 30).toInt();
 
       await _scrollController.animateTo(
@@ -226,12 +168,13 @@ class _ContinuousMarqueeStreamState extends State<_ContinuousMarqueeStream> {
           final accent = event.categoryColor;
           return InkWell(
             onTap: () => widget.onEventTap(event),
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(6),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  const Text('🔴 ', style: TextStyle(fontSize: 8)),
                   // Category Pill in Stream
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
