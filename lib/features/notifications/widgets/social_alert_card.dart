@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../models/notification_log.dart';
+import '../../../core/utils/app_lifecycle_helper.dart';
 import '../../../core/utils/crypto_icons.dart';
 import '../../../core/utils/format_utils.dart';
 
@@ -50,14 +51,14 @@ class SocialAlertCard1x1 extends StatelessWidget {
   String _formatConditionType(String? type) {
     switch (type) {
       case 'percentChange':
-        return 'PERCENT MOVE';
+        return 'PERCENT MOVE SPIKE';
       case 'absolutePriceChange':
-        return 'ABSOLUTE CHANGE';
+        return 'ABSOLUTE MOVE HIT';
       case 'volumeChange':
-        return 'VOLUME SPIKE';
+        return 'VOLUME SPIKE DETECTED';
       case 'priceThreshold':
       default:
-        return 'PRICE THRESHOLD';
+        return 'PRICE TARGET REACHED';
     }
   }
 
@@ -79,7 +80,7 @@ class SocialAlertCard1x1 extends StatelessWidget {
         (log.previousPrice != null && log.triggeredPrice < log.previousPrice!);
 
     final Color primaryAccent = isUpward
-        ? const Color(0xFF10B981) // Emerald Green
+        ? const Color(0xFF10B981) // Emerald Neon Green
         : (isDownward ? const Color(0xFFEF4444) : const Color(0xFF38BDF8));
 
     final baseSymbol = _extractBaseCurrency();
@@ -94,39 +95,98 @@ class SocialAlertCard1x1 extends StatelessWidget {
       aspectRatio: 1.0,
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(22),
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF0F172A), // Slate 900
-              Color(0xFF0B0F19), // Dark Navy
-              Color(0xFF030712), // Black
+              Color(0xFF0F172A), // Deep Slate
+              Color(0xFF090D16), // Dark Obsidian
+              Color(0xFF030712), // Deepest Black
             ],
           ),
           border: Border.all(
-            color: primaryAccent.withValues(alpha: 0.35),
-            width: 1.5,
+            color: primaryAccent.withValues(alpha: 0.45),
+            width: 1.8,
           ),
           boxShadow: [
             BoxShadow(
-              color: primaryAccent.withValues(alpha: 0.15),
-              blurRadius: 24,
+              color: primaryAccent.withValues(alpha: 0.22),
+              blurRadius: 28,
               spreadRadius: 2,
             ),
             const BoxShadow(
               color: Colors.black,
-              blurRadius: 16,
+              blurRadius: 18,
               offset: Offset(0, 8),
             ),
           ],
         ),
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Top Header: Logo + Symbol + App Brand
+            // 1. TOP HEADER BANNER: Immediate Visual Recognition
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: primaryAccent.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: primaryAccent.withValues(alpha: 0.35),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.notifications_active_rounded,
+                        size: 14,
+                        color: primaryAccent,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'REAL-TIME PRICE ALERT TRIGGERED',
+                        style: TextStyle(
+                          color: primaryAccent,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 10,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: primaryAccent,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Text(
+                        'LIVE',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // 2. ASSET ROW: Logo + Symbol + Exchange Badge + App Branding
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -134,16 +194,16 @@ class SocialAlertCard1x1 extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(3),
+                      padding: const EdgeInsets.all(2.5),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: primaryAccent.withValues(alpha: 0.5),
+                          color: primaryAccent.withValues(alpha: 0.6),
                           width: 1.5,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: primaryAccent.withValues(alpha: 0.2),
+                            color: primaryAccent.withValues(alpha: 0.25),
                             blurRadius: 8,
                           ),
                         ],
@@ -159,7 +219,7 @@ class SocialAlertCard1x1 extends StatelessWidget {
                           style: const TextStyle(
                             fontFamily: 'sans-serif',
                             fontWeight: FontWeight.w900,
-                            fontSize: 17,
+                            fontSize: 18,
                             color: Colors.white,
                             letterSpacing: 0.4,
                           ),
@@ -170,6 +230,7 @@ class SocialAlertCard1x1 extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: const Color(0xFF1E293B),
                             borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: Colors.white12),
                           ),
                           child: Text(
                             log.exchangeId.toUpperCase(),
@@ -187,48 +248,55 @@ class SocialAlertCard1x1 extends StatelessWidget {
                 ),
 
                 // App Brand Badge
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B).withValues(alpha: 0.8),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.12),
-                      width: 1,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E293B),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white12),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.radar_rounded, size: 14, color: primaryAccent),
+                          const SizedBox(width: 5),
+                          const Text(
+                            'AlertG Engine',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 11.5,
+                              color: Colors.white,
+                              letterSpacing: 0.4,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.radar_rounded,
-                        size: 15,
-                        color: primaryAccent,
+                    const SizedBox(height: 2),
+                    Text(
+                      'Automated Market Radar',
+                      style: TextStyle(
+                        fontSize: 8.5,
+                        color: Colors.white.withValues(alpha: 0.45),
+                        fontWeight: FontWeight.w600,
                       ),
-                      const SizedBox(width: 5),
-                      const Text(
-                        'AlertG',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 12,
-                          color: Colors.white,
-                          letterSpacing: 0.6,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ],
             ),
 
-            // 2. Middle Body: Trigger Condition + Giant Price
+            // 3. MAIN TRIGGER DISPLAY: Giant Price + Percentage + Flow
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B).withValues(alpha: 0.45),
+                color: const Color(0xFF1E293B).withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: primaryAccent.withValues(alpha: 0.2),
+                  color: primaryAccent.withValues(alpha: 0.25),
                   width: 1,
                 ),
               ),
@@ -238,30 +306,23 @@ class SocialAlertCard1x1 extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: primaryAccent.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        child: Text(
-                          _formatConditionType(log.conditionType),
-                          style: TextStyle(
-                            color: primaryAccent,
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.8,
-                          ),
+                      Text(
+                        _formatConditionType(log.conditionType),
+                        style: TextStyle(
+                          color: primaryAccent,
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.8,
                         ),
                       ),
                       if (priceMovePct != null)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
                             color: primaryAccent.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                              color: primaryAccent.withValues(alpha: 0.4),
+                              color: primaryAccent.withValues(alpha: 0.5),
                               width: 1,
                             ),
                           ),
@@ -277,7 +338,7 @@ class SocialAlertCard1x1 extends StatelessWidget {
                         ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 6),
                   Text(
                     FormatUtils.formatPrice(
                       log.triggeredPrice,
@@ -286,32 +347,32 @@ class SocialAlertCard1x1 extends StatelessWidget {
                     ),
                     style: TextStyle(
                       fontFamily: 'monospace',
-                      fontSize: 26,
+                      fontSize: 27,
                       fontWeight: FontWeight.w900,
                       color: primaryAccent,
                       letterSpacing: -0.5,
                     ),
                   ),
                   if (log.previousPrice != null && log.previousPrice! > 0) ...[
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 3),
                     Row(
                       children: [
                         Text(
-                          'From: ${FormatUtils.formatPrice(log.previousPrice!, currencySymbol: currency, lang: "en")}',
+                          'Target: ${FormatUtils.formatPrice(log.previousPrice!, currencySymbol: currency, lang: "en")}',
                           style: TextStyle(
                             fontSize: 11,
                             fontFamily: 'monospace',
-                            color: Colors.white.withValues(alpha: 0.55),
+                            color: Colors.white.withValues(alpha: 0.6),
                           ),
                         ),
                         const SizedBox(width: 6),
                         const Icon(Icons.arrow_forward_rounded, size: 12, color: Colors.grey),
                         const SizedBox(width: 6),
                         Text(
-                          'TRIGGER HIT',
+                          'TRIGGER REACHED',
                           style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w900,
                             letterSpacing: 0.6,
                             color: primaryAccent,
                           ),
@@ -323,24 +384,24 @@ class SocialAlertCard1x1 extends StatelessWidget {
               ),
             ),
 
-            // 3. User Strategy Note (if present)
+            // 4. STRATEGY NOTE (if present)
             if (log.customNote != null && log.customNote!.trim().isNotEmpty)
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: primaryAccent.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: primaryAccent.withValues(alpha: 0.25),
-                    width: 1,
+                    width: 0.8,
                   ),
                 ),
                 child: Row(
                   children: [
                     Icon(
                       Icons.format_quote_rounded,
-                      size: 16,
+                      size: 15,
                       color: primaryAccent,
                     ),
                     const SizedBox(width: 6),
@@ -350,7 +411,7 @@ class SocialAlertCard1x1 extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 11.5,
+                          fontSize: 11,
                           fontStyle: FontStyle.italic,
                           fontWeight: FontWeight.w600,
                           color: Colors.white.withValues(alpha: 0.9),
@@ -361,57 +422,95 @@ class SocialAlertCard1x1 extends StatelessWidget {
                 ),
               ),
 
-            // 4. Footer: Timestamp & Viral CTA
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Divider(
-                  color: Colors.white.withValues(alpha: 0.1),
-                  height: 14,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.verified_rounded,
-                          size: 13,
-                          color: primaryAccent,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          DateFormat('yyyy-MM-dd HH:mm').format(log.timestamp.toUtc()) + ' UTC',
-                          style: TextStyle(
-                            fontSize: 10.5,
-                            fontFamily: 'monospace',
-                            color: Colors.white.withValues(alpha: 0.6),
+            // 5. STORE BADGES (Google Play & App Store) + TELEGRAM BOT
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E293B).withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.white10),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Google Play Badge
+                      Row(
+                        children: [
+                          Icon(Icons.play_arrow_rounded, size: 15, color: Colors.greenAccent[400]),
+                          const SizedBox(width: 3),
+                          const Text(
+                            'Google Play',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: 0.2,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.send_rounded,
-                          size: 12,
-                          color: Color(0xFF38BDF8),
-                        ),
-                        const SizedBox(width: 4),
-                        const Text(
-                          '@alertsifnalampbot',
-                          style: TextStyle(
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF38BDF8),
-                            letterSpacing: 0.3,
+                        ],
+                      ),
+
+                      // App Store Badge
+                      Row(
+                        children: [
+                          Icon(Icons.apple_rounded, size: 15, color: Colors.white.withValues(alpha: 0.9)),
+                          const SizedBox(width: 3),
+                          const Text(
+                            'App Store',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: 0.2,
+                            ),
                           ),
+                        ],
+                      ),
+
+                      // Telegram Bot Badge
+                      Row(
+                        children: [
+                          const Icon(Icons.send_rounded, size: 13, color: Color(0xFF38BDF8)),
+                          const SizedBox(width: 4),
+                          const Text(
+                            '@alertsifnalampbot',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF38BDF8),
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 5),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Verified Alert: ${DateFormat('yyyy-MM-dd HH:mm').format(log.timestamp.toUtc())} UTC',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontFamily: 'monospace',
+                          color: Colors.white.withValues(alpha: 0.5),
                         ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
+                      ),
+                      Text(
+                        'Instant Alerts • Zero Delay',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: primaryAccent.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -428,7 +527,7 @@ class SocialAlertCard1x1 extends StatelessWidget {
   }
 }
 
-/// Helper bottom sheet modal to preview, copy link, and export 1:1 image
+/// Helper bottom sheet modal to preview 1:1 image and invoke native Share Image
 void showSocialShareSheet(BuildContext context, NotificationLog log) {
   final GlobalKey repaintKey = GlobalKey();
 
@@ -485,22 +584,25 @@ void showSocialShareSheet(BuildContext context, NotificationLog log) {
               ),
               const SizedBox(height: 16),
 
-              // Action Buttons: Save Image & Copy Share Link
+              // Action Buttons: Share Image (Primary) & Copy Post Link
               Row(
                 children: [
                   Expanded(
+                    flex: 6,
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1E293B),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        backgroundColor: const Color(0xFF38BDF8),
+                        foregroundColor: const Color(0xFF0F172A),
+                        padding: const EdgeInsets.symmetric(vertical: 13),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
                         ),
                       ),
-                      icon: const Icon(Icons.download_rounded, size: 18),
-                      label: const Text('Save 1:1 Image', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      icon: const Icon(Icons.share_rounded, size: 18),
+                      label: const Text(
+                        'Share Image',
+                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13.5),
+                      ),
                       onPressed: () async {
                         try {
                           final boundary = repaintKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
@@ -510,15 +612,28 @@ void showSocialShareSheet(BuildContext context, NotificationLog log) {
                           if (byteData == null) return;
                           final bytes = byteData.buffer.asUint8List();
 
-                          final dir = await getApplicationDocumentsDirectory();
-                          final file = File('${dir.path}/alert_${log.uuid}.png');
+                          final dir = await getTemporaryDirectory();
+                          final file = File('${dir.path}/social_alert_${log.uuid}.png');
                           await file.writeAsBytes(bytes);
 
+                          final shareText =
+                              '🚨 ${log.marketSymbol} Alert Triggered!\n'
+                              'Price: ${FormatUtils.formatPrice(log.triggeredPrice, lang: "en")}\n'
+                              'Exchange: ${log.exchangeId.toUpperCase()}\n'
+                              '${log.customNote != null && log.customNote!.isNotEmpty ? "Note: ${log.customNote}\n" : ""}'
+                              '⚡ Get free live market alerts on Telegram: @alertsifnalampbot';
+
+                          final shared = await AppLifecycleHelper.shareAlertImage(file.path, shareText);
+                          if (!shared) {
+                            Clipboard.setData(ClipboardData(text: shareText));
+                          }
+
                           if (context.mounted) {
+                            Navigator.pop(ctx);
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('✅ 1:1 Social Card saved to: ${file.path}'),
-                                backgroundColor: const Color(0xFF10B981),
+                              const SnackBar(
+                                content: Text('🚀 Opening Share sheet with 1:1 card...'),
+                                backgroundColor: Color(0xFF10B981),
                                 behavior: SnackBarBehavior.floating,
                               ),
                             );
@@ -527,7 +642,7 @@ void showSocialShareSheet(BuildContext context, NotificationLog log) {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Error saving card: $e'),
+                                content: Text('Error sharing card: $e'),
                                 backgroundColor: Colors.redAccent,
                               ),
                             );
@@ -538,17 +653,19 @@ void showSocialShareSheet(BuildContext context, NotificationLog log) {
                   ),
                   const SizedBox(width: 10),
                   Expanded(
+                    flex: 4,
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF38BDF8),
-                        foregroundColor: const Color(0xFF0F172A),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        backgroundColor: const Color(0xFF1E293B),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 13),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
                         ),
                       ),
-                      icon: const Icon(Icons.copy_rounded, size: 18),
-                      label: const Text('Copy Post Text', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
+                      icon: const Icon(Icons.copy_rounded, size: 16),
+                      label: const Text('Copy Text', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
                       onPressed: () {
                         final shareText =
                             '🚨 ${log.marketSymbol} Alert Triggered!\n'

@@ -61,6 +61,48 @@ class MainActivity : FlutterActivity() {
                     val moved = moveTaskToBack(true)
                     result.success(moved)
                 }
+                "shareImage" -> {
+                    val filePath = call.argument<String>("filePath") ?: ""
+                    val text = call.argument<String>("text") ?: ""
+                    try {
+                        val file = java.io.File(filePath)
+                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                            if (file.exists()) {
+                                val uri = androidx.core.content.FileProvider.getUriForFile(
+                                    applicationContext,
+                                    "${applicationContext.packageName}.flutter_local_notifications.provider",
+                                    file
+                                )
+                                type = "image/png"
+                                putExtra(Intent.EXTRA_STREAM, uri)
+                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            } else {
+                                type = "text/plain"
+                            }
+                            putExtra(Intent.EXTRA_TEXT, text)
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        val chooser = Intent.createChooser(shareIntent, "Share Social Alert").apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        startActivity(chooser)
+                        result.success(true)
+                    } catch (e: Exception) {
+                        try {
+                            val textIntent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, text)
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            startActivity(Intent.createChooser(textIntent, "Share Social Alert").apply {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            })
+                            result.success(true)
+                        } catch (_: Exception) {
+                            result.success(false)
+                        }
+                    }
+                }
                 "openTelegramBot" -> {
                     val opened = openTelegramBotDeepLink()
                     result.success(opened)

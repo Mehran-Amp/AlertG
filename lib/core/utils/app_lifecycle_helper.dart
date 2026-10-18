@@ -59,4 +59,17 @@ class AppLifecycleHelper {
       return false;
     }
   }
+
+  /// Shares 1:1 image and text to native platform share sheet
+  static Future<bool> shareAlertImage(String filePath, String text) async {
+    try {
+      final result = await _channel.invokeMethod<bool>('shareImage', {
+        'filePath': filePath,
+        'text': text,
+      });
+      return result == true;
+    } catch (_) {
+      return false;
+    }
+  }
 }
