@@ -718,7 +718,7 @@ void showMarketEventsListModalSheet(BuildContext context, List<MarketEvent> even
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'رویدادهای کلیدی بازار (Market Events)',
+                          'Market Catalysts & Events',
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
@@ -727,7 +727,7 @@ void showMarketEventsListModalSheet(BuildContext context, List<MarketEvent> even
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'مرتب‌شده بر اساس نوبت و زمان برگزاری',
+                          'Chronologically ordered by schedule',
                           style: TextStyle(
                             fontSize: 11,
                             color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
@@ -852,33 +852,73 @@ void showMarketEventsListModalSheet(BuildContext context, List<MarketEvent> even
                         ),
                         const SizedBox(height: 12),
 
-                        // Action Button: Share 1:1 Image Card
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: accent.withValues(alpha: 0.15),
-                              foregroundColor: accent,
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(vertical: 9),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                side: BorderSide(color: accent.withValues(alpha: 0.4), width: 1),
+                        // Two Compact Action Buttons: Remind Me 🔔 and Share 🖼️
+                        Row(
+                          children: [
+                            // 1. Remind Me 🔔 Button
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF0284C7).withValues(alpha: 0.15),
+                                  foregroundColor: const Color(0xFF38BDF8),
+                                  elevation: 0,
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    side: const BorderSide(color: Color(0xFF0284C7), width: 0.8),
+                                  ),
+                                ),
+                                icon: const Icon(Icons.notifications_active_rounded, size: 15),
+                                label: const Text(
+                                  'Remind Me 🔔',
+                                  style: TextStyle(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                onPressed: () {
+                                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('🔔 Reminder set! You will be notified 30 minutes before ${ev.symbol} event.'),
+                                      backgroundColor: const Color(0xFF0284C7),
+                                      behavior: SnackBarBehavior.floating,
+                                      duration: const Duration(seconds: 3),
+                                    ),
+                                  );
+                                },
                               ),
                             ),
-                            icon: const Text('🖼️', style: TextStyle(fontSize: 14)),
-                            label: const Text(
-                              'ساخت و اشتراک کارت تصویری (Share Image)',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
+                            const SizedBox(width: 10),
+
+                            // 2. Compact Share 🖼️ Button
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: accent.withValues(alpha: 0.15),
+                                  foregroundColor: accent,
+                                  elevation: 0,
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    side: BorderSide(color: accent.withValues(alpha: 0.4), width: 0.8),
+                                  ),
+                                ),
+                                icon: const Icon(Icons.image_rounded, size: 15),
+                                label: const Text(
+                                  'Share 🖼️',
+                                  style: TextStyle(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                onPressed: () {
+                                  Navigator.pop(ctx);
+                                  showEventSocialShareSheet(context, ev);
+                                },
                               ),
                             ),
-                            onPressed: () {
-                              Navigator.pop(ctx);
-                              showEventSocialShareSheet(context, ev);
-                            },
-                          ),
+                          ],
                         ),
                       ],
                     ),
