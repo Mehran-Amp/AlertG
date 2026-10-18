@@ -9,6 +9,7 @@ import '../../settings/services/settings_service.dart';
 import '../models/notification_log.dart';
 import '../repositories/notification_repository.dart';
 import '../widgets/history_group_header.dart';
+import '../widgets/social_alert_card.dart';
 
 enum HistoryFilter { all, triggered, suppressed }
 
@@ -534,45 +535,75 @@ class _NotificationHistoryPageState extends State<NotificationHistoryPage> {
                   ),
                 ],
               ),
-              InkWell(
-                onTap: () {
-                  final textToCopy =
-                      '🔔 ${log.marketSymbol} (${log.exchangeId.toUpperCase()})\n'
-                      'Price: ${FormatUtils.formatPrice(log.triggeredPrice, currencySymbol: _resolveLogCurrency(log), lang: lang)}\n'
-                      '${log.title}\n${log.message}\n'
-                      'Time: ${log.timestamp}';
-                  Clipboard.setData(ClipboardData(text: textToCopy));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        lang == 'fa' ? 'گزارش در کلیپ‌بورد کپی شد 📋' : 'Log copied to clipboard 📋',
+              Row(
+                children: [
+                  InkWell(
+                    onTap: () => showSocialShareSheet(context, log),
+                    borderRadius: BorderRadius.circular(6),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.share_rounded,
+                            size: 13,
+                            color: theme.colorScheme.primary,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Share 1:1',
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+                        ],
                       ),
-                      duration: const Duration(seconds: 2),
-                      behavior: SnackBarBehavior.floating,
                     ),
-                  );
-                },
-                borderRadius: BorderRadius.circular(6),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.copy_rounded,
-                        size: 13,
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.45),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        lang == 'fa' ? 'کپی' : 'Copy',
-                        style: TextStyle(
-                          fontSize: 10.5,
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                        ),
-                      ),
-                    ],
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  InkWell(
+                    onTap: () {
+                      final textToCopy =
+                          '🔔 ${log.marketSymbol} (${log.exchangeId.toUpperCase()})\n'
+                          'Price: ${FormatUtils.formatPrice(log.triggeredPrice, currencySymbol: _resolveLogCurrency(log), lang: lang)}\n'
+                          '${log.title}\n${log.message}\n'
+                          'Time: ${log.timestamp}';
+                      Clipboard.setData(ClipboardData(text: textToCopy));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            lang == 'fa' ? 'گزارش در کلیپ‌بورد کپی شد 📋' : 'Log copied to clipboard 📋',
+                          ),
+                          duration: const Duration(seconds: 2),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(6),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.copy_rounded,
+                            size: 13,
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.45),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            lang == 'fa' ? 'کپی' : 'Copy',
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

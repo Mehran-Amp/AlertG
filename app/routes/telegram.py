@@ -49,7 +49,7 @@ async def send_telegram_test_message(req: TelegramTestRequest):
         sound_enabled=True,
         vibration_enabled=True,
         tts_enabled=True,
-        note="تست دریافت هشدار در ساختار کارت تاریخچه"
+        note="Breakout above resistance confirmed! Looking for 70k."
     )
 
     test_msg = format_telegram_history_card(
@@ -57,7 +57,7 @@ async def send_telegram_test_message(req: TelegramTestRequest):
         current_price=68450.0,
         triggered_target=68000.0,
         previous_price=67200.0,
-        custom_note="تست دریافت هشدار در ساختار کارت تاریخچه"
+        custom_note="Breakout above resistance confirmed! Looking for 70k."
     )
 
     try:
@@ -70,7 +70,7 @@ async def send_telegram_test_message(req: TelegramTestRequest):
         }, timeout=8.0)
         if res.status_code == 200:
             METRICS["telegram_sent"] += 1
-            return {"status": "ok", "message": "پیام تست با موفقیت به تلگرام شما ارسال شد!", "chat_id": chat_id}
+            return {"status": "ok", "message": "Test alert card sent successfully to your Telegram!", "chat_id": chat_id}
         else:
             err_msg = res.text[:200]
             if res.status_code == 401:
