@@ -12,6 +12,8 @@ import '../../../core/utils/crypto_icons.dart';
 import '../../../core/utils/format_utils.dart';
 
 /// Full English 1:1 Square Branded Social Share Card
+/// Engineered with a fixed 440x440 virtual canvas, TextScaler.noScaling,
+/// and FittedBox constraints to guarantee ZERO pixel overflow on any device or font scale.
 class SocialAlertCard1x1 extends StatelessWidget {
   final NotificationLog log;
   final GlobalKey? repaintKey;
@@ -25,13 +27,21 @@ class SocialAlertCard1x1 extends StatelessWidget {
   String _resolveLogCurrency() {
     final sym = log.marketSymbol.toUpperCase();
     final baseSym = sym.contains('/') ? sym.split('/')[0].trim() : sym;
-    if (baseSym == 'TOTAL' || baseSym == 'TOTAL2' || baseSym == 'TOTAL3' || sym.contains('B USD') || sym.contains('/B USD')) {
+    if (baseSym == 'TOTAL' ||
+        baseSym == 'TOTAL2' ||
+        baseSym == 'TOTAL3' ||
+        sym.contains('B USD') ||
+        sym.contains('/B USD')) {
       return 'B USD';
     }
     if (sym.contains('M USD') || sym.contains('/M USD')) {
       return 'M USD';
     }
-    if (baseSym == 'BTC.D' || baseSym == 'USDT.D' || baseSym == 'ETH.D' || baseSym.endsWith('.D') || sym.contains('%')) {
+    if (baseSym == 'BTC.D' ||
+        baseSym == 'USDT.D' ||
+        baseSym == 'ETH.D' ||
+        baseSym.endsWith('.D') ||
+        sym.contains('%')) {
       return '%';
     }
     if (sym.contains('/')) {
@@ -51,14 +61,14 @@ class SocialAlertCard1x1 extends StatelessWidget {
   String _formatConditionType(String? type) {
     switch (type) {
       case 'percentChange':
-        return 'PERCENT MOVE SPIKE';
+        return 'PERCENT SPIKE DETECTED';
       case 'absolutePriceChange':
-        return 'ABSOLUTE MOVE HIT';
+        return 'ABSOLUTE MOVE REACHED';
       case 'volumeChange':
-        return 'VOLUME SPIKE DETECTED';
+        return 'VOLUME SPIKE ALERT';
       case 'priceThreshold':
       default:
-        return 'PRICE TARGET REACHED';
+        return 'PRICE TARGET TRIGGERED';
     }
   }
 
@@ -79,9 +89,10 @@ class SocialAlertCard1x1 extends StatelessWidget {
         log.title.contains('Dropped') ||
         (log.previousPrice != null && log.triggeredPrice < log.previousPrice!);
 
+    // Trend Accent: Neon Emerald for Bullish, Neon Coral for Bearish, Azure Cyan for Neutral
     final Color primaryAccent = isUpward
-        ? const Color(0xFF10B981) // Emerald Neon Green
-        : (isDownward ? const Color(0xFFEF4444) : const Color(0xFF38BDF8));
+        ? const Color(0xFF10B981) // Neon Emerald
+        : (isDownward ? const Color(0xFFF43F5E) : const Color(0xFF06B6D4));
 
     final baseSymbol = _extractBaseCurrency();
     final currency = _resolveLogCurrency();
@@ -91,246 +102,262 @@ class SocialAlertCard1x1 extends StatelessWidget {
       priceMovePct = ((log.triggeredPrice - log.previousPrice!) / log.previousPrice!) * 100.0;
     }
 
-    final cardContent = AspectRatio(
-      aspectRatio: 1.0,
+    final hasNote = log.customNote != null && log.customNote!.trim().isNotEmpty;
+
+    // Fixed 440x440 canvas with guaranteed zero pixel overflow
+    final canvasWidget = MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        textScaler: TextScaler.noScaling,
+      ),
       child: Container(
+        width: 440,
+        height: 440,
+        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(24),
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF0F172A), // Deep Slate
-              Color(0xFF090D16), // Dark Obsidian
-              Color(0xFF030712), // Deepest Black
+              Color(0xFF0F172A), // Dark Slate Navy
+              Color(0xFF0A0F1D), // Obsidian Blue
+              Color(0xFF030712), // Deepest Onyx Black
             ],
           ),
           border: Border.all(
-            color: primaryAccent.withValues(alpha: 0.45),
-            width: 1.8,
+            color: primaryAccent.withValues(alpha: 0.55),
+            width: 2.0,
           ),
           boxShadow: [
             BoxShadow(
-              color: primaryAccent.withValues(alpha: 0.22),
-              blurRadius: 28,
+              color: primaryAccent.withValues(alpha: 0.28),
+              blurRadius: 36,
               spreadRadius: 2,
             ),
             const BoxShadow(
               color: Colors.black,
-              blurRadius: 18,
-              offset: Offset(0, 8),
+              blurRadius: 24,
+              offset: Offset(0, 12),
             ),
           ],
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
           children: [
-            // 1. TOP HEADER BANNER: Immediate Visual Recognition
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: primaryAccent.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: primaryAccent.withValues(alpha: 0.35),
-                  width: 1,
+            // Ambient glowing radial accent in top right corner
+            Positioned(
+              top: -60,
+              right: -60,
+              child: Container(
+                width: 180,
+                height: 180,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      primaryAccent.withValues(alpha: 0.22),
+                      Colors.transparent,
+                    ],
+                  ),
                 ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.notifications_active_rounded,
-                        size: 14,
-                        color: primaryAccent,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'REAL-TIME PRICE ALERT TRIGGERED',
-                        style: TextStyle(
-                          color: primaryAccent,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 10,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          color: primaryAccent,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Text(
-                        'LIVE',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
               ),
             ),
 
-            // 2. ASSET ROW: Logo + Symbol + Exchange Badge + App Branding
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(2.5),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: primaryAccent.withValues(alpha: 0.6),
-                          width: 1.5,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: primaryAccent.withValues(alpha: 0.25),
-                            blurRadius: 8,
-                          ),
-                        ],
+            // Main structured content column
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // 1. TOP HEADER BRAND BAR: AlertG + Price Alert Status
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: primaryAccent.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: primaryAccent.withValues(alpha: 0.35),
+                        width: 1,
                       ),
-                      child: CryptoIcons.buildLogo(baseSymbol, size: 34),
                     ),
-                    const SizedBox(width: 10),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          log.marketSymbol,
-                          style: const TextStyle(
-                            fontFamily: 'sans-serif',
-                            fontWeight: FontWeight.w900,
-                            fontSize: 18,
-                            color: Colors.white,
-                            letterSpacing: 0.4,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1E293B),
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: Colors.white12),
-                          ),
-                          child: Text(
-                            log.exchangeId.toUpperCase(),
-                            style: TextStyle(
-                              color: primaryAccent,
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.5,
+                        // Left: App Brand & Radar Icon
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: primaryAccent.withValues(alpha: 0.2),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.radar_rounded,
+                                size: 14,
+                                color: primaryAccent,
+                              ),
                             ),
+                            const SizedBox(width: 6),
+                            const Text(
+                              'AlertG',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 13,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text(
+                                'PRICE RADAR',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 8.5,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.4,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        // Right: Live Trigger Status Pill
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                          decoration: BoxDecoration(
+                            color: primaryAccent,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 5,
+                                height: 5,
+                                decoration: const BoxDecoration(
+                                  color: Colors.black,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Text(
+                                'REAL-TIME ALERT',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.6,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
 
-                // App Brand Badge
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.white12),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.radar_rounded, size: 14, color: primaryAccent),
-                          const SizedBox(width: 5),
-                          const Text(
-                            'AlertG Engine',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 11.5,
-                              color: Colors.white,
-                              letterSpacing: 0.4,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Automated Market Radar',
-                      style: TextStyle(
-                        fontSize: 8.5,
-                        color: Colors.white.withValues(alpha: 0.45),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-
-            // 3. MAIN TRIGGER DISPLAY: Giant Price + Percentage + Flow
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E293B).withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: primaryAccent.withValues(alpha: 0.25),
-                  width: 1,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                  // 2. ASSET ROW: Logo + Market Symbol + Exchange Badge + 24h/Move Pill
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
-                        _formatConditionType(log.conditionType),
-                        style: TextStyle(
-                          color: primaryAccent,
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.8,
+                      // Asset Icon with glowing neon ring
+                      Container(
+                        padding: const EdgeInsets.all(2.5),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: primaryAccent.withValues(alpha: 0.65),
+                            width: 1.8,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: primaryAccent.withValues(alpha: 0.35),
+                              blurRadius: 10,
+                            ),
+                          ],
+                        ),
+                        child: CryptoIcons.buildLogo(baseSymbol, size: 36),
+                      ),
+                      const SizedBox(width: 10),
+
+                      // Market Symbol and Exchange Pill
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              log.marketSymbol,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontFamily: 'sans-serif',
+                                fontWeight: FontWeight.w900,
+                                fontSize: 18,
+                                color: Colors.white,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF1E293B),
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(color: Colors.white12),
+                                  ),
+                                  child: Text(
+                                    log.exchangeId.toUpperCase(),
+                                    style: TextStyle(
+                                      color: primaryAccent,
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                const Text(
+                                  '• Verified Feed',
+                                  style: TextStyle(
+                                    fontSize: 9.5,
+                                    color: Colors.white54,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
+
+                      // Move Percentage Badge
                       if (priceMovePct != null)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                           decoration: BoxDecoration(
-                            color: primaryAccent.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(6),
+                            color: primaryAccent.withValues(alpha: 0.18),
+                            borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: primaryAccent.withValues(alpha: 0.5),
-                              width: 1,
+                              color: primaryAccent.withValues(alpha: 0.55),
+                              width: 1.2,
                             ),
                           ),
                           child: Text(
                             '${priceMovePct >= 0 ? "▲ +" : "▼ "}${priceMovePct.abs().toStringAsFixed(2)}%',
                             style: TextStyle(
                               color: primaryAccent,
-                              fontSize: 12,
+                              fontSize: 13,
                               fontWeight: FontWeight.w900,
                               fontFamily: 'monospace',
                             ),
@@ -338,176 +365,367 @@ class SocialAlertCard1x1 extends StatelessWidget {
                         ),
                     ],
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    FormatUtils.formatPrice(
-                      log.triggeredPrice,
-                      currencySymbol: currency,
-                      lang: 'en',
+
+                  // 3. MAIN TRIGGER HERO DISPLAY: Trigger Reason + Giant Price + Target Bar
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E293B).withValues(alpha: 0.55),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: primaryAccent.withValues(alpha: 0.35),
+                        width: 1.2,
+                      ),
                     ),
-                    style: TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 27,
-                      fontWeight: FontWeight.w900,
-                      color: primaryAccent,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  if (log.previousPrice != null && log.previousPrice! > 0) ...[
-                    const SizedBox(height: 3),
-                    Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Target: ${FormatUtils.formatPrice(log.previousPrice!, currencySymbol: currency, lang: "en")}',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontFamily: 'monospace',
-                            color: Colors.white.withValues(alpha: 0.6),
+                        // Trigger condition header
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _formatConditionType(log.conditionType),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: primaryAccent,
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              'MARKET HIT',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.5),
+                                fontSize: 8.5,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+
+                        // Giant Triggered Price
+                        SizedBox(
+                          width: double.infinity,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              FormatUtils.formatPrice(
+                                log.triggeredPrice,
+                                currencySymbol: currency,
+                                lang: 'en',
+                              ),
+                              style: TextStyle(
+                                fontFamily: 'monospace',
+                                fontSize: 27,
+                                fontWeight: FontWeight.w900,
+                                color: primaryAccent,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 6),
-                        const Icon(Icons.arrow_forward_rounded, size: 12, color: Colors.grey),
-                        const SizedBox(width: 6),
-                        Text(
-                          'TRIGGER REACHED',
-                          style: TextStyle(
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.6,
+
+                        // Target Comparison Row (if target exists)
+                        if (log.previousPrice != null && log.previousPrice! > 0) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Target: ${FormatUtils.formatPrice(log.previousPrice!, currencySymbol: currency, lang: "en")}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 10.5,
+                                    fontFamily: 'monospace',
+                                    color: Colors.white.withValues(alpha: 0.65),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              const Icon(Icons.arrow_forward_rounded, size: 11, color: Colors.grey),
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                decoration: BoxDecoration(
+                                  color: primaryAccent.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  'TRIGGERED',
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.5,
+                                    color: primaryAccent,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+
+                  // 4. STRATEGY NOTE OR PROMO HIGHLIGHT (Guaranteed bounded lines)
+                  if (hasNote)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: primaryAccent.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: primaryAccent.withValues(alpha: 0.25),
+                          width: 0.8,
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.format_quote_rounded,
+                            size: 15,
                             color: primaryAccent,
                           ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              log.customNote!.trim(),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 10.5,
+                                fontStyle: FontStyle.italic,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white.withValues(alpha: 0.95),
+                                height: 1.25,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.04),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.bolt_rounded, size: 14, color: primaryAccent),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'Instant multi-market price alerts for crypto, stocks, gold & forex.',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                color: Colors.white.withValues(alpha: 0.7),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  // 5. STORE BADGES (Google Play, App Store & Telegram Bot) + Verified Footer
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E293B).withValues(alpha: 0.65),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.white12),
+                    ),
+                    child: Column(
+                      children: [
+                        // Callout label
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Get Instant Alerts on Mobile & Telegram Bot:',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white.withValues(alpha: 0.65),
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 5),
+
+                        // 3 Badges side-by-side: Each wrapped in Expanded + FittedBox to prevent any overflow
+                        Row(
+                          children: [
+                            // 1. Google Play
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4.5),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.06),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: Colors.white12),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.play_arrow_rounded, size: 14, color: Colors.greenAccent[400]),
+                                    const SizedBox(width: 3),
+                                    Flexible(
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: const Text(
+                                          'Google Play',
+                                          maxLines: 1,
+                                          style: TextStyle(
+                                            fontSize: 9.5,
+                                            fontWeight: FontWeight.w800,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+
+                            // 2. App Store
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4.5),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.06),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: Colors.white12),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.apple_rounded, size: 14, color: Colors.white.withValues(alpha: 0.95)),
+                                    const SizedBox(width: 3),
+                                    Flexible(
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: const Text(
+                                          'App Store',
+                                          maxLines: 1,
+                                          style: TextStyle(
+                                            fontSize: 9.5,
+                                            fontWeight: FontWeight.w800,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+
+                            // 3. Telegram Bot
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4.5),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF38BDF8).withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: const Color(0xFF38BDF8).withValues(alpha: 0.35),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.send_rounded, size: 12, color: Color(0xFF38BDF8)),
+                                    const SizedBox(width: 3),
+                                    Flexible(
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: const Text(
+                                          '@alertsifnalampbot',
+                                          maxLines: 1,
+                                          style: TextStyle(
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w900,
+                                            color: Color(0xFF38BDF8),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 5),
+
+                        // Timestamp & Verification row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Verified Alert: ${DateFormat('yyyy-MM-dd HH:mm').format(log.timestamp.toUtc())} UTC',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 8.5,
+                                  fontFamily: 'monospace',
+                                  color: Colors.white.withValues(alpha: 0.5),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 4,
+                                  height: 4,
+                                  decoration: BoxDecoration(
+                                    color: primaryAccent,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Zero Delay Engine',
+                                  style: TextStyle(
+                                    fontSize: 8.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: primaryAccent,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ],
-              ),
-            ),
-
-            // 4. STRATEGY NOTE (if present)
-            if (log.customNote != null && log.customNote!.trim().isNotEmpty)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: primaryAccent.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: primaryAccent.withValues(alpha: 0.25),
-                    width: 0.8,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.format_quote_rounded,
-                      size: 15,
-                      color: primaryAccent,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        log.customNote!.trim(),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontStyle: FontStyle.italic,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white.withValues(alpha: 0.9),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-            // 5. STORE BADGES (Google Play & App Store) + TELEGRAM BOT
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E293B).withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.white10),
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Google Play Badge
-                      Row(
-                        children: [
-                          Icon(Icons.play_arrow_rounded, size: 15, color: Colors.greenAccent[400]),
-                          const SizedBox(width: 3),
-                          const Text(
-                            'Google Play',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      // App Store Badge
-                      Row(
-                        children: [
-                          Icon(Icons.apple_rounded, size: 15, color: Colors.white.withValues(alpha: 0.9)),
-                          const SizedBox(width: 3),
-                          const Text(
-                            'App Store',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      // Telegram Bot Badge
-                      Row(
-                        children: [
-                          const Icon(Icons.send_rounded, size: 13, color: Color(0xFF38BDF8)),
-                          const SizedBox(width: 4),
-                          const Text(
-                            '@alertsifnalampbot',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              color: Color(0xFF38BDF8),
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 5),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Verified Alert: ${DateFormat('yyyy-MM-dd HH:mm').format(log.timestamp.toUtc())} UTC',
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontFamily: 'monospace',
-                          color: Colors.white.withValues(alpha: 0.5),
-                        ),
-                      ),
-                      Text(
-                        'Instant Alerts • Zero Delay',
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                          color: primaryAccent.withValues(alpha: 0.8),
-                        ),
-                      ),
-                    ],
                   ),
                 ],
               ),
@@ -517,13 +735,22 @@ class SocialAlertCard1x1 extends StatelessWidget {
       ),
     );
 
+    final responsiveWrapper = AspectRatio(
+      aspectRatio: 1.0,
+      child: FittedBox(
+        fit: BoxFit.contain,
+        alignment: Alignment.center,
+        child: canvasWidget,
+      ),
+    );
+
     if (repaintKey != null) {
       return RepaintBoundary(
         key: repaintKey,
-        child: cardContent,
+        child: canvasWidget,
       );
     }
-    return cardContent;
+    return responsiveWrapper;
   }
 }
 
@@ -571,137 +798,95 @@ void showSocialShareSheet(BuildContext context, NotificationLog log) {
               ),
               const SizedBox(height: 12),
 
-              // 1:1 Square Preview Card
+              // 1:1 Square Preview Card (Contained, responsive & scaled)
               Center(
                 child: SizedBox(
                   width: 320,
                   height: 320,
-                  child: SocialAlertCard1x1(
-                    log: log,
-                    repaintKey: repaintKey,
+                  child: AspectRatio(
+                    aspectRatio: 1.0,
+                    child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: SocialAlertCard1x1(
+                        log: log,
+                        repaintKey: repaintKey,
+                      ),
+                    ),
                   ),
                 ),
               ),
               const SizedBox(height: 16),
 
-              // Action Buttons: Share Image (Primary), Save Image & Copy Post Link
-              Row(
-                children: [
-                  Expanded(
-                    flex: 5,
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF38BDF8),
-                        foregroundColor: const Color(0xFF0F172A),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      icon: const Icon(Icons.share_rounded, size: 17),
-                      label: const Text(
-                        'Share Image',
-                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
-                      ),
-                      onPressed: () async {
-                        try {
-                          final boundary = repaintKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
-                          if (boundary == null) return;
-                          final image = await boundary.toImage(pixelRatio: 3.0);
-                          final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-                          if (byteData == null) return;
-                          final bytes = byteData.buffer.asUint8List();
-
-                          final dir = await getTemporaryDirectory();
-                          final file = File('${dir.path}/social_alert_${log.uuid}.png');
-                          await file.writeAsBytes(bytes, flush: true);
-
-                          final shareText =
-                              '🚨 ${log.marketSymbol} Alert Triggered!\n'
-                              'Price: ${FormatUtils.formatPrice(log.triggeredPrice, lang: "en")}\n'
-                              'Exchange: ${log.exchangeId.toUpperCase()}\n'
-                              '${log.customNote != null && log.customNote!.isNotEmpty ? "Note: ${log.customNote}\n" : ""}'
-                              '⚡ Real-time price alerts on Telegram: @alertsifnalampbot';
-
-                          final shared = await AppLifecycleHelper.shareAlertImage(file.path, shareText);
-                          if (!shared) {
-                            Clipboard.setData(ClipboardData(text: shareText));
-                          }
-
-                          if (context.mounted) {
-                            Navigator.pop(ctx);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('🚀 Sharing 1:1 image card...'),
-                                backgroundColor: Color(0xFF10B981),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          }
-                        } catch (e) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Error sharing card image: $e'),
-                                backgroundColor: Colors.redAccent,
-                              ),
-                            );
-                          }
-                        }
-                      },
+              // Primary Action: Share Alert Image Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF38BDF8),
+                    foregroundColor: const Color(0xFF0F172A),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 3,
+                  ),
+                  icon: const Icon(Icons.share_rounded, size: 18),
+                  label: const Text(
+                    'Share Image',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 14,
+                      letterSpacing: 0.3,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    flex: 4,
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1E293B),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
-                        ),
-                      ),
-                      icon: const Icon(Icons.download_rounded, size: 16),
-                      label: const Text('Save PNG', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                      onPressed: () async {
-                        try {
-                          final boundary = repaintKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
-                          if (boundary == null) return;
-                          final image = await boundary.toImage(pixelRatio: 3.0);
-                          final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-                          if (byteData == null) return;
-                          final bytes = byteData.buffer.asUint8List();
+                  onPressed: () async {
+                    try {
+                      final boundary =
+                          repaintKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+                      if (boundary == null) return;
+                      final image = await boundary.toImage(pixelRatio: 2.5);
+                      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+                      if (byteData == null) return;
+                      final bytes = byteData.buffer.asUint8List();
 
-                          final dir = await getApplicationDocumentsDirectory();
-                          final file = File('${dir.path}/alert_${log.uuid}.png');
-                          await file.writeAsBytes(bytes, flush: true);
+                      final dir = await getTemporaryDirectory();
+                      final file = File('${dir.path}/alert_${log.uuid}.png');
+                      await file.writeAsBytes(bytes, flush: true);
 
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('✅ 1:1 Image saved to: ${file.path}'),
-                                backgroundColor: const Color(0xFF10B981),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          }
-                        } catch (e) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Error saving image: $e'),
-                                backgroundColor: Colors.redAccent,
-                              ),
-                            );
-                          }
-                        }
-                      },
-                    ),
-                  ),
-                ],
+                      final shareText =
+                          '🚨 ${log.marketSymbol} Alert Triggered!\n'
+                          'Price: ${FormatUtils.formatPrice(log.triggeredPrice, lang: "en")}\n'
+                          'Exchange: ${log.exchangeId.toUpperCase()}\n'
+                          '${log.customNote != null && log.customNote!.isNotEmpty ? "Note: ${log.customNote}\n" : ""}'
+                          '⚡ Real-time price alerts on Telegram: @alertsifnalampbot';
+
+                      final shared = await AppLifecycleHelper.shareAlertImage(file.path, shareText);
+                      if (!shared) {
+                        Clipboard.setData(ClipboardData(text: shareText));
+                      }
+
+                      if (context.mounted) {
+                        Navigator.pop(ctx);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('🚀 Sharing 1:1 image card...'),
+                            backgroundColor: Color(0xFF10B981),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Error sharing card image: $e'),
+                            backgroundColor: Colors.redAccent,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                ),
               ),
               const SizedBox(height: 8),
             ],
