@@ -7,10 +7,10 @@ import '../models/market_event.dart';
 import '../services/market_events_service.dart';
 import 'social_event_card.dart';
 
-/// Sleek single-line Market Event Banner positioned directly below the Titlebar.
+/// Sleek single-line TV Breaking News Marquee Banner positioned directly below the Titlebar.
 /// Features:
 /// - Category Pill (Crypto, Macro, Energy, Stocks)
-/// - Auto-cycling High-Impact Event Title & Time
+/// - Continuous 4.5s Auto-cycling TV Ticker with Right-to-Left Slide Transition
 /// - Compact Share Button featuring the Share Emoji (📤) with ZERO text
 /// - ZERO Close (×) button (managed purely from Settings)
 class MarketEventBanner extends StatefulWidget {
@@ -49,15 +49,13 @@ class _MarketEventBannerState extends State<MarketEventBanner> {
 
   void _startTimer() {
     _cycleTimer?.cancel();
-    if (_events.length > 1) {
-      _cycleTimer = Timer.periodic(const Duration(seconds: 8), (_) {
-        if (mounted && _events.isNotEmpty) {
-          setState(() {
-            _currentIndex = (_currentIndex + 1) % _events.length;
-          });
-        }
-      });
-    }
+    _cycleTimer = Timer.periodic(const Duration(milliseconds: 4500), (_) {
+      if (mounted && _events.isNotEmpty) {
+        setState(() {
+          _currentIndex = (_currentIndex + 1) % _events.length;
+        });
+      }
+    });
   }
 
   @override
@@ -87,7 +85,7 @@ class _MarketEventBannerState extends State<MarketEventBanner> {
         color: theme.colorScheme.surface,
         border: Border(
           bottom: BorderSide(
-            color: accentColor.withValues(alpha: 0.3),
+            color: accentColor.withValues(alpha: 0.35),
             width: 1.0,
           ),
         ),
@@ -129,7 +127,7 @@ class _MarketEventBannerState extends State<MarketEventBanner> {
           ),
           const SizedBox(width: 8),
 
-          // 2. Animated Event Title & Time (Tappable to cycle or view)
+          // 2. TV Breaking News Right-to-Left Ticker Banner
           Expanded(
             child: InkWell(
               onTap: () {
@@ -140,18 +138,24 @@ class _MarketEventBannerState extends State<MarketEventBanner> {
                 }
               },
               child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 550),
+                duration: const Duration(milliseconds: 650),
+                switchInCurve: Curves.easeOutQuart,
+                switchOutCurve: Curves.easeInQuart,
                 transitionBuilder: (child, animation) {
-                  final offsetAnimation = Tween<Offset>(
-                    begin: const Offset(1.0, 0.0), // Right to Left Entry
+                  final isNew = child.key == ValueKey(currentEvent.id);
+                  final inOffset = Tween<Offset>(
+                    begin: const Offset(1.2, 0.0), // Slides in smoothly from Right
                     end: Offset.zero,
-                  ).animate(CurvedAnimation(
-                    parent: animation,
-                    curve: Curves.easeOutCubic,
-                  ));
+                  ).animate(animation);
+
+                  final outOffset = Tween<Offset>(
+                    begin: const Offset(-1.2, 0.0), // Slides out to Left
+                    end: Offset.zero,
+                  ).animate(animation);
+
                   return ClipRect(
                     child: SlideTransition(
-                      position: offsetAnimation,
+                      position: isNew ? inOffset : outOffset,
                       child: child,
                     ),
                   );
@@ -167,7 +171,7 @@ class _MarketEventBannerState extends State<MarketEventBanner> {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.bold,
                           color: theme.colorScheme.onSurface.withValues(alpha: 0.95),
                         ),
                       ),
@@ -179,7 +183,7 @@ class _MarketEventBannerState extends State<MarketEventBanner> {
           ),
           const SizedBox(width: 6),
 
-          // 3. Share Button featuring Emoji Only (📤) as explicitly requested (NO text word "Share")
+          // 3. Compact Share Button (📤)
           Material(
             color: Colors.transparent,
             child: InkWell(
