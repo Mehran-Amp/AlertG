@@ -2,7 +2,7 @@ c1dbb7f78edc4c32f4de1efc062e4402  app/config.py
 f90b4f33ed1b8d36c4c44da2678374df  app/engine/__init__.py
 374064c004033f18e933924b16707556  app/engine/calendar.py
 dd7f057d6d2c5b989a77d63601ecfae5  app/engine/categories.py
-0c85f44df4c9187e7f996ca212ad8fc4  app/engine/checker.py
+ae405c9ba2a73b16f07fbf2db8f9a5f2  app/engine/checker.py
 e98453454c08377f61559f7d2405a097  app/engine/features.py
 01b6cc5536e3593d0eb232886a809e58  app/engine/limiter.py
 de3e7df11bbccab93fe35484d99e94e4  app/engine/market_events.py
@@ -14,7 +14,7 @@ ea28581d756762cda7a75c4624643f0d  app/markets/__init__.py
 2d10d491855d5aedc4d089e161a7a5ea  app/markets/catalog_sync.py
 fedafe45def90ee25993155f5c525a27  app/markets/common.py
 49c214ad16b9f5097e277dde3175407d  app/markets/crypto.py
-519c6406880026c3e657a97466bac106  app/markets/global_stocks.py
+ac35cc06437e62e1889573aa9454a7c1  app/markets/global_stocks.py
 7091ed26dac212bb9486d9b994dcf17d  app/markets/iran.py
 62b8e74f12c0523f1d70bcc7946657cc  app/markets/kill_switch.py
 09b7f83ec29e097710089e7dcb6bc532  app/markets/limiter.py
@@ -29,7 +29,7 @@ b9e87e7e2606db853504d5e5bf961b87  app/routes/__init__.py
 97697cb51fb5efb6d0ee82dd4f97452f  app/routes/admin.py
 472cb94a982097c4f4fb4db7e5e84a9a  app/routes/alerts.py
 a94519b507e1236bc5b888c7dca0ab0d  app/routes/market_events.py
-ed29146673fbff9fc300af45a5ee06df  app/routes/prices.py
+d5ae94db71402516c0d9516eaa7e46f9  app/routes/prices.py
 7e1599810699dfc6bb55ec0ccd8aa8dd  app/routes/symbols.py
 2a456130eef70487f2b65767fc568742  app/routes/telegram.py
 68859bd9c3fb6693c584240f26bcf8ec  app/routes/user.py
@@ -162,7 +162,7 @@ a060b3065372a26d28346b6055aff2b0  tests/conftest.py
 83db9a17dfecd9434bb21425ca65101e  tests/test_outbox_fcm.py
 5a9d04f2d6b07570a3fd3696bf5bf944  tests/test_phase10_stage10_api_and_load.py
 d283ff89bd64149f8a19a5009a65ad59  tests/test_phase10_testing_and_release.py
-12d58f8618eb11774ed162719665c00b  tests/test_phase2_global_stocks.py
+6aba077b8be34fbcdb7a257a69db6e2a  tests/test_phase2_global_stocks.py
 71ef7f8245afb2c4e9a12019a120d790  tests/test_phase3_baseline_and_catalog.py
 6ef019f02405a65f83e5eec40a208d22  tests/test_phase3_create_alert_flow.py
 d67a93c19011a3d1ab5c4058bf03bd7d  tests/test_phase3_stability_engine.py
@@ -173,7 +173,7 @@ f864f99d6667ac939cdf7bf7d93940ac  tests/test_phase5_official_pairs_and_tickers.p
 e475ef3081666f0fcfb5e536982e1824  tests/test_phase5_resilient_providers.py
 1f983cdb6e03afcd99653ac1eab05dce  tests/test_phase5b_market_cap_and_scale_precision.py
 7a3e770ad8d9768335289006e0400902  tests/test_phase6_catalog_corrections_and_multisource.py
-6619e2059aa50840027dc56095a57b75  tests/test_phase6_macro_and_calendar.py
+c3e08c9c7a6201544ee3818430b799b3  tests/test_phase6_macro_and_calendar.py
 4f4d7872d46fe7c2700802f22d6cb62f  tests/test_phase6_probe_and_observability.py
 a57100299667cb096f9b156d59fa27a8  tests/test_phase6_probe_catalog.py
 a89c861c2a79460c3d472c75d43695ff  tests/test_phase7_iran_market_separation.py

@@ -24,6 +24,7 @@ import sys
 import unittest
 import re
 import os
+import time
 import json
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
@@ -34,7 +35,30 @@ for mod in [
     'firebase_admin', 'firebase_admin.credentials', 'firebase_admin.messaging', 'firebase_admin.exceptions'
 ]:
     if mod not in sys.modules:
-        sys.modules[mod] = MagicMock()
+        m = MagicMock()
+        if mod == 'fastapi':
+            class MockAPIRouter:
+                def get(self, *args, **kwargs):
+                    return lambda func: func
+                def post(self, *args, **kwargs):
+                    return lambda func: func
+                def delete(self, *args, **kwargs):
+                    return lambda func: func
+                def put(self, *args, **kwargs):
+                    return lambda func: func
+            m.APIRouter = MockAPIRouter
+            m.Depends = lambda x: x
+            m.HTTPException = Exception
+        if mod == 'pydantic':
+            class BaseModel:
+                def __init__(self, **kwargs):
+                    for k, v in kwargs.items():
+                        setattr(self, k, v)
+                def dict(self): return self.__dict__
+                def model_dump(self): return self.__dict__
+            m.BaseModel = BaseModel
+            m.Field = lambda *args, **kwargs: kwargs.get('default', None)
+        sys.modules[mod] = m
 
 @unittest.skipIf(not os.path.isdir('lib'), "Flutter client code (lib/) not present in backend deployment")
 class TestPhase2GlobalStocks(unittest.TestCase):
@@ -234,6 +258,144 @@ class TestFallbackChainAndFetchGlobalStocks(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(price, 5.25, f"Price for {test_sym} must be returned from FRED")
                 mock_yahoo.fetch_quote.assert_awaited()
                 mock_fred.fetch_quote.assert_awaited()
+
+
+class TestPriceMetadataUnitsAndFrequency(unittest.IsolatedAsyncioTestCase):
+    """
+    Unit tests for currency/unit, observation asOf date, data_date, data_frequency, and state:
+    - UNRATE: currency='%', unit='%', data_frequency='monthly', is_delayed=True, state != 'LIVE'
+    - CPIAUCSL: currency='PTS', unit='PTS', data_frequency='monthly', is_delayed=True, state != 'LIVE'
+    - US02Y: currency='%', unit='%', data_frequency='daily', is_delayed=True, state != 'LIVE'
+    - AAPL: currency='USD', non-FRED symbols unchanged (live/regular, not delayed)
+    """
+
+    def test_fred_extractor_units_and_dates(self):
+        from app.markets.global_stocks import FredAdapter
+        adapter = FredAdapter()
+
+        # UNRATE (%)
+        extractor_unrate = adapter._make_extractor('UNRATE')
+        res_unrate = extractor_unrate({'observations': [{'date': '2024-05-01', 'value': '4.0'}]})
+        self.assertIsNotNone(res_unrate)
+        self.assertEqual(res_unrate['currency'], '%')
+        self.assertEqual(res_unrate['unit'], '%')
+        self.assertEqual(res_unrate['data_date'], '2024-05-01')
+        self.assertEqual(res_unrate['data_frequency'], 'monthly')
+        self.assertTrue(res_unrate['is_delayed'])
+        self.assertNotEqual(res_unrate['state'], 'LIVE')
+        self.assertEqual(res_unrate['asOf'], int(datetime(2024, 5, 1, tzinfo=timezone.utc).timestamp()))
+
+        # CPIAUCSL (PTS)
+        extractor_cpi = adapter._make_extractor('CPIAUCSL')
+        res_cpi = extractor_cpi({'observations': [{'date': '2024-05-01', 'value': '314.069'}]})
+        self.assertIsNotNone(res_cpi)
+        self.assertEqual(res_cpi['currency'], 'PTS')
+        self.assertEqual(res_cpi['unit'], 'PTS')
+        self.assertEqual(res_cpi['data_date'], '2024-05-01')
+        self.assertEqual(res_cpi['data_frequency'], 'monthly')
+        self.assertTrue(res_cpi['is_delayed'])
+        self.assertNotEqual(res_cpi['state'], 'LIVE')
+        self.assertEqual(res_cpi['asOf'], int(datetime(2024, 5, 1, tzinfo=timezone.utc).timestamp()))
+
+        # US02Y -> DGS2 (%)
+        extractor_dgs2 = adapter._make_extractor('DGS2')
+        res_dgs2 = extractor_dgs2({'observations': [{'date': '2024-05-01', 'value': '4.95'}]})
+        self.assertIsNotNone(res_dgs2)
+        self.assertEqual(res_dgs2['currency'], '%')
+        self.assertEqual(res_dgs2['unit'], '%')
+        self.assertEqual(res_dgs2['data_date'], '2024-05-01')
+        self.assertEqual(res_dgs2['data_frequency'], 'daily')
+        self.assertTrue(res_dgs2['is_delayed'])
+        self.assertNotEqual(res_dgs2['state'], 'LIVE')
+        self.assertEqual(res_dgs2['asOf'], int(datetime(2024, 5, 1, tzinfo=timezone.utc).timestamp()))
+
+    async def test_fetch_global_stocks_preserves_meta_in_trace(self):
+        from unittest.mock import AsyncMock, MagicMock, patch
+        from app.markets import global_stocks
+
+        mock_fred = MagicMock()
+        mock_fred.name = "fred"
+        mock_fred.fetch_quote = AsyncMock(return_value={
+            'price': 4.1,
+            'asOf': 1714521600,
+            'date': '2024-05-01',
+            'data_date': '2024-05-01',
+            'state': 'delayed',
+            'units': '%',
+            'unit': '%',
+            'currency': '%',
+            'source': 'FRED',
+            'data_frequency': 'monthly',
+            'is_delayed': True
+        })
+
+        client = AsyncMock()
+        traces = []
+        with patch.object(global_stocks, "get_fallback_chain", return_value=[mock_fred]):
+            price = await global_stocks.fetch_global_stocks(client, "global_stocks", "UNRATE", traces=traces)
+            self.assertEqual(price, 4.1)
+            self.assertEqual(len(traces), 1)
+            tr = traces[0]
+            self.assertEqual(tr['currency'], '%')
+            self.assertEqual(tr['unit'], '%')
+            self.assertEqual(tr['asOf'], 1714521600)
+            self.assertEqual(tr['data_date'], '2024-05-01')
+            self.assertEqual(tr['data_frequency'], 'monthly')
+            self.assertTrue(tr['is_delayed'])
+            self.assertNotEqual(tr['state'], 'LIVE')
+
+    async def test_api_price_response_units_dates_and_frequencies(self):
+        from unittest.mock import AsyncMock, patch, MagicMock
+        from app.routes.prices import get_live_price
+        from app.state import PRICE_CACHE
+        import app.state as state
+
+        state.http_client = AsyncMock()
+
+        cases = [
+            ("UNRATE", 4.1, "%", "%", "monthly", True, "delayed", "2024-05-01", 1714521600, "FRED"),
+            ("CPIAUCSL", 314.069, "PTS", "PTS", "monthly", True, "delayed", "2024-05-01", 1714521600, "FRED"),
+            ("US02Y", 4.95, "%", "%", "daily", True, "delayed", "2024-05-01", 1714521600, "FRED"),
+            ("AAPL", 185.5, "USD", None, "live", False, "LIVE", None, 1714529999, "Yahoo Finance"),
+        ]
+
+        for sym, price, exp_curr, exp_unit, exp_freq, exp_delayed, exp_state, exp_date, exp_asof, exp_source in cases:
+            with self.subTest(symbol=sym):
+                from app.markets.common import normalize_symbol
+                cache_key = f"global_stocks:{normalize_symbol(sym)}"
+                meta = {
+                    "source": exp_source,
+                    "asOf": exp_asof,
+                    "state": exp_state,
+                    "currency": exp_curr,
+                    "category": "macro" if sym != "AAPL" else "stock",
+                    "data_frequency": exp_freq,
+                    "is_delayed": exp_delayed,
+                }
+                if exp_unit:
+                    meta["unit"] = exp_unit
+                if exp_date:
+                    meta["data_date"] = exp_date
+
+                PRICE_CACHE[cache_key] = (price, time.time(), meta)
+
+                with patch("app.routes.prices.get_cached_price", AsyncMock(return_value=price)):
+                    res = await get_live_price("global_stocks", sym)
+                    self.assertEqual(res["status"], "ok")
+                    self.assertEqual(res["symbol"], sym)
+                    self.assertEqual(res["price"], price)
+                    self.assertEqual(res["currency"], exp_curr)
+                    if exp_unit:
+                        self.assertEqual(res.get("unit"), exp_unit)
+                    self.assertEqual(res.get("data_frequency"), exp_freq)
+                    self.assertEqual(res.get("is_delayed"), exp_delayed)
+                    self.assertEqual(res["asOf"], exp_asof)
+                    if exp_date:
+                        self.assertEqual(res.get("data_date"), exp_date)
+                    if exp_delayed:
+                        self.assertNotEqual(res["state"], "LIVE")
+                    else:
+                        self.assertEqual(res["state"], exp_state)
 
 
 if __name__ == '__main__':

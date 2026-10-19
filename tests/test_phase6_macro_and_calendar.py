@@ -26,12 +26,45 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime, timezone
 import zoneinfo
 import time
-try:
-    import httpx
-except ImportError:
-    import sys
-    httpx = MagicMock()
-    sys.modules['httpx'] = httpx
+for mod in [
+    'fastapi', 'fastapi.middleware.cors', 'fastapi.responses', 'pydantic', 'httpx',
+    'apscheduler', 'apscheduler.schedulers', 'apscheduler.schedulers.asyncio',
+    'firebase_admin', 'firebase_admin.credentials', 'firebase_admin.messaging', 'firebase_admin.exceptions'
+]:
+    if mod not in sys.modules:
+        m = MagicMock()
+        if mod == 'apscheduler.schedulers.asyncio':
+            from datetime import timedelta
+            class MockTrigger:
+                def __init__(self, **kwargs):
+                    valid = {k: v for k, v in kwargs.items() if k in ('days', 'seconds', 'microseconds', 'milliseconds', 'minutes', 'hours', 'weeks')}
+                    self.interval = timedelta(**valid)
+            class MockJob:
+                def __init__(self, func, trigger=None, id=None, **kwargs):
+                    self.func = func
+                    self.id = id
+                    self.trigger = MockTrigger(**kwargs)
+            class MockScheduler:
+                def __init__(self):
+                    self._jobs = {}
+                def add_job(self, func, trigger=None, id=None, **kwargs):
+                    job = MockJob(func, trigger=trigger, id=id, **kwargs)
+                    if id:
+                        self._jobs[id] = job
+                    return job
+                def get_job(self, id):
+                    return self._jobs.get(id)
+            m.AsyncIOScheduler = MockScheduler
+        if mod == 'pydantic':
+            class BaseModel:
+                def __init__(self, **kwargs):
+                    for k, v in kwargs.items():
+                        setattr(self, k, v)
+                def dict(self): return self.__dict__
+                def model_dump(self): return self.__dict__
+            m.BaseModel = BaseModel
+            m.Field = lambda *args, **kwargs: kwargs.get('default', None)
+        sys.modules[mod] = m
 
 from app.models import AlertCreate, Alert, AlertPublic
 from app.engine.calendar import (

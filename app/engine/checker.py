@@ -99,7 +99,7 @@ async def get_cached_price(client: httpx.AsyncClient, exchange: str, symbol: str
         # Store price, timestamp, and rich trace metadata
         meta = {}
         for tr in traces:
-            if tr.get('success') and tr.get('parsed_price') == price:
+            if (tr.get('success') or tr.get('status') == 'ok') and (tr.get('parsed_price') == price or tr.get('price') == price):
                 meta = {
                     'source': tr.get('source'),
                     'asOf': tr.get('asOf'),
@@ -107,6 +107,9 @@ async def get_cached_price(client: httpx.AsyncClient, exchange: str, symbol: str
                     'currency': tr.get('currency'),
                     'category': category,
                 }
+                for k in ('unit', 'units', 'data_date', 'date', 'data_frequency', 'is_delayed'):
+                    if k in tr:
+                        meta[k] = tr[k]
                 break
         PRICE_CACHE[cache_key] = (price, now, meta)
         return price

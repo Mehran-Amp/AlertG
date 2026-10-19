@@ -1,4 +1,5 @@
 import time
+from datetime import datetime, timezone
 import random
 import asyncio
 from typing import Dict, Any, List, Optional, Tuple
@@ -934,7 +935,8 @@ class FredAdapter(BaseMarketAdapter):
             'id': 'CPIAUCSL',
             'title': 'Consumer Price Index for All Urban Consumers: All Items in U.S. City Average',
             'units': 'Index 1982-1984=100',
-            'units_short': 'Index 1982-1984=100',
+            'units_short': 'PTS',
+            'unit': 'PTS',
             'frequency': 'Monthly',
             'currency': 'PTS',
         },
@@ -943,6 +945,7 @@ class FredAdapter(BaseMarketAdapter):
             'title': 'Assets: Total Assets: Total Assets (Less Eliminations from Consolidation)',
             'units': 'Millions of U.S. Dollars',
             'units_short': 'Mil. of U.S. $',
+            'unit': 'USD',
             'frequency': 'Weekly',
             'currency': 'USD',
         },
@@ -951,6 +954,7 @@ class FredAdapter(BaseMarketAdapter):
             'title': 'M2',
             'units': 'Billions of U.S. Dollars',
             'units_short': 'Bil. of U.S. $',
+            'unit': 'USD',
             'frequency': 'Monthly',
             'currency': 'USD',
         },
@@ -959,6 +963,7 @@ class FredAdapter(BaseMarketAdapter):
             'title': 'Federal Funds Effective Rate',
             'units': 'Percent',
             'units_short': '%',
+            'unit': '%',
             'frequency': 'Daily',
             'currency': '%',
         },
@@ -967,6 +972,7 @@ class FredAdapter(BaseMarketAdapter):
             'title': 'Civilian Unemployment Rate',
             'units': 'Percent',
             'units_short': '%',
+            'unit': '%',
             'frequency': 'Monthly',
             'currency': '%',
         },
@@ -975,6 +981,7 @@ class FredAdapter(BaseMarketAdapter):
             'title': '10-Year Treasury Constant Maturity Rate',
             'units': 'Percent',
             'units_short': '%',
+            'unit': '%',
             'frequency': 'Daily',
             'currency': '%',
         },
@@ -983,6 +990,7 @@ class FredAdapter(BaseMarketAdapter):
             'title': '2-Year Treasury Constant Maturity Rate',
             'units': 'Percent',
             'units_short': '%',
+            'unit': '%',
             'frequency': 'Daily',
             'currency': '%',
         },
@@ -991,6 +999,7 @@ class FredAdapter(BaseMarketAdapter):
             'title': '5-Year Treasury Constant Maturity Rate',
             'units': 'Percent',
             'units_short': '%',
+            'unit': '%',
             'frequency': 'Daily',
             'currency': '%',
         },
@@ -999,6 +1008,7 @@ class FredAdapter(BaseMarketAdapter):
             'title': '3-Month Treasury Bill Secondary Market Rate',
             'units': 'Percent',
             'units_short': '%',
+            'unit': '%',
             'frequency': 'Daily',
             'currency': '%',
         },
@@ -1007,6 +1017,7 @@ class FredAdapter(BaseMarketAdapter):
             'title': '30-Year Treasury Constant Maturity Rate',
             'units': 'Percent',
             'units_short': '%',
+            'unit': '%',
             'frequency': 'Daily',
             'currency': '%',
         },
@@ -1014,7 +1025,8 @@ class FredAdapter(BaseMarketAdapter):
             'id': 'DTWEXBGS',
             'title': 'Nominal Broad U.S. Dollar Index',
             'units': 'Index Jan 2006=100',
-            'units_short': 'Index Jan 2006=100',
+            'units_short': 'PTS',
+            'unit': 'PTS',
             'frequency': 'Daily',
             'currency': 'PTS',
         },
@@ -1031,16 +1043,33 @@ class FredAdapter(BaseMarketAdapter):
                             val = float(val_str)
                             meta = self.FRED_SERIES_METADATA.get(series_id, {})
                             units_val = dynamic_units or meta.get('units', '%')
-                            curr_val = meta.get('currency') or ('%' if '%' in str(units_val) else 'USD')
+                            curr_val = meta.get('currency') or ('%' if '%' in str(units_val) else ('PTS' if 'Index' in str(units_val) else 'USD'))
+                            unit_val = meta.get('unit') or meta.get('units_short') or ('%' if curr_val == '%' else ('PTS' if curr_val == 'PTS' else units_val))
+                            obs_date = obs[0].get('date')
+                            obs_asof = None
+                            if obs_date:
+                                try:
+                                    obs_asof = int(datetime.strptime(obs_date, "%Y-%m-%d").replace(tzinfo=timezone.utc).timestamp())
+                                except Exception:
+                                    try:
+                                        obs_asof = int(datetime.fromisoformat(obs_date.replace('Z', '+00:00')).timestamp())
+                                    except Exception:
+                                        pass
+                            if obs_asof is None:
+                                obs_asof = int(time.time())
+                            freq = self.get_series_frequency(series_id) or 'daily'
                             return {
                                 'price': val,
-                                'asOf': int(time.time()),
-                                'date': obs[0].get('date'),
-                                'state': 'LIVE',
+                                'asOf': obs_asof,
+                                'date': obs_date,
+                                'data_date': obs_date,
+                                'state': 'delayed',
                                 'units': units_val,
-                                'unit': meta.get('units_short', units_val),
+                                'unit': unit_val,
                                 'currency': curr_val,
-                                'source': 'FRED'
+                                'source': 'FRED',
+                                'data_frequency': freq,
+                                'is_delayed': True
                             }
                         except ValueError:
                             pass
@@ -1096,16 +1125,32 @@ class FredAdapter(BaseMarketAdapter):
                         if val_str and val_str != '.' and val_str.lower() != 'nan':
                             val = float(val_str)
                             units_val = dynamic_units or meta.get('units', '%')
-                            curr_val = meta.get('currency') or ('%' if '%' in str(units_val) else 'USD')
+                            curr_val = meta.get('currency') or ('%' if '%' in str(units_val) else ('PTS' if 'Index' in str(units_val) else 'USD'))
+                            unit_val = meta.get('unit') or meta.get('units_short') or ('%' if curr_val == '%' else ('PTS' if curr_val == 'PTS' else units_val))
+                            obs_asof = None
+                            if date_str:
+                                try:
+                                    obs_asof = int(datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc).timestamp())
+                                except Exception:
+                                    try:
+                                        obs_asof = int(datetime.fromisoformat(date_str.replace('Z', '+00:00')).timestamp())
+                                    except Exception:
+                                        pass
+                            if obs_asof is None:
+                                obs_asof = int(time.time())
+                            freq = self.get_series_frequency(series_id) or 'daily'
                             return {
                                 'price': val,
-                                'asOf': int(time.time()),
+                                'asOf': obs_asof,
                                 'date': date_str,
-                                'state': 'LIVE',
+                                'data_date': date_str,
+                                'state': 'delayed',
                                 'units': units_val,
-                                'unit': meta.get('units_short', units_val),
+                                'unit': unit_val,
                                 'currency': curr_val,
-                                'source': 'FRED'
+                                'source': 'FRED',
+                                'data_frequency': freq,
+                                'is_delayed': True
                             }
         except Exception:
             pass
@@ -1156,7 +1201,18 @@ async def fetch_global_stocks(client: Any, exchange: str, symbol: str, try_fetch
                 price = float(q['price'])
                 source = q.get('source', adapter.name)
                 if traces is not None:
-                    traces.append({'source': source, 'provider': source, 'price': price, 'status': 'ok'})
+                    tr_item = {
+                        'source': source,
+                        'provider': source,
+                        'price': price,
+                        'parsed_price': price,
+                        'status': 'ok',
+                        'success': True,
+                    }
+                    for k in ('asOf', 'state', 'currency', 'unit', 'units', 'data_date', 'date', 'data_frequency', 'is_delayed'):
+                        if k in q:
+                            tr_item[k] = q[k]
+                    traces.append(tr_item)
                 if not collect_all_traces:
                     return price
             else:

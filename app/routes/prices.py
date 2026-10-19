@@ -46,6 +46,23 @@ async def get_live_price(exchange: str, symbol: str):
         }
 
     if (price is not None and price > 0) or meta.get('state') in ['no_data', 'no_trade_today', 'closed']:
+        data_freq = meta.get("data_frequency")
+        clean_sym = symbol.upper().strip()
+        source_name = (meta.get("source") or "").upper()
+        if not data_freq:
+            if "FRED" in source_name or clean_sym in ('FEDFUNDS', 'UNRATE', 'CPIAUCSL', 'US02Y', 'US10Y', 'US30Y', 'US05Y', 'US13W', 'WALCL', 'M2SL', 'DTWEXBGS'):
+                data_freq = "monthly" if clean_sym in ('UNRATE', 'CPIAUCSL', 'M2SL') else "daily"
+            elif exchange in ['global_stocks', 'stocks', 'macro', 'forex', 'bonds', 'wallstreet', 'binance', 'crypto']:
+                data_freq = "live"
+
+        eff_state = meta.get("state", "LIVE")
+        if data_freq in ('daily', 'monthly') and eff_state == "LIVE":
+            eff_state = "delayed"
+
+        eff_currency = meta.get("currency")
+        if not eff_currency:
+            eff_currency = "TMN" if exchange in ['iran_market', 'tse'] else "USD"
+
         res = {
             "status": "ok",
             "exchange": exchange,
@@ -53,10 +70,31 @@ async def get_live_price(exchange: str, symbol: str):
             "price": price if (price is not None and price > 0) else None,
             "source": meta.get("source", "Market API"),
             "asOf": meta.get("asOf", int(time.time())),
-            "state": meta.get("state", "LIVE"),
-            "currency": meta.get("currency", "TMN" if exchange in ['iran_market', 'tse'] else "USD"),
+            "state": eff_state,
+            "currency": eff_currency,
             "timestamp": time.time()
         }
+
+        unit_val = meta.get("unit") or meta.get("units_short")
+        if not unit_val and eff_currency in ('%', 'PTS'):
+            unit_val = eff_currency
+        if unit_val:
+            res["unit"] = unit_val
+
+        data_date_val = meta.get("data_date") or meta.get("date")
+        if data_date_val:
+            res["data_date"] = data_date_val
+
+        if data_freq:
+            res["data_frequency"] = data_freq
+
+        if "is_delayed" in meta:
+            res["is_delayed"] = bool(meta["is_delayed"])
+        elif data_freq in ('daily', 'monthly'):
+            res["is_delayed"] = True
+        elif data_freq == 'live':
+            res["is_delayed"] = False
+
         for key in ['state_fa', 'market_open', 'carried_over', 'alert_eligible', 'category', 'ticker', 'name', 'change_pct', 'prev_close', 'high', 'low', 'volume']:
             if key in meta:
                 res[key] = meta[key]
