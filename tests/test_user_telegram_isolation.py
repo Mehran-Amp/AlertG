@@ -251,11 +251,65 @@ class TestTelegramUserIsolation(unittest.IsolatedAsyncioTestCase):
         other = next(a for a in storage.ALERTS_DB if a.id == "other_device_alert")
         self.assertEqual(other.user_id, "user_default")
 
-        # Even with explicit claim attempt, orphan alert without token is NEVER claimed
         claim_res = await claim_guest_alerts({"user_id": new_uid, "fcm_token": new_fcm})
         self.assertEqual(claim_res["claimed_count"], 0)
         self.assertEqual(orphan.user_id, "user_default")
 
 
+class TestLogPrivacyMasking(unittest.TestCase):
+    """
+    Verifies that user_id, telegram_chat_id, and user email are masked (revealing only the last 3 characters),
+    including in access logs for /api/user/{user_id}/telegram.
+    """
+
+    def test_mask_identifier_basic(self):
+        from app.security import mask_identifier
+        self.assertEqual(mask_identifier("user_alpha"), "***pha")
+        self.assertEqual(mask_identifier("123456789"), "***789")
+        self.assertEqual(mask_identifier("test@domain.com"), "***com")
+        self.assertEqual(mask_identifier("abc"), "***abc")
+        self.assertEqual(mask_identifier(""), "")
+        self.assertEqual(mask_identifier(None), "")
+
+    def test_access_log_filter_masks_path_in_args(self):
+        import logging
+        from app.security import AccessLogMaskFilter
+        f = AccessLogMaskFilter()
+
+        # Simulate uvicorn access log record with path in args
+        record = logging.LogRecord(
+            name="uvicorn.access",
+            level=logging.INFO,
+            pathname="",
+            lineno=0,
+            msg='%s - "%s %s HTTP/%s" %d',
+            args=('127.0.0.1:5678', 'GET', '/api/user/user_alpha/telegram', '1.1', 200),
+            exc_info=None
+        )
+        self.assertTrue(f.filter(record))
+        self.assertEqual(record.args[2], '/api/user/***pha/telegram')
+
+    def test_access_log_filter_masks_email_and_chat_id(self):
+        import logging
+        from app.security import AccessLogMaskFilter
+        f = AccessLogMaskFilter()
+
+        record = logging.LogRecord(
+            name="test.logger",
+            level=logging.INFO,
+            pathname="",
+            lineno=0,
+            msg='User user.name@domain.com updated status: chat_id=987654321',
+            args=(),
+            exc_info=None
+        )
+        self.assertTrue(f.filter(record))
+        self.assertNotIn("user.name@domain.com", record.msg)
+        self.assertIn("***com", record.msg)
+        self.assertNotIn("987654321", record.msg)
+        self.assertIn("chat_id=***321", record.msg)
+
+
 if __name__ == "__main__":
     unittest.main()
+

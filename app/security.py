@@ -32,9 +32,61 @@ async def require_admin(x_admin_key: Optional[str] = Header(None)):
 API_DEP = [Depends(require_api_key)]
 ADMIN_DEP = [Depends(require_admin)]
 
+def mask_identifier(value: Any) -> str:
+    """Masks sensitive identifier (user_id, telegram_chat_id, email), exposing only the last 3 characters/digits."""
+    if value is None:
+        return ""
+    text = str(value).strip()
+    if not text:
+        return ""
+    if len(text) <= 3:
+        return "***" + text
+    return "***" + text[-3:]
+
 def _scrub(value: Any) -> str:
     text = str(value)
     return text.replace(TELEGRAM_BOT_TOKEN, "***") if TELEGRAM_BOT_TOKEN else text
+
+import logging
+import re
+
+class AccessLogMaskFilter(logging.Filter):
+    """
+    Masks user_id, telegram_chat_id, and user email in access logs and general logs:
+    - Path masking: /api/user/{user_id}/telegram -> /api/user/{mask_identifier(user_id)}/telegram
+    - Masking telegram chat_id and email addresses (revealing only the last 3 digits/chars)
+    """
+    USER_PATH_RE = re.compile(r'((?:/api)?/user/)([^/\s?#]+)(/telegram)?')
+    EMAIL_RE = re.compile(r'([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)')
+    CHAT_ID_RE_LOG = re.compile(r'(chat_id=)([^,\s\n]+)')
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if isinstance(record.msg, str):
+            record.msg = self.mask_text(record.msg)
+        if record.args:
+            if isinstance(record.args, tuple):
+                record.args = tuple(self.mask_text(a) if isinstance(a, str) else a for a in record.args)
+            elif isinstance(record.args, dict):
+                record.args = {k: self.mask_text(v) if isinstance(v, str) else v for k, v in record.args.items()}
+        return True
+
+    @classmethod
+    def mask_text(cls, text: str) -> str:
+        if not isinstance(text, str):
+            return text
+        text = cls.USER_PATH_RE.sub(
+            lambda m: f"{m.group(1)}{mask_identifier(m.group(2))}{m.group(3) or ''}",
+            text
+        )
+        text = cls.EMAIL_RE.sub(
+            lambda m: mask_identifier(m.group(1)),
+            text
+        )
+        text = cls.CHAT_ID_RE_LOG.sub(
+            lambda m: f"{m.group(1)}{mask_identifier(m.group(2))}",
+            text
+        )
+        return text
 
 def _clamp_interval(value: Any) -> int:
     try:

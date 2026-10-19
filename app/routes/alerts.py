@@ -9,7 +9,7 @@ from app.config import (
     MAX_ALERTS_PER_USER, MAX_NOTE_LEN
 )
 from app.security import (
-    API_DEP, _clamp_interval, _normalize_sync_item
+    API_DEP, _clamp_interval, _normalize_sync_item, mask_identifier
 )
 from app.models import AlertCreate, Alert, AlertPublic
 from app.state import _db_lock
@@ -155,7 +155,7 @@ async def create_alert(alert_in: AlertCreate):
         if effective_chat_id and state.http_client is not None:
             tg_conf_msg = format_alert_registered_telegram_msg(new_alert)
             _spawn(send_telegram_alert(state.http_client, effective_chat_id, tg_conf_msg))
-            print(f"🤖 [Telegram Confirmation] Sent for {new_alert.symbol} to chat {effective_chat_id}")
+            print(f"🤖 [Telegram Confirmation] Sent for {new_alert.symbol} to chat {mask_identifier(effective_chat_id)}")
     except Exception as e:
         print(f"⚠️ [Telegram Confirmation Note] {e}")
 
@@ -276,7 +276,7 @@ async def sync_user_alerts(payload: dict):
 
     await save_alerts_to_disk_async(storage.ALERTS_DB)
     active_remaining = len([a for a in storage.ALERTS_DB if a.is_active])
-    print(f"🔄 [API] Bulk Synced {added_count} alert(s) for user {user_id} (Active remaining: {active_remaining})")
+    print(f"🔄 [API] Bulk Synced {added_count} alert(s) for user {mask_identifier(user_id)} (Active remaining: {active_remaining})")
 
     return {"status": "synced", "count": added_count, "total_active": active_remaining}
 

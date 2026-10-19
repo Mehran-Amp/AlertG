@@ -24,8 +24,12 @@ from app.config import (
 from app.security import (
     require_api_key, require_admin, API_DEP, ADMIN_DEP,
     _key_matches, _scrub, _clamp_interval, _validate_market_args,
-    _normalize_sync_item
+    _normalize_sync_item, AccessLogMaskFilter
 )
+import logging
+_mask_filter = AccessLogMaskFilter()
+for _logger_name in ("uvicorn.access", "uvicorn", "fastapi", ""):
+    logging.getLogger(_logger_name).addFilter(_mask_filter)
 from app.models import (
     AlertCreate, Alert, AlertPublic,
     UserTelegramUpdateRequest, TelegramTestRequest

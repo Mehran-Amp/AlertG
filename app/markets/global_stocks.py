@@ -274,8 +274,11 @@ FOREX_PAIRS = {
     'USDTRY', 'USDMXN', 'USDZAR', 'EURCAD', 'EURAUD'
 }
 
-# 2-year Treasury yield exists only on FRED (DGS2). Yahoo's ^IRX is the 13-week bill, never a 2Y proxy.
-FRED_ONLY_SYMBOLS = frozenset({'US02Y', 'US2Y', '^2YY', 'DGS2'})
+# 2-year Treasury yield and macro series exist only on FRED.
+FRED_ONLY_SYMBOLS = frozenset({
+    'US02Y', 'US2Y', '^2YY', 'DGS2',
+    'FEDFUNDS', 'UNRATE', 'CPIAUCSL', 'CPI', 'WALCL', 'M2SL', 'M2'
+})
 
 # Foreign exchange suffixes on Yahoo Finance (.L, .T, .HK, .SS, .SZ, .DE, .PA, .AX, .TO, etc.)
 # These MUST be preserved with dot notation and NEVER converted to dashes.
@@ -1119,18 +1122,23 @@ def get_fallback_chain(symbol: str) -> List[BaseMarketAdapter]:
     Returns the ordered fallback chain of market adapters for a symbol.
     Strictly prevents fallback from commercial/market data (stocks, forex, commodities, indices) to FRED.
     """
+    clean_sym = (symbol or '').upper().strip()
     try:
-        category = resolve_symbol_category(symbol)
+        category = resolve_symbol_category(clean_sym)
     except Exception:
         category = 'stock'
+
+    # FRED-only symbols & macro series (e.g. US02Y, FEDFUNDS, UNRATE, CPIAUCSL) only FRED
+    if clean_sym in FRED_ONLY_SYMBOLS or clean_sym in ('FEDFUNDS', 'UNRATE', 'CPIAUCSL', 'CPI', 'WALCL', 'M2SL', 'M2'):
+        return [fred_adapter]
+
     if category in ('stock', 'forex'):
         return [yahoo_adapter, finnhub_adapter, twelve_data_adapter]
     elif category in ('index', 'commodity'):
         return [yahoo_adapter, twelve_data_adapter]
     elif category in ('bond', 'macro'):
-        if symbol in FRED_ONLY_SYMBOLS:
-            return [fred_adapter]
-        return [yahoo_adapter, fred_adapter]
+        # Substitutable bonds: order [fred, yahoo]
+        return [fred_adapter, yahoo_adapter]
     return [yahoo_adapter]
 
 
@@ -1139,24 +1147,9 @@ async def fetch_global_stocks(client: Any, exchange: str, symbol: str, try_fetch
         try_fetch_func = _try_fetch
     if traces is None:
         traces = []
-    try:
-        from app.engine.categories import resolve_symbol_category
-        category = resolve_symbol_category(exchange, symbol)
-    except Exception:
-        category = 'stock'
-    adapters = [yahoo_adapter]
-    if category in ('stock', 'forex'):
-        adapters.append(finnhub_adapter)
-        adapters.append(twelve_data_adapter)
-    elif category in ('index', 'commodity'):
-        adapters.append(twelve_data_adapter)
-    elif category in ('bond', 'macro'):
-        adapters.append(fred_adapter)
-        adapters.append(yahoo_adapter)
-    else:
-        adapters.extend([finnhub_adapter, twelve_data_adapter, fred_adapter])
+    adapters = get_fallback_chain(symbol)
 
-    for adapter in adapters:
+    for i, adapter in enumerate(adapters):
         try:
             q = await adapter.fetch_quote(symbol, client)
             if q and q.get('price') is not None:
@@ -1173,7 +1166,11 @@ async def fetch_global_stocks(client: Any, exchange: str, symbol: str, try_fetch
                     tr.update(last_tr)
                     traces.append(tr)
                 if last_tr.get('status_code') == 404:
-                    break
+                    # Break on 404 only for the first authoritative adapter of that category,
+                    # and never before FRED's turn is reached.
+                    has_pending_fred = any(a is fred_adapter or getattr(a, 'name', '').lower() == 'fred' for a in adapters[i + 1:])
+                    if i == 0 and not has_pending_fred:
+                        break
         except Exception as e:
             if traces is not None:
                 traces.append({'source': adapter.name, 'provider': adapter.name, 'error': str(e), 'status': 'error'})

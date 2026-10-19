@@ -20,11 +20,21 @@ Phase 2 Comprehensive Unit Tests:
 All tests run completely OFFLINE using mocks.
 """
 
+import sys
 import unittest
 import re
 import os
 import json
 from datetime import datetime, timezone
+from unittest.mock import MagicMock
+
+for mod in [
+    'fastapi', 'fastapi.middleware.cors', 'fastapi.responses', 'pydantic', 'httpx',
+    'apscheduler', 'apscheduler.schedulers', 'apscheduler.schedulers.asyncio',
+    'firebase_admin', 'firebase_admin.credentials', 'firebase_admin.messaging', 'firebase_admin.exceptions'
+]:
+    if mod not in sys.modules:
+        sys.modules[mod] = MagicMock()
 
 @unittest.skipIf(not os.path.isdir('lib'), "Flutter client code (lib/) not present in backend deployment")
 class TestPhase2GlobalStocks(unittest.TestCase):
@@ -156,6 +166,74 @@ class TestTreasuryYieldMapping(unittest.TestCase):
         self.assertEqual(FredAdapter.FRED_SERIES_MAP['^IRX'], 'DTB3')
         self.assertNotEqual(FredAdapter.FRED_SERIES_MAP['^IRX'], 'DGS2')
         self.assertIn(resolve_symbol_category('US13W'), ('macro', 'bond'))
+
+
+class TestFallbackChainAndFetchGlobalStocks(unittest.IsolatedAsyncioTestCase):
+    """
+    Unit tests for get_fallback_chain and fetch_global_stocks:
+    - Verifies fetch_global_stocks strictly queries get_fallback_chain
+    - Verifies FRED-only and macro series return [fred_adapter]
+    - Verifies substitutable bonds return [fred, yahoo]
+    - Verifies stock/forex never fall back to FRED
+    - Verifies that Yahoo 404 on FEDFUNDS and US02Y does not abort before FRED is invoked and returns price
+    """
+
+    async def test_fetch_global_stocks_uses_get_fallback_chain(self):
+        from unittest.mock import AsyncMock, MagicMock, patch
+        from app.markets import global_stocks
+        mock_adapter = MagicMock()
+        mock_adapter.name = "mock_adapter"
+        mock_adapter.fetch_quote = AsyncMock(return_value={"price": 123.45, "source": "mock"})
+
+        with patch.object(global_stocks, "get_fallback_chain", return_value=[mock_adapter]) as mock_chain:
+            client = AsyncMock()
+            price = await global_stocks.fetch_global_stocks(client, "global_stocks", "TEST_SYM")
+            mock_chain.assert_called_once_with("TEST_SYM")
+            self.assertEqual(price, 123.45)
+
+    def test_get_fallback_chain_rules(self):
+        from app.markets.global_stocks import (
+            get_fallback_chain, fred_adapter, yahoo_adapter,
+            finnhub_adapter, twelve_data_adapter
+        )
+        # FRED-only symbols and macro series
+        for sym in ('US02Y', 'US2Y', '^2YY', 'FEDFUNDS', 'UNRATE', 'CPIAUCSL'):
+            chain = get_fallback_chain(sym)
+            self.assertEqual(chain, [fred_adapter], f"{sym} must return only [fred_adapter]")
+
+        # Substitutable bonds -> [fred_adapter, yahoo_adapter]
+        for sym in ('US10Y', '^TNX', 'US30Y', '^TYX'):
+            chain = get_fallback_chain(sym)
+            self.assertEqual(chain, [fred_adapter, yahoo_adapter], f"{sym} must return [fred, yahoo]")
+
+        # Stock and Forex -> never fall back to FRED
+        for sym in ('AAPL', 'EURUSD'):
+            chain = get_fallback_chain(sym)
+            self.assertEqual(chain, [yahoo_adapter, finnhub_adapter, twelve_data_adapter])
+            self.assertNotIn(fred_adapter, chain, f"{sym} must never include FRED adapter")
+
+    async def test_yahoo_404_macro_and_bond_calls_fred_and_returns_price(self):
+        from unittest.mock import AsyncMock, MagicMock, patch
+        from app.markets import global_stocks
+
+        mock_yahoo = MagicMock()
+        mock_yahoo.name = "yahoo"
+        mock_yahoo.last_trace = {"status_code": 404, "error": "Not Found"}
+        mock_yahoo.fetch_quote = AsyncMock(return_value=None)
+
+        mock_fred = MagicMock()
+        mock_fred.name = "fred"
+        mock_fred.last_trace = {"status_code": 200}
+        mock_fred.fetch_quote = AsyncMock(return_value={"price": 5.25, "source": "FRED"})
+
+        client = AsyncMock()
+
+        for test_sym in ('FEDFUNDS', 'US02Y'):
+            with patch.object(global_stocks, "get_fallback_chain", return_value=[mock_yahoo, mock_fred]):
+                price = await global_stocks.fetch_global_stocks(client, "global_stocks", test_sym)
+                self.assertEqual(price, 5.25, f"Price for {test_sym} must be returned from FRED")
+                mock_yahoo.fetch_quote.assert_awaited()
+                mock_fred.fetch_quote.assert_awaited()
 
 
 if __name__ == '__main__':

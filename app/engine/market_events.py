@@ -4,7 +4,7 @@ from datetime import datetime, timezone, timedelta
 from typing import List, Dict, Any, Optional
 import httpx
 from app.config import TELEGRAM_BOT_TOKEN
-from app.security import _scrub
+from app.security import _scrub, mask_identifier
 import app.state as state
 import app.storage as storage
 from app.notifier.telegram import send_telegram_alert
@@ -292,7 +292,7 @@ async def check_and_dispatch_event_notifications(client: httpx.AsyncClient):
                 USER_DISPATCHED_EVENTS[chat_id].add(ev_id)
                 await asyncio.sleep(0.05) # Rate limit protection
             except Exception as e:
-                print(f"⚠️ [Event Telegram Send Error] user={user_id}: {_scrub(e)}")
+                print(f"⚠️ [Event Telegram Send Error] user={mask_identifier(user_id)}: {_scrub(e)}")
 
 async def refresh_market_events(client: Optional[httpx.AsyncClient] = None):
     """

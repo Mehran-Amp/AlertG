@@ -230,7 +230,7 @@ def get_symbols_catalog_filtered(
 
     headers = {
         "ETag": etag,
-        "Cache-Control": "public, max-age=60"
+        "Cache-Control": "private, max-age=60"
     }
 
     if if_none_match:
@@ -293,7 +293,7 @@ def get_symbols_changes(
     etag = f'"{hashlib.md5(content_bytes).hexdigest()}"'
     headers = {
         "ETag": etag,
-        "Cache-Control": "public, max-age=60"
+        "Cache-Control": "private, max-age=60"
     }
 
     if if_none_match:

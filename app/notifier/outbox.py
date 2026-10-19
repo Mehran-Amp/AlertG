@@ -30,13 +30,20 @@ OUTBOX_FILE = os.path.join(DATA_DIR, "fcm_outbox.json") if DATA_DIR != "." else 
 ALERT_PUSH_TTL_SECONDS = int(os.getenv("FCM_ALERT_TTL_SECONDS", "86400"))  # how long we keep trying + FCM stores it for an offline phone
 _OUTBOX_RETRY_DELAYS = (2, 5, 15, 30, 60, 120, 300)  # seconds; last value repeats
 
+INVALID_TOKENS: Set[str] = set()
+
 def _load_outbox_from_disk() -> Dict[str, Dict[str, Any]]:
     if os.path.exists(OUTBOX_FILE):
         try:
             with open(OUTBOX_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
             if isinstance(data, dict):
-                return data
+                now = time.time()
+                # Discard entries whose expires_at has passed
+                return {
+                    k: v for k, v in data.items()
+                    if isinstance(v, dict) and v.get("expires_at", float("inf")) > now
+                }
         except Exception as e:
             print(f"⚠️ [Outbox] Could not read {OUTBOX_FILE}: {e} (keeping a .bad copy)")
             try:
@@ -126,11 +133,25 @@ async def _deliver_outbox_entry(eid: str) -> None:
             if entry["attempts"] > 0:
                 print(f"✅ [Outbox] {eid[:8]} delivered after {entry['attempts']} retries.")
         else:
-            entry["attempts"] += 1
-            delay = _OUTBOX_RETRY_DELAYS[min(entry["attempts"] - 1, len(_OUTBOX_RETRY_DELAYS) - 1)]
-            entry["next_attempt_at"] = time.time() + delay
-            entry["last_error"] = str(msg)[:200]
-            print(f"🔁 [Outbox] {eid[:8]} attempt {entry['attempts']} failed ({entry['last_error']}); retry in {delay}s")
+            msg_str = str(msg).upper()
+            is_permanent = "UNREGISTERED" in msg_str or "INVALID_ARGUMENT" in msg_str or "INVALIDARGUMENT" in msg_str
+            if is_permanent:
+                OUTBOX.pop(eid, None)
+                bad_token = _outbox_current_token(entry)
+                if bad_token:
+                    INVALID_TOKENS.add(bad_token)
+                aid = entry.get("alert_id")
+                for a in ALERTS_DB:
+                    if (bad_token and getattr(a, "fcm_token", None) == bad_token) or (aid and a.id == aid):
+                        a.fcm_token = ""
+                METRICS["fcm_failed"] = METRICS.get("fcm_failed", 0) + 1
+                print(f"🚫 [Outbox] {eid[:8]} permanent error ({msg}): entry dropped and token marked invalid: ...{bad_token[-6:] if bad_token else ''}")
+            else:
+                entry["attempts"] += 1
+                delay = _OUTBOX_RETRY_DELAYS[min(entry["attempts"] - 1, len(_OUTBOX_RETRY_DELAYS) - 1)]
+                entry["next_attempt_at"] = time.time() + delay
+                entry["last_error"] = str(msg)[:200]
+                print(f"🔁 [Outbox] {eid[:8]} attempt {entry['attempts']} failed ({entry['last_error']}); retry in {delay}s")
         await _save_outbox()
     except Exception as e:
         print(f"❌ [Outbox] unexpected error for {eid[:8]}: {e}")

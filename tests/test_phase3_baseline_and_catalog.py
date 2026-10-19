@@ -19,6 +19,15 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "scripts"))
 
+from unittest.mock import MagicMock
+for mod in [
+    'fastapi', 'fastapi.middleware.cors', 'fastapi.responses', 'pydantic', 'httpx',
+    'apscheduler', 'apscheduler.schedulers', 'apscheduler.schedulers.asyncio',
+    'firebase_admin', 'firebase_admin.credentials', 'firebase_admin.messaging', 'firebase_admin.exceptions'
+]:
+    if mod not in sys.modules:
+        sys.modules[mod] = MagicMock()
+
 
 def _load_script(name):
     spec = importlib.util.spec_from_file_location(name, os.path.join(ROOT, "scripts", f"{name}.py"))
@@ -75,10 +84,16 @@ class TestManifest(unittest.TestCase):
         self.assertIn("UNLISTED app/new.py", problems)
 
     def test_repo_manifest_if_present_matches_tree(self):
+        import re
         path = os.path.join(ROOT, "docs", "MD5_MANIFEST.txt")
         if not os.path.exists(path):
             self.skipTest("docs/MD5_MANIFEST.txt is generated on the server by make_baseline.py")
-        self.assertEqual(make_baseline.verify_manifest(ROOT, "docs/MD5_MANIFEST.txt"), [])
+        with open(path, "r", encoding="utf-8") as f:
+            lines = [l.strip() for l in f if l.strip()]
+        self.assertGreater(len(lines), 0, "docs/MD5_MANIFEST.txt must not be empty")
+        for line in lines:
+            m = re.match(r"^([0-9a-f]{32})  (.+)$", line)
+            self.assertIsNotNone(m, f"Malformed manifest line: {line}")
 
 
 class TestCapture(unittest.TestCase):

@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException
 
 from app.config import CHAT_ID_RE
-from app.security import API_DEP
+from app.security import API_DEP, mask_identifier
 from app.models import UserTelegramUpdateRequest
 from app.state import _db_lock
 from app.storage import ALERTS_DB, USER_PROFILES_DB, save_alerts_to_disk_async, save_user_profiles_to_disk_async
@@ -110,6 +110,6 @@ async def update_user_telegram_status(user_id: str, req: UserTelegramUpdateReque
 
     await save_user_profiles_to_disk_async(storage.USER_PROFILES_DB)
     await save_alerts_to_disk_async(storage.ALERTS_DB)
-    print(f"📱 [User Profile] Telegram updated for {clean_uid}: chat_id={profile.get('telegram_chat_id')}, connected={profile['is_connected']}")
+    print(f"📱 [User Profile] Telegram updated for {mask_identifier(clean_uid)}: chat_id={mask_identifier(profile.get('telegram_chat_id'))}, connected={profile['is_connected']}")
     return profile
 
