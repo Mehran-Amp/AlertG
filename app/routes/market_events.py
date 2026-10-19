@@ -21,3 +21,36 @@ def fetch_market_events(
         "total": len(events),
         "events": events
     }
+
+@router.post("/api/market-events/remind", dependencies=API_DEP)
+@router.post("/market-events/remind", dependencies=API_DEP)
+async def set_event_reminder(payload: dict):
+    """
+    Registers a 30-minute advance notification reminder for a specific market event.
+    Dispatches a real Telegram confirmation if user has connected their Telegram account.
+    """
+    from app.engine.market_events import register_user_event_reminder
+    import app.state as state
+    import httpx
+
+    user_id = str(payload.get('user_id') or 'user_default').strip()
+    event_id = str(payload.get('event_id') or '').strip()
+    cancel = bool(payload.get('cancel', False))
+    chat_id = payload.get('chat_id')
+
+    if not event_id:
+        return {"status": "error", "message": "event_id is required"}
+
+    client = state.http_client
+    if client is None:
+        client = httpx.AsyncClient(timeout=10.0)
+
+    res = await register_user_event_reminder(
+        client=client,
+        user_id=user_id,
+        event_id=event_id,
+        cancel=cancel,
+        chat_id=chat_id
+    )
+    return res
+

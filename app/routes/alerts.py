@@ -200,6 +200,14 @@ async def sync_user_alerts(payload: dict):
             if existing and not existing.is_active and getattr(existing, 'trigger_mode', 'oneShot') == 'oneShot':
                 is_act = False
 
+            eff_chat = item.get('telegram_chat_id')
+            if not eff_chat:
+                user_prof = storage.USER_PROFILES_DB.get(user_id.lower(), {})
+                if user_prof.get('is_connected'):
+                    eff_chat = user_prof.get('telegram_chat_id')
+            if not eff_chat and existing and existing.telegram_chat_id:
+                eff_chat = existing.telegram_chat_id
+
             alert_obj = Alert(
                 id=rule_id,
                 user_id=user_id,
@@ -234,7 +242,7 @@ async def sync_user_alerts(payload: dict):
                 vibration_enabled=bool(item.get('vibration_enabled', True)),
                 tts_enabled=bool(item.get('tts_enabled', True)),
                 sound=item.get('sound', 'alarm_siren'),
-                telegram_chat_id=item.get('telegram_chat_id'),
+                telegram_chat_id=eff_chat,
                 webhook_url=item.get('webhook_url'),
                 is_active=is_act,
                 created_at=item.get('created_at') or datetime.now(timezone.utc).isoformat(),

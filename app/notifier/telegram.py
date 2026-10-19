@@ -51,8 +51,20 @@ async def send_telegram_alert(
             "disable_web_page_preview": True,
             "reply_markup": reply_markup if reply_markup is not None else TELEGRAM_BOT_KEYBOARD
         }
-        await client.post(url, json=payload, timeout=6.0)
-        METRICS["telegram_sent"] += 1
+        res = await client.post(url, json=payload, timeout=6.0)
+        if res.status_code == 200:
+            METRICS["telegram_sent"] += 1
+        else:
+            # If HTML parsing failed or bad request, retry as clean plain text
+            import re
+            plain_text = re.sub(r'<[^>]+>', '', message)
+            payload["parse_mode"] = None
+            payload["text"] = plain_text
+            retry_res = await client.post(url, json=payload, timeout=6.0)
+            if retry_res.status_code == 200:
+                METRICS["telegram_sent"] += 1
+            else:
+                print(f"⚠️ [Telegram API {res.status_code}] Dispatch failed for {chat_id}: {_scrub(res.text)}")
     except Exception as e:
         print(f"⚠️ [Telegram Dispatch Error] {_scrub(e)}")
 

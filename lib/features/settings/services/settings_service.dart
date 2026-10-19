@@ -117,6 +117,23 @@ class SettingsService extends ChangeNotifier {
 
   Future<void> toggleTelegramAlerts(bool enabled) async {
     await update(_settings.copyWith(telegramAlertsEnabled: enabled));
+    final cleanId = _settings.telegramChatId;
+    final email = _settings.userEmail;
+    final targetUid = (email != null && email.trim().isNotEmpty) ? email.trim() : 'user_default';
+    if (cleanId != null && cleanId.trim().isNotEmpty) {
+      ServerAlertService.saveUserTelegramStatus(
+        userId: targetUid,
+        chatId: cleanId,
+        isConnected: enabled,
+      );
+      if (targetUid != 'user_default') {
+        ServerAlertService.saveUserTelegramStatus(
+          userId: 'user_default',
+          chatId: cleanId,
+          isConnected: enabled,
+        );
+      }
+    }
   }
 
   Future<void> setPremium(bool isPremium) async {

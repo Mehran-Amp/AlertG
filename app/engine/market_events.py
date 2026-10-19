@@ -148,46 +148,148 @@ def format_telegram_market_event_card(event: Dict[str, Any]) -> str:
         f"<blockquote>{footer}</blockquote>"
     )
 
+def format_telegram_event_reminder_card(event: Dict[str, Any], is_cancelled: bool = False, is_advance_notice: bool = False) -> str:
+    """Formats an event reminder confirmation or 30-minute advance notice for Telegram."""
+    category_title = event.get('category', 'macro').upper()
+    title = html.escape(str(event.get('title', 'Market Event')))
+    market = html.escape(str(event.get('market', 'Global Market')))
+    summary = html.escape(str(event.get('summary', 'High-impact market catalyst.')))
+    time_str = html.escape(str(event.get('time_utc', 'Upcoming')))
+
+    category_emojis = {
+        'crypto': '🪙',
+        'macro': '🌐',
+        'energy': '🛢️',
+        'stocks': '📈'
+    }
+    cat_emoji = category_emojis.get(event.get('category', '').lower(), '⚡')
+
+    if is_cancelled:
+        return (
+            f"🔕 <b>MARKET EVENT REMINDER CANCELLED</b>\n\n"
+            f"<blockquote>"
+            f"🏷️ <b>Category:</b> {cat_emoji} <code>{category_title}</code>\n"
+            f"🎯 <b>Event:</b> <b>{title}</b>\n"
+            f"🕒 <b>Scheduled Time:</b> <code>{time_str}</code>\n"
+            f"ℹ️ <i>Reminder alerts have been cancelled for this event.</i>"
+            f"</blockquote>"
+        )
+
+    if is_advance_notice:
+        return (
+            f"⏰ <b>UPCOMING CATALYST IN 30 MINUTES | ALERTG RADAR</b>\n\n"
+            f"<blockquote>"
+            f"🏷️ <b>Category:</b> {cat_emoji} <code>{category_title}</code>\n"
+            f"🏛️ <b>Market Impact:</b> <code>{market}</code>\n"
+            f"🕒 <b>Event Time:</b> <b><code>{time_str}</code></b>\n"
+            f"⚠️ <b>Status:</b> 🔴 <b>STARTS IN 30 MINUTES</b>\n\n"
+            f"📢 <b>Key Catalyst Details:</b>\n"
+            f"<i>{summary}</i>"
+            f"</blockquote>"
+        )
+
+    return (
+        f"🔔 <b>MARKET EVENT REMINDER CONFIRMED</b>\n\n"
+        f"<blockquote>"
+        f"🏷️ <b>Category:</b> {cat_emoji} <code>{category_title}</code>\n"
+        f"🎯 <b>Event:</b> <b>{title}</b>\n"
+        f"🕒 <b>Event Time:</b> <b><code>{time_str}</code></b>\n"
+        f"🏛️ <b>Market:</b> <code>{market}</code>\n\n"
+        f"⚡ <b>Notice:</b> <i>You will receive a high-priority alert 30 minutes before this catalyst begins.</i>"
+        f"</blockquote>"
+    )
+
+# Per-chat dispatched event tracking
+USER_DISPATCHED_EVENTS: Dict[str, set] = {}
+# Active reminders: event_id -> Dict[user_id, chat_id]
+EVENT_USER_REMINDERS: Dict[str, Dict[str, str]] = {}
+
+async def register_user_event_reminder(
+    client: httpx.AsyncClient,
+    user_id: str,
+    event_id: str,
+    cancel: bool = False,
+    chat_id: Optional[str] = None
+) -> Dict[str, Any]:
+    """Registers or cancels a user's reminder for an upcoming market event and syncs with Telegram."""
+    clean_uid = user_id.strip().lower()
+    event = next((e for e in (MARKET_EVENTS_CACHE or CURATED_HIGH_IMPACT_CATALOG) if e.get('id') == event_id), None)
+    if not event:
+        return {"status": "error", "message": f"Event {event_id} not found."}
+
+    # Resolve target chat_id
+    target_chat = chat_id
+    if not target_chat:
+        prof = storage.USER_PROFILES_DB.get(clean_uid, {})
+        target_chat = prof.get('telegram_chat_id')
+
+    if cancel:
+        if event_id in EVENT_USER_REMINDERS and clean_uid in EVENT_USER_REMINDERS[event_id]:
+            del EVENT_USER_REMINDERS[event_id][clean_uid]
+        if target_chat and TELEGRAM_BOT_TOKEN:
+            msg = format_telegram_event_reminder_card(event, is_cancelled=True)
+            await send_telegram_alert(client, target_chat, msg)
+        return {"status": "ok", "message": "Reminder cancelled", "event_id": event_id}
+
+    # Register reminder
+    if event_id not in EVENT_USER_REMINDERS:
+        EVENT_USER_REMINDERS[event_id] = {}
+    if target_chat:
+        EVENT_USER_REMINDERS[event_id][clean_uid] = target_chat
+        if TELEGRAM_BOT_TOKEN:
+            msg = format_telegram_event_reminder_card(event, is_cancelled=False)
+            await send_telegram_alert(client, target_chat, msg)
+
+    return {
+        "status": "ok",
+        "message": "Reminder set (30 minutes prior)",
+        "event_id": event_id,
+        "event_title": event.get('title'),
+        "time_utc": event.get('time_utc')
+    }
+
 async def check_and_dispatch_event_notifications(client: httpx.AsyncClient):
     """
     Checks upcoming events and sends Telegram alerts to users who have opted into
-    events notifications in their user profile. Anti-spam ensures each event is sent only once.
+    events notifications in their user profile. Anti-spam tracks dispatches per user.
     """
-    if not TELEGRAM_BOT_TOKEN or not MARKET_EVENTS_CACHE:
+    if not TELEGRAM_BOT_TOKEN:
         return
 
-    # Find candidate events not yet dispatched
-    events_to_dispatch = []
-    for ev in MARKET_EVENTS_CACHE:
-        ev_id = ev.get('id')
-        if ev_id and ev_id not in DISPATCHED_EVENT_IDS and ev.get('impact') == 'high':
-            events_to_dispatch.append(ev)
-            DISPATCHED_EVENT_IDS.add(ev_id)
-
-    if not events_to_dispatch:
+    events = MARKET_EVENTS_CACHE if MARKET_EVENTS_CACHE else list(CURATED_HIGH_IMPACT_CATALOG)
+    if not events:
         return
 
-    profiles = storage.load_user_profiles()
-    for ev in events_to_dispatch:
-        msg = format_telegram_market_event_card(ev)
-        category = ev.get('category', '').lower()
+    high_impact_events = [ev for ev in events if ev.get('impact') == 'high']
+    if not high_impact_events:
+        return
 
-        for user_id, prof in profiles.items():
-            if not isinstance(prof, dict):
-                continue
-            chat_id = (prof.get('telegram_chat_id') or "").strip()
-            # Check user preference: events_telegram_enabled and category preference
-            events_tg_enabled = prof.get('events_telegram_enabled', False) or prof.get('events_notification_enabled', False)
-            if not chat_id or not events_tg_enabled:
+    profiles = dict(storage.USER_PROFILES_DB)
+    for user_id, prof in profiles.items():
+        if not isinstance(prof, dict):
+            continue
+        chat_id = (prof.get('telegram_chat_id') or "").strip()
+        events_tg_enabled = prof.get('events_telegram_enabled', False) or prof.get('events_notification_enabled', False)
+        if not chat_id or not events_tg_enabled:
+            continue
+
+        if chat_id not in USER_DISPATCHED_EVENTS:
+            USER_DISPATCHED_EVENTS[chat_id] = set()
+
+        for ev in high_impact_events:
+            ev_id = ev.get('id')
+            if not ev_id or ev_id in USER_DISPATCHED_EVENTS[chat_id]:
                 continue
 
-            # Category filter check (default True if not explicitly False)
+            category = ev.get('category', '').lower()
             cat_pref_key = f"events_{category}_enabled"
             if prof.get(cat_pref_key, True) is False:
                 continue
 
             try:
+                msg = format_telegram_market_event_card(ev)
                 await send_telegram_alert(client, chat_id, msg)
+                USER_DISPATCHED_EVENTS[chat_id].add(ev_id)
                 await asyncio.sleep(0.05) # Rate limit protection
             except Exception as e:
                 print(f"⚠️ [Event Telegram Send Error] user={user_id}: {_scrub(e)}")
@@ -206,7 +308,6 @@ async def refresh_market_events(client: Optional[httpx.AsyncClient] = None):
         now_utc = datetime.now(timezone.utc)
         curated_events = list(CURATED_HIGH_IMPACT_CATALOG)
 
-        # Dynamic live date adjustment so events always reflect the active trading week
         for ev in curated_events:
             ev['last_synced'] = now_utc.isoformat()
 
@@ -229,3 +330,4 @@ def get_market_events(categories: Optional[List[str]] = None) -> List[Dict[str, 
 
     lower_cats = [c.lower() for c in categories]
     return [e for e in MARKET_EVENTS_CACHE if e.get('category', '').lower() in lower_cats]
+

@@ -262,6 +262,15 @@ class NotificationService {
     }
   }
 
+  /// Cancels an active or scheduled notification by its integer ID
+  Future<void> cancelNotification(int id) async {
+    try {
+      await _plugin.cancel(id);
+    } catch (_) {}
+  }
+
+  FlutterLocalNotificationsPlugin get plugin => _plugin;
+
   // ---------------------------------------------------------------------------
   // Voice queue: only TTS is serialized. Capped so a burst cannot pile up.
   // ---------------------------------------------------------------------------

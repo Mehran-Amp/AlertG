@@ -879,18 +879,45 @@ class ServerAlertService {
     required String userId,
     required String? chatId,
     bool isConnected = true,
+    bool? eventsNotificationEnabled,
+    bool? eventsTelegramEnabled,
+    bool? eventsCryptoEnabled,
+    bool? eventsMacroEnabled,
+    bool? eventsEnergyEnabled,
+    bool? eventsStocksEnabled,
   }) async {
     if (!isServerAvailable || userId.trim().isEmpty) return false;
     try {
       final cleanUser = userId.trim().toLowerCase();
       final url = Uri.parse('$effectiveBaseUrl/api/user/$cleanUser/telegram');
+      final payload = <String, dynamic>{
+        'is_connected': isConnected,
+      };
+      if (chatId != null) {
+        payload['chat_id'] = chatId;
+      }
+      if (eventsNotificationEnabled != null) {
+        payload['events_notification_enabled'] = eventsNotificationEnabled;
+      }
+      if (eventsTelegramEnabled != null) {
+        payload['events_telegram_enabled'] = eventsTelegramEnabled;
+      }
+      if (eventsCryptoEnabled != null) {
+        payload['events_crypto_enabled'] = eventsCryptoEnabled;
+      }
+      if (eventsMacroEnabled != null) {
+        payload['events_macro_enabled'] = eventsMacroEnabled;
+      }
+      if (eventsEnergyEnabled != null) {
+        payload['events_energy_enabled'] = eventsEnergyEnabled;
+      }
+      if (eventsStocksEnabled != null) {
+        payload['events_stocks_enabled'] = eventsStocksEnabled;
+      }
       final response = await http.post(
         url,
         headers: _buildHeaders(),
-        body: jsonEncode({
-          'chat_id': chatId,
-          'is_connected': isConnected && chatId != null && chatId.trim().isNotEmpty,
-        }),
+        body: jsonEncode(payload),
       ).timeout(const Duration(seconds: 6));
       return response.statusCode == 200;
     } catch (e) {

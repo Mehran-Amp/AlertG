@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../models/market_event.dart';
+import '../services/event_reminder_service.dart';
 import '../../../core/utils/app_lifecycle_helper.dart';
 
 /// Full English 1:1 Square Branded Social Share Card for Market Events & Catalysts
@@ -660,6 +661,7 @@ void showEventSocialShareSheet(BuildContext context, MarketEvent event) {
 
 /// Displays full chronological modal sheet containing all upcoming market events with individual Share Image buttons.
 void showMarketEventsListModalSheet(BuildContext context, List<MarketEvent> events) {
+  EventReminderService.instance.init();
   final theme = Theme.of(context);
   final isDark = theme.brightness == Brightness.dark;
 
@@ -852,73 +854,85 @@ void showMarketEventsListModalSheet(BuildContext context, List<MarketEvent> even
                         ),
                         const SizedBox(height: 12),
 
-                        // Two Compact Action Buttons: Remind Me 🔔 and Share 🖼️
-                        Row(
-                          children: [
-                            // 1. Remind Me 🔔 Button
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF0284C7).withValues(alpha: 0.15),
-                                  foregroundColor: const Color(0xFF38BDF8),
-                                  elevation: 0,
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    side: const BorderSide(color: Color(0xFF0284C7), width: 0.8),
-                                  ),
-                                ),
-                                icon: const Icon(Icons.notifications_active_rounded, size: 15),
-                                label: const Text(
-                                  'Remind Me 🔔',
-                                  style: TextStyle(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                onPressed: () {
-                                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('🔔 Reminder set! You will be notified 30 minutes before ${ev.symbol} event.'),
-                                      backgroundColor: const Color(0xFF0284C7),
-                                      behavior: SnackBarBehavior.floating,
-                                      duration: const Duration(seconds: 3),
+                        // Two Compact Action Buttons: Remind Me 🔔 (interactive) and Share 🖼️
+                        ValueListenableBuilder<Set<String>>(
+                          valueListenable: EventReminderService.instance.activeRemindersNotifier,
+                          builder: (context, activeIds, _) {
+                            final isReminded = activeIds.contains(ev.id);
+                            return Row(
+                              children: [
+                                // 1. Real Remind Me 🔔 / Reminder Set ✓ Button
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: isReminded
+                                          ? const Color(0xFF10B981).withValues(alpha: 0.18)
+                                          : const Color(0xFF0284C7).withValues(alpha: 0.15),
+                                      foregroundColor: isReminded
+                                          ? const Color(0xFF10B981)
+                                          : const Color(0xFF38BDF8),
+                                      elevation: 0,
+                                      padding: const EdgeInsets.symmetric(vertical: 8),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                        side: BorderSide(
+                                          color: isReminded
+                                              ? const Color(0xFF10B981)
+                                              : const Color(0xFF0284C7),
+                                          width: 0.8,
+                                        ),
+                                      ),
                                     ),
-                                  );
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 10),
+                                    icon: Icon(
+                                      isReminded
+                                          ? Icons.check_circle_rounded
+                                          : Icons.notifications_active_rounded,
+                                      size: 15,
+                                    ),
+                                    label: Text(
+                                      isReminded ? 'Reminder Set ✓' : 'Remind Me 🔔',
+                                      style: const TextStyle(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      EventReminderService.instance.toggleReminder(context, ev);
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
 
-                            // 2. Compact Share 🖼️ Button
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: accent.withValues(alpha: 0.15),
-                                  foregroundColor: accent,
-                                  elevation: 0,
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    side: BorderSide(color: accent.withValues(alpha: 0.4), width: 0.8),
+                                // 2. Compact Share 🖼️ Button
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: accent.withValues(alpha: 0.15),
+                                      foregroundColor: accent,
+                                      elevation: 0,
+                                      padding: const EdgeInsets.symmetric(vertical: 8),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                        side: BorderSide(color: accent.withValues(alpha: 0.4), width: 0.8),
+                                      ),
+                                    ),
+                                    icon: const Icon(Icons.image_rounded, size: 15),
+                                    label: const Text(
+                                      'Share 🖼️',
+                                      style: TextStyle(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      Navigator.pop(ctx);
+                                      showEventSocialShareSheet(context, ev);
+                                    },
                                   ),
                                 ),
-                                icon: const Icon(Icons.image_rounded, size: 15),
-                                label: const Text(
-                                  'Share 🖼️',
-                                  style: TextStyle(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                onPressed: () {
-                                  Navigator.pop(ctx);
-                                  showEventSocialShareSheet(context, ev);
-                                },
-                              ),
-                            ),
-                          ],
+                              ],
+                            );
+                          },
                         ),
                       ],
                     ),

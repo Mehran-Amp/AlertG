@@ -61,17 +61,26 @@ async def update_user_telegram_status(user_id: str, req: UserTelegramUpdateReque
     if not clean_uid:
         raise HTTPException(status_code=400, detail="Invalid user_id.")
 
-    clean_chat = req.chat_id.strip() if req.chat_id else None
+    clean_chat = req.chat_id.strip() if req.chat_id is not None and req.chat_id != "" else None
     if clean_chat and not CHAT_ID_RE.match(clean_chat):
         raise HTTPException(status_code=400, detail="Invalid telegram_chat_id.")
 
     async with _db_lock:
         existing_prof = storage.USER_PROFILES_DB.get(clean_uid, {})
+        # If chat_id wasn't provided in payload, preserve existing saved chat ID
+        if clean_chat is None and req.chat_id is None:
+            clean_chat = existing_prof.get("telegram_chat_id")
+
+        # Determine connection state
+        # Only explicitly disconnect if req.is_connected is False AND req.chat_id == "" (explicit user unlink)
+        is_explicit_unlink = (req.is_connected is False and (req.chat_id == "" or req.chat_id is None))
+        effective_connected = False if is_explicit_unlink else (bool(clean_chat) and req.is_connected)
+
         profile = {
             **existing_prof,
             "user_id": clean_uid,
-            "telegram_chat_id": clean_chat if req.is_connected else None,
-            "is_connected": req.is_connected and bool(clean_chat),
+            "telegram_chat_id": clean_chat if effective_connected else (None if is_explicit_unlink else existing_prof.get("telegram_chat_id")),
+            "is_connected": effective_connected,
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
         if req.events_notification_enabled is not None:
@@ -90,16 +99,17 @@ async def update_user_telegram_status(user_id: str, req: UserTelegramUpdateReque
         storage.USER_PROFILES_DB[clean_uid] = profile
 
         # Synchronize active user alerts with their latest Telegram state
-        if clean_chat and req.is_connected:
+        if clean_chat and effective_connected:
             for a in storage.ALERTS_DB:
                 if a.user_id.lower() == clean_uid:
                     a.telegram_chat_id = clean_chat
-        elif not req.is_connected:
+        elif is_explicit_unlink:
             for a in storage.ALERTS_DB:
                 if a.user_id.lower() == clean_uid:
                     a.telegram_chat_id = None
 
     await save_user_profiles_to_disk_async(storage.USER_PROFILES_DB)
     await save_alerts_to_disk_async(storage.ALERTS_DB)
-    print(f"📱 [User Profile] Telegram updated for {clean_uid}: chat_id={clean_chat}, connected={profile['is_connected']}")
+    print(f"📱 [User Profile] Telegram updated for {clean_uid}: chat_id={profile.get('telegram_chat_id')}, connected={profile['is_connected']}")
     return profile
+
