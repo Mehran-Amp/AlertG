@@ -1,4 +1,5 @@
 import time
+from datetime import datetime, timezone
 import re
 import json
 import asyncio
@@ -63,13 +64,29 @@ async def get_live_price(exchange: str, symbol: str):
         if not eff_currency:
             eff_currency = "TMN" if exchange in ['iran_market', 'tse'] else "USD"
 
+        data_date_val = meta.get("data_date") or meta.get("date")
+        is_fred = "FRED" in source_name or clean_sym in ('FEDFUNDS', 'UNRATE', 'CPIAUCSL', 'US02Y', 'US10Y', 'US30Y', 'US05Y', 'US13W', 'WALCL', 'M2SL', 'DTWEXBGS')
+
+        # For FRED data (daily/monthly), asOf must strictly be observation date (data_date to epoch), not server time
+        as_of_val = None
+        if (data_freq in ('daily', 'monthly') or is_fred) and data_date_val:
+            try:
+                as_of_val = int(datetime.strptime(str(data_date_val).strip(), "%Y-%m-%d").replace(tzinfo=timezone.utc).timestamp())
+            except Exception:
+                try:
+                    as_of_val = int(datetime.fromisoformat(str(data_date_val).strip().replace('Z', '+00:00')).timestamp())
+                except Exception:
+                    pass
+        if as_of_val is None:
+            as_of_val = meta.get("asOf", int(time.time()))
+
         res = {
             "status": "ok",
             "exchange": exchange,
             "symbol": symbol,
             "price": price if (price is not None and price > 0) else None,
             "source": meta.get("source", "Market API"),
-            "asOf": meta.get("asOf", int(time.time())),
+            "asOf": as_of_val,
             "state": eff_state,
             "currency": eff_currency,
             "timestamp": time.time()
@@ -81,7 +98,6 @@ async def get_live_price(exchange: str, symbol: str):
         if unit_val:
             res["unit"] = unit_val
 
-        data_date_val = meta.get("data_date") or meta.get("date")
         if data_date_val:
             res["data_date"] = data_date_val
 

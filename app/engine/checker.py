@@ -57,6 +57,28 @@ class _DynamicSemaphore:
 
 PRICE_FETCH_SEMAPHORE = _DynamicSemaphore(PRICE_FETCH_CONCURRENCY)
 
+def is_data_stale(as_of: Optional[float], data_frequency: Optional[str] = None, current_time: Optional[float] = None) -> bool:
+    """
+    Stale data guard: validates data age against an appropriate threshold based on data_frequency:
+    - monthly: several weeks (45 days = 3,888,000s) so older monthly observations do not give false alerts
+    - daily: several days (5 days = 432,000s)
+    - weekly: 2 weeks (14 days = 1,209,600s)
+    - live / default: 1 hour (3600s)
+    """
+    if as_of is None or not isinstance(as_of, (int, float)) or as_of <= 0:
+        return False
+    now = current_time if current_time is not None else time.time()
+    freq = (data_frequency or '').lower().strip()
+    if freq == 'monthly':
+        threshold = 45 * 86400.0  # several weeks
+    elif freq == 'daily':
+        threshold = 5 * 86400.0   # several days
+    elif freq == 'weekly':
+        threshold = 14 * 86400.0  # 2 weeks
+    else:
+        threshold = 3600.0        # 1 hour for live
+    return (now - as_of) > threshold
+
 async def get_cached_price(client: httpx.AsyncClient, exchange: str, symbol: str) -> Optional[float]:
     """
     Fetches price with category-based TTL caching and Outlier Protection filter:
@@ -183,6 +205,14 @@ async def check_alerts_job():
         cached_entry = PRICE_CACHE.get(key)
         cached_meta = cached_entry[2] if (cached_entry and len(cached_entry) > 2 and isinstance(cached_entry[2], dict)) else {}
 
+        data_freq = cached_meta.get('data_frequency')
+        if not data_freq and cached_meta.get('category') == 'macro':
+            data_freq = 'monthly' if alert.symbol in ('UNRATE', 'CPIAUCSL', 'M2SL') else 'daily'
+
+        as_of = cached_meta.get('asOf')
+        if as_of and isinstance(as_of, (int, float)) and is_data_stale(as_of, data_freq, current_time):
+            cached_meta['is_stale'] = True
+
         # 0. Rule 5 Alert Guard: Never trigger alerts on stale, carried-over, closed, or untraded market data
         if (cached_meta.get('alert_eligible') is False or 
             cached_meta.get('carried_over') is True or 
@@ -191,10 +221,10 @@ async def check_alerts_job():
             return
 
         # 1. Closed-Market Policy (Option B):
-        as_of = cached_meta.get('asOf')
-        if as_of is not None:
+        if as_of is not None and isinstance(as_of, (int, float)):
             m_state = cached_meta.get('state')
-            if m_state == 'REGULAR' and (time.time() - as_of) > 900:
+            delay_thresh = 45 * 86400.0 if data_freq == 'monthly' else (5 * 86400.0 if data_freq == 'daily' else 900.0)
+            if m_state == 'REGULAR' and (time.time() - as_of) > delay_thresh:
                 cached_meta['is_delayed'] = True
 
             last_asof = getattr(alert, 'last_eval_asof', None)
