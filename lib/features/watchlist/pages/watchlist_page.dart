@@ -735,9 +735,9 @@ class _WatchlistPageState extends State<WatchlistPage> {
           child: Directionality(
             textDirection: TextDirection.ltr,
             child: SizedBox(
-              height: 168,
+              height: 148,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
@@ -913,7 +913,7 @@ class _WatchlistPageState extends State<WatchlistPage> {
 
                         // === ROW 3: Target Proximity Progress Strip ===
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                           decoration: BoxDecoration(
                             color: isTriggeredOneShot
                                 ? AppTokens.warning.withValues(alpha: 0.08)

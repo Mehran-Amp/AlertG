@@ -482,9 +482,9 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
           </div>
         </div>
 
-        {/* 2. MIDDLE: TARGET PROXIMITY PROGRESS STRIP */}
-        <div className="my-1.5 bg-slate-950/70 px-2 py-1.5 rounded-xl border border-slate-800/50 min-w-0 overflow-hidden">
-          <div className="flex items-center justify-between text-[10.5px] mb-1 gap-2 min-w-0">
+        {/* 2. MIDDLE: TARGET PROXIMITY PROGRESS STRIP (Moves Section with halved vertical margins) */}
+        <div className="my-[3px] bg-slate-950/70 px-2 py-1 rounded-xl border border-slate-800/50 min-w-0 overflow-hidden">
+          <div className="flex items-center justify-between text-[10.5px] mb-0.5 gap-2 min-w-0">
             <div className="flex items-center gap-1 text-slate-300 min-w-0 flex-1 overflow-hidden">
               <Zap className="h-3 w-3 text-amber-400 shrink-0" />
               <span className="font-semibold truncate min-w-0">
@@ -499,7 +499,7 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
                     </span>
                   ) : (
                     <span>
-                      Rate Change{' '}
+                      Moves{' '}
                       <span dir="ltr" className="font-mono">
                         {rule.direction === 'BOTH' ? '±' : rule.direction === 'ABOVE' ? '+' : '-'}
                         {rule.targetValue}%
