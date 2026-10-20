@@ -378,7 +378,7 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
             : 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)',
           opacity: isDeleting ? 0 : 1,
         }}
-        className={`w-full max-w-full overflow-hidden p-3 rounded-2xl border transition-[background-color,border-color,opacity] shadow-sm flex flex-col justify-between cursor-grab active:cursor-grabbing ${
+        className={`w-full max-w-full overflow-hidden px-3 py-2 rounded-2xl border transition-[background-color,border-color,opacity] shadow-sm flex flex-col justify-between cursor-grab active:cursor-grabbing ${
           isLight
             ? 'bg-white border-slate-200/90 shadow-slate-100'
             : rule.isActive
@@ -387,9 +387,9 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
         }`}
       >
         {/* 1. TOP SECTION: TWO-ROW BALANCED FINANCIAL HEADER */}
-        <div className="flex flex-col gap-1 min-w-0">
+        <div className="flex flex-col gap-0.5 min-w-0">
           {/* Row 1: Icon + Symbol (Left)  |  Price + Strike Base Price (Right) */}
-          <div className="flex items-center justify-between gap-2 min-w-0">
+          <div className="flex items-center justify-between gap-2 min-w-0 h-[34px]">
             {/* Left: Coin Icon + Symbol Code */}
             <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
               <div className="relative shrink-0">
@@ -424,13 +424,15 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
               </div>
             </div>
 
-            {/* Right: Price + Strikethrough Base Price */}
-            <div className="shrink-0 flex flex-col items-end text-right min-w-0 pl-1" dir="ltr">
-              {rule.basePrice > 0 && Math.abs(displayP - rule.basePrice) > 1e-8 && (
-                <div className="text-[9.5px] font-mono text-slate-500 line-through leading-tight truncate">
-                  {renderFormattedPrice(rule.basePrice, unit, rule.counterCurrency, true)}
-                </div>
-              )}
+            {/* Right: Price + Strikethrough Base Price (Reserved height to guarantee identical card height) */}
+            <div className="shrink-0 flex flex-col items-end justify-center text-right min-w-0 pl-1" dir="ltr">
+              <div className="h-[13px] text-[9.5px] font-mono text-slate-500 line-through leading-tight truncate flex items-center justify-end">
+                {rule.basePrice > 0 && Math.abs(displayP - rule.basePrice) > 1e-8 ? (
+                  renderFormattedPrice(rule.basePrice, unit, rule.counterCurrency, true)
+                ) : (
+                  <span className="invisible select-none leading-none">0</span>
+                )}
+              </div>
               <div className="text-[15px] sm:text-[16px] font-black font-mono tracking-tight text-white leading-tight">
                 {renderFormattedPrice(displayP, unit, rule.counterCurrency, false)}
               </div>
@@ -438,7 +440,7 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
           </div>
 
           {/* Row 2: Full English Name • Exchange (Left)  |  Percentage Badge (Right - directly under price!) */}
-          <div className="flex items-center justify-between gap-2 min-w-0 pt-0.5">
+          <div className="flex items-center justify-between gap-2 min-w-0">
             {/* Left: Full Name • Exchange Badge */}
             <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden text-[10.5px]">
               <span
@@ -481,8 +483,8 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
         </div>
 
         {/* 2. MIDDLE: TARGET PROXIMITY PROGRESS STRIP */}
-        <div className="my-2 bg-slate-950/70 p-2 rounded-xl border border-slate-800/50 min-w-0 overflow-hidden">
-          <div className="flex items-center justify-between text-[10.5px] mb-1.5 gap-2 min-w-0">
+        <div className="my-1.5 bg-slate-950/70 px-2 py-1.5 rounded-xl border border-slate-800/50 min-w-0 overflow-hidden">
+          <div className="flex items-center justify-between text-[10.5px] mb-1 gap-2 min-w-0">
             <div className="flex items-center gap-1 text-slate-300 min-w-0 flex-1 overflow-hidden">
               <Zap className="h-3 w-3 text-amber-400 shrink-0" />
               <span className="font-semibold truncate min-w-0">
@@ -562,7 +564,7 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
                 : `${targetProximity}%`}
             </span>
           </div>
-          <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
+          <div className="h-[2.5px] w-full bg-slate-800 rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-300 ${
                 targetProximity >= 85
@@ -575,7 +577,7 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
         </div>
 
         {/* 3. FOOTER: SOUND / VIBE / TTS CHIPS + INTERVAL & CHECK BUTTON (TOGGLE & TRASH REMOVED) */}
-        <div className="flex items-center justify-between text-[10px] pt-0.5 gap-1.5 flex-nowrap min-w-0">
+        <div className="flex items-center justify-between text-[10px] gap-1.5 flex-nowrap min-w-0">
           {/* Left: Feedback Notification Badges */}
           <div className="flex items-center gap-1 min-w-0 flex-nowrap shrink-0">
             {/* Sound */}
