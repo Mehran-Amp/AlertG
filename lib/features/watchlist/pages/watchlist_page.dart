@@ -735,9 +735,9 @@ class _WatchlistPageState extends State<WatchlistPage> {
           child: Directionality(
             textDirection: TextDirection.ltr,
             child: SizedBox(
-              height: 128,
+              height: 123,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5.0),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7.0),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
@@ -932,7 +932,7 @@ class _WatchlistPageState extends State<WatchlistPage> {
                         ),
 
                         // === ROW 3: Target Proximity Progress Strip (Embedded Background Progress) ===
-                        const SizedBox(height: 3),
+                        const SizedBox(height: 5.5),
                         SizedBox(
                           height: 24,
                           child: ClipRRect(
@@ -1014,28 +1014,28 @@ class _WatchlistPageState extends State<WatchlistPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 3),
+                      const SizedBox(height: 5.5),
 
                         // === ROW 4: Footer Utilities & Check Action (Strictly Aligned in a Straight Horizontal Axis) ===
                         SizedBox(
-                          height: 20,
+                          height: 22,
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               // 1. Timer Chip
                               Container(
-                                height: 20,
-                                padding: const EdgeInsets.symmetric(horizontal: 6),
+                                height: 22,
+                                padding: const EdgeInsets.symmetric(horizontal: 6.5),
                                 alignment: Alignment.center,
                                 decoration: BoxDecoration(
                                   color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.7),
-                                  borderRadius: BorderRadius.circular(5),
+                                  borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.timer_outlined, size: 10.5, color: theme.colorScheme.primary),
+                                    Icon(Icons.timer_outlined, size: 11, color: theme.colorScheme.primary),
                                     const SizedBox(width: 3),
                                     Text(
                                       _formatInterval(rule.checkIntervalSeconds, cardLang),
@@ -1058,24 +1058,24 @@ class _WatchlistPageState extends State<WatchlistPage> {
                                   if (rule.ttsEnabled)
                                     Padding(
                                       padding: const EdgeInsets.only(right: 4),
-                                      child: Icon(Icons.record_voice_over_rounded, size: 12, color: theme.colorScheme.primary.withValues(alpha: 0.75)),
+                                      child: Icon(Icons.record_voice_over_rounded, size: 12.5, color: theme.colorScheme.primary.withValues(alpha: 0.75)),
                                     ),
                                   if (rule.soundEnabled)
                                     Padding(
                                       padding: const EdgeInsets.only(right: 4),
-                                      child: Icon(Icons.volume_up_rounded, size: 12, color: theme.colorScheme.onSurface.withValues(alpha: 0.55)),
+                                      child: Icon(Icons.volume_up_rounded, size: 12.5, color: theme.colorScheme.onSurface.withValues(alpha: 0.55)),
                                     ),
                                   if (rule.vibrationEnabled)
                                     Padding(
                                       padding: const EdgeInsets.only(right: 2),
-                                      child: Icon(Icons.vibration_rounded, size: 12, color: theme.colorScheme.onSurface.withValues(alpha: 0.55)),
+                                      child: Icon(Icons.vibration_rounded, size: 12.5, color: theme.colorScheme.onSurface.withValues(alpha: 0.55)),
                                     ),
                                 ],
                               ),
                               const Spacer(),
                               // 3. Hourglass & Next Check Time
                               Container(
-                                height: 20,
+                                height: 22,
                                 alignment: Alignment.center,
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -1083,7 +1083,7 @@ class _WatchlistPageState extends State<WatchlistPage> {
                                   children: [
                                     Icon(
                                       Icons.hourglass_bottom_rounded,
-                                      size: 10.5,
+                                      size: 11,
                                       color: rule.isActive ? theme.colorScheme.primary : textMuted,
                                     ),
                                     const SizedBox(width: 3),
@@ -1103,14 +1103,14 @@ class _WatchlistPageState extends State<WatchlistPage> {
                               // 4. Check Now Button
                               InkWell(
                                 onTap: isChecking ? null : () => _manualCheck(rule, scheduler, lang),
-                                borderRadius: BorderRadius.circular(5),
+                                borderRadius: BorderRadius.circular(6),
                                 child: Container(
-                                  height: 20,
-                                  padding: const EdgeInsets.symmetric(horizontal: 7),
+                                  height: 22,
+                                  padding: const EdgeInsets.symmetric(horizontal: 7.5),
                                   alignment: Alignment.center,
                                   decoration: BoxDecoration(
                                     color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(5),
+                                    borderRadius: BorderRadius.circular(6),
                                     border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.28)),
                                   ),
                                   child: Row(
@@ -1124,7 +1124,7 @@ class _WatchlistPageState extends State<WatchlistPage> {
                                           child: CircularProgressIndicator(strokeWidth: 1.5, color: theme.colorScheme.primary),
                                         )
                                       else
-                                        Icon(Icons.sync_rounded, size: 10.5, color: theme.colorScheme.primary),
+                                        Icon(Icons.sync_rounded, size: 11, color: theme.colorScheme.primary),
                                       const SizedBox(width: 3),
                                       Text(
                                         AppStrings.get('check_now', cardLang),
