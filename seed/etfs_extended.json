@@ -1,0 +1,3200 @@
+{
+  "source": "curated owner list 2026-10-20",
+  "fetched_at": "2026-10-20T04:22:33Z",
+  "asset_class": "etf",
+  "total_count": 114,
+  "symbols": [
+    {
+      "id": "VOO",
+      "symbol": "VOO",
+      "nameEn": "Vanguard S&P 500 ETF",
+      "nameFa": "Vanguard S&P 500 ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VOO",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VOO",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VOO",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "IVV",
+      "symbol": "IVV",
+      "nameEn": "iShares Core S&P 500 ETF",
+      "nameFa": "iShares Core S&P 500 ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "IVV",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "IVV",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "IVV",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "VTI",
+      "symbol": "VTI",
+      "nameEn": "Vanguard Total Stock Market ETF",
+      "nameFa": "Vanguard Total Stock Market ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VTI",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VTI",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VTI",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "QQQM",
+      "symbol": "QQQM",
+      "nameEn": "Invesco NASDAQ 100 ETF",
+      "nameFa": "Invesco NASDAQ 100 ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "QQQM",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "QQQM",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "QQQM",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "DIA",
+      "symbol": "DIA",
+      "nameEn": "SPDR Dow Jones Industrial Average ETF Trust",
+      "nameFa": "SPDR Dow Jones Industrial Average ETF Trust",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "DIA",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "DIA",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "DIA",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "VEA",
+      "symbol": "VEA",
+      "nameEn": "Vanguard FTSE Developed Markets ETF",
+      "nameFa": "Vanguard FTSE Developed Markets ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VEA",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VEA",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VEA",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "VWO",
+      "symbol": "VWO",
+      "nameEn": "Vanguard FTSE Emerging Markets ETF",
+      "nameFa": "Vanguard FTSE Emerging Markets ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VWO",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VWO",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VWO",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "EEM",
+      "symbol": "EEM",
+      "nameEn": "iShares MSCI Emerging Markets ETF",
+      "nameFa": "iShares MSCI Emerging Markets ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "EEM",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "EEM",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "EEM",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "EFA",
+      "symbol": "EFA",
+      "nameEn": "iShares MSCI EAFE ETF",
+      "nameFa": "iShares MSCI EAFE ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "EFA",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "EFA",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "EFA",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "IEMG",
+      "symbol": "IEMG",
+      "nameEn": "iShares Core MSCI Emerging Markets ETF",
+      "nameFa": "iShares Core MSCI Emerging Markets ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "IEMG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "IEMG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "IEMG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "AGG",
+      "symbol": "AGG",
+      "nameEn": "iShares Core U.S. Aggregate Bond ETF",
+      "nameFa": "iShares Core U.S. Aggregate Bond ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "AGG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "AGG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "AGG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "BND",
+      "symbol": "BND",
+      "nameEn": "Vanguard Total Bond Market ETF",
+      "nameFa": "Vanguard Total Bond Market ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BND",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BND",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BND",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "TLT",
+      "symbol": "TLT",
+      "nameEn": "iShares 20+ Year Treasury Bond ETF",
+      "nameFa": "iShares 20+ Year Treasury Bond ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "TLT",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "TLT",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "TLT",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "IEF",
+      "symbol": "IEF",
+      "nameEn": "iShares 7-10 Year Treasury Bond ETF",
+      "nameFa": "iShares 7-10 Year Treasury Bond ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "IEF",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "IEF",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "IEF",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SHY",
+      "symbol": "SHY",
+      "nameEn": "iShares 1-3 Year Treasury Bond ETF",
+      "nameFa": "iShares 1-3 Year Treasury Bond ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SHY",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SHY",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SHY",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "LQD",
+      "symbol": "LQD",
+      "nameEn": "iShares iBoxx $ Investment Grade Corporate Bond ETF",
+      "nameFa": "iShares iBoxx $ Investment Grade Corporate Bond ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "LQD",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "LQD",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "LQD",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "HYG",
+      "symbol": "HYG",
+      "nameEn": "iShares iBoxx $ High Yield Corporate Bond ETF",
+      "nameFa": "iShares iBoxx $ High Yield Corporate Bond ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "HYG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "HYG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "HYG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "IAU",
+      "symbol": "IAU",
+      "nameEn": "iShares Gold Trust",
+      "nameFa": "iShares Gold Trust",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "IAU",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "IAU",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "IAU",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SLV",
+      "symbol": "SLV",
+      "nameEn": "iShares Silver Trust",
+      "nameFa": "iShares Silver Trust",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SLV",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SLV",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SLV",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "USO",
+      "symbol": "USO",
+      "nameEn": "United States Oil Fund LP",
+      "nameFa": "United States Oil Fund LP",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "USO",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "USO",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "USO",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "UNG",
+      "symbol": "UNG",
+      "nameEn": "United States Natural Gas Fund LP",
+      "nameFa": "United States Natural Gas Fund LP",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "UNG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "UNG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "UNG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "DBC",
+      "symbol": "DBC",
+      "nameEn": "Invesco DB Commodity Index Tracking Fund",
+      "nameFa": "Invesco DB Commodity Index Tracking Fund",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "DBC",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "DBC",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "DBC",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "VNQ",
+      "symbol": "VNQ",
+      "nameEn": "Vanguard Real Estate ETF",
+      "nameFa": "Vanguard Real Estate ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VNQ",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VNQ",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VNQ",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "XLK",
+      "symbol": "XLK",
+      "nameEn": "Technology Select Sector SPDR Fund",
+      "nameFa": "Technology Select Sector SPDR Fund",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XLK",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XLK",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XLK",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "XLF",
+      "symbol": "XLF",
+      "nameEn": "Financial Select Sector SPDR Fund",
+      "nameFa": "Financial Select Sector SPDR Fund",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XLF",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XLF",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XLF",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "XLE",
+      "symbol": "XLE",
+      "nameEn": "Energy Select Sector SPDR Fund",
+      "nameFa": "Energy Select Sector SPDR Fund",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XLE",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XLE",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XLE",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "XLV",
+      "symbol": "XLV",
+      "nameEn": "Health Care Select Sector SPDR Fund",
+      "nameFa": "Health Care Select Sector SPDR Fund",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XLV",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XLV",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XLV",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "XLY",
+      "symbol": "XLY",
+      "nameEn": "Consumer Discretionary Select Sector SPDR Fund",
+      "nameFa": "Consumer Discretionary Select Sector SPDR Fund",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XLY",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XLY",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XLY",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "XLP",
+      "symbol": "XLP",
+      "nameEn": "Consumer Staples Select Sector SPDR Fund",
+      "nameFa": "Consumer Staples Select Sector SPDR Fund",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XLP",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XLP",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XLP",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "XLI",
+      "symbol": "XLI",
+      "nameEn": "Industrial Select Sector SPDR Fund",
+      "nameFa": "Industrial Select Sector SPDR Fund",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XLI",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XLI",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XLI",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "XLU",
+      "symbol": "XLU",
+      "nameEn": "Utilities Select Sector SPDR Fund",
+      "nameFa": "Utilities Select Sector SPDR Fund",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XLU",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XLU",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XLU",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "XLB",
+      "symbol": "XLB",
+      "nameEn": "Materials Select Sector SPDR Fund",
+      "nameFa": "Materials Select Sector SPDR Fund",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XLB",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XLB",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XLB",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "XLRE",
+      "symbol": "XLRE",
+      "nameEn": "Real Estate Select Sector SPDR Fund",
+      "nameFa": "Real Estate Select Sector SPDR Fund",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XLRE",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XLRE",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XLRE",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "XLC",
+      "symbol": "XLC",
+      "nameEn": "Communication Services Select Sector SPDR Fund",
+      "nameFa": "Communication Services Select Sector SPDR Fund",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XLC",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XLC",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XLC",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SMH",
+      "symbol": "SMH",
+      "nameEn": "VanEck Semiconductor ETF",
+      "nameFa": "VanEck Semiconductor ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SMH",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SMH",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SMH",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SOXX",
+      "symbol": "SOXX",
+      "nameEn": "iShares Semiconductor ETF",
+      "nameFa": "iShares Semiconductor ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SOXX",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SOXX",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SOXX",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "ARKK",
+      "symbol": "ARKK",
+      "nameEn": "ARK Innovation ETF",
+      "nameFa": "ARK Innovation ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "ARKK",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "ARKK",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "ARKK",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "ARKG",
+      "symbol": "ARKG",
+      "nameEn": "ARK Genomic Revolution ETF",
+      "nameFa": "ARK Genomic Revolution ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "Cboe BZX",
+      "exchange": "Cboe BZX",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "ARKG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "ARKG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "ARKG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "ARKW",
+      "symbol": "ARKW",
+      "nameEn": "ARK Next Generation Internet ETF",
+      "nameFa": "ARK Next Generation Internet ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "ARKW",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "ARKW",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "ARKW",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "VUG",
+      "symbol": "VUG",
+      "nameEn": "Vanguard Growth ETF",
+      "nameFa": "Vanguard Growth ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VUG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VUG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VUG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "VTV",
+      "symbol": "VTV",
+      "nameEn": "Vanguard Value ETF",
+      "nameFa": "Vanguard Value ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VTV",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VTV",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VTV",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "VIG",
+      "symbol": "VIG",
+      "nameEn": "Vanguard Dividend Appreciation ETF",
+      "nameFa": "Vanguard Dividend Appreciation ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VIG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VIG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VIG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SCHD",
+      "symbol": "SCHD",
+      "nameEn": "Schwab U.S. Dividend Equity ETF",
+      "nameFa": "Schwab U.S. Dividend Equity ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SCHD",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SCHD",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SCHD",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SCHG",
+      "symbol": "SCHG",
+      "nameEn": "Schwab U.S. Large-Cap Growth ETF",
+      "nameFa": "Schwab U.S. Large-Cap Growth ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SCHG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SCHG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SCHG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SCHB",
+      "symbol": "SCHB",
+      "nameEn": "Schwab U.S. Broad Market ETF",
+      "nameFa": "Schwab U.S. Broad Market ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SCHB",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SCHB",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SCHB",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "JEPI",
+      "symbol": "JEPI",
+      "nameEn": "JPMorgan Equity Premium Income ETF",
+      "nameFa": "JPMorgan Equity Premium Income ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "JEPI",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "JEPI",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "JEPI",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "JEPQ",
+      "symbol": "JEPQ",
+      "nameEn": "JPMorgan Nasdaq Equity Premium Income ETF",
+      "nameFa": "JPMorgan Nasdaq Equity Premium Income ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "JEPQ",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "JEPQ",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "JEPQ",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "QYLD",
+      "symbol": "QYLD",
+      "nameEn": "Global X NASDAQ 100 Covered Call ETF",
+      "nameFa": "Global X NASDAQ 100 Covered Call ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "QYLD",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "QYLD",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "QYLD",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "DVY",
+      "symbol": "DVY",
+      "nameEn": "iShares Select Dividend ETF",
+      "nameFa": "iShares Select Dividend ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "DVY",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "DVY",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "DVY",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "VYM",
+      "symbol": "VYM",
+      "nameEn": "Vanguard High Dividend Yield ETF",
+      "nameFa": "Vanguard High Dividend Yield ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VYM",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VYM",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VYM",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "IWF",
+      "symbol": "IWF",
+      "nameEn": "iShares Russell 1000 Growth ETF",
+      "nameFa": "iShares Russell 1000 Growth ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "IWF",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "IWF",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "IWF",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "IWD",
+      "symbol": "IWD",
+      "nameEn": "iShares Russell 1000 Value ETF",
+      "nameFa": "iShares Russell 1000 Value ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "IWD",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "IWD",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "IWD",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "MDY",
+      "symbol": "MDY",
+      "nameEn": "SPDR S&P MidCap 400 ETF Trust",
+      "nameFa": "SPDR S&P MidCap 400 ETF Trust",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "MDY",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "MDY",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "MDY",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "IJH",
+      "symbol": "IJH",
+      "nameEn": "iShares Core S&P Mid-Cap ETF",
+      "nameFa": "iShares Core S&P Mid-Cap ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "IJH",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "IJH",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "IJH",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "IJR",
+      "symbol": "IJR",
+      "nameEn": "iShares Core S&P Small-Cap ETF",
+      "nameFa": "iShares Core S&P Small-Cap ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "IJR",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "IJR",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "IJR",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "VB",
+      "symbol": "VB",
+      "nameEn": "Vanguard Small-Cap ETF",
+      "nameFa": "Vanguard Small-Cap ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VB",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VB",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VB",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "VO",
+      "symbol": "VO",
+      "nameEn": "Vanguard Mid-Cap ETF",
+      "nameFa": "Vanguard Mid-Cap ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VO",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VO",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VO",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "RSP",
+      "symbol": "RSP",
+      "nameEn": "Invesco S&P 500 Equal Weight ETF",
+      "nameFa": "Invesco S&P 500 Equal Weight ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "RSP",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "RSP",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "RSP",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SPLG",
+      "symbol": "SPLG",
+      "nameEn": "SPDR Portfolio S&P 500 ETF",
+      "nameFa": "SPDR Portfolio S&P 500 ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SPLG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SPLG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SPLG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SPYG",
+      "symbol": "SPYG",
+      "nameEn": "SPDR Portfolio S&P 500 Growth ETF",
+      "nameFa": "SPDR Portfolio S&P 500 Growth ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SPYG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SPYG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SPYG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SPYV",
+      "symbol": "SPYV",
+      "nameEn": "SPDR Portfolio S&P 500 Value ETF",
+      "nameFa": "SPDR Portfolio S&P 500 Value ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SPYV",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SPYV",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SPYV",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "TQQQ",
+      "symbol": "TQQQ",
+      "nameEn": "ProShares UltraPro QQQ",
+      "nameFa": "ProShares UltraPro QQQ",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "TQQQ",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "TQQQ",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "TQQQ",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SQQQ",
+      "symbol": "SQQQ",
+      "nameEn": "ProShares UltraPro Short QQQ",
+      "nameFa": "ProShares UltraPro Short QQQ",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SQQQ",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SQQQ",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SQQQ",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SOXL",
+      "symbol": "SOXL",
+      "nameEn": "Direxion Daily Semiconductor Bull 3X Shares",
+      "nameFa": "Direxion Daily Semiconductor Bull 3X Shares",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SOXL",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SOXL",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SOXL",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SOXS",
+      "symbol": "SOXS",
+      "nameEn": "Direxion Daily Semiconductor Bear 3X Shares",
+      "nameFa": "Direxion Daily Semiconductor Bear 3X Shares",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SOXS",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SOXS",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SOXS",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "UPRO",
+      "symbol": "UPRO",
+      "nameEn": "ProShares UltraPro S&P500",
+      "nameFa": "ProShares UltraPro S&P500",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "UPRO",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "UPRO",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "UPRO",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SPXU",
+      "symbol": "SPXU",
+      "nameEn": "ProShares UltraPro Short S&P500",
+      "nameFa": "ProShares UltraPro Short S&P500",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SPXU",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SPXU",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SPXU",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "TNA",
+      "symbol": "TNA",
+      "nameEn": "Direxion Daily Small Cap Bull 3X Shares",
+      "nameFa": "Direxion Daily Small Cap Bull 3X Shares",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "TNA",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "TNA",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "TNA",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "TZA",
+      "symbol": "TZA",
+      "nameEn": "Direxion Daily Small Cap Bear 3X Shares",
+      "nameFa": "Direxion Daily Small Cap Bear 3X Shares",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "TZA",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "TZA",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "TZA",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "LABU",
+      "symbol": "LABU",
+      "nameEn": "Direxion Daily S&P Biotech Bull 3X Shares",
+      "nameFa": "Direxion Daily S&P Biotech Bull 3X Shares",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "LABU",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "LABU",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "LABU",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "FNGU",
+      "symbol": "FNGU",
+      "nameEn": "MicroSectors FANG+ Index 3X Leveraged ETN",
+      "nameFa": "MicroSectors FANG+ Index 3X Leveraged ETN",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "FNGU",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "FNGU",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "FNGU",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "UVXY",
+      "symbol": "UVXY",
+      "nameEn": "ProShares Ultra VIX Short-Term Futures ETF",
+      "nameFa": "ProShares Ultra VIX Short-Term Futures ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "Cboe BZX",
+      "exchange": "Cboe BZX",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "UVXY",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "UVXY",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "UVXY",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "VXX",
+      "symbol": "VXX",
+      "nameEn": "iPath Series B S&P 500 VIX Short-Term Futures ETN",
+      "nameFa": "iPath Series B S&P 500 VIX Short-Term Futures ETN",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "Cboe BZX",
+      "exchange": "Cboe BZX",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VXX",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VXX",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VXX",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SVXY",
+      "symbol": "SVXY",
+      "nameEn": "ProShares Short VIX Short-Term Futures ETF",
+      "nameFa": "ProShares Short VIX Short-Term Futures ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "Cboe BZX",
+      "exchange": "Cboe BZX",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SVXY",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SVXY",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SVXY",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "IBIT",
+      "symbol": "IBIT",
+      "nameEn": "iShares Bitcoin Trust ETF",
+      "nameFa": "iShares Bitcoin Trust ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "IBIT",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "IBIT",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "IBIT",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "FBTC",
+      "symbol": "FBTC",
+      "nameEn": "Fidelity Wise Origin Bitcoin Fund",
+      "nameFa": "Fidelity Wise Origin Bitcoin Fund",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "Cboe BZX",
+      "exchange": "Cboe BZX",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "FBTC",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "FBTC",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "FBTC",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "GBTC",
+      "symbol": "GBTC",
+      "nameEn": "Grayscale Bitcoin Trust",
+      "nameFa": "Grayscale Bitcoin Trust",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "GBTC",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "GBTC",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "GBTC",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "ETHE",
+      "symbol": "ETHE",
+      "nameEn": "Grayscale Ethereum Trust",
+      "nameFa": "Grayscale Ethereum Trust",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "ETHE",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "ETHE",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "ETHE",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "BITO",
+      "symbol": "BITO",
+      "nameEn": "ProShares Bitcoin Strategy ETF",
+      "nameFa": "ProShares Bitcoin Strategy ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BITO",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BITO",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BITO",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "URA",
+      "symbol": "URA",
+      "nameEn": "Global X Uranium ETF",
+      "nameFa": "Global X Uranium ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "URA",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "URA",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "URA",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "COPX",
+      "symbol": "COPX",
+      "nameEn": "Global X Copper Miners ETF",
+      "nameFa": "Global X Copper Miners ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "COPX",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "COPX",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "COPX",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "GDX",
+      "symbol": "GDX",
+      "nameEn": "VanEck Gold Miners ETF",
+      "nameFa": "VanEck Gold Miners ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "GDX",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "GDX",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "GDX",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "GDXJ",
+      "symbol": "GDXJ",
+      "nameEn": "VanEck Junior Gold Miners ETF",
+      "nameFa": "VanEck Junior Gold Miners ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "GDXJ",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "GDXJ",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "GDXJ",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SIL",
+      "symbol": "SIL",
+      "nameEn": "Global X Silver Miners ETF",
+      "nameFa": "Global X Silver Miners ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SIL",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SIL",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SIL",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "XBI",
+      "symbol": "XBI",
+      "nameEn": "SPDR S&P Biotech ETF",
+      "nameFa": "SPDR S&P Biotech ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XBI",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XBI",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XBI",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "IBB",
+      "symbol": "IBB",
+      "nameEn": "iShares Biotechnology ETF",
+      "nameFa": "iShares Biotechnology ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "IBB",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "IBB",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "IBB",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "KRE",
+      "symbol": "KRE",
+      "nameEn": "SPDR S&P Regional Banking ETF",
+      "nameFa": "SPDR S&P Regional Banking ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "KRE",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "KRE",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "KRE",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "KWEB",
+      "symbol": "KWEB",
+      "nameEn": "KraneShares CSI China Internet ETF",
+      "nameFa": "KraneShares CSI China Internet ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "KWEB",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "KWEB",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "KWEB",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "FXI",
+      "symbol": "FXI",
+      "nameEn": "iShares China Large-Cap ETF",
+      "nameFa": "iShares China Large-Cap ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "FXI",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "FXI",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "FXI",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "MCHI",
+      "symbol": "MCHI",
+      "nameEn": "iShares MSCI China ETF",
+      "nameFa": "iShares MSCI China ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "MCHI",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "MCHI",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "MCHI",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "EWJ",
+      "symbol": "EWJ",
+      "nameEn": "iShares MSCI Japan ETF",
+      "nameFa": "iShares MSCI Japan ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "EWJ",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "EWJ",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "EWJ",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "EWZ",
+      "symbol": "EWZ",
+      "nameEn": "iShares MSCI Brazil ETF",
+      "nameFa": "iShares MSCI Brazil ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "EWZ",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "EWZ",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "EWZ",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "EWY",
+      "symbol": "EWY",
+      "nameEn": "iShares MSCI South Korea ETF",
+      "nameFa": "iShares MSCI South Korea ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "EWY",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "EWY",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "EWY",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "INDA",
+      "symbol": "INDA",
+      "nameEn": "iShares MSCI India ETF",
+      "nameFa": "iShares MSCI India ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "Cboe BZX",
+      "exchange": "Cboe BZX",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "INDA",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "INDA",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "INDA",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "EWW",
+      "symbol": "EWW",
+      "nameEn": "iShares MSCI Mexico ETF",
+      "nameFa": "iShares MSCI Mexico ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "EWW",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "EWW",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "EWW",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "EWG",
+      "symbol": "EWG",
+      "nameEn": "iShares MSCI Germany ETF",
+      "nameFa": "iShares MSCI Germany ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "EWG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "EWG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "EWG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "EWU",
+      "symbol": "EWU",
+      "nameEn": "iShares MSCI United Kingdom ETF",
+      "nameFa": "iShares MSCI United Kingdom ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "EWU",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "EWU",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "EWU",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "VGK",
+      "symbol": "VGK",
+      "nameEn": "Vanguard FTSE Europe ETF",
+      "nameFa": "Vanguard FTSE Europe ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VGK",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VGK",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VGK",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "VXUS",
+      "symbol": "VXUS",
+      "nameEn": "Vanguard Total International Stock ETF",
+      "nameFa": "Vanguard Total International Stock ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VXUS",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VXUS",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VXUS",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "BNDX",
+      "symbol": "BNDX",
+      "nameEn": "Vanguard Total International Bond ETF",
+      "nameFa": "Vanguard Total International Bond ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BNDX",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BNDX",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BNDX",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "TIP",
+      "symbol": "TIP",
+      "nameEn": "iShares TIPS Bond ETF",
+      "nameFa": "iShares TIPS Bond ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "TIP",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "TIP",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "TIP",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SGOV",
+      "symbol": "SGOV",
+      "nameEn": "iShares 0-3 Month Treasury Bond ETF",
+      "nameFa": "iShares 0-3 Month Treasury Bond ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "Cboe BZX",
+      "exchange": "Cboe BZX",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SGOV",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SGOV",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SGOV",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "BIL",
+      "symbol": "BIL",
+      "nameEn": "SPDR Bloomberg 1-3 Month T-Bill ETF",
+      "nameFa": "SPDR Bloomberg 1-3 Month T-Bill ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BIL",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BIL",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BIL",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SPDW",
+      "symbol": "SPDW",
+      "nameEn": "SPDR Portfolio Developed World ex-US ETF",
+      "nameFa": "SPDR Portfolio Developed World ex-US ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SPDW",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SPDW",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SPDW",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "ITA",
+      "symbol": "ITA",
+      "nameEn": "iShares U.S. Aerospace & Defense ETF",
+      "nameFa": "iShares U.S. Aerospace & Defense ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "Cboe BZX",
+      "exchange": "Cboe BZX",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "ITA",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "ITA",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "ITA",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "JETS",
+      "symbol": "JETS",
+      "nameEn": "U.S. Global Jets ETF",
+      "nameFa": "U.S. Global Jets ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "JETS",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "JETS",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "JETS",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "XOP",
+      "symbol": "XOP",
+      "nameEn": "SPDR S&P Oil & Gas Exploration & Production ETF",
+      "nameFa": "SPDR S&P Oil & Gas Exploration & Production ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XOP",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XOP",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XOP",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "OIH",
+      "symbol": "OIH",
+      "nameEn": "VanEck Oil Services ETF",
+      "nameFa": "VanEck Oil Services ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "OIH",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "OIH",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "OIH",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "TAN",
+      "symbol": "TAN",
+      "nameEn": "Invesco Solar ETF",
+      "nameFa": "Invesco Solar ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "TAN",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "TAN",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "TAN",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "ICLN",
+      "symbol": "ICLN",
+      "nameEn": "iShares Global Clean Energy ETF",
+      "nameFa": "iShares Global Clean Energy ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "ICLN",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "ICLN",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "ICLN",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "LIT",
+      "symbol": "LIT",
+      "nameEn": "Global X Lithium & Battery Tech ETF",
+      "nameFa": "Global X Lithium & Battery Tech ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "LIT",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "LIT",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "LIT",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "BOTZ",
+      "symbol": "BOTZ",
+      "nameEn": "Global X Robotics & Artificial Intelligence ETF",
+      "nameFa": "Global X Robotics & Artificial Intelligence ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BOTZ",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BOTZ",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BOTZ",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "CIBR",
+      "symbol": "CIBR",
+      "nameEn": "First Trust NASDAQ Cybersecurity ETF",
+      "nameFa": "First Trust NASDAQ Cybersecurity ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "CIBR",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "CIBR",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "CIBR",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "HACK",
+      "symbol": "HACK",
+      "nameEn": "Amplify Cybersecurity ETF",
+      "nameFa": "Amplify Cybersecurity ETF",
+      "category": "etf",
+      "asset_class": "etf",
+      "marketName": "NYSE Arca",
+      "exchange": "NYSE Arca",
+      "currency": "USD",
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "HACK",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "HACK",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "HACK",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    }
+  ]
+}

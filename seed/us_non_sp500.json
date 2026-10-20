@@ -1,0 +1,2648 @@
+{
+  "source": "curated owner list 2026-10-20",
+  "fetched_at": "2026-10-20T04:22:33Z",
+  "asset_class": "stock",
+  "total_count": 88,
+  "symbols": [
+    {
+      "id": "BABA",
+      "symbol": "BABA",
+      "nameEn": "Alibaba Group Holding Limited",
+      "nameFa": "Alibaba Group Holding Limited",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "China",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BABA",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BABA",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BABA",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "PDD",
+      "symbol": "PDD",
+      "nameEn": "PDD Holdings Inc.",
+      "nameFa": "PDD Holdings Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "China",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "PDD",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "PDD",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "PDD",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "JD",
+      "symbol": "JD",
+      "nameEn": "JD.com, Inc.",
+      "nameFa": "JD.com, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "China",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "JD",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "JD",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "JD",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "BIDU",
+      "symbol": "BIDU",
+      "nameEn": "Baidu, Inc.",
+      "nameFa": "Baidu, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "China",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BIDU",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BIDU",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BIDU",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "NIO",
+      "symbol": "NIO",
+      "nameEn": "NIO Inc.",
+      "nameFa": "NIO Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "China",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "NIO",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "NIO",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "NIO",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "XPEV",
+      "symbol": "XPEV",
+      "nameEn": "XPeng Inc.",
+      "nameFa": "XPeng Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "China",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XPEV",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XPEV",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XPEV",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "LI",
+      "symbol": "LI",
+      "nameEn": "Li Auto Inc.",
+      "nameFa": "Li Auto Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "China",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "LI",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "LI",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "LI",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "BILI",
+      "symbol": "BILI",
+      "nameEn": "Bilibili Inc.",
+      "nameFa": "Bilibili Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "China",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BILI",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BILI",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BILI",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "TME",
+      "symbol": "TME",
+      "nameEn": "Tencent Music Entertainment Group",
+      "nameFa": "Tencent Music Entertainment Group",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "China",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "TME",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "TME",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "TME",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "NTES",
+      "symbol": "NTES",
+      "nameEn": "NetEase, Inc.",
+      "nameFa": "NetEase, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "China",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "NTES",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "NTES",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "NTES",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SAP",
+      "symbol": "SAP",
+      "nameEn": "SAP SE",
+      "nameFa": "SAP SE",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "Germany",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SAP",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SAP",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SAP",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "TM",
+      "symbol": "TM",
+      "nameEn": "Toyota Motor Corporation",
+      "nameFa": "Toyota Motor Corporation",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "Japan",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "TM",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "TM",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "TM",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SONY",
+      "symbol": "SONY",
+      "nameEn": "Sony Group Corporation",
+      "nameFa": "Sony Group Corporation",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "Japan",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SONY",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SONY",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SONY",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "NVO",
+      "symbol": "NVO",
+      "nameEn": "Novo Nordisk A/S",
+      "nameFa": "Novo Nordisk A/S",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "Denmark",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "NVO",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "NVO",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "NVO",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "AZN",
+      "symbol": "AZN",
+      "nameEn": "AstraZeneca PLC",
+      "nameFa": "AstraZeneca PLC",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "United Kingdom",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "AZN",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "AZN",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "AZN",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SHEL",
+      "symbol": "SHEL",
+      "nameEn": "Shell plc",
+      "nameFa": "Shell plc",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "United Kingdom",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SHEL",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SHEL",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SHEL",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "BP",
+      "symbol": "BP",
+      "nameEn": "BP p.l.c.",
+      "nameFa": "BP p.l.c.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "United Kingdom",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BP",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BP",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BP",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "TTE",
+      "symbol": "TTE",
+      "nameEn": "TotalEnergies SE",
+      "nameFa": "TotalEnergies SE",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "France",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "TTE",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "TTE",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "TTE",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "UL",
+      "symbol": "UL",
+      "nameEn": "Unilever PLC",
+      "nameFa": "Unilever PLC",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "United Kingdom",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "UL",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "UL",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "UL",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "HSBC",
+      "symbol": "HSBC",
+      "nameEn": "HSBC Holdings plc",
+      "nameFa": "HSBC Holdings plc",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "United Kingdom",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "HSBC",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "HSBC",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "HSBC",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "BHP",
+      "symbol": "BHP",
+      "nameEn": "BHP Group Limited",
+      "nameFa": "BHP Group Limited",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "Australia",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BHP",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BHP",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BHP",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "RIO",
+      "symbol": "RIO",
+      "nameEn": "Rio Tinto Group",
+      "nameFa": "Rio Tinto Group",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "United Kingdom",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "RIO",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "RIO",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "RIO",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "VALE",
+      "symbol": "VALE",
+      "nameEn": "Vale S.A.",
+      "nameFa": "Vale S.A.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "Brazil",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VALE",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VALE",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VALE",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "MUFG",
+      "symbol": "MUFG",
+      "nameEn": "Mitsubishi UFJ Financial Group, Inc.",
+      "nameFa": "Mitsubishi UFJ Financial Group, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "Japan",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "MUFG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "MUFG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "MUFG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SMFG",
+      "symbol": "SMFG",
+      "nameEn": "Sumitomo Mitsui Financial Group, Inc.",
+      "nameFa": "Sumitomo Mitsui Financial Group, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "Japan",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SMFG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SMFG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SMFG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "HMC",
+      "symbol": "HMC",
+      "nameEn": "Honda Motor Co., Ltd.",
+      "nameFa": "Honda Motor Co., Ltd.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "Japan",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "HMC",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "HMC",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "HMC",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "NVS",
+      "symbol": "NVS",
+      "nameEn": "Novartis AG",
+      "nameFa": "Novartis AG",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "Switzerland",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "NVS",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "NVS",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "NVS",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SNY",
+      "symbol": "SNY",
+      "nameEn": "Sanofi",
+      "nameFa": "Sanofi",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "France",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SNY",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SNY",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SNY",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "GSK",
+      "symbol": "GSK",
+      "nameEn": "GSK plc",
+      "nameFa": "GSK plc",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "United Kingdom",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "GSK",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "GSK",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "GSK",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "DEO",
+      "symbol": "DEO",
+      "nameEn": "Diageo plc",
+      "nameFa": "Diageo plc",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "United Kingdom",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "DEO",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "DEO",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "DEO",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "BTI",
+      "symbol": "BTI",
+      "nameEn": "British American Tobacco p.l.c.",
+      "nameFa": "British American Tobacco p.l.c.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "United Kingdom",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BTI",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BTI",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BTI",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "ING",
+      "symbol": "ING",
+      "nameEn": "ING Groep N.V.",
+      "nameFa": "ING Groep N.V.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "Netherlands",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "ING",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "ING",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "ING",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "DB",
+      "symbol": "DB",
+      "nameEn": "Deutsche Bank AG",
+      "nameFa": "Deutsche Bank AG",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "Germany",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "DB",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "DB",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "DB",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SAN",
+      "symbol": "SAN",
+      "nameEn": "Banco Santander, S.A.",
+      "nameFa": "Banco Santander, S.A.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "Spain",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SAN",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SAN",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SAN",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "BBVA",
+      "symbol": "BBVA",
+      "nameEn": "Banco Bilbao Vizcaya Argentaria, S.A.",
+      "nameFa": "Banco Bilbao Vizcaya Argentaria, S.A.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "Spain",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BBVA",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BBVA",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BBVA",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "UBS",
+      "symbol": "UBS",
+      "nameEn": "UBS Group AG",
+      "nameFa": "UBS Group AG",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "Switzerland",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "UBS",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "UBS",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "UBS",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "STLA",
+      "symbol": "STLA",
+      "nameEn": "Stellantis N.V.",
+      "nameFa": "Stellantis N.V.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "Netherlands",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "STLA",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "STLA",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "STLA",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SPOT",
+      "symbol": "SPOT",
+      "nameEn": "Spotify Technology S.A.",
+      "nameFa": "Spotify Technology S.A.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "Sweden",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SPOT",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SPOT",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SPOT",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "ARM",
+      "symbol": "ARM",
+      "nameEn": "Arm Holdings plc",
+      "nameFa": "Arm Holdings plc",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "United Kingdom",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "ARM",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "ARM",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "ARM",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "NOK",
+      "symbol": "NOK",
+      "nameEn": "Nokia Corporation",
+      "nameFa": "Nokia Corporation",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "Finland",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "NOK",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "NOK",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "NOK",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "BB",
+      "symbol": "BB",
+      "nameEn": "BlackBerry Limited",
+      "nameFa": "BlackBerry Limited",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "Canada",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BB",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BB",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BB",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "CCJ",
+      "symbol": "CCJ",
+      "nameEn": "Cameco Corporation",
+      "nameFa": "Cameco Corporation",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "Canada",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "CCJ",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "CCJ",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "CCJ",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "URG",
+      "symbol": "URG",
+      "nameEn": "Ur-Energy Inc.",
+      "nameFa": "Ur-Energy Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE American",
+      "exchange": "NYSE American",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "Canada",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "URG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "URG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "URG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "DNN",
+      "symbol": "DNN",
+      "nameEn": "Denison Mines Corp.",
+      "nameFa": "Denison Mines Corp.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE American",
+      "exchange": "NYSE American",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "Canada",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "DNN",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "DNN",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "DNN",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "NXE",
+      "symbol": "NXE",
+      "nameEn": "NexGen Energy Ltd.",
+      "nameFa": "NexGen Energy Ltd.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "Canada",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "NXE",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "NXE",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "NXE",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "ONON",
+      "symbol": "ONON",
+      "nameEn": "On Holding AG",
+      "nameFa": "On Holding AG",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": true,
+      "country": "Switzerland",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "ONON",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "ONON",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "ONON",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "NET",
+      "symbol": "NET",
+      "nameEn": "Cloudflare, Inc.",
+      "nameFa": "Cloudflare, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "NET",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "NET",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "NET",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "ZS",
+      "symbol": "ZS",
+      "nameEn": "Zscaler, Inc.",
+      "nameFa": "Zscaler, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "ZS",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "ZS",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "ZS",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "OKTA",
+      "symbol": "OKTA",
+      "nameEn": "Okta, Inc.",
+      "nameFa": "Okta, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "OKTA",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "OKTA",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "OKTA",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "MDB",
+      "symbol": "MDB",
+      "nameEn": "MongoDB, Inc.",
+      "nameFa": "MongoDB, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "MDB",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "MDB",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "MDB",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "TEAM",
+      "symbol": "TEAM",
+      "nameEn": "Atlassian Corporation",
+      "nameFa": "Atlassian Corporation",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "TEAM",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "TEAM",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "TEAM",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "DOCU",
+      "symbol": "DOCU",
+      "nameEn": "DocuSign, Inc.",
+      "nameFa": "DocuSign, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "DOCU",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "DOCU",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "DOCU",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "ROKU",
+      "symbol": "ROKU",
+      "nameEn": "Roku, Inc.",
+      "nameFa": "Roku, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "ROKU",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "ROKU",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "ROKU",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "AFRM",
+      "symbol": "AFRM",
+      "nameEn": "Affirm Holdings, Inc.",
+      "nameFa": "Affirm Holdings, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "AFRM",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "AFRM",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "AFRM",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "UPST",
+      "symbol": "UPST",
+      "nameEn": "Upstart Holdings, Inc.",
+      "nameFa": "Upstart Holdings, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "UPST",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "UPST",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "UPST",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SOFI",
+      "symbol": "SOFI",
+      "nameEn": "SoFi Technologies, Inc.",
+      "nameFa": "SoFi Technologies, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SOFI",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SOFI",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SOFI",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "RIVN",
+      "symbol": "RIVN",
+      "nameEn": "Rivian Automotive, Inc.",
+      "nameFa": "Rivian Automotive, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "RIVN",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "RIVN",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "RIVN",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "LCID",
+      "symbol": "LCID",
+      "nameEn": "Lucid Group, Inc.",
+      "nameFa": "Lucid Group, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "LCID",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "LCID",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "LCID",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "GME",
+      "symbol": "GME",
+      "nameEn": "GameStop Corp.",
+      "nameFa": "GameStop Corp.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "GME",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "GME",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "GME",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "AMC",
+      "symbol": "AMC",
+      "nameEn": "AMC Entertainment Holdings, Inc.",
+      "nameFa": "AMC Entertainment Holdings, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "AMC",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "AMC",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "AMC",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SNAP",
+      "symbol": "SNAP",
+      "nameEn": "Snap Inc.",
+      "nameFa": "Snap Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SNAP",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SNAP",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SNAP",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "PINS",
+      "symbol": "PINS",
+      "nameEn": "Pinterest, Inc.",
+      "nameFa": "Pinterest, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "PINS",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "PINS",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "PINS",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "LYFT",
+      "symbol": "LYFT",
+      "nameEn": "Lyft, Inc.",
+      "nameFa": "Lyft, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "LYFT",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "LYFT",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "LYFT",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "U",
+      "symbol": "U",
+      "nameEn": "Unity Software Inc.",
+      "nameFa": "Unity Software Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "U",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "U",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "U",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "RBLX",
+      "symbol": "RBLX",
+      "nameEn": "Roblox Corporation",
+      "nameFa": "Roblox Corporation",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "RBLX",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "RBLX",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "RBLX",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "DKNG",
+      "symbol": "DKNG",
+      "nameEn": "DraftKings Inc.",
+      "nameFa": "DraftKings Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "DKNG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "DKNG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "DKNG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "CHWY",
+      "symbol": "CHWY",
+      "nameEn": "Chewy, Inc.",
+      "nameFa": "Chewy, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "CHWY",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "CHWY",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "CHWY",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "W",
+      "symbol": "W",
+      "nameEn": "Wayfair Inc.",
+      "nameFa": "Wayfair Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "W",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "W",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "W",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "ETSY",
+      "symbol": "ETSY",
+      "nameEn": "Etsy, Inc.",
+      "nameFa": "Etsy, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "ETSY",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "ETSY",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "ETSY",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "PTON",
+      "symbol": "PTON",
+      "nameEn": "Peloton Interactive, Inc.",
+      "nameFa": "Peloton Interactive, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "PTON",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "PTON",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "PTON",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "PLUG",
+      "symbol": "PLUG",
+      "nameEn": "Plug Power Inc.",
+      "nameFa": "Plug Power Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "PLUG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "PLUG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "PLUG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "FCEL",
+      "symbol": "FCEL",
+      "nameEn": "FuelCell Energy, Inc.",
+      "nameFa": "FuelCell Energy, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "FCEL",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "FCEL",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "FCEL",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "BLNK",
+      "symbol": "BLNK",
+      "nameEn": "Blink Charging Co.",
+      "nameFa": "Blink Charging Co.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BLNK",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BLNK",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BLNK",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "CHPT",
+      "symbol": "CHPT",
+      "nameEn": "ChargePoint Holdings, Inc.",
+      "nameFa": "ChargePoint Holdings, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "CHPT",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "CHPT",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "CHPT",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "QS",
+      "symbol": "QS",
+      "nameEn": "QuantumScape Corporation",
+      "nameFa": "QuantumScape Corporation",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "QS",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "QS",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "QS",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "JOBY",
+      "symbol": "JOBY",
+      "nameEn": "Joby Aviation, Inc.",
+      "nameFa": "Joby Aviation, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "JOBY",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "JOBY",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "JOBY",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "ACHR",
+      "symbol": "ACHR",
+      "nameEn": "Archer Aviation Inc.",
+      "nameFa": "Archer Aviation Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "ACHR",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "ACHR",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "ACHR",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "IONQ",
+      "symbol": "IONQ",
+      "nameEn": "IonQ, Inc.",
+      "nameFa": "IonQ, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "IONQ",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "IONQ",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "IONQ",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "RGTI",
+      "symbol": "RGTI",
+      "nameEn": "Rigetti Computing, Inc.",
+      "nameFa": "Rigetti Computing, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "RGTI",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "RGTI",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "RGTI",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "QBTS",
+      "symbol": "QBTS",
+      "nameEn": "D-Wave Quantum Inc.",
+      "nameFa": "D-Wave Quantum Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "QBTS",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "QBTS",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "QBTS",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SOUN",
+      "symbol": "SOUN",
+      "nameEn": "SoundHound AI, Inc.",
+      "nameFa": "SoundHound AI, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SOUN",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SOUN",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SOUN",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "OKLO",
+      "symbol": "OKLO",
+      "nameEn": "Oklo Inc.",
+      "nameFa": "Oklo Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "OKLO",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "OKLO",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "OKLO",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "SMR",
+      "symbol": "SMR",
+      "nameEn": "NuScale Power Corporation",
+      "nameFa": "NuScale Power Corporation",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SMR",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SMR",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SMR",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "NNE",
+      "symbol": "NNE",
+      "nameEn": "Nano Nuclear Energy Inc.",
+      "nameFa": "Nano Nuclear Energy Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "NNE",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "NNE",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "NNE",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "UEC",
+      "symbol": "UEC",
+      "nameEn": "Uranium Energy Corp.",
+      "nameFa": "Uranium Energy Corp.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE American",
+      "exchange": "NYSE American",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "UEC",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "UEC",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "UEC",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "HIMS",
+      "symbol": "HIMS",
+      "nameEn": "Hims & Hers Health, Inc.",
+      "nameFa": "Hims & Hers Health, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NYSE",
+      "exchange": "NYSE",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "HIMS",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "HIMS",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "HIMS",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "CELH",
+      "symbol": "CELH",
+      "nameEn": "Celsius Holdings, Inc.",
+      "nameFa": "Celsius Holdings, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "CELH",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "CELH",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "CELH",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    },
+    {
+      "id": "DUOL",
+      "symbol": "DUOL",
+      "nameEn": "Duolingo, Inc.",
+      "nameFa": "Duolingo, Inc.",
+      "category": "stock",
+      "asset_class": "stock",
+      "marketName": "NASDAQ",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "tier": "popular",
+      "is_adr": false,
+      "country": "US",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "DUOL",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "DUOL",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "DUOL",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false
+    }
+  ]
+}
