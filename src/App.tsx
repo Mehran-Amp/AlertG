@@ -2966,7 +2966,7 @@ export default function App() {
               <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar text-xs">
                 {/* TAB 1 (MIDDLE & DEFAULT): ALERTS */}
                 {mobileScreen === 'alerts' && (
-                  <div className="space-y-1">
+                  <div className="space-y-[7px]">
                     {rules.length === 0 ? (
                       <div className="text-center py-16 px-4 space-y-3">
                         <div className="h-16 w-16 mx-auto rounded-2xl flex items-center justify-center">
