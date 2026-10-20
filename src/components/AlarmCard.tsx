@@ -484,7 +484,7 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
 
         {/* 2. MIDDLE: TARGET PROXIMITY STRIP WITH EMBEDDED BACKGROUND PROGRESS */}
         <div
-          className={`relative my-[2px] h-[26.5px] px-2.5 flex items-center rounded-xl border min-w-0 overflow-hidden ${
+          className={`relative my-[3px] h-[24px] px-2.5 flex items-center rounded-xl border min-w-0 overflow-hidden ${
             isLight
               ? 'bg-slate-100/90 border-slate-200'
               : 'bg-slate-950/80 border-slate-800/60'

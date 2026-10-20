@@ -735,7 +735,7 @@ class _WatchlistPageState extends State<WatchlistPage> {
           child: Directionality(
             textDirection: TextDirection.ltr,
             child: SizedBox(
-              height: 146,
+              height: 121,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                 decoration: BoxDecoration(
@@ -773,7 +773,8 @@ class _WatchlistPageState extends State<WatchlistPage> {
                         (prevPrice - displayPrice).abs() > 1e-8;
 
                     return Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // === ROW 1: Hero Asset + Symbol & Full Name on Left | Price & Percent on Right ===
@@ -912,9 +913,9 @@ class _WatchlistPageState extends State<WatchlistPage> {
                         ),
 
                         // === ROW 3: Target Proximity Progress Strip (Embedded Background Progress) ===
-                        Container(
-                          margin: const EdgeInsets.symmetric(vertical: 2),
-                          height: 26.5,
+                        const SizedBox(height: 3),
+                        SizedBox(
+                          height: 24,
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(10),
                             child: Stack(
@@ -941,7 +942,7 @@ class _WatchlistPageState extends State<WatchlistPage> {
                                   ),
                                 ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4.5),
+                                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(
@@ -994,6 +995,7 @@ class _WatchlistPageState extends State<WatchlistPage> {
                           ),
                         ),
                       ),
+                      const SizedBox(height: 3),
 
                         // === ROW 4: Footer Utilities & Check Action ===
                         Row(
