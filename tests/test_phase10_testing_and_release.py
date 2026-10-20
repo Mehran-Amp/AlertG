@@ -31,6 +31,33 @@ import zoneinfo
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
+for mod in [
+    'fastapi', 'fastapi.middleware.cors', 'fastapi.responses', 'pydantic', 'httpx',
+    'apscheduler', 'apscheduler.schedulers', 'apscheduler.schedulers.asyncio',
+    'firebase_admin', 'firebase_admin.credentials', 'firebase_admin.messaging', 'firebase_admin.exceptions'
+]:
+    if mod not in sys.modules:
+        m = MagicMock()
+        if mod == 'fastapi':
+            class MockAPIRouter:
+                def get(self, *args, **kwargs): return lambda func: func
+                def post(self, *args, **kwargs): return lambda func: func
+                def delete(self, *args, **kwargs): return lambda func: func
+                def put(self, *args, **kwargs): return lambda func: func
+            m.APIRouter = MockAPIRouter
+            m.Depends = lambda x: x
+            m.HTTPException = Exception
+        if mod == 'pydantic':
+            class BaseModel:
+                def __init__(self, **kwargs):
+                    for k, v in kwargs.items():
+                        setattr(self, k, v)
+                def dict(self): return self.__dict__
+                def model_dump(self): return self.__dict__
+            m.BaseModel = BaseModel
+            m.Field = lambda *args, **kwargs: kwargs.get('default', None)
+        sys.modules[mod] = m
+
 from app.models import Alert
 import app.state as state
 from app.state import METRICS, PRICE_CACHE, OUTLIER_STREAK, FAILED_SYMBOLS

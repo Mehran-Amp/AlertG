@@ -52,12 +52,17 @@ async def get_live_price(exchange: str, symbol: str):
         source_name = (meta.get("source") or "").upper()
         if not data_freq:
             if "FRED" in source_name or clean_sym in ('FEDFUNDS', 'UNRATE', 'CPIAUCSL', 'US02Y', 'US10Y', 'US30Y', 'US05Y', 'US13W', 'WALCL', 'M2SL', 'DTWEXBGS'):
-                data_freq = "monthly" if clean_sym in ('UNRATE', 'CPIAUCSL', 'M2SL') else "daily"
+                if clean_sym == 'WALCL':
+                    data_freq = "weekly"
+                elif clean_sym in ('UNRATE', 'CPIAUCSL', 'M2SL', 'FEDFUNDS'):
+                    data_freq = "monthly"
+                else:
+                    data_freq = "daily"
             elif exchange in ['global_stocks', 'stocks', 'macro', 'forex', 'bonds', 'wallstreet', 'binance', 'crypto']:
                 data_freq = "live"
 
         eff_state = meta.get("state", "LIVE")
-        if data_freq in ('daily', 'monthly') and eff_state == "LIVE":
+        if data_freq in ('daily', 'weekly', 'monthly', 'quarterly', 'annual') and eff_state == "LIVE":
             eff_state = "delayed"
 
         eff_currency = meta.get("currency")
@@ -67,9 +72,9 @@ async def get_live_price(exchange: str, symbol: str):
         data_date_val = meta.get("data_date") or meta.get("date")
         is_fred = "FRED" in source_name or clean_sym in ('FEDFUNDS', 'UNRATE', 'CPIAUCSL', 'US02Y', 'US10Y', 'US30Y', 'US05Y', 'US13W', 'WALCL', 'M2SL', 'DTWEXBGS')
 
-        # For FRED data (daily/monthly), asOf must strictly be observation date (data_date to epoch), not server time
+        # For FRED data (daily/weekly/monthly), asOf must strictly be observation date (data_date to epoch), not server time
         as_of_val = None
-        if (data_freq in ('daily', 'monthly') or is_fred) and data_date_val:
+        if (data_freq in ('daily', 'weekly', 'monthly', 'quarterly', 'annual') or is_fred) and data_date_val:
             try:
                 as_of_val = int(datetime.strptime(str(data_date_val).strip(), "%Y-%m-%d").replace(tzinfo=timezone.utc).timestamp())
             except Exception:
@@ -106,7 +111,7 @@ async def get_live_price(exchange: str, symbol: str):
 
         if "is_delayed" in meta:
             res["is_delayed"] = bool(meta["is_delayed"])
-        elif data_freq in ('daily', 'monthly'):
+        elif data_freq in ('daily', 'weekly', 'monthly', 'quarterly', 'annual'):
             res["is_delayed"] = True
         elif data_freq == 'live':
             res["is_delayed"] = False

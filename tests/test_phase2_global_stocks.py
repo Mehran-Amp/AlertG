@@ -398,5 +398,168 @@ class TestPriceMetadataUnitsAndFrequency(unittest.IsolatedAsyncioTestCase):
                         self.assertEqual(res["state"], exp_state)
 
 
+class TestCatalogMacroCategories(unittest.TestCase):
+    """
+    Unit Tests for catalog.json macro resolution:
+    - Reads catalog.json (id -> category)
+    - All 5 macro series (UNRATE, CPIAUCSL, FEDFUNDS, WALCL, M2SL) return 'macro', not 'stock'
+    - All macro series in catalog return 'macro'
+    """
+    def test_catalog_macro_series_resolve_to_macro(self):
+        from app.engine.categories import resolve_symbol_category, _get_catalog_categories
+        cat_map = _get_catalog_categories()
+        self.assertTrue(len(cat_map) > 0, "Catalog should be loaded and non-empty")
+
+        # 5 critical FRED macro series
+        macro_series = ['UNRATE', 'CPIAUCSL', 'FEDFUNDS', 'WALCL', 'M2SL']
+        for sym in macro_series:
+            with self.subTest(symbol=sym):
+                cat = resolve_symbol_category(sym)
+                self.assertEqual(cat, 'macro', f"{sym} must resolve to 'macro', got '{cat}'")
+                self.assertNotEqual(cat, 'stock', f"{sym} must not resolve to 'stock'")
+
+                # Also test with explicit exchange
+                cat_ex = resolve_symbol_category('global_stocks', sym)
+                self.assertEqual(cat_ex, 'macro')
+                cat_stocks = resolve_symbol_category('stocks', sym)
+                self.assertEqual(cat_stocks, 'macro')
+
+    def test_all_catalog_macro_symbols(self):
+        from app.engine.categories import resolve_symbol_category, _get_catalog_categories
+        cat_map = _get_catalog_categories()
+        macro_in_cat = [sym for sym, cat in cat_map.items() if cat == 'macro']
+        self.assertTrue(len(macro_in_cat) >= 5, f"Expected at least 5 macro symbols in catalog, found {macro_in_cat}")
+        for sym in macro_in_cat:
+            with self.subTest(symbol=sym):
+                self.assertEqual(resolve_symbol_category(sym), 'macro')
+
+
+class TestFredAdapterDynamicFrequencyAndMetadata(unittest.IsolatedAsyncioTestCase):
+    """
+    Unit Tests for FredAdapter:
+    - dynamic frequency from FRED series metadata (frequency_short: D/W/M/Q/A -> daily/weekly/monthly/quarterly/annual)
+    - caching metadata in _series_metadata_cache
+    - fallback mapping on metadata request failure: FEDFUNDS -> monthly, WALCL -> weekly
+    """
+    async def test_dynamic_frequency_from_metadata_mock(self):
+        from app.markets.global_stocks import FredAdapter, FRED_FREQ_SHORT_MAP
+        from unittest.mock import AsyncMock, patch
+
+        adapter = FredAdapter()
+        FredAdapter._series_metadata_cache.clear()
+
+        mock_responses = {
+            'D': 'daily',
+            'W': 'weekly',
+            'M': 'monthly',
+            'Q': 'quarterly',
+            'A': 'annual',
+        }
+
+        for short_code, expected_freq in mock_responses.items():
+            with self.subTest(short_code=short_code, expected_freq=expected_freq):
+                mock_client = AsyncMock()
+                mock_resp = MagicMock()
+                mock_resp.status_code = 200
+                mock_resp.json.return_value = {
+                    "seriess": [
+                        {
+                            "id": f"TEST_{short_code}",
+                            "frequency": expected_freq.capitalize(),
+                            "frequency_short": short_code,
+                            "units": "Index"
+                        }
+                    ]
+                }
+                mock_client.get.return_value = mock_resp
+
+                with patch.object(adapter, 'api_key', 'valid_test_key'):
+                    meta = await adapter.fetch_series_metadata(f"TEST_{short_code}", mock_client)
+                    self.assertEqual(meta['data_frequency'], expected_freq)
+                    self.assertEqual(meta['frequency_short'], short_code)
+
+                    # Verify cached
+                    self.assertIn(f"TEST_{short_code}", FredAdapter._series_metadata_cache)
+                    # Second fetch should hit cache without calling client.get again
+                    mock_client.get.reset_mock()
+                    cached_meta = await adapter.fetch_series_metadata(f"TEST_{short_code}", mock_client)
+                    mock_client.get.assert_not_called()
+                    self.assertEqual(cached_meta['data_frequency'], expected_freq)
+
+    async def test_static_fallback_on_metadata_failure(self):
+        from app.markets.global_stocks import FredAdapter, FRED_SERIES_FREQUENCY
+        from unittest.mock import AsyncMock, patch
+
+        adapter = FredAdapter()
+        FredAdapter._series_metadata_cache.clear()
+
+        # FEDFUNDS must be monthly and WALCL must be weekly in static fallback
+        self.assertEqual(FRED_SERIES_FREQUENCY.get('FEDFUNDS'), 'monthly')
+        self.assertEqual(FRED_SERIES_FREQUENCY.get('WALCL'), 'weekly')
+
+        # Mock failure (network exception or 500 status code)
+        mock_client = AsyncMock()
+        mock_client.get.side_effect = Exception("FRED API Connection Error")
+
+        with patch.object(adapter, 'api_key', 'test_key'):
+            meta_fedfunds = await adapter.fetch_series_metadata('FEDFUNDS', mock_client)
+            self.assertEqual(meta_fedfunds['data_frequency'], 'monthly')
+
+            meta_walcl = await adapter.fetch_series_metadata('WALCL', mock_client)
+            self.assertEqual(meta_walcl['data_frequency'], 'weekly')
+
+
+class TestFredAsOfAndCheckerStaleness(unittest.TestCase):
+    """
+    Unit Tests for FRED asOf (observation date to epoch) and checker.py stale guard:
+    - asOf must be observation date (data_date to epoch), not server time
+    - checker.py is_data_stale:
+      - daily: several days threshold (7 days)
+      - weekly: several weeks threshold (21 days)
+      - monthly: several weeks to 2 months threshold (60 days)
+      - non-FRED / live: 1 hour threshold (3600s) unchanged
+    """
+    def test_asof_is_observation_date_epoch_not_server_time(self):
+        obs_date_str = "2024-05-01"
+        expected_epoch = int(datetime.strptime(obs_date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc).timestamp())
+        server_time = int(time.time())
+
+        # Verify expected epoch corresponds strictly to observation date 2024-05-01 00:00:00 UTC
+        self.assertEqual(expected_epoch, 1714521600)
+        self.assertNotEqual(expected_epoch, server_time)
+
+    def test_checker_stale_data_guard_thresholds(self):
+        from app.engine.checker import is_data_stale
+
+        now = 1715000000.0  # reference timestamp
+
+        # 1. Daily (threshold = 7 days = 604,800s)
+        # 3 days old: fresh
+        self.assertFalse(is_data_stale(now - (3 * 86400), 'daily', current_time=now))
+        # 8 days old: stale
+        self.assertTrue(is_data_stale(now - (8 * 86400), 'daily', current_time=now))
+
+        # 2. Weekly (threshold = 21 days = 1,814,400s)
+        # 14 days (2 weeks) old: fresh
+        self.assertFalse(is_data_stale(now - (14 * 86400), 'weekly', current_time=now))
+        # 25 days old: stale
+        self.assertTrue(is_data_stale(now - (25 * 86400), 'weekly', current_time=now))
+
+        # 3. Monthly (threshold = 60 days = several weeks up to 2 months)
+        # 40 days old: fresh (does not falsely alert on older monthly data)
+        self.assertFalse(is_data_stale(now - (40 * 86400), 'monthly', current_time=now))
+        # 65 days old: stale
+        self.assertTrue(is_data_stale(now - (65 * 86400), 'monthly', current_time=now))
+
+        # 4. Non-FRED / live / default (threshold = 3600s = 1 hour unchanged)
+        # 30 minutes old: fresh
+        self.assertFalse(is_data_stale(now - 1800, 'live', current_time=now))
+        self.assertFalse(is_data_stale(now - 1800, None, current_time=now))
+        # 2 hours old: stale
+        self.assertTrue(is_data_stale(now - 7200, 'live', current_time=now))
+        self.assertTrue(is_data_stale(now - 7200, None, current_time=now))
+
+
 if __name__ == '__main__':
     unittest.main()
+

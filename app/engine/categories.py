@@ -37,6 +37,44 @@ CATEGORY_OUTLIER_THRESHOLDS: Dict[str, float] = {
     'default': 0.50
 }
 
+import os
+import json
+import app.config as config
+
+_CATALOG_CACHE: Dict[str, str] = {}
+_CATALOG_MTIME: float = 0.0
+_CATALOG_PATH_LOADED: str = ""
+
+def _get_catalog_categories() -> Dict[str, str]:
+    global _CATALOG_CACHE, _CATALOG_MTIME, _CATALOG_PATH_LOADED
+    cat_file = getattr(config, "CATALOG_FILE", "catalog.json")
+    if not cat_file or not os.path.exists(cat_file):
+        candidates = ["catalog.json", "/catalog.json", os.path.join(getattr(config, "DATA_DIR", "."), "catalog.json")]
+        for c in candidates:
+            if os.path.exists(c):
+                cat_file = c
+                break
+    if not cat_file or not os.path.exists(cat_file):
+        return _CATALOG_CACHE
+    try:
+        mtime = os.path.getmtime(cat_file)
+        if mtime != _CATALOG_MTIME or cat_file != _CATALOG_PATH_LOADED:
+            with open(cat_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                symbols = data.get("symbols", []) if isinstance(data, dict) else []
+                new_map = {}
+                for s in symbols:
+                    s_id = s.get("id")
+                    s_cat = s.get("category")
+                    if s_id and s_cat:
+                        new_map[str(s_id).upper().strip()] = str(s_cat).lower().strip()
+                _CATALOG_CACHE = new_map
+                _CATALOG_MTIME = mtime
+                _CATALOG_PATH_LOADED = cat_file
+    except Exception:
+        pass
+    return _CATALOG_CACHE
+
 def resolve_symbol_category(exchange: str, symbol: Optional[str] = None) -> str:
     """
     Identifies the financial category of an exchange:symbol pair
@@ -53,6 +91,18 @@ def resolve_symbol_category(exchange: str, symbol: Optional[str] = None) -> str:
         return 'iran_market'
     if sym.endswith('TMN') or sym.endswith('IRT') or sym.endswith('RLS') or sym.startswith('USDT_') or sym.startswith('GOLD_'):
         return 'iran_market'
+
+    # 1. First read catalog.json (id -> category):
+    # UNRATE, CPIAUCSL, FEDFUNDS, WALCL, M2SL and all macro series in catalog must return 'macro', not 'stock'.
+    cat_map = _get_catalog_categories()
+    if sym in cat_map:
+        cat = cat_map[sym]
+        if cat == 'macro':
+            return 'macro'
+        if sym in ['US10Y', '^TNX', 'TNX', 'US02Y', '^IRX', 'US2Y', '^2YY', 'US30Y', '^TYX']:
+            return 'macro'
+        if cat in CATEGORY_CACHE_TTL:
+            return cat
 
     # Global Stocks / Forex / Macro
     from app.markets.global_stocks import FOREX_PAIRS, EXACT_YF_MAP, WALLSTREET_MACRO_SYMBOLS

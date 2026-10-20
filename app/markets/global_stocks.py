@@ -223,18 +223,29 @@ SYMBOL_ALIASES: Dict[str, str] = {
     'USD/CNY': 'USD_CNY',
 }
 
-# FRED Series Update Frequency Rule:
-# Daily and Monthly series are authoritative only for daily/macro alerts; never high-frequency intraday alerts.
+# FRED Frequency Short Mapping (frequency_short: D/W/M/Q/A -> daily/weekly/monthly/quarterly/annual)
+FRED_FREQ_SHORT_MAP: Dict[str, str] = {
+    'D': 'daily',
+    'W': 'weekly',
+    'BW': 'biweekly',
+    'M': 'monthly',
+    'Q': 'quarterly',
+    'SA': 'semiannual',
+    'A': 'annual',
+}
+
+# FRED Series Update Frequency Rule & Static Fallback Mapping:
+# FEDFUNDS is monthly, WALCL is weekly, UNRATE/CPIAUCSL/M2SL are monthly, yields/indices are daily.
 FRED_SERIES_FREQUENCY: Dict[str, str] = {
     'DGS10': 'daily',
     'DGS2': 'daily',
     'DGS5': 'daily',
     'DTB3': 'daily',
     'DGS30': 'daily',
-    'FEDFUNDS': 'daily',
+    'FEDFUNDS': 'monthly',
     'CPIAUCSL': 'monthly',
     'UNRATE': 'monthly',
-    'WALCL': 'daily',
+    'WALCL': 'weekly',
     'M2SL': 'monthly',
     'DTWEXBGS': 'daily',
 }
@@ -920,12 +931,70 @@ class FredAdapter(BaseMarketAdapter):
             return clean_sym
         return None
 
-    def get_series_frequency(self, symbol: str) -> Optional[str]:
-        """Returns the update frequency ('daily' or 'monthly') of a FRED series."""
-        series_id = self.resolve_symbol(symbol)
-        if series_id:
-            return FRED_SERIES_FREQUENCY.get(series_id, 'daily')
-        return None
+    _series_metadata_cache: Dict[str, Dict[str, Any]] = {}
+
+    @classmethod
+    def get_series_frequency(cls, symbol: str) -> Optional[str]:
+        """Returns the update frequency of a FRED series, prioritizing dynamic metadata cache over static fallback."""
+        if not symbol:
+            return None
+        clean_sym = symbol.upper().strip().replace(' ', '')
+        series_id = cls.FRED_SERIES_MAP.get(clean_sym, clean_sym)
+        cache = getattr(cls, '_series_metadata_cache', {})
+        if series_id in cache and cache[series_id].get('data_frequency'):
+            return cache[series_id]['data_frequency']
+        return FRED_SERIES_FREQUENCY.get(series_id, 'daily')
+
+    async def fetch_series_metadata(self, series_id: str, client: httpx.AsyncClient) -> Dict[str, Any]:
+        """
+        Retrieves metadata for a FRED series (frequency_short: D/W/M/Q/A -> daily/weekly/monthly/quarterly/annual).
+        Metadata is cached in _series_metadata_cache. In case of API failure or missing keys, falls back to static mapping.
+        """
+        clean_id = (series_id or '').upper().strip()
+        canonical_id = self.FRED_SERIES_MAP.get(clean_id, clean_id)
+        if canonical_id in self._series_metadata_cache:
+            return self._series_metadata_cache[canonical_id]
+
+        active_key = self.api_key or os.getenv("FRED_API_KEY", "").strip()
+        fallback_freq = FRED_SERIES_FREQUENCY.get(canonical_id, 'daily')
+        fallback_meta = self.FRED_SERIES_METADATA.get(canonical_id, {})
+
+        if active_key and active_key != 'demo_fred':
+            try:
+                meta_url = f"https://api.stlouisfed.org/fred/series?series_id={canonical_id}&api_key={active_key}&file_type=json"
+                resp_meta = await client.get(meta_url, timeout=5.0)
+                if resp_meta.status_code == 200:
+                    m_data = resp_meta.json()
+                    seriess = m_data.get('seriess', [])
+                    if seriess and isinstance(seriess, list) and len(seriess) > 0:
+                        s_info = seriess[0]
+                        freq_short = str(s_info.get('frequency_short') or '').upper().strip()
+                        freq_full = str(s_info.get('frequency') or '').lower().strip()
+                        resolved_freq = (
+                            FRED_FREQ_SHORT_MAP.get(freq_short)
+                            or (freq_full if freq_full in ('daily', 'weekly', 'monthly', 'quarterly', 'annual') else None)
+                            or fallback_freq
+                        )
+                        meta_res = {
+                            'id': canonical_id,
+                            'units': s_info.get('units') or fallback_meta.get('units'),
+                            'frequency_short': freq_short,
+                            'data_frequency': resolved_freq,
+                        }
+                        self._series_metadata_cache[canonical_id] = meta_res
+                        return meta_res
+            except Exception:
+                pass
+
+        # Static fallback (FEDFUNDS is monthly, WALCL is weekly)
+        meta_res = {
+            'id': canonical_id,
+            'units': fallback_meta.get('units'),
+            'frequency_short': 'M' if fallback_freq == 'monthly' else ('W' if fallback_freq == 'weekly' else 'D'),
+            'data_frequency': fallback_freq,
+        }
+        self._series_metadata_cache[canonical_id] = meta_res
+        return meta_res
 
     def fetch_catalog(self) -> List[Dict[str, Any]]:
         return [s for s in WALLSTREET_MACRO_SYMBOLS if s.get('category') in ('bond', 'macro')]
@@ -964,7 +1033,7 @@ class FredAdapter(BaseMarketAdapter):
             'units': 'Percent',
             'units_short': '%',
             'unit': '%',
-            'frequency': 'Daily',
+            'frequency': 'Monthly',
             'currency': '%',
         },
         'UNRATE': {
@@ -1032,7 +1101,7 @@ class FredAdapter(BaseMarketAdapter):
         },
     }
 
-    def _make_extractor(self, series_id: str, dynamic_units: Optional[str] = None):
+    def _make_extractor(self, series_id: str, dynamic_units: Optional[str] = None, dynamic_frequency: Optional[str] = None):
         def _extract(data):
             if isinstance(data, dict):
                 obs = data.get('observations', [])
@@ -1057,7 +1126,7 @@ class FredAdapter(BaseMarketAdapter):
                                         pass
                             if obs_asof is None:
                                 obs_asof = int(time.time())
-                            freq = self.get_series_frequency(series_id) or 'daily'
+                            freq = dynamic_frequency or self.get_series_frequency(series_id) or 'daily'
                             return {
                                 'price': val,
                                 'asOf': obs_asof,
@@ -1087,26 +1156,20 @@ class FredAdapter(BaseMarketAdapter):
 
         meta = self.FRED_SERIES_METADATA.get(series_id, {})
         dynamic_units = meta.get('units')
+        dynamic_freq = None
+
+        # 1. Fetch metadata with frequency mapping and caching
+        series_meta = await self.fetch_series_metadata(series_id, client)
+        if series_meta:
+            dynamic_units = series_meta.get('units') or dynamic_units
+            dynamic_freq = series_meta.get('data_frequency')
+
         active_key = self.api_key or os.getenv("FRED_API_KEY", "").strip()
 
         if active_key and active_key != 'demo_fred':
-            # 1. Fetch units metadata from fred/series if available
-            try:
-                meta_url = f"https://api.stlouisfed.org/fred/series?series_id={series_id}&api_key={active_key}&file_type=json"
-                resp_meta = await client.get(meta_url, timeout=5.0)
-                if resp_meta.status_code == 200:
-                    m_data = resp_meta.json()
-                    seriess = m_data.get('seriess', [])
-                    if seriess and isinstance(seriess, list) and len(seriess) > 0:
-                        live_units = seriess[0].get('units')
-                        if live_units:
-                            dynamic_units = live_units
-            except Exception:
-                pass
-
             # 2. Fetch latest observation
             url = f"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}&api_key={active_key}&file_type=json&sort_order=desc&limit=1"
-            parsed, _ = await self._execute_http(url, self._make_extractor(series_id, dynamic_units), client)
+            parsed, _ = await self._execute_http(url, self._make_extractor(series_id, dynamic_units, dynamic_freq), client)
             if parsed:
                 return parsed
 
@@ -1138,7 +1201,7 @@ class FredAdapter(BaseMarketAdapter):
                                         pass
                             if obs_asof is None:
                                 obs_asof = int(time.time())
-                            freq = self.get_series_frequency(series_id) or 'daily'
+                            freq = dynamic_freq or self.get_series_frequency(series_id) or 'daily'
                             return {
                                 'price': val,
                                 'asOf': obs_asof,

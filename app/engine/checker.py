@@ -60,23 +60,23 @@ PRICE_FETCH_SEMAPHORE = _DynamicSemaphore(PRICE_FETCH_CONCURRENCY)
 def is_data_stale(as_of: Optional[float], data_frequency: Optional[str] = None, current_time: Optional[float] = None) -> bool:
     """
     Stale data guard: validates data age against an appropriate threshold based on data_frequency:
-    - monthly: several weeks (45 days = 3,888,000s) so older monthly observations do not give false alerts
-    - daily: several days (5 days = 432,000s)
-    - weekly: 2 weeks (14 days = 1,209,600s)
-    - live / default: 1 hour (3600s)
+    - monthly: several weeks to 2 months (60 days = 5,184,000s) so older monthly observations do not give false alerts
+    - weekly: several weeks (21 days = 1,814,400s)
+    - daily: several days (7 days = 604,800s)
+    - non-FRED / live / default: 1 hour (3600s) unchanged
     """
     if as_of is None or not isinstance(as_of, (int, float)) or as_of <= 0:
         return False
     now = current_time if current_time is not None else time.time()
     freq = (data_frequency or '').lower().strip()
     if freq == 'monthly':
-        threshold = 45 * 86400.0  # several weeks
-    elif freq == 'daily':
-        threshold = 5 * 86400.0   # several days
+        threshold = 60 * 86400.0  # several weeks up to 2 months
     elif freq == 'weekly':
-        threshold = 14 * 86400.0  # 2 weeks
+        threshold = 21 * 86400.0  # several weeks
+    elif freq == 'daily':
+        threshold = 7 * 86400.0   # several days
     else:
-        threshold = 3600.0        # 1 hour for live
+        threshold = 3600.0        # 1 hour for non-FRED / live symbols (unchanged)
     return (now - as_of) > threshold
 
 async def get_cached_price(client: httpx.AsyncClient, exchange: str, symbol: str) -> Optional[float]:
@@ -206,8 +206,12 @@ async def check_alerts_job():
         cached_meta = cached_entry[2] if (cached_entry and len(cached_entry) > 2 and isinstance(cached_entry[2], dict)) else {}
 
         data_freq = cached_meta.get('data_frequency')
+        if not data_freq:
+            from app.markets.global_stocks import FredAdapter
+            clean_s = alert.symbol.upper().strip()
+            data_freq = FredAdapter.get_series_frequency(clean_s)
         if not data_freq and cached_meta.get('category') == 'macro':
-            data_freq = 'monthly' if alert.symbol in ('UNRATE', 'CPIAUCSL', 'M2SL') else 'daily'
+            data_freq = 'weekly' if alert.symbol == 'WALCL' else ('monthly' if alert.symbol in ('UNRATE', 'CPIAUCSL', 'M2SL', 'FEDFUNDS') else 'daily')
 
         as_of = cached_meta.get('asOf')
         if as_of and isinstance(as_of, (int, float)) and is_data_stale(as_of, data_freq, current_time):
@@ -223,7 +227,7 @@ async def check_alerts_job():
         # 1. Closed-Market Policy (Option B):
         if as_of is not None and isinstance(as_of, (int, float)):
             m_state = cached_meta.get('state')
-            delay_thresh = 45 * 86400.0 if data_freq == 'monthly' else (5 * 86400.0 if data_freq == 'daily' else 900.0)
+            delay_thresh = 60 * 86400.0 if data_freq == 'monthly' else (21 * 86400.0 if data_freq == 'weekly' else (7 * 86400.0 if data_freq == 'daily' else 900.0))
             if m_state == 'REGULAR' and (time.time() - as_of) > delay_thresh:
                 cached_meta['is_delayed'] = True
 
