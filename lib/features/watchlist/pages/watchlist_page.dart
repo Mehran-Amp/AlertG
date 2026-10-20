@@ -543,7 +543,7 @@ class _WatchlistPageState extends State<WatchlistPage> {
                   final rule = rules[index];
                   return Padding(
                     key: ValueKey(rule.uuid),
-                    padding: const EdgeInsets.only(bottom: AppTokens.space12),
+                    padding: const EdgeInsets.only(bottom: 4.0),
                     child: _buildAlertCard(rule, repository, scheduler, lang),
                   );
                 },
@@ -735,9 +735,9 @@ class _WatchlistPageState extends State<WatchlistPage> {
           child: Directionality(
             textDirection: TextDirection.ltr,
             child: SizedBox(
-              height: 121,
+              height: 125,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
