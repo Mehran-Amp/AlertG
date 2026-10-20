@@ -911,87 +911,89 @@ class _WatchlistPageState extends State<WatchlistPage> {
                           ],
                         ),
 
-                        // === ROW 3: Target Proximity Progress Strip ===
+                        // === ROW 3: Target Proximity Progress Strip (Embedded Background Progress) ===
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: isTriggeredOneShot
-                                ? AppTokens.warning.withValues(alpha: 0.08)
-                                : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                          margin: const EdgeInsets.symmetric(vertical: 2),
+                          height: 26.5,
+                          child: ClipRRect(
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: isTriggeredOneShot
-                                  ? AppTokens.warning.withValues(alpha: 0.25)
-                                  : (progState.color != null && progState.percentageInt >= 85
-                                      ? progState.color!.withValues(alpha: 0.35)
-                                      : theme.colorScheme.primary.withValues(alpha: 0.12)),
-                              width: 1,
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
+                            child: Stack(
                             children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    rule.conditionType == AlertConditionType.priceThreshold
-                                        ? Icons.gps_fixed_rounded
-                                        : Icons.trending_up_rounded,
-                                    size: 11.5,
-                                    color: isTriggeredOneShot
-                                        ? AppTokens.warning
-                                        : (progState.color ?? theme.colorScheme.primary),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    child: Text(
-                                      _buildConditionSummary(rule, cardLang),
-                                      style: TextStyle(
-                                        fontSize: 9.5,
-                                        fontWeight: FontWeight.bold,
-                                        color: rule.isActive ? theme.colorScheme.onSurface : textMuted,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    isTriggeredOneShot ? 'Done' : '${progState.percentageInt}%',
-                                    style: TextStyle(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: 'monospace',
-                                      color: isTriggeredOneShot ? AppTokens.warning : (progState.color ?? textMuted),
-                                    ),
-                                  ),
-                                ],
+                              Positioned.fill(
+                                child: Container(
+                                  color: isTriggeredOneShot
+                                      ? AppTokens.warning.withValues(alpha: 0.08)
+                                      : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                                ),
                               ),
-                              const SizedBox(height: 4),
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(2),
-                                child: Stack(
-                                  children: [
-                                    Container(
-                                      height: 3,
-                                      width: double.infinity,
-                                      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.8),
-                                    ),
-                                    if (progState.color != null && progState.progressFactor > 0)
-                                      FractionallySizedBox(
-                                        widthFactor: progState.progressFactor,
-                                        child: Container(
-                                          height: 3,
-                                          color: isTriggeredOneShot ? AppTokens.warning : progState.color,
-                                        ),
+                              if (progState.color != null && progState.progressFactor > 0)
+                                Positioned.fill(
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: FractionallySizedBox(
+                                      widthFactor: progState.progressFactor.clamp(0.0, 1.0),
+                                      child: Container(
+                                        color: isTriggeredOneShot
+                                            ? AppTokens.warning.withValues(alpha: 0.22)
+                                            : progState.color!.withValues(alpha: 0.20),
                                       ),
+                                    ),
+                                  ),
+                                ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4.5),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: isTriggeredOneShot
+                                        ? AppTokens.warning.withValues(alpha: 0.25)
+                                        : (progState.color != null && progState.percentageInt >= 85
+                                            ? progState.color!.withValues(alpha: 0.35)
+                                            : theme.colorScheme.primary.withValues(alpha: 0.12)),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      rule.conditionType == AlertConditionType.priceThreshold
+                                          ? Icons.gps_fixed_rounded
+                                          : Icons.trending_up_rounded,
+                                      size: 11.5,
+                                      color: isTriggeredOneShot
+                                          ? AppTokens.warning
+                                          : (progState.color ?? theme.colorScheme.primary),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: Text(
+                                        _buildConditionSummary(rule, cardLang),
+                                        style: TextStyle(
+                                          fontSize: 9.5,
+                                          fontWeight: FontWeight.bold,
+                                          color: rule.isActive ? theme.colorScheme.onSurface : textMuted,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      isTriggeredOneShot ? 'Done' : '${progState.percentageInt}%',
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: 'monospace',
+                                        color: isTriggeredOneShot ? AppTokens.warning : (progState.color ?? textMuted),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
                             ],
                           ),
                         ),
+                      ),
 
                         // === ROW 4: Footer Utilities & Check Action ===
                         Row(

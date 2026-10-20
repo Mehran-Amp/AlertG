@@ -482,10 +482,48 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
           </div>
         </div>
 
-        {/* 2. MIDDLE: TARGET PROXIMITY PROGRESS STRIP (Moves Section with 1.0px vertical margins) */}
-        <div className="my-[1px] bg-slate-950/70 px-2 py-1 rounded-xl border border-slate-800/50 min-w-0 overflow-hidden">
-          <div className="flex items-center justify-between text-[10.5px] mb-0.5 gap-2 min-w-0">
-            <div className="flex items-center gap-1 text-slate-300 min-w-0 flex-1 overflow-hidden">
+        {/* 2. MIDDLE: TARGET PROXIMITY STRIP WITH EMBEDDED BACKGROUND PROGRESS */}
+        <div
+          className={`relative my-[2px] h-[26.5px] px-2.5 flex items-center rounded-xl border min-w-0 overflow-hidden ${
+            isLight
+              ? 'bg-slate-100/90 border-slate-200'
+              : 'bg-slate-950/80 border-slate-800/60'
+          }`}
+        >
+          {/* Embedded Background Progress Fill Track */}
+          <div
+            className={`absolute inset-y-0 left-0 transition-all duration-300 pointer-events-none rounded-l-xl ${
+              rule.isTriggered
+                ? 'bg-amber-500/20'
+                : targetProximity >= 85
+                ? isLight
+                  ? 'bg-amber-500/25'
+                  : 'bg-gradient-to-r from-emerald-500/20 via-amber-500/25 to-amber-400/30'
+                : isLight
+                ? 'bg-emerald-500/20'
+                : 'bg-emerald-500/18'
+            }`}
+            style={{ width: `${Math.max(0, Math.min(100, targetProximity))}%` }}
+          >
+            {/* Subtle glow hairline at the tip of the progress fill */}
+            {targetProximity > 3 && (
+              <div
+                className={`absolute inset-y-0 right-0 w-[1.5px] ${
+                  rule.isTriggered || targetProximity >= 85
+                    ? 'bg-amber-400/70 shadow-[0_0_4px_rgba(251,191,36,0.6)]'
+                    : 'bg-emerald-400/70 shadow-[0_0_4px_rgba(52,211,153,0.6)]'
+                }`}
+              />
+            )}
+          </div>
+
+          {/* Foreground Text & Percentage (Directly on top of the background progress) */}
+          <div className="relative z-10 w-full flex items-center justify-between text-[10.5px] gap-2 min-w-0">
+            <div
+              className={`flex items-center gap-1 min-w-0 flex-1 overflow-hidden ${
+                isLight ? 'text-slate-800' : 'text-slate-200'
+              }`}
+            >
               <Zap className="h-3 w-3 text-amber-400 shrink-0" />
               <span className="font-semibold truncate min-w-0">
                 {rule.conditionType === 'PERCENT_CHANGE' ? (
@@ -553,7 +591,9 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
                 rule.isTriggered
                   ? 'text-amber-400'
                   : targetProximity >= 85
-                  ? 'text-amber-400'
+                  ? 'text-amber-400 font-black'
+                  : isLight
+                  ? 'text-emerald-600'
                   : 'text-emerald-400'
               }`}
             >
@@ -563,16 +603,6 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
                 ? 'Active'
                 : `${targetProximity}%`}
             </span>
-          </div>
-          <div className="h-[2.5px] w-full bg-slate-800 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-300 ${
-                targetProximity >= 85
-                  ? 'bg-gradient-to-r from-emerald-500 to-amber-400'
-                  : 'bg-emerald-500'
-              }`}
-              style={{ width: `${Math.max(4, targetProximity)}%` }}
-            />
           </div>
         </div>
 
