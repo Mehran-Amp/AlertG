@@ -378,7 +378,7 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
             : 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)',
           opacity: isDeleting ? 0 : 1,
         }}
-        className={`w-full max-w-full overflow-hidden px-3 py-2 rounded-2xl border transition-[background-color,border-color,opacity] shadow-sm flex flex-col justify-between cursor-grab active:cursor-grabbing ${
+        className={`w-full max-w-full overflow-hidden px-3 pt-[7px] pb-[7px] rounded-2xl border transition-[background-color,border-color,opacity] shadow-sm flex flex-col justify-between cursor-grab active:cursor-grabbing ${
           isLight
             ? 'bg-white border-slate-200/90 shadow-slate-100'
             : rule.isActive
@@ -482,8 +482,8 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
           </div>
         </div>
 
-        {/* 2. MIDDLE: TARGET PROXIMITY PROGRESS STRIP (Moves Section with halved vertical margins) */}
-        <div className="my-[3px] bg-slate-950/70 px-2 py-1 rounded-xl border border-slate-800/50 min-w-0 overflow-hidden">
+        {/* 2. MIDDLE: TARGET PROXIMITY PROGRESS STRIP (Moves Section with 1.0px vertical margins) */}
+        <div className="my-[1px] bg-slate-950/70 px-2 py-1 rounded-xl border border-slate-800/50 min-w-0 overflow-hidden">
           <div className="flex items-center justify-between text-[10.5px] mb-0.5 gap-2 min-w-0">
             <div className="flex items-center gap-1 text-slate-300 min-w-0 flex-1 overflow-hidden">
               <Zap className="h-3 w-3 text-amber-400 shrink-0" />
