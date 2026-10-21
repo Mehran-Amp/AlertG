@@ -124,6 +124,7 @@ class TestNotificationDeliveryPhase1(unittest.IsolatedAsyncioTestCase):
             await check_alerts_job()
 
             self.assertEqual(mock_push.call_count, 1)
+            self.assertEqual(synced_alert.last_eval_price, 101.0)
 
     async def test_1a1_b_sync_payload_with_different_target_resets_eval_state(self):
         """b) sync payload with target 100->105 resets last_eval_*/waiting_for_cross."""

@@ -337,11 +337,11 @@ async def sync_user_alerts(payload: dict):
             added_count += 1
 
         if user_id == 'user_default':
-            storage.ALERTS_DB = [a for a in storage.ALERTS_DB if a.fcm_token != fcm_token]
+            storage.ALERTS_DB[:] = [a for a in storage.ALERTS_DB if a.fcm_token != fcm_token]
         elif len(fcm_token) > 10:
-            storage.ALERTS_DB = [a for a in storage.ALERTS_DB if (a.user_id != user_id and a.fcm_token != fcm_token)]
+            storage.ALERTS_DB[:] = [a for a in storage.ALERTS_DB if (a.user_id != user_id and a.fcm_token != fcm_token)]
         else:
-            storage.ALERTS_DB = [a for a in storage.ALERTS_DB if a.user_id != user_id]
+            storage.ALERTS_DB[:] = [a for a in storage.ALERTS_DB if a.user_id != user_id]
         storage.ALERTS_DB.extend(new_alerts)
 
         if user_id.lower() != 'user_default':
@@ -376,9 +376,9 @@ async def sync_user_alerts(payload: dict):
 async def clear_all_alerts(user_id: Optional[str] = None, fcm_token: Optional[str] = None):
     async with _db_lock:
         if fcm_token:
-            storage.ALERTS_DB = [a for a in storage.ALERTS_DB if a.fcm_token != fcm_token]
+            storage.ALERTS_DB[:] = [a for a in storage.ALERTS_DB if a.fcm_token != fcm_token]
         elif user_id:
-            storage.ALERTS_DB = [a for a in storage.ALERTS_DB if a.user_id != user_id]
+            storage.ALERTS_DB[:] = [a for a in storage.ALERTS_DB if a.user_id != user_id]
         else:
             raise HTTPException(status_code=400, detail="user_id or fcm_token is required.")
     await save_alerts_to_disk_async(storage.ALERTS_DB)
@@ -464,6 +464,6 @@ async def claim_guest_alerts(payload: dict):
 async def delete_alert(alert_id: str):
     clean_id = (alert_id or "").strip()
     async with _db_lock:
-        storage.ALERTS_DB = [a for a in storage.ALERTS_DB if a.id != clean_id]
+        storage.ALERTS_DB[:] = [a for a in storage.ALERTS_DB if a.id != clean_id]
     await save_alerts_to_disk_async(storage.ALERTS_DB)
     return {"status": "deleted", "id": clean_id}
