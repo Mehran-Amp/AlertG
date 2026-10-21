@@ -22,6 +22,60 @@ import app.storage as storage
 
 router = APIRouter()
 
+def _trigger_signature(x) -> tuple:
+    def _to_float(v):
+        if v is None:
+            return None
+        try:
+            return float(v)
+        except (ValueError, TypeError):
+            return None
+
+    if isinstance(x, dict):
+        exchange = (x.get('exchange') or '').strip().lower()
+        symbol = (x.get('symbol') or '').strip().upper()
+        condition = (x.get('condition') or '').strip().upper()
+        condition_type = x.get('condition_type') or 'priceThreshold'
+        try:
+            target_price = float(x.get('target_price', 0.0) or 0.0)
+        except (ValueError, TypeError):
+            target_price = 0.0
+        upper_target_price = _to_float(x.get('upper_target_price'))
+        lower_target_price = _to_float(x.get('lower_target_price'))
+        percent = _to_float(x.get('percent'))
+        base_price = _to_float(x.get('base_price'))
+        direction = x.get('direction') or 'above'
+        alert_nature = x.get('alert_nature') or 'price'
+    else:
+        exchange = (getattr(x, 'exchange', None) or '').strip().lower()
+        symbol = (getattr(x, 'symbol', None) or '').strip().upper()
+        condition = (getattr(x, 'condition', None) or '').strip().upper()
+        condition_type = getattr(x, 'condition_type', None) or 'priceThreshold'
+        try:
+            target_price = float(getattr(x, 'target_price', 0.0) or 0.0)
+        except (ValueError, TypeError):
+            target_price = 0.0
+        upper_target_price = _to_float(getattr(x, 'upper_target_price', None))
+        lower_target_price = _to_float(getattr(x, 'lower_target_price', None))
+        percent = _to_float(getattr(x, 'percent', None))
+        base_price = _to_float(getattr(x, 'base_price', None))
+        direction = getattr(x, 'direction', None) or 'above'
+        alert_nature = getattr(x, 'alert_nature', None) or 'price'
+
+    return (
+        exchange,
+        symbol,
+        condition,
+        condition_type,
+        target_price,
+        upper_target_price,
+        lower_target_price,
+        percent,
+        base_price,
+        direction,
+        alert_nature,
+    )
+
 @router.post("/api/alerts", response_model=AlertPublic, dependencies=API_DEP)
 @router.post("/alerts", response_model=AlertPublic, dependencies=API_DEP)
 async def create_alert(alert_in: AlertCreate):
@@ -47,6 +101,12 @@ async def create_alert(alert_in: AlertCreate):
     async with _db_lock:
         existing = next((a for a in storage.ALERTS_DB if a.id == rule_id), None)
         if existing:
+            sig_before = _trigger_signature(existing)
+            sig_new = _trigger_signature(alert_in)
+            if sig_before != sig_new:
+                existing.last_eval_asof = None
+                existing.last_eval_price = None
+                existing.waiting_for_cross = False
             existing.user_id = alert_in.user_id
             existing.exchange = alert_in.exchange
             existing.symbol = alert_in.symbol
@@ -194,8 +254,20 @@ async def sync_user_alerts(payload: dict):
             rule_id = item.get('id') or str(uuid.uuid4())
             existing = existing_map.get(rule_id)
 
-            last_trig = existing.last_triggered_at if existing else 0.0
-            last_chk = existing.last_checked_at if existing else 0.0
+            sig_matches = existing is not None and (_trigger_signature(existing) == _trigger_signature(item))
+            if sig_matches:
+                last_eval_asof = existing.last_eval_asof
+                last_eval_price = existing.last_eval_price
+                waiting_for_cross = existing.waiting_for_cross
+                last_trig = existing.last_triggered_at
+                last_chk = existing.last_checked_at
+            else:
+                last_eval_asof = None
+                last_eval_price = None
+                waiting_for_cross = False
+                last_trig = 0.0
+                last_chk = 0.0
+
             is_act = bool(item.get('is_active', True))
             if existing and not existing.is_active and getattr(existing, 'trigger_mode', 'oneShot') == 'oneShot':
                 is_act = False
@@ -248,9 +320,9 @@ async def sync_user_alerts(payload: dict):
                 created_at=item.get('created_at') or datetime.now(timezone.utc).isoformat(),
                 last_checked_at=last_chk,
                 last_triggered_at=last_trig,
-                last_eval_asof=None,
-                last_eval_price=None,
-                waiting_for_cross=False
+                last_eval_asof=last_eval_asof,
+                last_eval_price=last_eval_price,
+                waiting_for_cross=waiting_for_cross
             )
             new_alerts.append(alert_obj)
             added_count += 1
