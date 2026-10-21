@@ -4,7 +4,7 @@ import time
 import asyncio
 from datetime import timezone
 from contextlib import asynccontextmanager
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Optional, List, Dict, Any, Tuple, Set
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -117,6 +117,14 @@ def setup_scheduler_jobs(sched):
         id='market_events_6h_job'
     )
 
+_SERVER_BG_TASKS: Set[asyncio.Task] = set()
+
+async def _run_background_market_refresh(client: httpx.AsyncClient):
+    try:
+        await refresh_market_events(client)
+    except Exception as e:
+        logger.exception(f"⚠️ [Startup Background] refresh_market_events failed: {e}")
+
 # -------------------------------------------------------------------
 # FastAPI Lifespan Context Manager (Modern Startup & Shutdown)
 # -------------------------------------------------------------------
@@ -141,15 +149,21 @@ async def lifespan(app: FastAPI):
         await init_telegram_bot(state.http_client)
         tg_task = asyncio.create_task(telegram_bot_polling_loop())
     outbox_task = asyncio.create_task(outbox_worker_loop())
-    await refresh_market_events(state.http_client)
 
     setup_scheduler_jobs(scheduler)
     scheduler.start()
     print("🚀 [SignalAlert Engine] Online (2s Price Scheduler, Daily Macro Job, Telegram Bot & Connection Pool Ready).")
 
+    # Background task for refresh_market_events (kept in strong-ref set, exceptions logged)
+    bg_market_task = asyncio.create_task(_run_background_market_refresh(state.http_client))
+    _SERVER_BG_TASKS.add(bg_market_task)
+    bg_market_task.add_done_callback(_SERVER_BG_TASKS.discard)
+
     yield
 
     # Shutdown: Cleanly close pool and scheduler
+    if bg_market_task and not bg_market_task.done():
+        bg_market_task.cancel()
     if tg_task:
         tg_task.cancel()
     outbox_task.cancel()

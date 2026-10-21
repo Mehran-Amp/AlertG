@@ -76,6 +76,8 @@ def _trigger_signature(x) -> tuple:
         alert_nature,
     )
 
+trigger_signature = _trigger_signature
+
 @router.post("/api/alerts", response_model=AlertPublic, dependencies=API_DEP)
 @router.post("/alerts", response_model=AlertPublic, dependencies=API_DEP)
 async def create_alert(alert_in: AlertCreate):
@@ -219,6 +221,13 @@ async def create_alert(alert_in: AlertCreate):
     except Exception as e:
         print(f"⚠️ [Telegram Confirmation Note] {e}")
 
+    if alert_in.fcm_token:
+        try:
+            from app.notifier.outbox import on_alert_token_updated
+            on_alert_token_updated(new_alert.id, alert_in.fcm_token)
+        except Exception:
+            pass
+
     return new_alert
 
 @router.post("/api/alerts/sync", dependencies=API_DEP)
@@ -350,6 +359,16 @@ async def sync_user_alerts(payload: dict):
     active_remaining = len([a for a in storage.ALERTS_DB if a.is_active])
     print(f"🔄 [API] Bulk Synced {added_count} alert(s) for user {mask_identifier(user_id)} (Active remaining: {active_remaining})")
 
+    for item in alerts_data:
+        r_id = item.get('id')
+        t = item.get('fcm_token') or fcm_token
+        if r_id and t:
+            try:
+                from app.notifier.outbox import on_alert_token_updated
+                on_alert_token_updated(r_id, t)
+            except Exception:
+                pass
+
     return {"status": "synced", "count": added_count, "total_active": active_remaining}
 
 @router.delete("/api/alerts", dependencies=API_DEP)
@@ -448,3 +467,11 @@ async def delete_alert(alert_id: str):
         storage.ALERTS_DB = [a for a in storage.ALERTS_DB if a.id != clean_id]
     await save_alerts_to_disk_async(storage.ALERTS_DB)
     return {"status": "deleted", "id": clean_id}
+
+@router.get("/metrics")
+@router.get("/api/metrics")
+async def get_metrics():
+    from app.notifier.outbox import OUTBOX
+    state.METRICS["outbox_blocked"] = sum(1 for e in OUTBOX.values() if e.get("blocked_token"))
+    state.METRICS["outbox_len"] = len(OUTBOX)
+    return state.METRICS

@@ -5,8 +5,8 @@ import uuid
 import asyncio
 from typing import Dict, Any, Set
 from app.config import DATA_DIR
-from app.state import METRICS
-from app.storage import ALERTS_DB
+from app.state import METRICS, DEAD_TOKENS
+import app.storage as storage
 from app.notifier.fcm import send_fcm_notification_async
 
 # Strong references so fire-and-forget tasks cannot be garbage-collected mid-flight
@@ -29,8 +29,6 @@ def _spawn(coro):
 OUTBOX_FILE = os.path.join(DATA_DIR, "fcm_outbox.json") if DATA_DIR != "." else "fcm_outbox.json"
 ALERT_PUSH_TTL_SECONDS = int(os.getenv("FCM_ALERT_TTL_SECONDS", "86400"))  # how long we keep trying + FCM stores it for an offline phone
 _OUTBOX_RETRY_DELAYS = (2, 5, 15, 30, 60, 120, 300)  # seconds; last value repeats
-
-INVALID_TOKENS: Set[str] = set()
 
 def _load_outbox_from_disk() -> Dict[str, Dict[str, Any]]:
     if os.path.exists(OUTBOX_FILE):
@@ -56,7 +54,14 @@ OUTBOX: Dict[str, Dict[str, Any]] = _load_outbox_from_disk()
 _OUTBOX_INFLIGHT: set = set()
 _outbox_lock = asyncio.Lock()
 
+def _update_outbox_metrics():
+    METRICS["outbox_blocked"] = sum(1 for e in OUTBOX.values() if e.get("blocked_token"))
+    METRICS["outbox_len"] = len(OUTBOX)
+
+_update_outbox_metrics()
+
 async def _save_outbox():
+    _update_outbox_metrics()
     async with _outbox_lock:
         try:
             payload = json.dumps(OUTBOX, ensure_ascii=False)
@@ -77,10 +82,25 @@ def _outbox_current_token(entry: Dict[str, Any]) -> str:
     """Use the newest token the app synced for this alert (handles token rotation mid-retry)."""
     aid = entry.get("alert_id")
     if aid:
-        for a in ALERTS_DB:
+        for a in storage.ALERTS_DB:
             if a.id == aid and (a.fcm_token or "").strip():
                 return a.fcm_token.strip()
-    return entry["token"]
+    return entry.get("token", "")
+
+def on_alert_token_updated(alert_id: str, new_token: str) -> None:
+    """When the alert's token changes (new sync), clear blocked_token and send immediately."""
+    now = time.time()
+    new_t = (new_token or "").strip()
+    for eid, entry in list(OUTBOX.items()):
+        if entry.get("alert_id") == alert_id:
+            if entry.get("blocked_token") and entry["blocked_token"] != new_t:
+                DEAD_TOKENS.discard(entry["blocked_token"])
+                entry["blocked_token"] = None
+                entry["next_attempt_at"] = now
+                entry["next_retry_at"] = now
+                if eid not in _OUTBOX_INFLIGHT:
+                    _OUTBOX_INFLIGHT.add(eid)
+                    _spawn(_deliver_outbox_entry(eid))
 
 async def enqueue_alert_push(alert, title: str, body: str, data_payload: dict) -> None:
     token = (alert.fcm_token or "").strip()
@@ -103,6 +123,7 @@ async def enqueue_alert_push(alert, title: str, body: str, data_payload: dict) -
         "next_attempt_at": now,
         "attempts": 0,
         "last_error": "",
+        "blocked_token": None,
     }
     _OUTBOX_INFLIGHT.add(eid)
     await _save_outbox()                      # durable first...
@@ -114,15 +135,32 @@ async def _deliver_outbox_entry(eid: str) -> None:
         if not entry:
             return
         now = time.time()
-        if now >= entry["expires_at"]:
+        if now >= entry.get("expires_at", float("inf")):
             OUTBOX.pop(eid, None)
             METRICS["fcm_expired"] = METRICS.get("fcm_expired", 0) + 1
-            print(f"⌛ [Outbox] {eid[:8]} expired after {entry['attempts']} attempts: {entry['last_error']}")
+            print(f"⌛ [Outbox] {eid[:8]} expired after {entry.get('attempts', 0)} attempts: {entry.get('last_error', '')}")
             await _save_outbox()
             return
 
+        current_token = _outbox_current_token(entry)
+
+        # Check if currently blocked
+        blocked = entry.get("blocked_token")
+        if blocked:
+            if current_token == blocked:
+                # Next delivery attempts MUST SKIP calling FCM if alert.fcm_token == entry.get("blocked_token") and just re-arm next_retry_at = now + 60.0
+                entry["next_attempt_at"] = now + 60.0
+                entry["next_retry_at"] = now + 60.0
+                _update_outbox_metrics()
+                await _save_outbox()
+                return
+            else:
+                # When alert.fcm_token changes (new token received via sync or create), entry["blocked_token"] is cleared and next_retry_at becomes now (immediate send).
+                DEAD_TOKENS.discard(blocked)
+                entry["blocked_token"] = None
+
         ok, msg = await send_fcm_notification_async(
-            fcm_token=_outbox_current_token(entry),
+            fcm_token=current_token,
             title=entry["title"],
             body=entry["body"],
             data_payload=entry["data"],
@@ -130,28 +168,42 @@ async def _deliver_outbox_entry(eid: str) -> None:
         )
         if ok:
             OUTBOX.pop(eid, None)
-            if entry["attempts"] > 0:
+            if entry.get("attempts", 0) > 0:
                 print(f"✅ [Outbox] {eid[:8]} delivered after {entry['attempts']} retries.")
         else:
-            msg_str = str(msg).upper()
-            is_permanent = "UNREGISTERED" in msg_str or "INVALID_ARGUMENT" in msg_str or "INVALIDARGUMENT" in msg_str
-            if is_permanent:
-                OUTBOX.pop(eid, None)
-                bad_token = _outbox_current_token(entry)
-                if bad_token:
-                    INVALID_TOKENS.add(bad_token)
-                aid = entry.get("alert_id")
-                for a in ALERTS_DB:
-                    if (bad_token and getattr(a, "fcm_token", None) == bad_token) or (aid and a.id == aid):
-                        a.fcm_token = ""
-                METRICS["fcm_failed"] = METRICS.get("fcm_failed", 0) + 1
-                print(f"🚫 [Outbox] {eid[:8]} permanent error ({msg}): entry dropped and token marked invalid: ...{bad_token[-6:] if bad_token else ''}")
-            else:
-                entry["attempts"] += 1
+            if msg in ("UNREGISTERED", "INVALID_TOKEN_FORMAT"):
+                # UNREGISTERED / INVALID_TOKEN_FORMAT: do NOT drop the entry and do NOT blank alert.fcm_token.
+                # Set entry["blocked_token"] = target_token, entry["last_error"] = msg, entry["attempts"] += 1, entry["next_retry_at"] = now + 60.0. Log at WARNING.
+                entry["blocked_token"] = current_token
+                entry["last_error"] = str(msg)
+                entry["attempts"] = entry.get("attempts", 0) + 1
+                entry["next_attempt_at"] = now + 60.0
+                entry["next_retry_at"] = now + 60.0
+                METRICS["fcm_invalid_token"] = METRICS.get("fcm_invalid_token", 0) + 1
+                DEAD_TOKENS.add(current_token)
+                aid = entry.get("alert_id") or ""
+                tok_suffix = current_token[-6:] if len(current_token) >= 6 else current_token
+                print(f"⚠️ [Outbox Warning] Alert {aid} token blocked (...{tok_suffix}): {msg}")
+            elif msg == "INVALID_PAYLOAD":
+                # INVALID_PAYLOAD: never wipe the token; log the full error once, METRICS["fcm_failed"]+=1, keep retrying with the normal backoff (it is a server bug, not a user problem).
+                entry["attempts"] = entry.get("attempts", 0) + 1
                 delay = _OUTBOX_RETRY_DELAYS[min(entry["attempts"] - 1, len(_OUTBOX_RETRY_DELAYS) - 1)]
-                entry["next_attempt_at"] = time.time() + delay
+                entry["next_attempt_at"] = now + delay
+                entry["next_retry_at"] = now + delay
+                entry["last_error"] = str(msg)
+                METRICS["fcm_failed"] = METRICS.get("fcm_failed", 0) + 1
+                aid = entry.get("alert_id") or ""
+                print(f"⚠️ [Outbox Error] Invalid payload for alert {aid}: {msg} (retrying in {delay}s, attempt {entry['attempts']})")
+            else:
+                # Transient error (including FIREBASE_UNAVAILABLE): outbox treats it like a transient error with attempts incremented.
+                entry["attempts"] = entry.get("attempts", 0) + 1
+                delay = _OUTBOX_RETRY_DELAYS[min(entry["attempts"] - 1, len(_OUTBOX_RETRY_DELAYS) - 1)]
+                entry["next_attempt_at"] = now + delay
+                entry["next_retry_at"] = now + delay
                 entry["last_error"] = str(msg)[:200]
+                METRICS["fcm_failed"] = METRICS.get("fcm_failed", 0) + 1
                 print(f"🔁 [Outbox] {eid[:8]} attempt {entry['attempts']} failed ({entry['last_error']}); retry in {delay}s")
+        _update_outbox_metrics()
         await _save_outbox()
     except Exception as e:
         print(f"❌ [Outbox] unexpected error for {eid[:8]}: {e}")
@@ -168,7 +220,14 @@ async def outbox_worker_loop():
     while True:
         try:
             now = time.time()
+            _update_outbox_metrics()
             for eid, entry in list(OUTBOX.items()):
+                # When the alert's token changes, clear blocked_token and send immediately
+                curr_tok = _outbox_current_token(entry)
+                if entry.get("blocked_token") and curr_tok != entry["blocked_token"]:
+                    entry["blocked_token"] = None
+                    entry["next_attempt_at"] = now
+
                 if eid not in _OUTBOX_INFLIGHT and entry.get("next_attempt_at", 0) <= now:
                     _OUTBOX_INFLIGHT.add(eid)
                     _spawn(_deliver_outbox_entry(eid))

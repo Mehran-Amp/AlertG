@@ -13,10 +13,10 @@ except ImportError:
 from app.state import METRICS
 
 def _send_fcm_sync(fcm_token: str, title: str, body: str, data_payload: dict = None, ttl_seconds: int = 300) -> Tuple[bool, str]:
-    if not firebase_admin._apps:
-        return False, "Firebase Admin SDK not initialized."
+    if firebase_admin is None or not getattr(firebase_admin, "_apps", None):
+        return False, "FIREBASE_UNAVAILABLE"
     if not fcm_token or fcm_token.startswith('dev_') or fcm_token.startswith('device_token_') or len(fcm_token) < 40:
-        return False, "Not a valid Google FCM registration token."
+        return False, "INVALID_TOKEN_FORMAT"
 
     try:
         user_id = (data_payload or {}).get("user_id")
@@ -98,16 +98,35 @@ def _send_fcm_sync(fcm_token: str, title: str, body: str, data_payload: dict = N
                 METRICS["fcm_success"] += 1
                 print(f"🚀 [FCM Push] Sent (TTL: {effective_ttl}, attempt {attempt}): {response}")
                 return True, f"FCM Message ID: {response}"
-            except (fb_exceptions.UnavailableError, fb_exceptions.InternalError, messaging.QuotaExceededError) as e:
+            except (
+                getattr(fb_exceptions, "UnavailableError", ()),
+                getattr(fb_exceptions, "InternalError", ()),
+                getattr(messaging, "QuotaExceededError", ())
+            ) as e:
                 last_err = e
                 print(f"⚠️ [FCM Push] transient error (attempt {attempt}): {e}")
-        raise last_err
-    except messaging.UnregisteredError:
-        METRICS["fcm_failed"] += 1
-        print(f"❌ [FCM Push] token no longer registered: ...{fcm_token[-6:]}")
-        return False, "UNREGISTERED"
+        if last_err:
+            raise last_err
     except Exception as e:
         METRICS["fcm_failed"] += 1
+        unreg_types = tuple(t for t in (
+            getattr(messaging, "UnregisteredError", None),
+            getattr(messaging, "SenderIdMismatchError", None),
+        ) if t is not None)
+        invalid_types = tuple(t for t in (
+            getattr(fb_exceptions, "InvalidArgumentError", None),
+            getattr(messaging, "ApiCallError", None),
+        ) if t is not None)
+
+        cls_name = e.__class__.__name__
+        if (unreg_types and isinstance(e, unreg_types)) or cls_name in ("UnregisteredError", "SenderIdMismatchError"):
+            print(f"❌ [FCM Push] token no longer registered: ...{fcm_token[-6:] if fcm_token else ''}")
+            return False, "UNREGISTERED"
+
+        if (invalid_types and isinstance(e, invalid_types)) or cls_name in ("InvalidArgumentError", "InvalidPayloadError"):
+            print(f"❌ [FCM Push Payload Error] {e}")
+            return False, "INVALID_PAYLOAD"
+
         print(f"❌ [FCM Push Error] {e}")
         return False, str(e)
 
