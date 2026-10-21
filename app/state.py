@@ -1,6 +1,6 @@
 import time
 import asyncio
-from typing import Optional, Dict, Tuple, List, Any, Set
+from typing import Optional, Dict, Tuple, List, Any
 import httpx
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
@@ -19,9 +19,6 @@ RECENT_DIAGNOSTICS: List[Dict[str, Any]] = []
 
 # Failing Symbols Tracker: key -> {symbol, exchange, error, failed_at, attempts}
 FAILED_SYMBOLS: Dict[str, Dict[str, Any]] = {}
-
-# Blocked / Dead FCM Tokens: set of tokens flagged as UNREGISTERED or INVALID_TOKEN_FORMAT
-DEAD_TOKENS: Set[str] = set()
 
 # Global Engine Metrics
 METRICS: Dict[str, Any] = {

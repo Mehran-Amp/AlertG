@@ -5,9 +5,12 @@ import uuid
 import asyncio
 from typing import Dict, Any, Set
 from app.config import DATA_DIR
-from app.state import METRICS, DEAD_TOKENS
+from app.state import METRICS
 import app.storage as storage
 from app.notifier.fcm import send_fcm_notification_async
+
+# Blocked / Dead FCM Tokens: set of tokens flagged as UNREGISTERED or INVALID_TOKEN_FORMAT
+DEAD_TOKENS: Set[str] = set()
 
 # Strong references so fire-and-forget tasks cannot be garbage-collected mid-flight
 _BG_TASKS: Set[asyncio.Task] = set()
@@ -91,16 +94,24 @@ def on_alert_token_updated(alert_id: str, new_token: str) -> None:
     """When the alert's token changes (new sync), clear blocked_token and send immediately."""
     now = time.time()
     new_t = (new_token or "").strip()
+
+    # Clear blocked_token on matching outbox entries and trigger immediate send
     for eid, entry in list(OUTBOX.items()):
         if entry.get("alert_id") == alert_id:
-            if entry.get("blocked_token") and entry["blocked_token"] != new_t:
-                DEAD_TOKENS.discard(entry["blocked_token"])
+            old_blocked = entry.get("blocked_token")
+            if old_blocked and old_blocked != new_t:
                 entry["blocked_token"] = None
                 entry["next_attempt_at"] = now
                 entry["next_retry_at"] = now
                 if eid not in _OUTBOX_INFLIGHT:
                     _OUTBOX_INFLIGHT.add(eid)
                     _spawn(_deliver_outbox_entry(eid))
+
+    # Discard a token from DEAD_TOKENS only if no other alert in storage.ALERTS_DB still uses it
+    active_tokens = {(getattr(a, "fcm_token", None) or "").strip() for a in storage.ALERTS_DB}
+    for dead_tok in list(DEAD_TOKENS):
+        if dead_tok not in active_tokens:
+            DEAD_TOKENS.discard(dead_tok)
 
 async def enqueue_alert_push(alert, title: str, body: str, data_payload: dict) -> None:
     token = (alert.fcm_token or "").strip()
@@ -111,6 +122,11 @@ async def enqueue_alert_push(alert, title: str, body: str, data_payload: dict) -
     eid = uuid.uuid4().hex
     data = {k: ("" if v is None else str(v)) for k, v in (data_payload or {}).items()}
     data["triggered_at"] = str(int(now * 1000))
+
+    is_dead = token in DEAD_TOKENS
+    blocked_token = token if is_dead else None
+    next_attempt = now + 60.0 if is_dead else now
+
     OUTBOX[eid] = {
         "id": eid,
         "alert_id": alert.id,
@@ -120,14 +136,17 @@ async def enqueue_alert_push(alert, title: str, body: str, data_payload: dict) -
         "data": data,
         "created_at": now,
         "expires_at": now + ALERT_PUSH_TTL_SECONDS,
-        "next_attempt_at": now,
+        "next_attempt_at": next_attempt,
+        "next_retry_at": next_attempt,
         "attempts": 0,
         "last_error": "",
-        "blocked_token": None,
+        "blocked_token": blocked_token,
     }
-    _OUTBOX_INFLIGHT.add(eid)
+    _update_outbox_metrics()
     await _save_outbox()                      # durable first...
-    _spawn(_deliver_outbox_entry(eid))        # ...then send immediately (no waiting for the worker tick)
+    if not is_dead:
+        _OUTBOX_INFLIGHT.add(eid)
+        _spawn(_deliver_outbox_entry(eid))        # ...then send immediately (no waiting for the worker tick)
 
 async def _deliver_outbox_entry(eid: str) -> None:
     try:
@@ -155,9 +174,15 @@ async def _deliver_outbox_entry(eid: str) -> None:
                 await _save_outbox()
                 return
             else:
-                # When alert.fcm_token changes (new token received via sync or create), entry["blocked_token"] is cleared and next_retry_at becomes now (immediate send).
-                DEAD_TOKENS.discard(blocked)
+                # When alert.fcm_token changes, entry["blocked_token"] is cleared
                 entry["blocked_token"] = None
+                still_used = any(
+                    (getattr(a, "fcm_token", None) or "").strip() == blocked
+                    for a in storage.ALERTS_DB
+                    if a.id != entry.get("alert_id")
+                )
+                if not still_used:
+                    DEAD_TOKENS.discard(blocked)
 
         ok, msg = await send_fcm_notification_async(
             fcm_token=current_token,

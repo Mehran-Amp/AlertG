@@ -27,6 +27,7 @@ from app.security import (
     _normalize_sync_item, AccessLogMaskFilter
 )
 import logging
+logger = logging.getLogger("signalalert")
 _mask_filter = AccessLogMaskFilter()
 for _logger_name in ("uvicorn.access", "uvicorn", "fastapi", ""):
     logging.getLogger(_logger_name).addFilter(_mask_filter)

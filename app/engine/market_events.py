@@ -57,7 +57,7 @@ CURATED_HIGH_IMPACT_CATALOG: List[Dict[str, Any]] = [
         "id": "crypto_sol_unlock",
         "category": "crypto",
         "market": "Solana Ecosystem",
-        "title": "Solana (SOL) >\$50M Ecosystem Unlock",
+        "title": "Solana (SOL) >$50M Ecosystem Unlock",
         "summary": "Major foundation and liquidity token cliff unlocking into circulating supply.",
         "impact": "high",
         "time_utc": "Saturday 00:00 UTC",

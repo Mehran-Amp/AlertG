@@ -35,6 +35,7 @@ class TestNotificationDeliveryPhase1(unittest.IsolatedAsyncioTestCase):
         state.http_client = AsyncMock()
         storage.ALERTS_DB.clear()
         outbox.OUTBOX.clear()
+        outbox.DEAD_TOKENS.clear()
         state.METRICS["fcm_invalid_token"] = 0
         state.METRICS["outbox_blocked"] = 0
         self._disk_patch = patch("app.storage.save_alerts_to_disk_async", new_callable=AsyncMock)
@@ -51,6 +52,7 @@ class TestNotificationDeliveryPhase1(unittest.IsolatedAsyncioTestCase):
         storage.USER_PROFILES_DB.update(self._orig_profiles)
         state.http_client = self._orig_http_client
         outbox.OUTBOX.clear()
+        outbox.DEAD_TOKENS.clear()
 
     # -------------------------------------------------------------
     # 1A-1 Tests
@@ -371,6 +373,93 @@ class TestNotificationDeliveryPhase1(unittest.IsolatedAsyncioTestCase):
                 # The price alerts job must be registered on scheduler
                 job = scheduler.get_job('price_alerts_job')
                 self.assertIsNotNone(job, "price_alerts_job must be registered on scheduler")
+
+    # -------------------------------------------------------------
+    # 7. Additional Verification Tests
+    # -------------------------------------------------------------
+
+    def test_7a_fcm_exception_classification(self):
+        """7a: call fcm._send_fcm_sync with firebase_admin._apps patched non-empty and messaging.send patched to raise
+        the REAL classes messaging.UnregisteredError, messaging.SenderIdMismatchError,
+        firebase_admin.exceptions.InvalidArgumentError, messaging.QuotaExceededError (patch time.sleep).
+        Assert returns 'UNREGISTERED', 'UNREGISTERED', 'INVALID_PAYLOAD', and a non-code error string.
+        """
+        import firebase_admin
+        from firebase_admin import messaging, exceptions as fb_exceptions
+        from app.notifier.fcm import _send_fcm_sync
+
+        test_token = "valid_fcm_token_1234567890123456789012345678901234567890"
+
+        with patch.object(firebase_admin, "_apps", {"[DEFAULT]": True}), patch("time.sleep"):
+            # 1. UnregisteredError -> UNREGISTERED
+            with patch.object(messaging, "send", side_effect=messaging.UnregisteredError("App instance unregistered")):
+                ok, msg = _send_fcm_sync(test_token, "Title", "Body")
+                self.assertFalse(ok)
+                self.assertEqual(msg, "UNREGISTERED")
+
+            # 2. SenderIdMismatchError -> UNREGISTERED
+            with patch.object(messaging, "send", side_effect=messaging.SenderIdMismatchError("Sender ID mismatch")):
+                ok, msg = _send_fcm_sync(test_token, "Title", "Body")
+                self.assertFalse(ok)
+                self.assertEqual(msg, "UNREGISTERED")
+
+            # 3. InvalidArgumentError -> INVALID_PAYLOAD
+            with patch.object(messaging, "send", side_effect=fb_exceptions.InvalidArgumentError("Invalid argument in payload")):
+                ok, msg = _send_fcm_sync(test_token, "Title", "Body")
+                self.assertFalse(ok)
+                self.assertEqual(msg, "INVALID_PAYLOAD")
+
+            # 4. QuotaExceededError -> non-code error string
+            with patch.object(messaging, "send", side_effect=messaging.QuotaExceededError("FCM quota exceeded")):
+                ok, msg = _send_fcm_sync(test_token, "Title", "Body")
+                self.assertFalse(ok)
+                self.assertNotIn(msg, ("UNREGISTERED", "INVALID_PAYLOAD", "INVALID_TOKEN_FORMAT"))
+                self.assertIn("quota", msg.lower())
+
+    def test_7b_metrics_removed_and_status_unauthorized(self):
+        """7b: GET /metrics must return 404 (route removed) and /api/status without admin key must NOT return 200."""
+        from fastapi.testclient import TestClient
+        client = TestClient(app)
+
+        res_metrics = client.get("/metrics")
+        self.assertEqual(res_metrics.status_code, 404)
+
+        res_api_metrics = client.get("/api/metrics")
+        self.assertEqual(res_api_metrics.status_code, 404)
+
+        res_status = client.get("/api/status")
+        self.assertNotEqual(res_status.status_code, 200)
+
+    async def test_7c_second_trigger_on_dead_tokens_does_not_call_fcm(self):
+        """7c: a second trigger for an alert whose token is in DEAD_TOKENS must not call send_fcm_notification_async."""
+        dead_token = "dead_token_1234567890123456789012345678901234567890"
+        alert = Alert(
+            id="alert_dead_token_test",
+            user_id="user_test_dead",
+            exchange="binance",
+            symbol="BTCUSDT",
+            target_price=50000.0,
+            fcm_token=dead_token
+        )
+        storage.ALERTS_DB.append(alert)
+
+        with patch("app.notifier.outbox.send_fcm_notification_async", new_callable=AsyncMock) as mock_send, \
+             patch("app.notifier.outbox._save_outbox", new_callable=AsyncMock):
+            mock_send.return_value = (False, "UNREGISTERED")
+
+            # 1. First trigger: calls FCM and gets UNREGISTERED -> adds dead_token to DEAD_TOKENS
+            await outbox.enqueue_alert_push(alert, "Title 1", "Body 1", {})
+            # Wait for spawned task
+            await asyncio.sleep(0.01)
+            self.assertEqual(mock_send.call_count, 1)
+            self.assertIn(dead_token, outbox.DEAD_TOKENS)
+
+            # 2. Second trigger for the same alert (whose token is in DEAD_TOKENS)
+            await outbox.enqueue_alert_push(alert, "Title 2", "Body 2", {})
+            await asyncio.sleep(0.01)
+
+            # Must NOT call send_fcm_notification_async again
+            self.assertEqual(mock_send.call_count, 1)
 
 
 if __name__ == "__main__":

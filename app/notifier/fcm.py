@@ -104,11 +104,9 @@ def _send_fcm_sync(fcm_token: str, title: str, body: str, data_payload: dict = N
                 getattr(messaging, "QuotaExceededError", ())
             ) as e:
                 last_err = e
-                print(f"⚠️ [FCM Push] transient error (attempt {attempt}): {e}")
         if last_err:
             raise last_err
     except Exception as e:
-        METRICS["fcm_failed"] += 1
         unreg_types = tuple(t for t in (
             getattr(messaging, "UnregisteredError", None),
             getattr(messaging, "SenderIdMismatchError", None),

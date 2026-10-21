@@ -467,11 +467,3 @@ async def delete_alert(alert_id: str):
         storage.ALERTS_DB = [a for a in storage.ALERTS_DB if a.id != clean_id]
     await save_alerts_to_disk_async(storage.ALERTS_DB)
     return {"status": "deleted", "id": clean_id}
-
-@router.get("/metrics")
-@router.get("/api/metrics")
-async def get_metrics():
-    from app.notifier.outbox import OUTBOX
-    state.METRICS["outbox_blocked"] = sum(1 for e in OUTBOX.values() if e.get("blocked_token"))
-    state.METRICS["outbox_len"] = len(OUTBOX)
-    return state.METRICS
