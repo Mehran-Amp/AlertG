@@ -33,12 +33,16 @@ def _spawn(coro):
 OUTBOX_FILE = os.path.join(DATA_DIR, "fcm_outbox.json") if DATA_DIR != "." else "fcm_outbox.json"
 ALERT_PUSH_TTL_SECONDS = int(os.getenv("FCM_ALERT_TTL_SECONDS", "86400"))  # how long we keep trying + FCM stores it for an offline phone
 _OUTBOX_RETRY_DELAYS = (2, 5, 15, 30, 60, 120, 300)  # seconds; last value repeats
-ACK_WAIT_SECONDS = int(os.getenv("ACK_WAIT_SECONDS", "45"))  # Phase 2: how long to keep an ack-capable entry after FCM success
 # Phase 2: bounded resend schedule for ack-capable entries (seconds).
-# The first value is used for the initial wait; later values for each resend.
-ACK_WAITS = tuple(int(x) for x in os.getenv("ACK_WAITS", "45,90,180").split(",") if x.strip())
-if not ACK_WAITS:
-    ACK_WAITS = (45, 90, 180)
+# Falls back to the default if the env value is invalid/empty.
+def _parse_ack_waits(raw: str) -> tuple:
+    try:
+        parsed = tuple(int(x) for x in raw.split(",") if x.strip())
+    except (ValueError, TypeError):
+        return (45, 90, 180)
+    return parsed if parsed else (45, 90, 180)
+
+ACK_WAITS = _parse_ack_waits(os.getenv("ACK_WAITS", "45,90,180"))
 
 def _load_outbox_from_disk() -> Dict[str, Dict[str, Any]]:
     if os.path.exists(OUTBOX_FILE):
@@ -149,6 +153,7 @@ async def enqueue_alert_push(alert, title: str, body: str, data_payload: dict) -
         "next_retry_at": next_attempt,
         "attempts": 0,
         "resend_count": 0,
+        "ack_supported": bool(getattr(alert, "ack_supported", False)),
         "last_error": "",
         "blocked_token": blocked_token,
     }
@@ -238,8 +243,9 @@ async def _deliver_outbox_entry(eid: str) -> None:
             journal.record_sent(eid)
 
             # Phase 2: keep the entry until the app acks if the alert is ack-capable.
-            alert = next((a for a in storage.ALERTS_DB if a.id == entry.get("alert_id")), None)
-            ack_capable = bool(alert is not None and getattr(alert, "ack_supported", False))
+            # Read the snapshot captured at enqueue time so a later sync/edit/delete
+            # of the alert does not change this decision.
+            ack_capable = bool(entry.get("ack_supported", False))
 
             if ack_capable:
                 entry["phase"] = "awaiting_ack"

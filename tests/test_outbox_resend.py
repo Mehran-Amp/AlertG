@@ -48,6 +48,7 @@ class TestOutboxResend(unittest.IsolatedAsyncioTestCase):
             "attempts": 0,
             "last_error": "",
             "blocked_token": None,
+            "ack_supported": True,
             "phase": "awaiting_ack",
             "ack_due_at": 0,
             "resend_count": 0,
@@ -102,6 +103,28 @@ class TestOutboxResend(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(mock_send.call_count, 0)
         finally:
             storage.ALERTS_DB[:] = [a for a in storage.ALERTS_DB if a.id != "a-rs-3"]
+
+        async def test_alert_deleted_between_resends_does_not_break(self):
+            alert = self._make_alert("a-rs-4")
+            storage.ALERTS_DB.append(alert)
+            try:
+                eid = "e-rs-4"
+                self._seed(eid, "a-rs-4")
+                # Simulate the alert was deleted from ALERTS_DB after enqueue:
+                storage.ALERTS_DB[:] = [a for a in storage.ALERTS_DB if a.id != "a-rs-4"]
+                # The snapshot ack_supported=True should still drive the flow.
+                outbox.OUTBOX[eid]["ack_supported"] = True
+                outbox.OUTBOX[eid]["ack_due_at"] = time.time() - 1
+                outbox.OUTBOX[eid]["resend_count"] = 0
+                with patch.object(outbox, "send_fcm_notification_async", new_callable=AsyncMock) as mock_send, \
+                     patch.object(outbox, "_save_outbox", new_callable=AsyncMock):
+                    mock_send.return_value = (True, "FCM Message ID: ok")
+                    await outbox._deliver_outbox_entry(eid)
+                self.assertIn(eid, outbox.OUTBOX)
+                self.assertEqual(outbox.OUTBOX[eid].get("phase"), "awaiting_ack")
+                self.assertEqual(mock_send.call_count, 1)
+            finally:
+                storage.ALERTS_DB[:] = [a for a in storage.ALERTS_DB if a.id != "a-rs-4"]
 
 
 if __name__ == "__main__":

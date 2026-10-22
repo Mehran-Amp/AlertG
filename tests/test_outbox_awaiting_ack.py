@@ -33,7 +33,7 @@ class TestOutboxAwaitingAck(unittest.IsolatedAsyncioTestCase):
         )
         return a
 
-    def _seed_outbox_entry(self, eid, alert_id):
+    def _seed_outbox_entry(self, eid, alert_id, ack_supported=True):
         outbox.OUTBOX[eid] = {
             "id": eid,
             "alert_id": alert_id,
@@ -46,6 +46,8 @@ class TestOutboxAwaitingAck(unittest.IsolatedAsyncioTestCase):
             "next_attempt_at": 0,
             "next_retry_at": 0,
             "attempts": 0,
+            "resend_count": 0,
+            "ack_supported": ack_supported,
             "last_error": "",
             "blocked_token": None,
         }
@@ -72,7 +74,7 @@ class TestOutboxAwaitingAck(unittest.IsolatedAsyncioTestCase):
         storage.ALERTS_DB.append(alert)
         try:
             eid = "e-2"
-            self._seed_outbox_entry(eid, "a-2")
+            self._seed_outbox_entry(eid, "a-2", ack_supported=False)
             with patch.object(outbox, "send_fcm_notification_async", new_callable=AsyncMock) as mock_send, \
                  patch.object(outbox, "_save_outbox", new_callable=AsyncMock):
                 mock_send.return_value = (True, "FCM Message ID: ok")

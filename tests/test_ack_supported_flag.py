@@ -3,7 +3,6 @@ from unittest.mock import AsyncMock, patch
 
 from fastapi.testclient import TestClient
 
-from app.config import API_KEY
 from app.models import Alert
 from app import storage
 from server import app
@@ -12,15 +11,18 @@ from server import app
 class TestAckSupportedFlag(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.client = TestClient(app)
+        self._api_key_patch = patch("app.config.API_KEY", "testkey123")
+        self._api_key_patch.start()
 
     def tearDown(self):
+        self._api_key_patch.stop()
         storage.ALERTS_DB[:] = [
             a for a in storage.ALERTS_DB
             if a.id not in ("ack-1", "ack-2", "ack-3")
         ]
 
     def _auth_headers(self):
-        return {"X-API-Key": API_KEY} if API_KEY else {}
+        return {"X-API-Key": "testkey123"}
 
     async def test_sync_with_flag_true_sets_ack_supported(self):
         payload = {
