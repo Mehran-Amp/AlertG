@@ -173,7 +173,7 @@ void main() {
       final rule = _makeOneShotRule(uuid: 'rule-concurrent-user-edit');
       await repo.saveRule(rule, syncToServer: false);
 
-      final fakeNotif = _FakeNotificationService(AlertDispatchResult.success);
+      final fakeNotif = _FakeNotificationService(AlertDispatchResult.shown);
       final fakeExchange = _FakeExchange(48000);
       final fakeRegistry = _FakeExchangeRegistry(fakeExchange);
 
@@ -204,7 +204,7 @@ void main() {
       final rule = _makeOneShotRule(uuid: 'rule-deleted-in-flight');
       await repo.saveRule(rule, syncToServer: false);
 
-      final fakeNotif = _FakeNotificationService(AlertDispatchResult.success);
+      final fakeNotif = _FakeNotificationService(AlertDispatchResult.shown);
       final fakeExchange = _FakeExchange(60000);
       final fakeRegistry = _FakeExchangeRegistry(fakeExchange);
 
