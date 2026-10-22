@@ -981,8 +981,12 @@ async def notify_users_and_deactivate_delisted(delisted_symbols: List[str]) -> i
                 "status": "delisted_deactivated",
                 "nature": alert.alert_nature or "price"
             }
+            fallback_chat = (alert.telegram_chat_id or "").strip() or None
             try:
-                await enqueue_alert_push(alert, title, body, payload)
+                await enqueue_alert_push(
+                    alert, title, body, payload,
+                    fallback_chat_id=fallback_chat,
+                )
             except Exception as pe:
                 print(f"⚠️ [CatalogSync] Failed to enqueue delist push for alert {alert.id}: {pe}")
 

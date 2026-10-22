@@ -377,6 +377,13 @@ async def check_alerts_job():
                 body_lines.append(clean_note)
             body = "\n".join(body_lines)
 
+            # Compute the effective Telegram chat id once, before both the
+            # FCM enqueue (for ack-failure fallback) and the Telegram send.
+            effective_chat_id = (alert.telegram_chat_id or "").strip()
+            if not effective_chat_id:
+                user_prof = USER_PROFILES_DB.get(alert.user_id.lower(), {})
+                effective_chat_id = (user_prof.get('telegram_chat_id') or "").strip()
+
             # 1. Durable FCM push
             await enqueue_alert_push(
                 alert,
@@ -391,15 +398,11 @@ async def check_alerts_job():
                     "vibration_enabled": "true" if alert.vibration_enabled else "false",
                     "tts_enabled": "true" if alert.tts_enabled else "false",
                     "sound": alert.sound or "alarm_siren"
-                }
+                },
+                fallback_chat_id=effective_chat_id or None
             )
 
             # 2. Exact Telegram Notification
-            effective_chat_id = (alert.telegram_chat_id or "").strip()
-            if not effective_chat_id:
-                user_prof = USER_PROFILES_DB.get(alert.user_id.lower(), {})
-                effective_chat_id = (user_prof.get('telegram_chat_id') or "").strip()
-
             if effective_chat_id:
                 tg_msg = format_telegram_history_card(
                     alert=alert,
@@ -583,6 +586,13 @@ async def check_macro_alerts_job():
                 body_lines.append(clean_n)
             body = "\n".join(body_lines)
 
+            # Compute the effective Telegram chat id once, before both the
+            # FCM enqueue (for ack-failure fallback) and the Telegram send.
+            effective_chat_id = (alert.telegram_chat_id or "").strip()
+            if not effective_chat_id:
+                user_prof = USER_PROFILES_DB.get(alert.user_id.lower(), {})
+                effective_chat_id = (user_prof.get('telegram_chat_id') or "").strip()
+
             # 1. FCM Push
             await enqueue_alert_push(
                 alert,
@@ -598,15 +608,11 @@ async def check_macro_alerts_job():
                     "tts_enabled": "true" if alert.tts_enabled else "false",
                     "sound": alert.sound or "alarm_siren",
                     "nature": "macro"
-                }
+                },
+                fallback_chat_id=effective_chat_id or None
             )
 
             # 2. Telegram
-            effective_chat_id = (alert.telegram_chat_id or "").strip()
-            if not effective_chat_id:
-                user_prof = USER_PROFILES_DB.get(alert.user_id.lower(), {})
-                effective_chat_id = (user_prof.get('telegram_chat_id') or "").strip()
-
             if effective_chat_id:
                 tg_msg = format_telegram_macro_history_card(
                     symbol=alert.symbol,
