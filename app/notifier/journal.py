@@ -1,6 +1,7 @@
 import os
 import json
 import time
+from collections import deque
 from typing import Dict, Any
 
 from app.config import DATA_DIR
@@ -8,6 +9,30 @@ from app.state import METRICS
 
 JOURNAL_FILE = os.path.join(DATA_DIR, "delivery_journal.json") if DATA_DIR != "." else "delivery_journal.json"
 JOURNAL_TTL_SECONDS = 24 * 3600  # drop entries older than 24h on load
+
+# Sliding window of the most recent 500 ack latencies (in milliseconds)
+ACK_LATENCIES: deque = deque(maxlen=500)
+
+
+def get_ack_latency_stats() -> Dict[str, Any]:
+    """Calculate latency statistics over the sliding window (up to 500 entries)."""
+    if not ACK_LATENCIES:
+        return {
+            "count": 0,
+            "avg_ms": None,
+            "p95_ms": None,
+        }
+    items = list(ACK_LATENCIES)
+    items.sort()
+    n = len(items)
+    avg_ms = round(sum(items) / n, 1)
+    p95_idx = min(int(round(0.95 * (n - 1))), n - 1)
+    p95_ms = items[p95_idx]
+    return {
+        "count": n,
+        "avg_ms": avg_ms,
+        "p95_ms": p95_ms,
+    }
 
 
 def _load_journal_from_disk() -> Dict[str, Dict[str, Any]]:
@@ -57,6 +82,9 @@ def _update_metrics() -> None:
     METRICS["delivery_queued"] = queued
     METRICS["delivery_unacked"] = unacked
     METRICS["delivery_total"] = len(JOURNAL)
+    stats = get_ack_latency_stats()
+    METRICS["ack_latency_avg_ms"] = stats["avg_ms"]
+    METRICS["ack_latency_p95_ms"] = stats["p95_ms"]
 
 
 def _purge_expired(now: float) -> None:
@@ -114,8 +142,16 @@ def record_acked(delivery_id: str) -> bool:
     if not entry:
         return False
     if entry.get("state") != "acked":
+        now = time.time()
         entry["state"] = "acked"
-        entry["acked_at"] = time.time()
+        entry["acked_at"] = now
+        sent_at = entry.get("sent_at")
+        if sent_at is not None:
+            try:
+                latency_ms = max(0, int((now - float(sent_at)) * 1000))
+                ACK_LATENCIES.append(latency_ms)
+            except (TypeError, ValueError):
+                pass
         METRICS["delivery_acked"] = METRICS.get("delivery_acked", 0) + 1
     _update_metrics()
     _save_journal()

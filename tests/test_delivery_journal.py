@@ -14,6 +14,8 @@ class TestDeliveryJournal(unittest.TestCase):
         self._orig_journal_file = journal.JOURNAL_FILE
         self._orig_outbox = dict(outbox.OUTBOX)
         self._orig_outbox_file = outbox.OUTBOX_FILE
+        self._orig_latencies = list(journal.ACK_LATENCIES)
+        journal.ACK_LATENCIES.clear()
         journal.JOURNAL.clear()
         outbox.OUTBOX.clear()
         # Temp files for both journal and outbox
@@ -25,6 +27,8 @@ class TestDeliveryJournal(unittest.TestCase):
         outbox.OUTBOX_FILE = self._tmp_outbox.name
 
     def tearDown(self):
+        journal.ACK_LATENCIES.clear()
+        journal.ACK_LATENCIES.extend(self._orig_latencies)
         journal.JOURNAL.clear()
         journal.JOURNAL.update(self._orig_journal)
         journal.JOURNAL_FILE = self._orig_journal_file
@@ -69,6 +73,55 @@ class TestDeliveryJournal(unittest.TestCase):
             loaded = journal._load_journal_from_disk()
         self.assertNotIn("old", loaded)
         self.assertIn("new", loaded)
+
+    def test_ack_latency_calculation_and_sliding_window(self):
+        # 1. Simulate queued and sent at t=1000.0
+        with patch.object(journal, "time", type("T", (), {"time": staticmethod(lambda: 1000.0)})):
+            journal.record_queued("d-lat", "alert-lat")
+            journal.record_sent("d-lat")
+
+        # 2. Simulate acked at t=1000.350 (350 ms later)
+        with patch.object(journal, "time", type("T", (), {"time": staticmethod(lambda: 1000.350)})):
+            self.assertTrue(journal.record_acked("d-lat"))
+
+        # Latency should be 350 ms in sliding window
+        self.assertEqual(len(journal.ACK_LATENCIES), 1)
+        self.assertEqual(journal.ACK_LATENCIES[0], 350)
+
+        # Idempotent call doesn't duplicate latency
+        with patch.object(journal, "time", type("T", (), {"time": staticmethod(lambda: 1000.999)})):
+            self.assertTrue(journal.record_acked("d-lat"))
+        self.assertEqual(len(journal.ACK_LATENCIES), 1)
+
+        # Percentile and average verification
+        journal.ACK_LATENCIES.extend([100, 200, 300, 400, 500])
+        stats = journal.get_ack_latency_stats()
+        self.assertEqual(stats["count"], 6)
+        self.assertIsNotNone(stats["avg_ms"])
+        self.assertIsNotNone(stats["p95_ms"])
+
+    def test_status_endpoint_reports_latency_and_unacked(self):
+        from fastapi.testclient import TestClient
+        from server import app
+        import app.config as config
+
+        journal.record_queued("d-u", "alert-u")
+        journal.record_sent("d-u")
+        journal.record_unacked("d-u")
+        journal.ACK_LATENCIES.append(120)
+
+        client = TestClient(app)
+        with patch.object(config, "ADMIN_KEY", "test_adm_key"):
+            res = client.get("/api/status?format=json", headers={"X-Admin-Key": "test_adm_key"})
+
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertIn("ack_latency", data)
+        self.assertIn("ack_latency_avg_ms", data)
+        self.assertIn("ack_latency_p95_ms", data)
+        self.assertIn("unacked_deliveries", data)
+        self.assertGreaterEqual(data["unacked_deliveries"], 1)
+        self.assertEqual(data["ack_latency"]["count"], 1)
 
 
 class TestOutboxJournalIntegration(unittest.IsolatedAsyncioTestCase):

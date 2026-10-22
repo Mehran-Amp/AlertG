@@ -21,7 +21,7 @@ from app.markets.base import fetch_price_with_trace
 from app.markets.limiter import get_all_providers_status
 from app.engine.sync import get_last_sync_info
 from app.markets.kill_switch import get_active_kill_switches, is_provider_killed, is_category_killed
-from app.notifier import get_exchange_display_name, send_fcm_notification_async
+from app.notifier import get_exchange_display_name, send_fcm_notification_async, journal
 from app.notifier.outbox import OUTBOX
 import app.state as state
 import app.storage as storage
@@ -64,6 +64,9 @@ def get_status_dashboard(format: Optional[str] = None, accept: Optional[str] = H
     failing_list = list(FAILED_SYMBOLS.values())
     kill_switches = get_active_kill_switches()
 
+    latency_stats = journal.get_ack_latency_stats()
+    unacked_count = METRICS.get("delivery_unacked", 0)
+
     wants_json = (format == "json") or (isinstance(accept, str) and "application/json" in accept and format != "html")
     if wants_json:
         return JSONResponse({
@@ -80,6 +83,11 @@ def get_status_dashboard(format: Optional[str] = None, accept: Optional[str] = H
             "kill_switches": kill_switches,
             "active_alerts_count": active_count,
             "total_alerts_count": total_count,
+            "ack_latency": latency_stats,
+            "ack_latency_avg_ms": latency_stats.get("avg_ms"),
+            "ack_latency_p95_ms": latency_stats.get("p95_ms"),
+            "unacked_deliveries": unacked_count,
+            "delivery_unacked": unacked_count,
         })
 
     # Kill switch banner
@@ -148,6 +156,9 @@ def get_status_dashboard(format: Optional[str] = None, accept: Optional[str] = H
     sync_st_color = "#10b981" if last_sync.get("status") == "HEALTHY" else "#ef4444"
     sync_err_html = f'<div style="color:#ef4444;margin-top:6px;font-size:12px;">⚠️ آخرین خطا: <code>{html.escape(str(last_sync.get("last_error")))}</code></div>' if last_sync.get("last_error") else ''
 
+    latency_display = f"{latency_stats['avg_ms']}ms / {latency_stats['p95_ms']}ms" if latency_stats.get("avg_ms") is not None else "N/A"
+    unacked_color = "#ef4444" if unacked_count > 0 else "#94a3b8"
+
     page = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -201,6 +212,14 @@ def get_status_dashboard(format: Optional[str] = None, accept: Optional[str] = H
                 <div class="card">
                     <div class="card-title">FCM Push Sent</div>
                     <div class="card-value" style="color:#10b981;">{METRICS.get("fcm_success", 0)}</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Ack Latency (Avg / P95)</div>
+                    <div class="card-value" style="font-size:20px;color:#38bdf8;">{latency_display}</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Unacked Deliveries</div>
+                    <div class="card-value" style="color:{unacked_color};">{unacked_count}</div>
                 </div>
             </div>
 
