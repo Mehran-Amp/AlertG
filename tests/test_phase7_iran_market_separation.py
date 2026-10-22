@@ -6,7 +6,7 @@ import re
 class TestIranMarketSeparation(unittest.TestCase):
     @unittest.skipIf(not os.path.isdir('lib'), "Flutter client code (lib/) not present in backend deployment")
     def test_iran_market_in_create_alert_flow(self):
-        with open('lib/features/watchlist/pages/create_alert_flow.dart', 'r') as f:
+        with open('lib/features/watchlist/pages/create_alert_flow.dart', 'r', encoding='utf-8') as f:
             content = f.read()
 
         # Check MarketFlowType includes iran
@@ -16,7 +16,7 @@ class TestIranMarketSeparation(unittest.TestCase):
 
     @unittest.skipIf(not os.path.isdir('lib'), "Flutter client code (lib/) not present in backend deployment")
     def test_international_crypto_excludes_iranian_exchanges(self):
-        with open('lib/features/watchlist/pages/create_alert_flow.dart', 'r') as f:
+        with open('lib/features/watchlist/pages/create_alert_flow.dart', 'r', encoding='utf-8') as f:
             content = f.read()
 
         # Check international crypto picker filters out Iranian exchanges
@@ -26,7 +26,7 @@ class TestIranMarketSeparation(unittest.TestCase):
 
     @unittest.skipIf(not os.path.isdir('lib'), "Flutter client code (lib/) not present in backend deployment")
     def test_iran_domestic_exchange_symbols(self):
-        with open('lib/features/exchanges/stocks/iran_domestic_exchange.dart', 'r') as f:
+        with open('lib/features/exchanges/stocks/iran_domestic_exchange.dart', 'r', encoding='utf-8') as f:
             content = f.read()
 
         # Key REAL symbols check: Bonbast (Gold & FX), TSETMC (Indices, Gold & Leveraged Funds, Top Stocks), Tether & Digital Gold
@@ -55,7 +55,7 @@ class TestIranMarketSeparation(unittest.TestCase):
             self.assertNotIn(f"'{fake}'", content, f"Fake symbol {fake} must be removed from IranDomesticExchange")
 
     def test_server_iran_sources_and_cache_ttl_60s(self):
-        with open('server.py', 'r') as f:
+        with open('server.py', 'r', encoding='utf-8') as f:
             content = f.read()
 
         # Check 60-second strict cache and new legal source maps
@@ -75,13 +75,9 @@ class TestIranMarketSeparation(unittest.TestCase):
         self.assertNotIn('TGJU_MAP', content)
         self.assertNotIn('tgju.org', content)
 
-        # Assure TGJU is completely removed
-        self.assertNotIn('TGJU_MAP', content)
-        self.assertNotIn('tgju.org', content)
-
     @unittest.skipIf(not os.path.isdir('lib'), "Flutter client code (lib/) not present in backend deployment")
     def test_app_strings_translations(self):
-        with open('lib/core/localization/app_strings.dart', 'r') as f:
+        with open('lib/core/localization/app_strings.dart', 'r', encoding='utf-8') as f:
             content = f.read()
 
         # Check Persian keys
@@ -95,7 +91,7 @@ class TestIranMarketSeparation(unittest.TestCase):
 
     @unittest.skipIf(not os.path.isdir('lib'), "Flutter client code (lib/) not present in backend deployment")
     def test_persian_rtl_and_format_utils(self):
-        with open('lib/features/watchlist/pages/create_alert_flow.dart', 'r') as f:
+        with open('lib/features/watchlist/pages/create_alert_flow.dart', 'r', encoding='utf-8') as f:
             content = f.read()
 
         # Check strict RTL directionality for Iran Market
@@ -103,7 +99,7 @@ class TestIranMarketSeparation(unittest.TestCase):
         self.assertIn('FormatUtils.formatIranPrice', content)
         self.assertIn('FormatUtils.normalizePersianDigits', content)
 
-        with open('lib/core/utils/format_utils.dart', 'r') as f:
+        with open('lib/core/utils/format_utils.dart', 'r', encoding='utf-8') as f:
             fmt_content = f.read()
 
         self.assertIn('toPersianDigits', fmt_content)
@@ -112,7 +108,7 @@ class TestIranMarketSeparation(unittest.TestCase):
         self.assertIn('formatAlertCardPrice', fmt_content)
 
     def test_bridge_v2_5_spec_compliance(self):
-        with open('server.py', 'r') as f:
+        with open('server.py', 'r', encoding='utf-8') as f:
             content = f.read()
 
         # 1. Timeout must be at least 30s
@@ -136,7 +132,7 @@ class TestIranMarketSeparation(unittest.TestCase):
 
     @unittest.skipIf(not os.path.isdir('lib'), "Flutter client code (lib/) not present in backend deployment")
     def test_rule_6_app_display(self):
-        with open('lib/features/watchlist/pages/create_alert_flow.dart', 'r') as f:
+        with open('lib/features/watchlist/pages/create_alert_flow.dart', 'r', encoding='utf-8') as f:
             content = f.read()
 
         # Rule 6: TSE schedule_fa, next_open, and 'بسته' badge displayed
@@ -146,7 +142,7 @@ class TestIranMarketSeparation(unittest.TestCase):
         self.assertIn('_loadIranMarketOverview', content)
         self.assertIn('_iranItemMeta', content)
 
-        with open('lib/core/services/server_alert_service.dart', 'r') as f:
+        with open('lib/core/services/server_alert_service.dart', 'r', encoding='utf-8') as f:
             srv_content = f.read()
         self.assertIn('fetchMarketsOverview', srv_content)
 
