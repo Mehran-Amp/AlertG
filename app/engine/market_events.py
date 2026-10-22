@@ -1,9 +1,12 @@
+import os
+import json
+import time
 import html
 import asyncio
 from datetime import datetime, timezone, timedelta
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 import httpx
-from app.config import TELEGRAM_BOT_TOKEN
+from app.config import TELEGRAM_BOT_TOKEN, DATA_DIR
 from app.security import _scrub, mask_identifier
 import app.state as state
 import app.storage as storage
@@ -208,10 +211,100 @@ def format_telegram_event_reminder_card(event: Dict[str, Any], is_cancelled: boo
         f"</blockquote>"
     )
 
+# -------------------------------------------------------------------
+# Persistent State: Sent Reminders & User Registrations (Phase 2B-2)
+# -------------------------------------------------------------------
+
+EVENTS_STATE_FILE = os.path.join(DATA_DIR, "market_events_state.json") if DATA_DIR != "." else "market_events_state.json"
+EVENTS_STATE_TTL_SECONDS = 7 * 24 * 3600  # 7 days
+
+
+def _load_events_state() -> Tuple[Dict[str, float], Dict[str, Dict[str, str]]]:
+    """
+    Loads sent reminders (key: event_id:chat_id:kind) and user registrations from disk (Phase 2B-2).
+    - Drops entries older than 7 days.
+    - If corrupted, renames to .bad and returns empty state without crashing.
+    """
+    sent_reminders: Dict[str, float] = {}
+    user_reminders: Dict[str, Dict[str, str]] = {}
+
+    if os.path.exists(EVENTS_STATE_FILE):
+        try:
+            with open(EVENTS_STATE_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, dict):
+                now = time.time()
+                raw_sent = data.get("sent_reminders", {})
+                if isinstance(raw_sent, dict):
+                    for k, ts in raw_sent.items():
+                        try:
+                            ts_float = float(ts)
+                            if (now - ts_float) <= EVENTS_STATE_TTL_SECONDS:
+                                sent_reminders[str(k)] = ts_float
+                        except (ValueError, TypeError):
+                            pass
+
+                raw_user = data.get("user_reminders", {})
+                if isinstance(raw_user, dict):
+                    for ev_id, u_map in raw_user.items():
+                        if isinstance(u_map, dict):
+                            user_reminders[str(ev_id)] = {
+                                str(uid): str(cid) for uid, cid in u_map.items() if cid
+                            }
+        except Exception as e:
+            print(f"⚠️ [MarketEvents] Could not read {EVENTS_STATE_FILE}: {e} (keeping a .bad copy)")
+            try:
+                os.replace(EVENTS_STATE_FILE, EVENTS_STATE_FILE + ".bad")
+            except Exception:
+                pass
+
+    return sent_reminders, user_reminders
+
+
+def save_events_state() -> None:
+    """Atomically persists sent reminders and user registrations to disk (Phase 2B-2)."""
+    try:
+        now = time.time()
+        pruned_sent = {
+            k: ts for k, ts in SENT_REMINDERS.items()
+            if (now - float(ts)) <= EVENTS_STATE_TTL_SECONDS
+        }
+        payload = json.dumps({
+            "version": 1,
+            "sent_reminders": pruned_sent,
+            "user_reminders": EVENT_USER_REMINDERS,
+        }, ensure_ascii=False)
+        tmp = f"{EVENTS_STATE_FILE}.tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            f.write(payload)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, EVENTS_STATE_FILE)
+    except Exception as e:
+        print(f"⚠️ [MarketEvents] Save state failed: {e}")
+
+
+_init_sent, _init_user = _load_events_state()
+# Sent reminders: 'event_id:chat_id:kind' -> timestamp (epoch seconds)
+SENT_REMINDERS: Dict[str, float] = _init_sent
+# Active reminders: event_id -> Dict[user_id, chat_id]
+EVENT_USER_REMINDERS: Dict[str, Dict[str, str]] = _init_user
 # Per-chat dispatched event tracking
 USER_DISPATCHED_EVENTS: Dict[str, set] = {}
-# Active reminders: event_id -> Dict[user_id, chat_id]
-EVENT_USER_REMINDERS: Dict[str, Dict[str, str]] = {}
+
+
+def mark_reminder_sent(event_id: str, chat_id: str, kind: str = "advance_30m", sent_at: Optional[float] = None) -> None:
+    """Marks a reminder as sent (key: event_id:chat_id:kind) and persists state."""
+    key = f"{event_id}:{chat_id}:{kind}"
+    SENT_REMINDERS[key] = float(sent_at or time.time())
+    save_events_state()
+
+
+def is_reminder_sent(event_id: str, chat_id: str, kind: str = "advance_30m") -> bool:
+    """Returns True if this reminder was already sent."""
+    key = f"{event_id}:{chat_id}:{kind}"
+    return key in SENT_REMINDERS
+
 
 async def register_user_event_reminder(
     client: httpx.AsyncClient,
@@ -235,6 +328,9 @@ async def register_user_event_reminder(
     if cancel:
         if event_id in EVENT_USER_REMINDERS and clean_uid in EVENT_USER_REMINDERS[event_id]:
             del EVENT_USER_REMINDERS[event_id][clean_uid]
+            if not EVENT_USER_REMINDERS[event_id]:
+                del EVENT_USER_REMINDERS[event_id]
+            save_events_state()
         if target_chat and TELEGRAM_BOT_TOKEN:
             msg = format_telegram_event_reminder_card(event, is_cancelled=True)
             await send_telegram_alert(client, target_chat, msg)
@@ -245,6 +341,7 @@ async def register_user_event_reminder(
         EVENT_USER_REMINDERS[event_id] = {}
     if target_chat:
         EVENT_USER_REMINDERS[event_id][clean_uid] = target_chat
+        save_events_state()
         if TELEGRAM_BOT_TOKEN:
             msg = format_telegram_event_reminder_card(event, is_cancelled=False)
             await send_telegram_alert(client, target_chat, msg)
