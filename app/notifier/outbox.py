@@ -9,6 +9,8 @@ from app.state import METRICS
 import app.storage as storage
 from app.notifier.fcm import send_fcm_notification_async
 from app.notifier import journal
+from app.notifier.telegram import send_telegram_alert
+import app.state as state
 
 # Blocked / Dead FCM Tokens: set of tokens flagged as UNREGISTERED or INVALID_TOKEN_FORMAT
 DEAD_TOKENS: Set[str] = set()
@@ -202,12 +204,19 @@ async def _deliver_outbox_entry(eid: str) -> None:
                 # Fall through to send FCM again.
             else:
                 # Budget exhausted: mark unacked and drop.
+                fallback_chat = entry.get("fallback_chat_id")
+                title_text = entry.get("title") or ""
+                body_text = entry.get("body") or ""
                 OUTBOX.pop(eid, None)
                 journal.record_unacked(eid)
                 METRICS["fcm_unacked"] = METRICS.get("fcm_unacked", 0) + 1
                 print(f"⌛ [Outbox] {eid[:8]} not acked after {len(ACK_WAITS)} waits; marked unacked")
                 _update_outbox_metrics()
                 await _save_outbox()
+
+                # Phase 2: one-shot Telegram fallback (never blocks the worker).
+                if fallback_chat and not journal.was_telegram_fallback_sent(eid):
+                    _spawn(_send_telegram_fallback(eid, fallback_chat, title_text, body_text))
                 return
 
         current_token = _outbox_current_token(entry)
@@ -319,6 +328,24 @@ async def on_delivery_acked(delivery_id: str) -> bool:
     _update_outbox_metrics()
     await _save_outbox()
     return True
+
+async def _send_telegram_fallback(eid: str, chat_id: str, title: str, body: str) -> None:
+    """Phase 2: send the alert via Telegram when the push is never acked."""
+    if journal.was_telegram_fallback_sent(eid):
+        return
+    try:
+        client = getattr(state, "http_client", None)
+        if client is None:
+            return
+        journal.record_telegram_fallback_sent(eid)
+        text = f"{title}\n\n{body}\n\n(تأیید دریافت پوش نرسید)"
+        await send_telegram_alert(client, chat_id, text)
+        METRICS["telegram_fallback_sent"] = METRICS.get("telegram_fallback_sent", 0) + 1
+        print(f"📨 [Outbox] {eid[:8]} Telegram fallback sent")
+    except Exception as e:
+        METRICS["telegram_fallback_failed"] = METRICS.get("telegram_fallback_failed", 0) + 1
+        print(f"⚠️ [Outbox] Telegram fallback failed for {eid[:8]}: {e}")
+
 
 async def outbox_worker_loop():
     """Picks up due entries (also the ones left over from before a restart)."""

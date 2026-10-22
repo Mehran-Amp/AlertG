@@ -134,6 +134,20 @@ def record_unacked(delivery_id: str) -> None:
     _update_metrics()
     _save_journal()
 
+def record_telegram_fallback_sent(delivery_id: str) -> None:
+    """Mark that the Telegram fallback was already sent for this delivery."""
+    entry = JOURNAL.get(delivery_id)
+    if not entry:
+        return
+    entry["telegram_fallback_sent"] = True
+    _save_journal()
+
+
+def was_telegram_fallback_sent(delivery_id: str) -> bool:
+    entry = JOURNAL.get(delivery_id)
+    return bool(entry and entry.get("telegram_fallback_sent"))
+
+
 
 
 def get_status(delivery_id: str) -> str:
