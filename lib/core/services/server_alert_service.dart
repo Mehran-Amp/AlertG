@@ -30,6 +30,20 @@ class ServerAlertService {
   static bool _syncInFlight = false;
   static bool _syncDirty = false;
 
+  
+  /// Last rules/userId passed to a call that arrived while a sync was in
+  /// flight. Used to run the "dirty" sync once after the current one finishes.
+  static List<AlertRule>? _pendingRules;
+  static String? _pendingUserId;
+
+  /// Injected HTTP client for tests. When null, `http.post` is used.
+  @visibleForTesting
+  static http.Client? httpClientForTesting;
+
+  /// Read-only view of the retry backoff index (for tests).
+  @visibleForTesting
+  static int get retryIndexForTesting => _retryIndex;
+
 
   // Retry state (backoff 5s, 15s, 60s, 5m; cap 5m).
   static int _retryIndex = 0;
@@ -67,12 +81,14 @@ class ServerAlertService {
     return File('${dir.path}/sync_pending.flag');
   }
 
-  static Future<void> _writeSyncFlag() async {
+    static Future<void> _writeSyncFlag() async {
+    // Mark pending first so a path_provider failure (e.g. in tests) does not
+    // leave _syncPending=false while a sync is actually in progress.
+    _syncPending = true;
     try {
       final f = await _syncFlagFile();
       if (!f.parent.existsSync()) f.parent.createSync(recursive: true);
       await f.writeAsString(DateTime.now().toIso8601String(), flush: true);
-      _syncPending = true;
     } catch (e) {
       debugPrint('⚠️ [Sync] write flag failed: $e');
     }
@@ -255,8 +271,8 @@ class ServerAlertService {
   /// A `sync_pending.flag` file is written before the request and deleted only
   /// on HTTP 2xx. If the process dies mid-sync, the flag survives so the next
   /// startup can retry.
-  static Future<bool> syncAllRulesToServer(List<AlertRule> rules, {String? userId}) async {
-        // Guard: if the local repository failed to load, do not push an empty or
+    static Future<bool> syncAllRulesToServer(List<AlertRule> rules, {String? userId}) async {
+    // Guard: if the local repository failed to load, do not push an empty or
     // incomplete list to the server. sync_user_alerts deletes alerts that are
     // absent from the payload, so this would silently wipe the user's alerts.
     final loadFailedProvider = _loadFailedProvider;
@@ -265,20 +281,43 @@ class ServerAlertService {
       return false;
     }
 
-    // Single-flight: coalesce concurrent calls.
+    // Single-flight: coalesce concurrent calls. The latest rules/userId from
+    // the second caller are kept in _pendingRules/_pendingUserId and run once
+    // after the current sync finishes (a while loop, not recursion).
     if (_syncInFlight) {
+      _pendingRules = rules;
+      _pendingUserId = userId;
       _syncDirty = true;
       return false;
     }
     _syncInFlight = true;
     try {
-      return await _doSyncAllRulesToServer(rules, userId: userId);
+      var result = await _doSyncAllRulesToServer(rules, userId: userId);
+
+      while (_syncDirty) {
+        _syncDirty = false;
+        final pendingRules = _pendingRules;
+        final pendingUserId = _pendingUserId;
+        _pendingRules = null;
+        _pendingUserId = null;
+        if (pendingRules == null) break;
+
+        // Re-check the loadFailed guard before the dirty re-sync.
+        final guard = _loadFailedProvider;
+        if (guard != null && guard()) {
+          debugPrint('⏸️ [Sync] skipped: local load failed');
+          break;
+        }
+
+        result = await _doSyncAllRulesToServer(
+          pendingRules,
+          userId: pendingUserId,
+        );
+      }
+
+      return result;
     } finally {
       _syncInFlight = false;
-      if (_syncDirty) {
-        _syncDirty = false;
-        debugPrint('🔁 [Sync] dirty set during sync; caller should re-invoke');
-      }
     }
   }
 
@@ -310,7 +349,13 @@ class ServerAlertService {
   }
 
   static Future<bool> _doSyncAllRulesToServer(List<AlertRule> rules, {String? userId}) async {
-    if (!isServerAvailable) return false;
+    if (!isServerAvailable) {
+      // Circuit breaker is open: still write the pending flag and schedule a
+      // retry so the alert is not silently lost for the whole breaker window.
+      await _writeSyncFlag();
+      _scheduleRetry();
+      return false;
+    }
 
     // Write the pending flag BEFORE the request.
     await _writeSyncFlag();
@@ -390,15 +435,22 @@ class ServerAlertService {
         'alerts': alertsPayload,
       };
 
-      final response = await http.post(
-        url,
-        headers: _buildHeaders(),
-        body: jsonEncode(payload),
-      ).timeout(const Duration(seconds: 10));
+      final client = httpClientForTesting;
+      final response = client != null
+          ? await client
+              .post(url, headers: _buildHeaders(), body: jsonEncode(payload))
+              .timeout(const Duration(seconds: 10))
+          : await http
+              .post(url, headers: _buildHeaders(), body: jsonEncode(payload))
+              .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         _circuitBreakerUntil = null;
         lastSyncOk = DateTime.now();
+        // Success: reset backoff so the next failure starts at 5s again, and
+        // cancel any scheduled retry so a stale timer cannot fire.
+        _retryIndex = 0;
+        _retryTimer?.cancel();
         await _clearSyncFlag();
         debugPrint('✅ All alerts successfully synced to Python server for user $effectiveUserId');
         return true;
