@@ -8,6 +8,7 @@ from app.engine.calendar import (
     get_all_markets_status,
     get_ny_now,
     get_tehran_now,
+    parse_event_start_utc,
 )
 
 __all__ = [
@@ -20,4 +21,5 @@ __all__ = [
     "get_all_markets_status",
     "get_ny_now",
     "get_tehran_now",
+    "parse_event_start_utc",
 ]

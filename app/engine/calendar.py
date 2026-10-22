@@ -1,5 +1,6 @@
+import re
 import time
-from datetime import datetime, time as dtime, timezone
+from datetime import datetime, time as dtime, timezone, timedelta
 from typing import Dict, Any, Optional, Tuple
 import zoneinfo
 
@@ -437,3 +438,105 @@ def get_symbol_market_detail(exchange: str, symbol: str, now_dt: Optional[dateti
         "source": "Global Data Provider",
         "delay": "بلادرنگ (Real-Time)"
     }
+
+
+# ===================================================================
+# 6. MARKET EVENTS CALENDAR PARSER (Phase 2B-1: start_utc Epoch)
+# ===================================================================
+
+WEEKDAYS: Dict[str, int] = {
+    'monday': 0, 'mon': 0,
+    'tuesday': 1, 'tue': 1,
+    'wednesday': 2, 'wed': 2,
+    'thursday': 3, 'thu': 3,
+    'friday': 4, 'fri': 4,
+    'saturday': 5, 'sat': 5,
+    'sunday': 6, 'sun': 6,
+}
+
+_WEEKDAY_TIME_RE = re.compile(
+    r'^(monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|wed|thu|fri|sat|sun)\s+(\d{1,2}):(\d{2})',
+    re.IGNORECASE
+)
+
+_ISO_DATE_TIME_RE = re.compile(
+    r'^(\d{4})-(\d{2})-(\d{2})[T\s](\d{1,2}):(\d{2})(?::(\d{2}))?',
+    re.IGNORECASE
+)
+
+
+def parse_event_start_utc(time_val: Any, now_dt: Optional[datetime] = None) -> Optional[int]:
+    """
+    Parses event schedule into an exact integer UTC epoch timestamp (Phase 2B-1).
+    - If already int/float: returns int(time_val) if positive.
+    - If ISO 8601 string (e.g. '2026-10-28 18:00 UTC' or '2026-10-28T18:00:00Z'): parses exact UTC timestamp.
+    - If recurring weekday + time (e.g. 'Wednesday 18:00 UTC'): calculates the next upcoming occurrence in UTC.
+    - If vague, invalid, or unparseable (e.g. 'Upcoming Weekend', ''): returns None (no guessing).
+    """
+    if time_val is None:
+        return None
+
+    if isinstance(time_val, (int, float)):
+        val = int(time_val)
+        return val if val > 0 else None
+
+    if not isinstance(time_val, str):
+        return None
+
+    text = time_val.strip()
+    if not text:
+        return None
+
+    # Reference time in UTC
+    if now_dt is not None:
+        if now_dt.tzinfo is None:
+            now_utc = now_dt.replace(tzinfo=timezone.utc)
+        else:
+            now_utc = now_dt.astimezone(timezone.utc)
+    else:
+        now_utc = datetime.now(timezone.utc)
+
+    # 1. Try ISO date-time pattern (YYYY-MM-DD HH:MM[:SS])
+    iso_match = _ISO_DATE_TIME_RE.match(text)
+    if iso_match:
+        try:
+            year, month, day, hour, minute, second = iso_match.groups()
+            dt = datetime(
+                int(year), int(month), int(day),
+                int(hour), int(minute), int(second or 0),
+                tzinfo=timezone.utc
+            )
+            return int(dt.timestamp())
+        except (ValueError, OverflowError):
+            return None
+
+    # 2. Try weekday + time pattern (e.g. 'Wednesday 18:00 UTC')
+    wd_match = _WEEKDAY_TIME_RE.match(text)
+    if wd_match:
+        wd_name, hour_str, min_str = wd_match.groups()
+        target_weekday = WEEKDAYS.get(wd_name.lower())
+        if target_weekday is not None:
+            try:
+                target_hour = int(hour_str)
+                target_min = int(min_str)
+                if not (0 <= target_hour < 24 and 0 <= target_min < 60):
+                    return None
+
+                # Calculate next occurrence in UTC
+                current_weekday = now_utc.weekday()
+                days_ahead = (target_weekday - current_weekday) % 7
+                candidate = now_utc.replace(
+                    hour=target_hour, minute=target_min, second=0, microsecond=0
+                ) + timedelta(days=days_ahead)
+
+                # If candidate is before or equal to now_utc, roll forward to next week
+                if candidate <= now_utc:
+                    candidate += timedelta(days=7)
+
+                return int(candidate.timestamp())
+            except (ValueError, OverflowError):
+                return None
+
+    # 3. Unparseable, vague, or unsupported format -> return None (no guessing)
+    return None
+

@@ -8,6 +8,7 @@ from app.security import _scrub, mask_identifier
 import app.state as state
 import app.storage as storage
 from app.notifier.telegram import send_telegram_alert
+from app.engine.calendar import parse_event_start_utc
 
 # In-Memory Cache for Market Events (Updated every 6 hours)
 MARKET_EVENTS_CACHE: List[Dict[str, Any]] = []
@@ -28,6 +29,7 @@ CURATED_HIGH_IMPACT_CATALOG: List[Dict[str, Any]] = [
         "summary": "Federal Reserve monetary policy announcement & benchmark rate decision. High volatility expected.",
         "impact": "high",
         "time_utc": "Wednesday 18:00 UTC",
+        "start_utc": parse_event_start_utc("Wednesday 18:00 UTC"),
         "badge_color": "#0284C7", # Sky Blue
         "symbol": "USD"
     },
@@ -39,6 +41,7 @@ CURATED_HIGH_IMPACT_CATALOG: List[Dict[str, Any]] = [
         "summary": "Bureau of Labor Statistics publishes monthly Consumer Price Index measuring consumer inflation.",
         "impact": "high",
         "time_utc": "Thursday 12:30 UTC",
+        "start_utc": parse_event_start_utc("Thursday 12:30 UTC"),
         "badge_color": "#0284C7",
         "symbol": "USD"
     },
@@ -50,6 +53,7 @@ CURATED_HIGH_IMPACT_CATALOG: List[Dict[str, Any]] = [
         "summary": "Major Ethereum consensus and execution client upgrade activated across global validators.",
         "impact": "high",
         "time_utc": "Friday 14:00 UTC",
+        "start_utc": parse_event_start_utc("Friday 14:00 UTC"),
         "badge_color": "#10B981", # Emerald Green
         "symbol": "ETH"
     },
@@ -61,6 +65,7 @@ CURATED_HIGH_IMPACT_CATALOG: List[Dict[str, Any]] = [
         "summary": "Major foundation and liquidity token cliff unlocking into circulating supply.",
         "impact": "high",
         "time_utc": "Saturday 00:00 UTC",
+        "start_utc": parse_event_start_utc("Saturday 00:00 UTC"),
         "badge_color": "#10B981",
         "symbol": "SOL"
     },
@@ -72,6 +77,7 @@ CURATED_HIGH_IMPACT_CATALOG: List[Dict[str, Any]] = [
         "summary": "Weekly change in commercial crude oil barrels held by US firms. Key driver for WTI & Brent.",
         "impact": "high",
         "time_utc": "Wednesday 14:30 UTC",
+        "start_utc": parse_event_start_utc("Wednesday 14:30 UTC"),
         "badge_color": "#F59E0B", # Amber / Orange
         "symbol": "WTI"
     },
@@ -83,6 +89,7 @@ CURATED_HIGH_IMPACT_CATALOG: List[Dict[str, Any]] = [
         "summary": "Joint Ministerial Monitoring Committee meeting to determine voluntary oil supply cuts.",
         "impact": "high",
         "time_utc": "Upcoming Weekend",
+        "start_utc": parse_event_start_utc("Upcoming Weekend"),
         "badge_color": "#F59E0B",
         "symbol": "BRENT"
     },
@@ -94,6 +101,7 @@ CURATED_HIGH_IMPACT_CATALOG: List[Dict[str, Any]] = [
         "summary": "Nvidia reports quarterly revenue, data center GPU sales, and AI infrastructure guidance.",
         "impact": "high",
         "time_utc": "Thursday 20:00 UTC (AMC)",
+        "start_utc": parse_event_start_utc("Thursday 20:00 UTC"),
         "badge_color": "#8B5CF6", # Purple
         "symbol": "NVDA"
     },
@@ -105,6 +113,7 @@ CURATED_HIGH_IMPACT_CATALOG: List[Dict[str, Any]] = [
         "summary": "Apple announces quarterly iPhone, Mac, and Services segment financial performance.",
         "impact": "high",
         "time_utc": "Friday 20:30 UTC (AMC)",
+        "start_utc": parse_event_start_utc("Friday 20:30 UTC"),
         "badge_color": "#8B5CF6",
         "symbol": "AAPL"
     }
@@ -322,12 +331,17 @@ async def refresh_market_events(client: Optional[httpx.AsyncClient] = None):
 
 def get_market_events(categories: Optional[List[str]] = None) -> List[Dict[str, Any]]:
     """Retrieves cached high-impact market events, optionally filtered by categories."""
-    if not MARKET_EVENTS_CACHE:
-        return list(CURATED_HIGH_IMPACT_CATALOG)
+    raw = MARKET_EVENTS_CACHE if MARKET_EVENTS_CACHE else list(CURATED_HIGH_IMPACT_CATALOG)
+    events = []
+    for e in raw:
+        ev = dict(e)
+        if 'start_utc' not in ev:
+            ev['start_utc'] = parse_event_start_utc(ev.get('time_utc'))
+        events.append(ev)
 
     if not categories:
-        return MARKET_EVENTS_CACHE
+        return events
 
     lower_cats = [c.lower() for c in categories]
-    return [e for e in MARKET_EVENTS_CACHE if e.get('category', '').lower() in lower_cats]
+    return [e for e in events if e.get('category', '').lower() in lower_cats]
 
