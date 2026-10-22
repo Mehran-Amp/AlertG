@@ -51,9 +51,9 @@ class TestManifest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.mkdtemp()
         os.makedirs(os.path.join(self.tmp, "app", "__pycache__"))
-        with open(os.path.join(self.tmp, "server.py"), "w") as f:
+        with open(os.path.join(self.tmp, "server.py"), "w", encoding="utf-8", newline="\n") as f:
             f.write("print('x')\n")
-        with open(os.path.join(self.tmp, "app", "mod.py"), "w") as f:
+        with open(os.path.join(self.tmp, "app", "mod.py"), "w", encoding="utf-8", newline="\n") as f:
             f.write("A = 1\n")
         with open(os.path.join(self.tmp, "app", "__pycache__", "mod.cpython-311.pyc"), "wb") as f:
             f.write(b"\x00")
@@ -73,10 +73,10 @@ class TestManifest(unittest.TestCase):
     def test_verify_detects_changed_missing_and_unlisted(self):
         make_baseline.write_manifest(self.tmp, "docs/MD5_MANIFEST.txt")
         self.assertEqual(make_baseline.verify_manifest(self.tmp, "docs/MD5_MANIFEST.txt"), [])
-        with open(os.path.join(self.tmp, "server.py"), "a") as f:
+        with open(os.path.join(self.tmp, "server.py"), "a", encoding="utf-8", newline="\n") as f:
             f.write("# edit\n")
         os.remove(os.path.join(self.tmp, "app", "mod.py"))
-        with open(os.path.join(self.tmp, "app", "new.py"), "w") as f:
+        with open(os.path.join(self.tmp, "app", "new.py"), "w", encoding="utf-8", newline="\n") as f:
             f.write("B = 2\n")
         problems = make_baseline.verify_manifest(self.tmp, "docs/MD5_MANIFEST.txt")
         self.assertIn("CHANGED  server.py", problems)
