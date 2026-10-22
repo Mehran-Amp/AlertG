@@ -4,6 +4,7 @@ import '../../core/localization/app_strings.dart';
 import '../../core/services/delivery_ack_service.dart';
 import '../../core/services/server_alert_service.dart';
 import '../../core/services/service_logger.dart';
+import '../../core/utils/app_lifecycle_helper.dart';
 import '../../features/notifications/pages/notification_history_page.dart';
 import '../../features/settings/pages/settings_page.dart';
 import '../../features/settings/services/settings_service.dart';
