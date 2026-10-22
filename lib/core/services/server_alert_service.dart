@@ -455,6 +455,7 @@ class ServerAlertService {
       final payload = {
         'user_id': effectiveUserId,
         'fcm_token': fcmToken,
+        'ack_supported': true,
         'alerts': alertsPayload,
       };
 

@@ -33,9 +33,11 @@ Future<void> _handleIncomingAlert(RemoteMessage message, {required bool inApp}) 
   final body = d['body'] ?? message.notification?.body ?? '';
   final note = d['note'] ?? '';
 
+  final deliveryId = (d['delivery_id'] ?? '').trim();
+
   await ServiceLogger.log(
     'fcm.handle',
-    'enter inApp=$inApp alert_id=$alertId symbol=$symbol tts_enabled=${d['tts_enabled']} sound_enabled=${d['sound_enabled']} vibration_enabled=${d['vibration_enabled']}',
+    'enter inApp=$inApp alert_id=$alertId delivery_id=$deliveryId symbol=$symbol tts_enabled=${d['tts_enabled']} sound_enabled=${d['sound_enabled']} vibration_enabled=${d['vibration_enabled']}',
   );
 
   // Reject ghost / empty pushes without real alert data.
@@ -68,6 +70,7 @@ Future<void> _handleIncomingAlert(RemoteMessage message, {required bool inApp}) 
     title: title.isNotEmpty ? title : '🚨 Price Alert',
     body: body,
     payload: alertId.isNotEmpty ? alertId : null,
+    dedupeKey: deliveryId.isNotEmpty ? deliveryId : null,
     soundName: d['sound'],
     soundEnabled: d['sound_enabled'] != 'false',
     vibrationEnabled: d['vibration_enabled'] != 'false',
@@ -79,13 +82,12 @@ Future<void> _handleIncomingAlert(RemoteMessage message, {required bool inApp}) 
 
   await ServiceLogger.log(
     'fcm.handle',
-    'enqueueCriticalAlert done alert_id=$alertId result=$dispatch speechText="${speechText.length > 60 ? '${speechText.substring(0, 60)}...' : speechText}"',
+    'enqueueCriticalAlert done alert_id=$alertId delivery_id=$deliveryId result=$dispatch speechText="${speechText.length > 60 ? '${speechText.substring(0, 60)}...' : speechText}"',
   );
 
   // Phase 2: ack the server only after the banner is really shown (or a
   // duplicate confirms it was already shown by another isolate). If the
   // banner failed, do NOT ack — the server will retry.
-  final deliveryId = d['delivery_id'] ?? '';
   if ((dispatch == AlertDispatchResult.shown || dispatch == AlertDispatchResult.duplicate)
       && deliveryId.isNotEmpty) {
     try {

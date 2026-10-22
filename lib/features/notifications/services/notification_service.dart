@@ -37,9 +37,17 @@ Future<Map<String, dynamic>> loadMasterSettingsFromDisk() async {
 /// create (`dedup/<key>.lock`). Only one isolate can win a given key per window.
 class AlertDedup {
   static const Duration window = Duration(seconds: 20);
+  static const Duration deliveryIdWindow = Duration(minutes: 10);
+  @visibleForTesting
+  static Directory? baseDirOverride;
   static Directory? _dir;
 
   static Future<Directory> _lockDir() async {
+    if (baseDirOverride != null) {
+      final d = Directory('${baseDirOverride!.path}/dedup');
+      if (!d.existsSync()) d.createSync(recursive: true);
+      return d;
+    }
     if (_dir != null) return _dir!;
     final docs = await getApplicationDocumentsDirectory();
     final d = Directory('${docs.path}/dedup');
@@ -52,13 +60,20 @@ class AlertDedup {
     return s.length > 80 ? s.substring(0, 80) : s;
   }
 
+  static bool _isDeliveryId(String key) {
+    final clean = key.trim();
+    return RegExp(r'^[a-fA-F0-9]{32}$').hasMatch(clean) ||
+        RegExp(r'^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$').hasMatch(clean);
+  }
+
   /// true = this caller owns the alert and must show it.
-  static Future<bool> claim(String key) async {
+  static Future<bool> claim(String key, {Duration? window}) async {
+    final effectiveWindow = window ?? (_isDeliveryId(key) ? deliveryIdWindow : AlertDedup.window);
     try {
       final d = await _lockDir();
       final f = File('${d.path}/${_safe(key)}.lock');
       if (f.existsSync()) {
-        if (DateTime.now().difference(f.lastModifiedSync()) < window) {
+        if (DateTime.now().difference(f.lastModifiedSync()) < effectiveWindow) {
           return false;
         }
         f.deleteSync(); // stale lock from an earlier trigger
@@ -85,7 +100,7 @@ class AlertDedup {
 
   static void _cleanupOld(Directory d) {
     try {
-      final cutoff = DateTime.now().subtract(const Duration(minutes: 10));
+      final cutoff = DateTime.now().subtract(const Duration(minutes: 30));
       for (final e in d.listSync()) {
         if (e is File && e.lastModifiedSync().isBefore(cutoff)) e.deleteSync();
       }
@@ -342,6 +357,7 @@ class NotificationService implements NotificationServiceInterface {
     required String title,
     required String body,
     String? payload,
+    String? dedupeKey,
     String? soundName,
     double volume = 1.0,
     bool soundEnabled = true,
@@ -352,12 +368,14 @@ class NotificationService implements NotificationServiceInterface {
     bool waitForSpeech = false,
     Duration maxWait = const Duration(seconds: 12),
   }) async {
-    final dedupeKey = payload ?? '$id:$title';
+    final hasDedupeKey = dedupeKey != null && dedupeKey.trim().isNotEmpty;
+    final effectiveDedupeKey = hasDedupeKey ? dedupeKey.trim() : (payload ?? '$id:$title');
+    final claimWindow = hasDedupeKey ? AlertDedup.deliveryIdWindow : AlertDedup.window;
 
     // 1. Cross-isolate dedup. If another isolate already showed this alert,
     //    the caller should still commit the state (the other isolate did).
-    if (!await AlertDedup.claim(dedupeKey)) {
-      debugPrint('🔇 [NotificationService] duplicate suppressed: $dedupeKey');
+    if (!await AlertDedup.claim(effectiveDedupeKey, window: claimWindow)) {
+      debugPrint('🔇 [NotificationService] duplicate suppressed: $effectiveDedupeKey');
       return AlertDispatchResult.duplicate;
     }
 
@@ -366,7 +384,7 @@ class NotificationService implements NotificationServiceInterface {
     //    so the scheduler retries on the next interval.
     if (!await _areNotificationsEnabled()) {
       debugPrint('🔕 [NotificationService] notifications disabled at OS level; releasing dedup');
-      await AlertDedup.release(dedupeKey);
+      await AlertDedup.release(effectiveDedupeKey);
       return AlertDispatchResult.failed;
     }
 
@@ -394,7 +412,7 @@ class NotificationService implements NotificationServiceInterface {
       );
     } catch (e) {
       debugPrint('❌ [NotificationService] banner failed: $e');
-      await AlertDedup.release(dedupeKey); // let a retry/redelivery through
+      await AlertDedup.release(effectiveDedupeKey); // let a retry/redelivery through
       return AlertDispatchResult.failed;
     }
 
