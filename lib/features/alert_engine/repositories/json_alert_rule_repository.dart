@@ -16,6 +16,12 @@ class JsonAlertRuleRepository {
 
   bool _isLoaded = false;
 
+  /// True when alerts.json (and its .bak) could not be parsed on load.
+  /// While set, _persist() and server sync must not overwrite the on-disk
+  /// state with an empty list. A user-initiated add (saveRule / import)
+  /// clears it.
+  bool _loadFailed = false;
+
   JsonAlertRuleRepository(this._storageDirectoryPath);
 
   File get _file => File('$_storageDirectoryPath/alerts.json');
@@ -29,66 +35,118 @@ class JsonAlertRuleRepository {
 
   /// Loads all rules from JSON file into memory.
   /// If the file is missing or corrupted, starts with an empty list without crashing.
+    /// Loads all rules from JSON file into memory.
+  /// Order of attempts:
+  ///   1. alerts.json
+  ///   2. alerts.json.bak (if the main file is missing or corrupt)
+  ///   3. start empty + move the corrupt file aside to alerts_corrupt_<ts>.json
+  ///      and set _loadFailed so we never overwrite the user's data with [].
   Future<void> load() async {
-    try {
-      final file = _file;
-      if (await file.exists()) {
-        final content = await file.readAsString();
-        if (content.trim().isNotEmpty) {
-          // Backup only if Mojibake corruption is detected before repair
-          final bool hasMojibake = content.contains('Ã') ||
-              content.contains('Ø') ||
-              content.contains('Ù') ||
-              content.contains('Â');
+    _loadFailed = false;
+    final mainFile = _file;
+    final bakFile = File('${_file.path}.bak');
 
-          if (hasMojibake) {
-            try {
-              // 1. Permanent first-time original backup (never overwritten)
-              final initialBackup = File('$_storageDirectoryPath/alerts_original_corrupted.json.bak');
-              if (!await initialBackup.exists()) {
-                await file.copy(initialBackup.path);
-                debugPrint('📦 [Backup] Preserved original pre-repair backup: ${initialBackup.path}');
-              }
-              // 2. Timestamped backup
-              final ts = DateTime.now().toIso8601String().replaceAll(':', '-');
-              final timeBackup = File('$_storageDirectoryPath/alerts_backup_$ts.json');
-              await file.copy(timeBackup.path);
-              debugPrint('📦 [Backup] Created timestamped backup: ${timeBackup.path}');
-            } catch (be) {
-              debugPrint('⚠️ [Backup] Warning backing up alerts file: $be');
+    // Helper: try to parse a file and return the list of rules, or null on failure.
+    Future<List<AlertRule>?> _tryParse(File f) async {
+      try {
+        if (!await f.exists()) return null;
+        final content = await f.readAsString();
+        if (content.trim().isEmpty) return null;
+
+        // Mojibake backup (unchanged behaviour)
+        final bool hasMojibake = content.contains('Ã') ||
+            content.contains('Ø') ||
+            content.contains('Ù') ||
+            content.contains('Â');
+        if (hasMojibake && f.path == mainFile.path) {
+          try {
+            final initialBackup =
+                File('$_storageDirectoryPath/alerts_original_corrupted.json.bak');
+            if (!await initialBackup.exists()) {
+              await f.copy(initialBackup.path);
+              debugPrint('📦 [Backup] Preserved original pre-repair backup: ${initialBackup.path}');
             }
-          }
-          final dynamic decoded = jsonDecode(content);
-          if (decoded is Map<String, dynamic> && decoded['rules'] is List) {
-            final rulesList = decoded['rules'] as List<dynamic>;
-            _rules.clear();
-            for (final item in rulesList) {
-              if (item is Map<String, dynamic>) {
-                try {
-                  _rules.add(AlertRule.fromJson(item));
-                } catch (e) {
-                  debugPrint('Failed to parse rule item: $e');
-                }
-              }
-            }
-          } else if (decoded is List<dynamic>) {
-            // Backward compatibility for raw list
-            _rules.clear();
-            for (final item in decoded) {
-              if (item is Map<String, dynamic>) {
-                try {
-                  _rules.add(AlertRule.fromJson(item));
-                } catch (e) {
-                  debugPrint('Failed to parse rule item: $e');
-                }
-              }
-            }
+            final ts = DateTime.now().toIso8601String().replaceAll(':', '-');
+            final timeBackup = File('$_storageDirectoryPath/alerts_backup_$ts.json');
+            await f.copy(timeBackup.path);
+            debugPrint('📦 [Backup] Created timestamped backup: ${timeBackup.path}');
+          } catch (be) {
+            debugPrint('⚠️ [Backup] Warning backing up alerts file: $be');
           }
         }
+
+        final dynamic decoded = jsonDecode(content);
+        final List<AlertRule> parsed = <AlertRule>[];
+        if (decoded is Map<String, dynamic> && decoded['rules'] is List) {
+          for (final item in decoded['rules'] as List<dynamic>) {
+            if (item is Map<String, dynamic>) {
+              try {
+                parsed.add(AlertRule.fromJson(item));
+              } catch (e) {
+                debugPrint('Failed to parse rule item: $e');
+              }
+            }
+          }
+        } else if (decoded is List<dynamic>) {
+          for (final item in decoded) {
+            if (item is Map<String, dynamic>) {
+              try {
+                parsed.add(AlertRule.fromJson(item));
+              } catch (e) {
+                debugPrint('Failed to parse rule item: $e');
+              }
+            }
+          }
+        } else {
+          return null; // unexpected shape
+        }
+        return parsed;
+      } catch (e, stack) {
+        debugPrint('Error parsing ${f.path}: $e\n$stack');
+        return null;
       }
-    } catch (e, stack) {
-      debugPrint('Error loading alerts.json (starting fresh): $e\n$stack');
-      _rules.clear();
+    }
+
+    try {
+      // 1. Try the main file.
+      var parsed = await _tryParse(mainFile);
+      if (parsed != null) {
+        _rules
+          ..clear()
+          ..addAll(parsed);
+        return;
+      }
+
+      // 2. Try the backup.
+      final mainExists = await mainFile.exists();
+      if (mainExists) {
+        parsed = await _tryParse(bakFile);
+        if (parsed != null) {
+          debugPrint('♻️ [Repo] Recovered rules from ${bakFile.path}');
+          _rules
+            ..clear()
+            ..addAll(parsed);
+          return;
+        }
+      }
+
+      // 3. Both missing/corrupt.
+      if (mainExists) {
+        // Preserve the corrupt file for debugging, then start empty.
+        try {
+          final ts = DateTime.now()
+              .toIso8601String()
+              .replaceAll(':', '-')
+              .replaceAll('.', '-');
+          final corruptPath = '$_storageDirectoryPath/alerts_corrupt_$ts.json';
+          await mainFile.copy(corruptPath);
+          debugPrint('🚨 [Repo] alerts.json is corrupt; moved to $corruptPath');
+        } catch (ce) {
+          debugPrint('⚠️ [Repo] Could not preserve corrupt file: $ce');
+        }
+        _loadFailed = true;
+      }
+      // No file at all -> normal first run, start empty, do NOT set _loadFailed.
     } finally {
       _isLoaded = true;
       _notify();
@@ -134,6 +192,9 @@ class JsonAlertRuleRepository {
   /// Saves or updates an alert rule using its UUID and persists to disk
   Future<void> saveRule(AlertRule rule, {bool syncToServer = true}) async {
     if (!_isLoaded) await load();
+    // A user-initiated add is authoritative: clear the load-failure guard
+    // so subsequent persists/syncs are allowed again.
+    _loadFailed = false;
     final index = _rules.indexWhere((r) => r.uuid == rule.uuid);
     if (index >= 0) {
       _rules[index] = rule;
@@ -265,6 +326,8 @@ class JsonAlertRuleRepository {
       }
 
       if (importedCount > 0) {
+        // Imported rules are authoritative user data: clear the guard.
+        _loadFailed = false;
         _notify();
         await _persist();
       }
@@ -282,7 +345,11 @@ class JsonAlertRuleRepository {
     }
     NativeWidgetSyncService.syncAlerts(_rules);
     if (syncToServer) {
-      ServerAlertService.syncAllRulesToServer(_rules);
+      if (_loadFailed) {
+        debugPrint('⏸️ [Repo] Skipping server sync: load failed (local rules may be incomplete).');
+      } else {
+        ServerAlertService.syncAllRulesToServer(_rules);
+      }
     }
   }
 
@@ -300,6 +367,12 @@ class JsonAlertRuleRepository {
     }
     _isPersisting = true;
     try {
+      // Safety: never overwrite the on-disk state with an empty list while
+      // the previous load failed. A user-initiated add clears _loadFailed.
+      if (_loadFailed) {
+        debugPrint('⏸️ [Repo] Skipping _persist(): load failed, refusing to overwrite with ${_rules.length} rule(s).');
+        return;
+      }
       final payload = {
         'version': 1,
         'rules': _rules.map((r) => r.toJson()).toList(),
