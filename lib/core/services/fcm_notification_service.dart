@@ -8,6 +8,8 @@ import 'package:uuid/uuid.dart';
 
 import '../../features/notifications/services/notification_service.dart';
 import '../../features/notifications/background/background_service_manager.dart';
+import '../../features/notifications/models/alert_dispatch_result.dart';
+import 'delivery_ack_service.dart';
 import 'service_logger.dart';
 import 'tts_service.dart';
 
@@ -79,6 +81,23 @@ Future<void> _handleIncomingAlert(RemoteMessage message, {required bool inApp}) 
     'fcm.handle',
     'enqueueCriticalAlert done alert_id=$alertId result=$dispatch speechText="${speechText.length > 60 ? '${speechText.substring(0, 60)}...' : speechText}"',
   );
+
+  // Phase 2: ack the server only after the banner is really shown (or a
+  // duplicate confirms it was already shown by another isolate). If the
+  // banner failed, do NOT ack — the server will retry.
+  final deliveryId = d['delivery_id'] ?? '';
+  if ((dispatch == AlertDispatchResult.shown || dispatch == AlertDispatchResult.duplicate)
+      && deliveryId.isNotEmpty) {
+    try {
+      await DeliveryAckService.enqueueAck(deliveryId);
+      await DeliveryAckService.flush()
+          .timeout(const Duration(seconds: 5), onTimeout: () {});
+      await ServiceLogger.log('fcm.ack', 'acked delivery_id=$deliveryId');
+    } catch (e, st) {
+      // Never let an ack failure break the FCM handler.
+      await ServiceLogger.logError('fcm.ack', e, st);
+    }
+  }
 }
 
 /// Top-level FCM background handler (runs in its own short-lived isolate).
