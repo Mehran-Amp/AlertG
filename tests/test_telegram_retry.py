@@ -9,6 +9,8 @@ from app.state import METRICS
 class TestTelegramRetry(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self._orig_metrics = dict(METRICS)
+        if "telegram_sent" not in METRICS:
+            METRICS["telegram_sent"] = 0
 
     async def asyncTearDown(self):
         METRICS.clear()

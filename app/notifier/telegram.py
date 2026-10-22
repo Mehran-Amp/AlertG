@@ -64,7 +64,7 @@ async def send_telegram_alert(
             status = res.status_code
 
             if status == 200:
-                METRICS["telegram_sent"] += 1
+                METRICS["telegram_sent"] = METRICS.get("telegram_sent", 0) + 1
                 return True
 
             if status == 429:
