@@ -22,6 +22,8 @@ class _CountingClient extends http.BaseClient {
   }
 }
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('ServerAlertService sync loadFailed guard', () {
     tearDown(() {
       ServerAlertService.registerLoadFailedProvider(() => false);

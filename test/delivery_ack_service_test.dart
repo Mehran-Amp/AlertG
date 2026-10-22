@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:bitcoin_checker/core/services/delivery_ack_service.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('DeliveryAckService', () {
     late Directory tmp;
 
@@ -62,6 +64,13 @@ void main() {
       final f2 = DeliveryAckService.flush();
       await Future.wait([f1, f2]);
       expect(maxConcurrent, 1, reason: 'flush must be single-flight');
+    });
+
+    test('flush gracefully handles unexpected post exceptions', () async {
+      DeliveryAckService.postOverride = (id) async => throw Exception('network down');
+      await DeliveryAckService.enqueueAck('abc-err');
+      expect(() async => await DeliveryAckService.flush(), returnsNormally);
+      expect(File('${tmp.path}/acks/abc-err.json').existsSync(), isTrue);
     });
   });
 }

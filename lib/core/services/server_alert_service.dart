@@ -510,6 +510,7 @@ class ServerAlertService {
   }) async {
     final cleanUid = userId.trim().toLowerCase();
     if (cleanUid.isEmpty || cleanUid == 'user_default') return 0;
+    if (fcmToken != null && fcmToken.trim().isEmpty) return 0;
 
     try {
       final token = (fcmToken != null && fcmToken.isNotEmpty)

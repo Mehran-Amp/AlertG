@@ -36,6 +36,8 @@ AlertRule _createDummyRule({required String uuid}) {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('ServerAlertService 2A-4d ack_supported flag', () {
     tearDown(() {
       ServerAlertService.registerLoadFailedProvider(() => false);

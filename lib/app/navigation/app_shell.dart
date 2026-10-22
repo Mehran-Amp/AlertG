@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/localization/app_strings.dart';
-import '../../core/utils/app_lifecycle_helper.dart';
+import '../../core/services/delivery_ack_service.dart';
 import '../../core/services/server_alert_service.dart';
+import '../../core/services/service_logger.dart';
 import '../../features/notifications/pages/notification_history_page.dart';
 import '../../features/settings/pages/settings_page.dart';
 import '../../features/settings/services/settings_service.dart';
@@ -53,6 +54,15 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
       _retryServerSyncOnResume();
+      _flushPendingAcksOnResume();
+    }
+  }
+
+  Future<void> _flushPendingAcksOnResume() async {
+    try {
+      await DeliveryAckService.flush();
+    } catch (e, st) {
+      await ServiceLogger.logError('ack.resumeFlush', e, st);
     }
   }
 

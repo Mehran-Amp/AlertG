@@ -65,6 +65,8 @@ AlertRule _makeRule({required String uuid}) {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('ServerAlertService single-flight', () {
     tearDown(() {
       ServerAlertService.registerLoadFailedProvider(() => false);

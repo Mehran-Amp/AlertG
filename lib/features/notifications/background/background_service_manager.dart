@@ -6,6 +6,7 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../../core/services/delivery_ack_service.dart';
 import '../../../core/services/fcm_notification_service.dart';
 import '../../../core/services/server_alert_service.dart';
 import '../../../core/services/service_logger.dart';
@@ -278,10 +279,14 @@ class BackgroundServiceManager {
     });
 
     
-    // Periodic server sync every 60s from the service isolate.
-    // The flag file is the source of truth (each isolate has its own
-    // _syncPending), so we re-read it from disk on every tick.
+    // Periodic ack flush and server sync every 60s from the service isolate.
     Timer.periodic(const Duration(seconds: 60), (timer) async {
+      try {
+        await DeliveryAckService.flush();
+      } catch (e, st) {
+        await ServiceLogger.logError('ack.periodicFlush', e, st);
+      }
+
       try {
         final pending = await ServerAlertService.refreshSyncPending();
         if (!pending) return;
