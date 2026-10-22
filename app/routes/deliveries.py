@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException
 from app.security import API_DEP
 from app.notifier import journal
 from app.state import METRICS
-
+from app.notifier import outbox
 router = APIRouter()
 
 
@@ -20,6 +20,8 @@ async def ack_delivery(delivery_id: str):
 
     known = clean_id in journal.JOURNAL
     acked = journal.record_acked(clean_id)
+    if acked:
+        await outbox.on_delivery_acked(clean_id)
     if acked and known and journal.get_status(clean_id) == "acked":
         # Only count the first ack for this delivery.
         METRICS["fcm_acked"] = METRICS.get("fcm_acked", 0) + 1

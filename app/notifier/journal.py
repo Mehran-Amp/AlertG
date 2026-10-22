@@ -51,9 +51,11 @@ def _update_metrics() -> None:
     acked = sum(1 for e in JOURNAL.values() if e.get("state") == "acked")
     sent = sum(1 for e in JOURNAL.values() if e.get("state") == "sent")
     queued = sum(1 for e in JOURNAL.values() if e.get("state") == "queued")
+    unacked = sum(1 for e in JOURNAL.values() if e.get("state") == "unacked")
     METRICS["delivery_acked"] = acked
     METRICS["delivery_sent"] = sent
     METRICS["delivery_queued"] = queued
+    METRICS["delivery_unacked"] = unacked
     METRICS["delivery_total"] = len(JOURNAL)
 
 
@@ -118,6 +120,20 @@ def record_acked(delivery_id: str) -> bool:
     _update_metrics()
     _save_journal()
     return True
+
+
+def record_unacked(delivery_id: str) -> None:
+    """Mark a delivery as `unacked` (FCM accepted but the app never acked in time)."""
+    entry = JOURNAL.get(delivery_id)
+    if not entry:
+        return
+    if entry.get("state") == "acked":
+        return
+    entry["state"] = "unacked"
+    entry["unacked_at"] = time.time()
+    _update_metrics()
+    _save_journal()
+
 
 
 def get_status(delivery_id: str) -> str:

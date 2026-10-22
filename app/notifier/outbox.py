@@ -33,6 +33,7 @@ def _spawn(coro):
 OUTBOX_FILE = os.path.join(DATA_DIR, "fcm_outbox.json") if DATA_DIR != "." else "fcm_outbox.json"
 ALERT_PUSH_TTL_SECONDS = int(os.getenv("FCM_ALERT_TTL_SECONDS", "86400"))  # how long we keep trying + FCM stores it for an offline phone
 _OUTBOX_RETRY_DELAYS = (2, 5, 15, 30, 60, 120, 300)  # seconds; last value repeats
+ACK_WAIT_SECONDS = int(os.getenv("ACK_WAIT_SECONDS", "45"))  # Phase 2: how long to keep an ack-capable entry after FCM success
 
 def _load_outbox_from_disk() -> Dict[str, Dict[str, Any]]:
     if os.path.exists(OUTBOX_FILE):
@@ -164,6 +165,24 @@ async def _deliver_outbox_entry(eid: str) -> None:
             print(f"⌛ [Outbox] {eid[:8]} expired after {entry.get('attempts', 0)} attempts: {entry.get('last_error', '')}")
             await _save_outbox()
             return
+        # Phase 2: awaiting ack phase. Do not call FCM again; either wait or mark unacked.
+        if entry.get("phase") == "awaiting_ack":
+            due = entry.get("ack_due_at", 0)
+            if now < due:
+                # Not yet due; re-arm and return.
+                entry["next_attempt_at"] = due
+                entry["next_retry_at"] = due
+                _update_outbox_metrics()
+                await _save_outbox()
+                return
+            # Deadline passed with no ack: mark unacked and drop.
+            OUTBOX.pop(eid, None)
+            journal.record_unacked(eid)
+            METRICS["fcm_unacked"] = METRICS.get("fcm_unacked", 0) + 1
+            print(f"⌛ [Outbox] {eid[:8]} not acked within {ACK_WAIT_SECONDS}s; marked unacked")
+            _update_outbox_metrics()
+            await _save_outbox()
+            return
 
         current_token = _outbox_current_token(entry)
 
@@ -197,9 +216,23 @@ async def _deliver_outbox_entry(eid: str) -> None:
         )
         if ok:
             journal.record_sent(eid)
-            OUTBOX.pop(eid, None)
-            if entry.get("attempts", 0) > 0:
-                print(f"✅ [Outbox] {eid[:8]} delivered after {entry['attempts']} retries.")
+
+            # Phase 2: keep the entry until the app acks if the alert is ack-capable.
+            alert = next((a for a in storage.ALERTS_DB if a.id == entry.get("alert_id")), None)
+            ack_capable = bool(alert is not None and getattr(alert, "ack_supported", False))
+
+            if ack_capable:
+                entry["phase"] = "awaiting_ack"
+                entry["ack_due_at"] = now + ACK_WAIT_SECONDS
+                entry["resend_count"] = 0
+                entry["next_attempt_at"] = entry["ack_due_at"]
+                entry["next_retry_at"] = entry["ack_due_at"]
+                entry["attempts"] = 0
+                print(f"📨 [Outbox] {eid[:8]} FCM accepted; awaiting ack for {ACK_WAIT_SECONDS}s")
+            else:
+                OUTBOX.pop(eid, None)
+                if entry.get("attempts", 0) > 0:
+                    print(f"✅ [Outbox] {eid[:8]} delivered after {entry['attempts']} retries.")
         else:
             if msg in ("UNREGISTERED", "INVALID_TOKEN_FORMAT"):
                 # UNREGISTERED / INVALID_TOKEN_FORMAT: do NOT drop the entry and do NOT blank alert.fcm_token.
@@ -243,6 +276,21 @@ async def _deliver_outbox_entry(eid: str) -> None:
     finally:
         _OUTBOX_INFLIGHT.discard(eid)
 
+async def on_delivery_acked(delivery_id: str) -> bool:
+    """Phase 2: called by the ack endpoint. Removes the outbox entry.
+
+    Returns True if the entry existed and was removed.
+    """
+    if not delivery_id:
+        return False
+    entry = OUTBOX.get(delivery_id)
+    if not entry:
+        return False
+    OUTBOX.pop(delivery_id, None)
+    _update_outbox_metrics()
+    await _save_outbox()
+    return True
+
 async def outbox_worker_loop():
     """Picks up due entries (also the ones left over from before a restart)."""
     if OUTBOX:
@@ -258,7 +306,11 @@ async def outbox_worker_loop():
                     entry["blocked_token"] = None
                     entry["next_attempt_at"] = now
 
-                if eid not in _OUTBOX_INFLIGHT and entry.get("next_attempt_at", 0) <= now:
+                if eid in _OUTBOX_INFLIGHT:
+                    continue
+                if entry.get("phase") == "awaiting_ack" and now < entry.get("ack_due_at", 0):
+                    continue
+                if entry.get("next_attempt_at", 0) <= now:
                     _OUTBOX_INFLIGHT.add(eid)
                     _spawn(_deliver_outbox_entry(eid))
         except Exception as e:
