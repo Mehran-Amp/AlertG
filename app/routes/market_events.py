@@ -37,6 +37,7 @@ async def set_event_reminder(payload: dict):
     event_id = str(payload.get('event_id') or '').strip()
     cancel = bool(payload.get('cancel', False))
     chat_id = payload.get('chat_id')
+    fcm_token = payload.get('fcm_token')
 
     if not event_id:
         return {"status": "error", "message": "event_id is required"}
@@ -50,7 +51,8 @@ async def set_event_reminder(payload: dict):
         user_id=user_id,
         event_id=event_id,
         cancel=cancel,
-        chat_id=chat_id
+        chat_id=chat_id,
+        fcm_token=fcm_token
     )
     return res
 

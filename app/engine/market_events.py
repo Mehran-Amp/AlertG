@@ -11,6 +11,7 @@ from app.security import _scrub, mask_identifier
 import app.state as state
 import app.storage as storage
 from app.notifier.telegram import send_telegram_alert
+from app.notifier.outbox import enqueue_alert_push
 from app.engine.calendar import parse_event_start_utc
 
 # In-Memory Cache for Market Events (Updated every 6 hours)
@@ -306,15 +307,48 @@ def is_reminder_sent(event_id: str, chat_id: str, kind: str = "advance_30m", sta
     return key in SENT_REMINDERS
 
 
+class EventAlertStub:
+    """Lightweight stub to allow market events to route through the outbox delivery pipeline (Phase 2B-4)."""
+    def __init__(self, alert_id: str, user_id: str, fcm_token: str, telegram_chat_id: Optional[str] = None):
+        self.id = alert_id
+        self.user_id = user_id
+        self.fcm_token = fcm_token
+        self.telegram_chat_id = telegram_chat_id
+        self.ack_supported = True
+
+
+def resolve_user_fcm_token(user_id: str) -> Optional[str]:
+    """Resolves FCM token for user: first from USER_PROFILES_DB, fallback to ALERTS_DB (Phase 2B-4)."""
+    clean_uid = (user_id or "").strip().lower()
+    if not clean_uid:
+        return None
+
+    # 1. Check USER_PROFILES_DB
+    prof = storage.USER_PROFILES_DB.get(clean_uid, {})
+    prof_token = (prof.get("fcm_token") or "").strip()
+    if prof_token and not prof_token.startswith("dev_") and len(prof_token) >= 20:
+        return prof_token
+
+    # 2. Check ALERTS_DB for user's alerts
+    for a in storage.ALERTS_DB:
+        if getattr(a, "user_id", "").lower() == clean_uid:
+            tok = (getattr(a, "fcm_token", None) or "").strip()
+            if tok and not tok.startswith("dev_") and len(tok) >= 20:
+                return tok
+
+    return None
+
+
 async def check_and_dispatch_30m_advance_reminders(
     client: Optional[httpx.AsyncClient] = None,
     now_ts: Optional[float] = None
 ) -> int:
     """
-    Scans active user event reminders and sends a 30-minute advance notice (Phase 2B-3).
+    Scans active user event reminders and sends a 30-minute advance notice (Phase 2B-3 & 2B-4).
     - Window: T - 30 minutes with 1-minute tolerance (1740s <= start_utc - now_ts <= 1860s).
     - Prevents duplicates via SENT_REMINDERS (key includes start_utc).
     - Persists sent state to disk so duplicates are prevented across server restarts.
+    - Routes through enqueue_alert_push when user has an active FCM token (Phase 2B-4).
     Returns the number of reminders successfully dispatched.
     """
     if now_ts is None:
@@ -345,22 +379,49 @@ async def check_and_dispatch_30m_advance_reminders(
             continue
 
         for user_id, chat_id in list(users_map.items()):
-            if not chat_id:
-                continue
-
             # Dedup key includes start_utc so changing event time doesn't suppress new reminder
-            dedup_key = f"{event_id}:{chat_id}:advance_30m:{start_utc}"
-            if dedup_key in SENT_REMINDERS:
+            dedup_key = f"{event_id}:{user_id}:advance_30m:{start_utc}"
+            if dedup_key in SENT_REMINDERS or (chat_id and f"{event_id}:{chat_id}:advance_30m:{start_utc}" in SENT_REMINDERS):
                 continue
 
             try:
-                card_text = format_telegram_event_reminder_card(
-                    event, is_cancelled=False, is_advance_notice=True
-                )
-                if c is not None and TELEGRAM_BOT_TOKEN:
+                # 1. Telegram reminder card
+                if chat_id and c is not None and TELEGRAM_BOT_TOKEN:
+                    card_text = format_telegram_event_reminder_card(
+                        event, is_cancelled=False, is_advance_notice=True
+                    )
                     await send_telegram_alert(c, str(chat_id), card_text)
 
+                # 2. FCM Outbox push (Phase 2B-4)
+                fcm_token = resolve_user_fcm_token(user_id)
+                if fcm_token:
+                    remind_title = f"⏰ ۳۰ دقیقه تا رویداد: {event.get('title', 'Market Event')}"
+                    remind_body = f"{event.get('market', '')} • شروع در ۳۰ دقیقه! اهمیت: بالا"
+                    remind_payload = {
+                        "type": "event_advance_reminder",
+                        "event_id": str(event_id),
+                        "start_utc": str(start_utc),
+                        "category": str(event.get("category", "")),
+                        "user_id": str(user_id),
+                        "is_advance_notice": "true",
+                    }
+                    stub = EventAlertStub(
+                        alert_id=f"remind_{event_id}_{user_id}",
+                        user_id=user_id,
+                        fcm_token=fcm_token,
+                        telegram_chat_id=chat_id or None
+                    )
+                    await enqueue_alert_push(
+                        alert=stub,
+                        title=remind_title,
+                        body=remind_body,
+                        data_payload=remind_payload,
+                        fallback_chat_id=str(chat_id) if chat_id else None
+                    )
+
                 SENT_REMINDERS[dedup_key] = now_ts
+                if chat_id:
+                    SENT_REMINDERS[f"{event_id}:{chat_id}:advance_30m:{start_utc}"] = now_ts
                 save_events_state(now=now_ts)
                 dispatched_count += 1
             except Exception as e:
@@ -374,13 +435,20 @@ async def register_user_event_reminder(
     user_id: str,
     event_id: str,
     cancel: bool = False,
-    chat_id: Optional[str] = None
+    chat_id: Optional[str] = None,
+    fcm_token: Optional[str] = None
 ) -> Dict[str, Any]:
     """Registers or cancels a user's reminder for an upcoming market event and syncs with Telegram."""
     clean_uid = user_id.strip().lower()
     event = next((e for e in (MARKET_EVENTS_CACHE or CURATED_HIGH_IMPACT_CATALOG) if e.get('id') == event_id), None)
     if not event:
         return {"status": "error", "message": f"Event {event_id} not found."}
+
+    # Store FCM token in profile if provided (Phase 2B-4)
+    if fcm_token and clean_uid != 'user_default':
+        prof = storage.USER_PROFILES_DB.setdefault(clean_uid, {"user_id": clean_uid})
+        prof["fcm_token"] = str(fcm_token).strip()
+        await storage.save_user_profiles_to_disk_async(storage.USER_PROFILES_DB)
 
     # Resolve target chat_id
     target_chat = chat_id
@@ -402,10 +470,10 @@ async def register_user_event_reminder(
     # Register reminder
     if event_id not in EVENT_USER_REMINDERS:
         EVENT_USER_REMINDERS[event_id] = {}
-    if target_chat:
-        EVENT_USER_REMINDERS[event_id][clean_uid] = target_chat
+    if target_chat or fcm_token:
+        EVENT_USER_REMINDERS[event_id][clean_uid] = target_chat or ""
         save_events_state()
-        if TELEGRAM_BOT_TOKEN:
+        if target_chat and TELEGRAM_BOT_TOKEN:
             msg = format_telegram_event_reminder_card(event, is_cancelled=False)
             await send_telegram_alert(client, target_chat, msg)
 
@@ -417,15 +485,13 @@ async def register_user_event_reminder(
         "time_utc": event.get('time_utc')
     }
 
+
 async def check_and_dispatch_event_notifications(client: httpx.AsyncClient):
     """
-    Checks upcoming events and sends Telegram alerts to users who have opted into
-    events notifications in their user profile. Anti-spam tracks dispatches per user.
+    Checks upcoming events and sends Telegram and FCM alerts to users who have opted into
+    events notifications in their user profile (Phase 2B-4). Anti-spam tracks dispatches per user.
     """
-    if not TELEGRAM_BOT_TOKEN:
-        return
-
-    # 1. Dispatch 30-minute advance reminders for registered users (Phase 2B-3)
+    # 1. Dispatch 30-minute advance reminders for registered users (Phase 2B-3 & 2B-4)
     try:
         await check_and_dispatch_30m_advance_reminders(client)
     except Exception as e:
@@ -444,16 +510,18 @@ async def check_and_dispatch_event_notifications(client: httpx.AsyncClient):
         if not isinstance(prof, dict):
             continue
         chat_id = (prof.get('telegram_chat_id') or "").strip()
-        events_tg_enabled = prof.get('events_telegram_enabled', False) or prof.get('events_notification_enabled', False)
-        if not chat_id or not events_tg_enabled:
+        events_tg_enabled = prof.get('events_telegram_enabled', False)
+        events_notif_enabled = prof.get('events_notification_enabled', False)
+        if not events_tg_enabled and not events_notif_enabled:
             continue
 
-        if chat_id not in USER_DISPATCHED_EVENTS:
-            USER_DISPATCHED_EVENTS[chat_id] = set()
+        clean_uid = str(user_id).strip().lower()
+        if clean_uid not in USER_DISPATCHED_EVENTS:
+            USER_DISPATCHED_EVENTS[clean_uid] = set()
 
         for ev in high_impact_events:
             ev_id = ev.get('id')
-            if not ev_id or ev_id in USER_DISPATCHED_EVENTS[chat_id]:
+            if not ev_id or ev_id in USER_DISPATCHED_EVENTS[clean_uid]:
                 continue
 
             category = ev.get('category', '').lower()
@@ -461,13 +529,52 @@ async def check_and_dispatch_event_notifications(client: httpx.AsyncClient):
             if prof.get(cat_pref_key, True) is False:
                 continue
 
-            try:
-                msg = format_telegram_market_event_card(ev)
-                await send_telegram_alert(client, chat_id, msg)
+            # 1. Telegram dispatch (if chat_id present and telegram enabled)
+            if chat_id and (events_tg_enabled or events_notif_enabled) and TELEGRAM_BOT_TOKEN:
+                try:
+                    msg = format_telegram_market_event_card(ev)
+                    await send_telegram_alert(client, chat_id, msg)
+                    await asyncio.sleep(0.05) # Rate limit protection
+                except Exception as e:
+                    print(f"⚠️ [Event Telegram Send Error] user={mask_identifier(user_id)}: {_scrub(e)}")
+
+            # 2. FCM Outbox dispatch (Phase 2B-4: routes via outbox with delivery_id & ack)
+            if events_notif_enabled or prof.get('events_fcm_enabled', True):
+                fcm_token = resolve_user_fcm_token(clean_uid)
+                if fcm_token:
+                    try:
+                        title = f"🔔 رویداد اقتصادی: {ev.get('title', 'Market Event')}"
+                        body = f"{ev.get('market', '')} • {ev.get('time_utc', '')} | اهمیت: بالا"
+                        data_payload = {
+                            "type": "market_event",
+                            "event_id": str(ev_id),
+                            "category": str(ev.get("category", "")),
+                            "market": str(ev.get("market", "")),
+                            "time_utc": str(ev.get("time_utc", "")),
+                            "start_utc": str(ev.get("start_utc", "")),
+                            "user_id": str(clean_uid),
+                        }
+                        stub = EventAlertStub(
+                            alert_id=f"ev_{ev_id}_{clean_uid}",
+                            user_id=clean_uid,
+                            fcm_token=fcm_token,
+                            telegram_chat_id=chat_id or None
+                        )
+                        await enqueue_alert_push(
+                            alert=stub,
+                            title=title,
+                            body=body,
+                            data_payload=data_payload,
+                            fallback_chat_id=chat_id or None
+                        )
+                    except Exception as e:
+                        print(f"⚠️ [Event FCM Outbox Error] user={mask_identifier(user_id)}: {_scrub(e)}")
+
+            USER_DISPATCHED_EVENTS[clean_uid].add(ev_id)
+            if chat_id:
+                if chat_id not in USER_DISPATCHED_EVENTS:
+                    USER_DISPATCHED_EVENTS[chat_id] = set()
                 USER_DISPATCHED_EVENTS[chat_id].add(ev_id)
-                await asyncio.sleep(0.05) # Rate limit protection
-            except Exception as e:
-                print(f"⚠️ [Event Telegram Send Error] user={mask_identifier(user_id)}: {_scrub(e)}")
 
 async def refresh_market_events(client: Optional[httpx.AsyncClient] = None):
     """
