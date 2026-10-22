@@ -32,41 +32,89 @@ def get_exchange_display_name(exchange_id: str) -> str:
     }
     return mapping.get((exchange_id or '').lower(), (exchange_id or 'Market').capitalize())
 
+TELEGRAM_5XX_BACKOFF = (1.0, 3.0, 7.0)
+
 async def send_telegram_alert(
     client: httpx.AsyncClient,
     chat_id: str,
     message: str,
     bot_token: Optional[str] = None,
     reply_markup: Optional[dict] = None
-):
+) -> bool:
     token = bot_token or TELEGRAM_BOT_TOKEN
     if not token or not chat_id:
-        return
-    try:
-        url = f"https://api.telegram.org/bot{token}/sendMessage"
-        payload = {
-            "chat_id": chat_id,
-            "text": message,
-            "parse_mode": "HTML",
-            "disable_web_page_preview": True,
-            "reply_markup": reply_markup if reply_markup is not None else TELEGRAM_BOT_KEYBOARD
-        }
-        res = await client.post(url, json=payload, timeout=6.0)
-        if res.status_code == 200:
-            METRICS["telegram_sent"] += 1
-        else:
-            # If HTML parsing failed or bad request, retry as clean plain text
-            import re
-            plain_text = re.sub(r'<[^>]+>', '', message)
-            payload["parse_mode"] = None
-            payload["text"] = plain_text
-            retry_res = await client.post(url, json=payload, timeout=6.0)
-            if retry_res.status_code == 200:
+        return False
+
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    payload = {
+        "chat_id": chat_id,
+        "text": message,
+        "parse_mode": "HTML",
+        "disable_web_page_preview": True,
+        "reply_markup": reply_markup if reply_markup is not None else TELEGRAM_BOT_KEYBOARD
+    }
+
+    retried_429 = False
+    max_5xx_attempts = 3
+    attempt_5xx = 0
+
+    while True:
+        try:
+            res = await client.post(url, json=payload, timeout=6.0)
+            status = res.status_code
+
+            if status == 200:
                 METRICS["telegram_sent"] += 1
+                return True
+
+            if status == 429:
+                if not retried_429:
+                    retried_429 = True
+                    retry_after = 1.0
+                    try:
+                        data = res.json()
+                        if isinstance(data, dict):
+                            retry_after = float(data.get("parameters", {}).get("retry_after", 1.0))
+                    except Exception:
+                        pass
+                    if "retry-after" in res.headers:
+                        try:
+                            retry_after = float(res.headers["retry-after"])
+                        except Exception:
+                            pass
+                    sleep_sec = max(0.0, min(float(retry_after), 30.0))
+                    await asyncio.sleep(sleep_sec)
+                    continue
+                else:
+                    print(f"⚠️ [Telegram API 429] Rate limit persists after retry for {chat_id}")
+                    return False
+
+            if 500 <= status < 600:
+                attempt_5xx += 1
+                if attempt_5xx < max_5xx_attempts:
+                    delay = TELEGRAM_5XX_BACKOFF[attempt_5xx - 1] if attempt_5xx - 1 < len(TELEGRAM_5XX_BACKOFF) else 7.0
+                    await asyncio.sleep(delay)
+                    continue
+                else:
+                    print(f"⚠️ [Telegram API {status}] 5xx persistent error after {max_5xx_attempts} attempts for {chat_id}: {_scrub(res.text)}")
+                    return False
+
+            # Other 4xx (non-429) fail immediately without retry
+            print(f"⚠️ [Telegram API {status}] Dispatch failed (no retry) for {chat_id}: {_scrub(res.text)}")
+            return False
+
+        except (httpx.TimeoutException, httpx.RequestError) as net_err:
+            attempt_5xx += 1
+            if attempt_5xx < max_5xx_attempts:
+                delay = TELEGRAM_5XX_BACKOFF[attempt_5xx - 1] if attempt_5xx - 1 < len(TELEGRAM_5XX_BACKOFF) else 7.0
+                await asyncio.sleep(delay)
+                continue
             else:
-                print(f"⚠️ [Telegram API {res.status_code}] Dispatch failed for {chat_id}: {_scrub(res.text)}")
-    except Exception as e:
-        print(f"⚠️ [Telegram Dispatch Error] {_scrub(e)}")
+                print(f"⚠️ [Telegram Network Error] Failed after {max_5xx_attempts} attempts for {chat_id}: {_scrub(net_err)}")
+                return False
+        except Exception as e:
+            print(f"⚠️ [Telegram Dispatch Error] {_scrub(e)}")
+            return False
 
 async def notify_admin_telegram(message: str, client: Optional[httpx.AsyncClient] = None):
     """
