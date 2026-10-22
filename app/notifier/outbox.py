@@ -9,8 +9,13 @@ from app.state import METRICS
 import app.storage as storage
 from app.notifier.fcm import send_fcm_notification_async
 from app.notifier import journal
-from app.notifier.telegram import send_telegram_alert
+from app.notifier.telegram import send_telegram_alert, notify_admin_telegram
 import app.state as state
+
+# Phase 2C-3: repeated FCM auth error tracking and rate-limited admin notification
+_CONSECUTIVE_FCM_AUTH_ERRORS: int = 0
+_LAST_FCM_AUTH_ADMIN_ALERT_TS: float = 0.0
+_FCM_AUTH_ALERT_RATE_LIMIT_SECONDS: float = 1800.0  # 30 minutes
 
 # Blocked / Dead FCM Tokens: set of tokens flagged as UNREGISTERED or INVALID_TOKEN_FORMAT
 DEAD_TOKENS: Set[str] = set()
@@ -250,6 +255,8 @@ async def _deliver_outbox_entry(eid: str) -> None:
             ttl_seconds=int(entry["expires_at"] - now),
         )
         if ok:
+            global _CONSECUTIVE_FCM_AUTH_ERRORS
+            _CONSECUTIVE_FCM_AUTH_ERRORS = 0
             journal.record_sent(eid)
 
             # Phase 2: keep the entry until the app acks if the alert is ack-capable.
@@ -296,7 +303,9 @@ async def _deliver_outbox_entry(eid: str) -> None:
                 aid = entry.get("alert_id") or ""
                 print(f"⚠️ [Outbox Error] Invalid payload for alert {aid}: {msg} (retrying in {delay}s, attempt {entry['attempts']})")
             elif msg == "FCM_AUTH_ERROR":
-                # FCM_AUTH_ERROR (Phase 2C-2): retry like a transient error, METRICS["fcm_auth_error"]+=1, do NOT block the token.
+                # FCM_AUTH_ERROR (Phase 2C-2 & 2C-3): retry like a transient error, METRICS["fcm_auth_error"]+=1, do NOT block the token.
+                global _LAST_FCM_AUTH_ADMIN_ALERT_TS
+                _CONSECUTIVE_FCM_AUTH_ERRORS += 1
                 entry["attempts"] = entry.get("attempts", 0) + 1
                 delay = _OUTBOX_RETRY_DELAYS[min(entry["attempts"] - 1, len(_OUTBOX_RETRY_DELAYS) - 1)]
                 entry["next_attempt_at"] = now + delay
@@ -305,7 +314,24 @@ async def _deliver_outbox_entry(eid: str) -> None:
                 METRICS["fcm_auth_error"] = METRICS.get("fcm_auth_error", 0) + 1
                 METRICS["fcm_failed"] = METRICS.get("fcm_failed", 0) + 1
                 aid = entry.get("alert_id") or ""
-                print(f"⚠️ [Outbox Auth Error] Alert {aid}: FCM auth failed (retrying in {delay}s, attempt {entry['attempts']})")
+                print(f"⚠️ [Outbox Auth Error] Alert {aid}: FCM auth failed (consecutive: {_CONSECUTIVE_FCM_AUTH_ERRORS}, retrying in {delay}s, attempt {entry['attempts']})")
+
+                # Phase 2C-3: alert admin on 3 consecutive FCM auth errors (rate-limited to once every 30m)
+                if _CONSECUTIVE_FCM_AUTH_ERRORS >= 3:
+                    if (now - _LAST_FCM_AUTH_ADMIN_ALERT_TS) >= _FCM_AUTH_ALERT_RATE_LIMIT_SECONDS:
+                        _LAST_FCM_AUTH_ADMIN_ALERT_TS = now
+                        admin_msg = (
+                            f"🚨 <b>CRITICAL: FCM AUTH FAILURE</b>\n\n"
+                            f"<blockquote>"
+                            f"Firebase Cloud Messaging has encountered <b>{_CONSECUTIVE_FCM_AUTH_ERRORS}</b> consecutive authentication/permission errors.\n"
+                            f"Please verify Firebase project credentials and service account permissions."
+                            f"</blockquote>"
+                        )
+                        try:
+                            client = getattr(state, "http_client", None)
+                            await notify_admin_telegram(admin_msg, client=client)
+                        except Exception as admin_err:
+                            print(f"⚠️ [Outbox] Failed to notify admin: {admin_err}")
             else:
                 # Transient error (including FIREBASE_UNAVAILABLE): outbox treats it like a transient error with attempts incremented.
                 entry["attempts"] = entry.get("attempts", 0) + 1
