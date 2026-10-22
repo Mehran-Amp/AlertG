@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../features/notifications/services/notification_service.dart';
 import '../../features/notifications/background/background_service_manager.dart';
+import 'service_logger.dart';
 import 'tts_service.dart';
 
 /// Stable Android notification id derived from the server alert id, so a
@@ -30,9 +31,15 @@ Future<void> _handleIncomingAlert(RemoteMessage message, {required bool inApp}) 
   final body = d['body'] ?? message.notification?.body ?? '';
   final note = d['note'] ?? '';
 
+  await ServiceLogger.log(
+    'fcm.handle',
+    'enter inApp=$inApp alert_id=$alertId symbol=$symbol tts_enabled=${d['tts_enabled']} sound_enabled=${d['sound_enabled']} vibration_enabled=${d['vibration_enabled']}',
+  );
+
   // Reject ghost / empty pushes without real alert data.
   if (title.isEmpty && symbol.isEmpty && alertId.isEmpty) {
     debugPrint('ℹ️ [FCM] Suppressed ghost push without alert payload.');
+    await ServiceLogger.log('fcm.handle', 'suppressed ghost push (no title/symbol/alert_id)');
     return;
   }
 
@@ -54,7 +61,7 @@ Future<void> _handleIncomingAlert(RemoteMessage message, {required bool inApp}) 
   final ns = NotificationService();
   // Banner first. Master toggles / volume / sound name are resolved once,
   // inside enqueueCriticalAlert, from settings.json.
-  await ns.enqueueCriticalAlert(
+  final dispatch = await ns.enqueueCriticalAlert(
     id: _notificationIdFor(message, alertId),
     title: title.isNotEmpty ? title : '🚨 Price Alert',
     body: body,
@@ -67,21 +74,32 @@ Future<void> _handleIncomingAlert(RemoteMessage message, {required bool inApp}) 
     inAppFeedback: inApp,
     waitForSpeech: !inApp, // keep the background isolate alive while speaking
   );
+
+  await ServiceLogger.log(
+    'fcm.handle',
+    'enqueueCriticalAlert done alert_id=$alertId result=$dispatch speechText="${speechText.length > 60 ? '${speechText.substring(0, 60)}...' : speechText}"',
+  );
 }
 
 /// Top-level FCM background handler (runs in its own short-lived isolate).
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint('⚡ [FCM Background] ${message.messageId}');
+  await ServiceLogger.log('fcm.bg', 'handler entered messageId=${message.messageId}');
   try {
     await Firebase.initializeApp();
-  } catch (_) {}
+    await ServiceLogger.log('fcm.bg', 'Firebase.initializeApp OK');
+  } catch (e) {
+    await ServiceLogger.log('fcm.bg', 'Firebase.initializeApp note: $e');
+  }
   try {
     // Plugin + channels only. NO permissions, NO persistent notification 777.
     await NotificationService().initializeLight();
+    await ServiceLogger.log('fcm.bg', 'initializeLight OK');
     await _handleIncomingAlert(message, inApp: false);
-  } catch (e) {
+  } catch (e, st) {
     debugPrint('⚠️ [FCM Background] handler error: $e');
+    await ServiceLogger.logError('fcm.bg.handler', e, st);
   }
 }
 

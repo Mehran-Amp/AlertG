@@ -9,8 +9,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../models/alert_dispatch_result.dart';
 import '../../../core/services/tts_service.dart';
+import '../../../core/services/service_logger.dart';
 import 'notification_service_interface.dart';
 import '../../settings/services/sound_manager.dart';
+
 
 /// Reads persisted master settings (settings.json). Shared by every isolate.
 Future<Map<String, dynamic>> loadMasterSettingsFromDisk() async {
@@ -302,25 +304,30 @@ class NotificationService implements NotificationServiceInterface {
   Future<void> _speechChain = Future.value();
   int _pendingSpeech = 0;
 
-  Future<void> _enqueueSpeech(String text) {
+      Future<void> _enqueueSpeech(String text) {
     if (_pendingSpeech >= _maxPendingSpeech) {
       debugPrint('🔇 [NotificationService] speech queue full, skipping voice');
       return Future.value();
     }
     _pendingSpeech++;
+    ServiceLogger.log('tts.start',
+        'text="${text.length > 60 ? '${text.substring(0, 60)}...' : text}"').ignore();
     _speechChain = _speechChain.then((_) async {
       try {
         await TtsService.instance.speak(text: text);
+        await ServiceLogger.log('tts.end', 'speak OK');
         final words = text.split(RegExp(r'\s+')).length;
         final ms = (words * 280 + 2000).clamp(2800, 15000);
         await Future.delayed(Duration(milliseconds: ms));
-      } catch (e) {
+      } catch (e, st) {
         debugPrint('⚠️ [NotificationService] TTS failed: $e');
+        await ServiceLogger.logError('tts.error', e, st);
       } finally {
         _pendingSpeech--;
       }
     });
     return _speechChain;
+  
   }
 
   /// Shows the alert banner immediately, then sound/haptics/voice.
@@ -504,8 +511,10 @@ class NotificationService implements NotificationServiceInterface {
             'soundEnabled': effSound,
             'volume': volume,
           });
-        } catch (e) {
+          await ServiceLogger.log('alarm.play', 'playAlarm OK sound=$cleanSound vibrate=$effVibration');
+                } catch (e, st) {
           debugPrint('⚠️ [NotificationService] native playAlarm note: $e');
+          await ServiceLogger.logError('alarm.play.error', e, st);
           if (inAppFeedback && effSound) {
             try {
               await SoundManager().playPreset(soundName, volume: volume);
