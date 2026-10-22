@@ -5,6 +5,7 @@ import '../../exchanges/registry/exchange_registry.dart';
 import '../../notifications/models/notification_log.dart';
 import '../../notifications/repositories/notification_repository.dart';
 import '../../notifications/services/notification_service.dart';
+import '../../notifications/services/notification_service_interface.dart';
 import '../../notifications/models/alert_dispatch_result.dart';
 import '../../notifications/background/background_service_manager.dart';
 import '../../settings/services/settings_service.dart';
@@ -22,7 +23,7 @@ import '../../../core/services/tts_service.dart';
 class SchedulerService {
   final JsonAlertRuleRepository _alertRuleRepository;
   final ExchangeRegistry _exchangeRegistry;
-  final NotificationService _notificationService;
+  final NotificationServiceInterface _notificationService;
   final NotificationRepository? _notificationRepository;
   final SettingsService? _settingsService;
 
@@ -36,7 +37,7 @@ class SchedulerService {
   SchedulerService({
     required JsonAlertRuleRepository alertRuleRepository,
     required ExchangeRegistry exchangeRegistry,
-    required NotificationService notificationService,
+    required NotificationServiceInterface notificationService,
     NotificationRepository? notificationRepository,
     SettingsService? settingsService,
   })  : _alertRuleRepository = alertRuleRepository,
@@ -129,6 +130,11 @@ class SchedulerService {
     }
 
     return null;
+  }
+
+  @visibleForTesting
+  Future<bool> evaluateSingleRule(AlertRule rule, DateTime now) async {
+    return _evaluateSingleRule(rule, now);
   }
 
   Future<bool> _evaluateSingleRule(AlertRule rule, DateTime now) async {

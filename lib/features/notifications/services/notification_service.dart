@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../models/alert_dispatch_result.dart';
 import '../../../core/services/tts_service.dart';
+import 'notification_service_interface.dart';
 import '../../settings/services/sound_manager.dart';
 
 /// Reads persisted master settings (settings.json). Shared by every isolate.
@@ -96,7 +97,7 @@ class AlertDedup {
 ///  * Every alert gets its own banner immediately (no queue in front of it).
 ///  * Only voice (TTS) is serialized, with a hard cap.
 ///  * In the FCM background isolate sound/haptics come from the OS channel only.
-class NotificationService {
+class NotificationService implements NotificationServiceInterface {
   // Singleton: one queue / one plugin per isolate.
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
@@ -328,6 +329,7 @@ class NotificationService {
   ///
   /// [inAppFeedback]: false in the FCM background isolate (OS channel plays the
   /// sound; HapticFeedback/SoundManager have no Activity there).
+  @override
   Future<AlertDispatchResult> enqueueCriticalAlert({
     required int id,
     required String title,
