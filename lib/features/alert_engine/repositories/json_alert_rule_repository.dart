@@ -289,7 +289,10 @@ class JsonAlertRuleRepository {
   Completer<void>? _pendingPersist;
   bool _isPersisting = false;
 
-  /// Asynchronous atomic write: persists in-memory rules safely without file rename race conditions
+    /// Atomic write: write to `alerts.json.tmp`, back up the previous good file to
+  /// `alerts.json.bak`, then rename tmp -> alerts.json (atomic on the same filesystem).
+  /// A crash or power loss can only leave the old file intact or a complete new one;
+  /// never a half-written file.
   Future<void> _persist() async {
     if (_isPersisting) {
       _pendingPersist ??= Completer<void>();
@@ -303,16 +306,43 @@ class JsonAlertRuleRepository {
       };
       final jsonString = jsonEncode(payload);
       final targetFile = _file;
+      final tmpFile = File('${targetFile.path}.tmp');
+      final bakFile = File('${targetFile.path}.bak');
 
       // Ensure directory exists
       if (!await targetFile.parent.exists()) {
         await targetFile.parent.create(recursive: true);
       }
 
-      // Safe atomic direct flush write
-      await targetFile.writeAsString(jsonString, flush: true);
+      // 1. Write the new content to a temp file (flush to disk before rename).
+      await tmpFile.writeAsString(jsonString, flush: true);
+
+      // 2. Back up the current good file (only if it exists and parses).
+      //    If parsing fails, keep the existing .bak untouched so we never
+      //    overwrite the last known-good copy with a corrupt one.
+      if (await targetFile.exists()) {
+        try {
+          final previous = await targetFile.readAsString();
+          if (previous.trim().isNotEmpty) {
+            jsonDecode(previous); // throws if corrupt
+            await targetFile.copy(bakFile.path);
+          }
+        } catch (_) {
+          // Current file is corrupt; do not overwrite the .bak.
+        }
+      }
+
+      // 3. Atomic rename: on the same filesystem this is a single OS operation.
+      await tmpFile.rename(targetFile.path);
     } catch (e, stack) {
       debugPrint('Error persisting rules to JSON: $e\n$stack');
+      // Best-effort cleanup of a leftover tmp file.
+      try {
+        final tmpFile = File('${_file.path}.tmp');
+        if (await tmpFile.exists()) {
+          await tmpFile.delete();
+        }
+      } catch (_) {}
     } finally {
       _isPersisting = false;
       if (_pendingPersist != null) {
