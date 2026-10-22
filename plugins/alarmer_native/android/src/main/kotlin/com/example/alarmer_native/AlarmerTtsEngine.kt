@@ -27,7 +27,20 @@ object AlarmerTtsEngine : TextToSpeech.OnInitListener {
     fun init(context: Context) {
         if (tts == null) {
             try {
-                tts = TextToSpeech(context.applicationContext, this)
+                val mainLooper = android.os.Looper.getMainLooper()
+                if (mainLooper != null) {
+                    // UI + foreground service isolates: init on main looper
+                    android.os.Handler(mainLooper).post {
+                        try {
+                            if (tts == null) {
+                                tts = TextToSpeech(context.applicationContext, this)
+                            }
+                        } catch (_: Exception) {}
+                    }
+                } else {
+                    // FCM background isolate: no main looper, init directly
+                    tts = TextToSpeech(context.applicationContext, this)
+                }
             } catch (_: Exception) {}
         }
     }
@@ -58,6 +71,18 @@ object AlarmerTtsEngine : TextToSpeech.OnInitListener {
         if (text.isEmpty()) return
         acquireWakeLock(context)
         init(context)
+
+        // Wait up to 1.5s for onInit (FCM background isolate is slower to bind TTS)
+        var waited = 0
+        while ((!isReady || tts == null) && waited < 1500) {
+            try {
+                Thread.sleep(100)
+                waited += 100
+            } catch (_: Exception) {
+                break
+            }
+        }
+
         if (isReady && tts != null) {
             performSpeak(text, langCode, rate, pitch)
         } else {

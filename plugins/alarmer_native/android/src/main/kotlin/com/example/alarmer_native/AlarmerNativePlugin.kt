@@ -15,13 +15,16 @@ class AlarmerNativePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     private var context: Context? = null
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        context = binding.applicationContext
-        channel = MethodChannel(binding.binaryMessenger, "com.example.bitcoin_checker/app_lifecycle")
-        channel?.setMethodCallHandler(this)
-        context?.let { ctx ->
+    context = binding.applicationContext
+    channel = MethodChannel(binding.binaryMessenger, "com.example.bitcoin_checker/app_lifecycle")
+    channel?.setMethodCallHandler(this)
+    context?.let { ctx ->
+        // Delay TTS init slightly so the engine is fully bound in FCM isolates
+        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
             AlarmerTtsEngine.init(ctx)
-        }
+        }, 500)
     }
+}
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         channel?.setMethodCallHandler(null)
