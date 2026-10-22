@@ -330,19 +330,27 @@ async def on_delivery_acked(delivery_id: str) -> bool:
     return True
 
 async def _send_telegram_fallback(eid: str, chat_id: str, title: str, body: str) -> None:
-    """Phase 2: send the alert via Telegram when the push is never acked."""
+    """Phase 2: send a short diagnostic via Telegram when the push is never acked."""
     if journal.was_telegram_fallback_sent(eid):
         return
+    client = getattr(state, "http_client", None)
+    if client is None:
+        METRICS["telegram_fallback_failed"] = METRICS.get("telegram_fallback_failed", 0) + 1
+        print(f"⚠️ [Outbox] Telegram fallback skipped for {eid[:8]}: no http_client")
+        return
     try:
-        client = getattr(state, "http_client", None)
-        if client is None:
-            return
         journal.record_telegram_fallback_sent(eid)
-        text = f"{title}\n\n{body}\n\n(تأیید دریافت پوش نرسید)"
+        short_title = (title or "").strip()[:80]
+        text = (
+            f"⚠️ پوش آلارم «{short_title}» روی گوشی تأیید نشد. "
+            f"سلامت اعلان‌های اپ را بررسی کن."
+        )
         await send_telegram_alert(client, chat_id, text)
         METRICS["telegram_fallback_sent"] = METRICS.get("telegram_fallback_sent", 0) + 1
         print(f"📨 [Outbox] {eid[:8]} Telegram fallback sent")
     except Exception as e:
+        # Make the flag retriable: a later retry (e.g. 2C-1) can try again.
+        journal.clear_telegram_fallback_sent(eid)
         METRICS["telegram_fallback_failed"] = METRICS.get("telegram_fallback_failed", 0) + 1
         print(f"⚠️ [Outbox] Telegram fallback failed for {eid[:8]}: {e}")
 

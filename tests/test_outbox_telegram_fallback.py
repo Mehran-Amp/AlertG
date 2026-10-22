@@ -59,13 +59,15 @@ class TestOutboxTelegramFallback(unittest.IsolatedAsyncioTestCase):
             await outbox._send_telegram_fallback(eid, "99999", "Title", "Body")
         self.assertEqual(mock_tg.await_count, 1)
         self.assertTrue(journal.was_telegram_fallback_sent(eid))
+        # Short diagnostic message, not the full alert body
+        sent_text = mock_tg.await_args[0][2]
+        self.assertIn("تأیید نشد", sent_text)
+        self.assertNotIn("Body", sent_text)
 
     async def test_without_fallback_chat_does_nothing(self):
         eid = "e-tg-2"
         self._seed(eid, None)
         with patch.object(outbox, "send_telegram_alert", new_callable=AsyncMock) as mock_tg:
-            # _send_telegram_fallback is only called when fallback_chat is set;
-            # direct call with empty chat is not part of the flow.
             pass
         self.assertEqual(mock_tg.await_count, 0)
 
@@ -78,6 +80,17 @@ class TestOutboxTelegramFallback(unittest.IsolatedAsyncioTestCase):
             await outbox._send_telegram_fallback(eid, "99999", "Title", "Body")
             await outbox._send_telegram_fallback(eid, "99999", "Title", "Body")
         self.assertEqual(mock_tg.await_count, 1)
+
+    async def test_failed_send_clears_flag_for_retry(self):
+        eid = "e-tg-4"
+        self._seed(eid, "99999")
+        with patch.object(outbox, "_save_outbox", new_callable=AsyncMock), \
+             patch.object(journal, "_save_journal"), \
+             patch.object(outbox, "send_telegram_alert", new_callable=AsyncMock) as mock_tg:
+            mock_tg.side_effect = RuntimeError("telegram down")
+            await outbox._send_telegram_fallback(eid, "99999", "Title", "Body")
+        self.assertEqual(mock_tg.await_count, 1)
+        self.assertFalse(journal.was_telegram_fallback_sent(eid))
 
 
 if __name__ == "__main__":

@@ -981,7 +981,12 @@ async def notify_users_and_deactivate_delisted(delisted_symbols: List[str]) -> i
                 "status": "delisted_deactivated",
                 "nature": alert.alert_nature or "price"
             }
-            fallback_chat = (alert.telegram_chat_id or "").strip() or None
+            fallback_chat = (alert.telegram_chat_id or "").strip()
+            if not fallback_chat:
+                from app.storage import USER_PROFILES_DB
+                user_prof = USER_PROFILES_DB.get((alert.user_id or "").lower(), {})
+                fallback_chat = (user_prof.get("telegram_chat_id") or "").strip()
+            fallback_chat = fallback_chat or None
             try:
                 await enqueue_alert_push(
                     alert, title, body, payload,

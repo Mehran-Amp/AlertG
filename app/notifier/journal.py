@@ -147,6 +147,14 @@ def was_telegram_fallback_sent(delivery_id: str) -> bool:
     entry = JOURNAL.get(delivery_id)
     return bool(entry and entry.get("telegram_fallback_sent"))
 
+def clear_telegram_fallback_sent(delivery_id: str) -> None:
+    """Remove the telegram_fallback_sent flag so a retry can happen."""
+    entry = JOURNAL.get(delivery_id)
+    if not entry:
+        return
+    entry.pop("telegram_fallback_sent", None)
+    _save_journal()
+
 
 
 
