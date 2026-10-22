@@ -57,11 +57,23 @@ def _update_metrics() -> None:
     METRICS["delivery_total"] = len(JOURNAL)
 
 
+def _purge_expired(now: float) -> None:
+    """Drop entries older than JOURNAL_TTL_SECONDS (runtime cleanup)."""
+    cutoff = now - JOURNAL_TTL_SECONDS
+    expired = [
+        k for k, v in JOURNAL.items()
+        if isinstance(v, dict) and float(v.get("queued_at", now)) < cutoff
+    ]
+    for k in expired:
+        JOURNAL.pop(k, None)
+
+
 def record_queued(delivery_id: str, alert_id: str) -> None:
     """Record a delivery in the `queued` state (called before FCM send)."""
     if not delivery_id:
         return
     now = time.time()
+    _purge_expired(now)
     JOURNAL[delivery_id] = {
         "alert_id": alert_id,
         "state": "queued",
@@ -74,9 +86,15 @@ def record_queued(delivery_id: str, alert_id: str) -> None:
 
 
 def record_sent(delivery_id: str) -> None:
-    """Record that FCM accepted the push (still not acked)."""
+    """Record that FCM accepted the push (still not acked).
+
+    Only `queued -> sent` is allowed. If the app already acked before FCM's
+    callback landed, keep `acked` (do not regress).
+    """
     entry = JOURNAL.get(delivery_id)
     if not entry:
+        return
+    if entry.get("state") == "acked":
         return
     entry["state"] = "sent"
     entry["sent_at"] = time.time()
