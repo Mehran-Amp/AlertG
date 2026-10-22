@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import '../models/alert_dispatch_result.dart';
 import '../../../core/services/tts_service.dart';
 import '../../settings/services/sound_manager.dart';
 
@@ -243,6 +245,27 @@ class NotificationService {
   /// Deprecated: the foreground-service notification is owned by
   /// flutter_background_service (id 777). Kept as a no-op for old callers.
   @Deprecated('Owned by BackgroundServiceManager')
+  /// Cross-platform check: are notifications allowed at the OS level?
+  /// Uses FirebaseMessaging because it returns a unified AuthorizationStatus
+  /// on both Android (13+ POST_NOTIFICATIONS) and iOS (UNUserNotificationCenter).
+  Future<bool> _areNotificationsEnabled() async {
+    try {
+      final settings = await FirebaseMessaging.instance.getNotificationSettings();
+      switch (settings.authorizationStatus) {
+        case AuthorizationStatus.authorized:
+        case AuthorizationStatus.provisional:
+          return true;
+        case AuthorizationStatus.denied:
+          return false;
+        case AuthorizationStatus.notDetermined:
+          return true;
+      }
+    } catch (e) {
+      debugPrint('⚠️ [NotificationService] getNotificationSettings failed: $e');
+      return true;
+    }
+  }
+
   Future<void> showPersistentServiceNotification() async {}
 
   /// Runtime notification permission (UI isolate only).
@@ -305,7 +328,7 @@ class NotificationService {
   ///
   /// [inAppFeedback]: false in the FCM background isolate (OS channel plays the
   /// sound; HapticFeedback/SoundManager have no Activity there).
-  Future<void> enqueueCriticalAlert({
+  Future<AlertDispatchResult> enqueueCriticalAlert({
     required int id,
     required String title,
     required String body,
@@ -321,9 +344,21 @@ class NotificationService {
     Duration maxWait = const Duration(seconds: 12),
   }) async {
     final dedupeKey = payload ?? '$id:$title';
+
+    // 1. Cross-isolate dedup. If another isolate already showed this alert,
+    //    the caller should still commit the state (the other isolate did).
     if (!await AlertDedup.claim(dedupeKey)) {
       debugPrint('🔇 [NotificationService] duplicate suppressed: $dedupeKey');
-      return;
+      return AlertDispatchResult.duplicate;
+    }
+
+    // 2. OS-level permission check. If notifications are disabled, do not
+    //    pretend the banner was shown: release the dedup lock and report failure
+    //    so the scheduler retries on the next interval.
+    if (!await _areNotificationsEnabled()) {
+      debugPrint('🔕 [NotificationService] notifications disabled at OS level; releasing dedup');
+      await AlertDedup.release(dedupeKey);
+      return AlertDispatchResult.failed;
     }
 
     final master = await loadMasterSettingsFromDisk();
@@ -351,16 +386,18 @@ class NotificationService {
     } catch (e) {
       debugPrint('❌ [NotificationService] banner failed: $e');
       await AlertDedup.release(dedupeKey); // let a retry/redelivery through
-      return;
+      return AlertDispatchResult.failed;
     }
 
-    // 2. Voice (serialized, capped).
+    // 4. Voice (serialized, capped).
     if (effTts && speechText != null && speechText.trim().isNotEmpty) {
       final f = _enqueueSpeech(speechText);
       if (waitForSpeech) {
         await f.timeout(maxWait, onTimeout: () {});
       }
     }
+
+    return AlertDispatchResult.shown;
   }
 
   /// Posts the banner. Sound/haptics beyond the OS channel are fire-and-forget
