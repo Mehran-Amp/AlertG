@@ -293,17 +293,80 @@ EVENT_USER_REMINDERS: Dict[str, Dict[str, str]] = _init_user
 USER_DISPATCHED_EVENTS: Dict[str, set] = {}
 
 
-def mark_reminder_sent(event_id: str, chat_id: str, kind: str = "advance_30m", sent_at: Optional[float] = None) -> None:
-    """Marks a reminder as sent (key: event_id:chat_id:kind) and persists state."""
-    key = f"{event_id}:{chat_id}:{kind}"
+def mark_reminder_sent(event_id: str, chat_id: str, kind: str = "advance_30m", start_utc: Optional[int] = None, sent_at: Optional[float] = None) -> None:
+    """Marks a reminder as sent (key includes start_utc if available) and persists state."""
+    key = f"{event_id}:{chat_id}:{kind}:{start_utc}" if start_utc is not None else f"{event_id}:{chat_id}:{kind}"
     SENT_REMINDERS[key] = float(sent_at or time.time())
     save_events_state()
 
 
-def is_reminder_sent(event_id: str, chat_id: str, kind: str = "advance_30m") -> bool:
+def is_reminder_sent(event_id: str, chat_id: str, kind: str = "advance_30m", start_utc: Optional[int] = None) -> bool:
     """Returns True if this reminder was already sent."""
-    key = f"{event_id}:{chat_id}:{kind}"
+    key = f"{event_id}:{chat_id}:{kind}:{start_utc}" if start_utc is not None else f"{event_id}:{chat_id}:{kind}"
     return key in SENT_REMINDERS
+
+
+async def check_and_dispatch_30m_advance_reminders(
+    client: Optional[httpx.AsyncClient] = None,
+    now_ts: Optional[float] = None
+) -> int:
+    """
+    Scans active user event reminders and sends a 30-minute advance notice (Phase 2B-3).
+    - Window: T - 30 minutes with 1-minute tolerance (1740s <= start_utc - now_ts <= 1860s).
+    - Prevents duplicates via SENT_REMINDERS (key includes start_utc).
+    - Persists sent state to disk so duplicates are prevented across server restarts.
+    Returns the number of reminders successfully dispatched.
+    """
+    if now_ts is None:
+        now_ts = time.time()
+
+    if not EVENT_USER_REMINDERS:
+        return 0
+
+    c = client or getattr(state, "http_client", None)
+    dispatched_count = 0
+
+    events = MARKET_EVENTS_CACHE if MARKET_EVENTS_CACHE else list(CURATED_HIGH_IMPACT_CATALOG)
+    events_by_id = {e.get("id"): e for e in events if e.get("id")}
+
+    for event_id, users_map in list(EVENT_USER_REMINDERS.items()):
+        event = events_by_id.get(event_id)
+        if not event:
+            continue
+
+        start_utc = event.get("start_utc")
+        if start_utc is None:
+            # Excluded from reminders per rule 2
+            continue
+
+        remaining = start_utc - now_ts
+        # Window: T - 30 minutes with 1-minute tolerance (1800s +- 60s -> [1740, 1860])
+        if not (1740 <= remaining <= 1860):
+            continue
+
+        for user_id, chat_id in list(users_map.items()):
+            if not chat_id:
+                continue
+
+            # Dedup key includes start_utc so changing event time doesn't suppress new reminder
+            dedup_key = f"{event_id}:{chat_id}:advance_30m:{start_utc}"
+            if dedup_key in SENT_REMINDERS:
+                continue
+
+            try:
+                card_text = format_telegram_event_reminder_card(
+                    event, is_cancelled=False, is_advance_notice=True
+                )
+                if c is not None and TELEGRAM_BOT_TOKEN:
+                    await send_telegram_alert(c, str(chat_id), card_text)
+
+                SENT_REMINDERS[dedup_key] = now_ts
+                save_events_state()
+                dispatched_count += 1
+            except Exception as e:
+                print(f"⚠️ [Advance Reminder Error] event={event_id} user={user_id}: {_scrub(e)}")
+
+    return dispatched_count
 
 
 async def register_user_event_reminder(
@@ -361,6 +424,12 @@ async def check_and_dispatch_event_notifications(client: httpx.AsyncClient):
     """
     if not TELEGRAM_BOT_TOKEN:
         return
+
+    # 1. Dispatch 30-minute advance reminders for registered users (Phase 2B-3)
+    try:
+        await check_and_dispatch_30m_advance_reminders(client)
+    except Exception as e:
+        print(f"⚠️ [Advance Reminders Dispatch Error] {_scrub(e)}")
 
     events = MARKET_EVENTS_CACHE if MARKET_EVENTS_CACHE else list(CURATED_HIGH_IMPACT_CATALOG)
     if not events:
