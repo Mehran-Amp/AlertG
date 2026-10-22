@@ -462,10 +462,10 @@ class ServerAlertService {
       final response = client != null
           ? await client
               .post(url, headers: _buildHeaders(), body: jsonEncode(payload))
-              .timeout(const Duration(seconds: 10))
+              .timeout(const Duration(seconds: 30))
           : await http
               .post(url, headers: _buildHeaders(), body: jsonEncode(payload))
-              .timeout(const Duration(seconds: 10));
+              .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         _circuitBreakerUntil = null;
@@ -859,7 +859,7 @@ class ServerAlertService {
         url,
         headers: _buildHeaders(),
         body: jsonEncode(payload),
-      ).timeout(const Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         debugPrint('✅ Alert successfully created on Python server: ${utf8.decode(response.bodyBytes)}');
