@@ -42,7 +42,7 @@ class TestMarketEventsOutboxPush(unittest.IsolatedAsyncioTestCase):
             "start_utc": self.fixed_start_utc,
             "symbol": "USD"
         }
-        market_events.CURATED_HIGH_IMPACT_CATALOG.append(self.test_event)
+        market_events.MARKET_EVENTS_CACHE.append(self.test_event)
 
     async def asyncTearDown(self):
         market_events.EVENTS_STATE_FILE = self._orig_state_file

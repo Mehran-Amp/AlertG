@@ -395,8 +395,8 @@ async def check_and_dispatch_30m_advance_reminders(
                 # 2. FCM Outbox push (Phase 2B-4)
                 fcm_token = resolve_user_fcm_token(user_id)
                 if fcm_token:
-                    remind_title = f"⏰ ۳۰ دقیقه تا رویداد: {event.get('title', 'Market Event')}"
-                    remind_body = f"{event.get('market', '')} • شروع در ۳۰ دقیقه! اهمیت: بالا"
+                    remind_title = f"⏰ 30m Event Reminder: {event.get('title', 'Market Event')}"
+                    remind_body = f"{event.get('market', '')} • Starts in 30 minutes! Impact: High"
                     remind_payload = {
                         "type": "event_advance_reminder",
                         "event_id": str(event_id),
@@ -543,8 +543,8 @@ async def check_and_dispatch_event_notifications(client: httpx.AsyncClient):
                 fcm_token = resolve_user_fcm_token(clean_uid)
                 if fcm_token:
                     try:
-                        title = f"🔔 رویداد اقتصادی: {ev.get('title', 'Market Event')}"
-                        body = f"{ev.get('market', '')} • {ev.get('time_utc', '')} | اهمیت: بالا"
+                        title = f"🔔 Market Event: {ev.get('title', 'Market Event')}"
+                        body = f"{ev.get('market', '')} • {ev.get('time_utc', '')} | Impact: High"
                         data_payload = {
                             "type": "market_event",
                             "event_id": str(ev_id),
