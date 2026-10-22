@@ -236,6 +236,7 @@ async def sync_user_alerts(payload: dict):
     user_id = str(payload.get('user_id') or 'user_default').strip()
     fcm_token = str(payload.get('fcm_token') or '').strip()
     alerts_data = payload.get('alerts', [])
+    ack_supported_flag = bool(payload.get('ack_supported', False))
     if user_id == 'user_default' and len(fcm_token) <= 10:
         raise HTTPException(status_code=400, detail="user_id or a valid fcm_token is required.")
     if len(user_id) > 128 or len(fcm_token) > 512:
@@ -291,6 +292,7 @@ async def sync_user_alerts(payload: dict):
 
             alert_obj = Alert(
                 id=rule_id,
+                ack_supported=ack_supported_flag,
                 user_id=user_id,
                 exchange=item.get('exchange', 'nobitex').lower(),
                 symbol=item.get('symbol', 'USDTIRT').upper(),

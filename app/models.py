@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 class AlertCreate(BaseModel):
     id: Optional[str] = None
+    ack_supported: bool = False
     user_id: str
     exchange: str            # e.g. 'nobitex', 'wallex', 'tabdeal', 'binance', 'stocks'
     symbol: str              # e.g. 'BTCUSDT', 'USDTIRT', 'GOLD', 'DX-Y.NYB'
@@ -53,6 +54,7 @@ class Alert(AlertCreate):
 class AlertPublic(BaseModel):
     # Same as Alert but WITHOUT fcm_token (never returned to API clients)
     id: str
+    ack_supported: bool = False
     user_id: str
     exchange: str
     symbol: str
