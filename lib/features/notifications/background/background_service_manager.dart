@@ -277,6 +277,26 @@ class BackgroundServiceManager {
       }
     });
 
+    
+    // Periodic server sync every 60s from the service isolate.
+    // The flag file is the source of truth (each isolate has its own
+    // _syncPending), so we re-read it from disk on every tick.
+    Timer.periodic(const Duration(seconds: 60), (timer) async {
+      try {
+        final pending = await ServerAlertService.refreshSyncPending();
+        if (!pending) return;
+        final provider = ServerAlertService.rulesProvider;
+        if (provider == null) return;
+        final ok = await ServerAlertService.syncAllRulesToServer(provider());
+        await ServiceLogger.log(
+          'sync',
+          ok ? 'periodic sync OK' : 'periodic sync failed',
+        );
+      } catch (e, st) {
+        await ServiceLogger.logError('sync.periodic', e, st);
+      }
+    });
+
     await ServiceLogger.log('service', 'service started');
 
     service.on('stopService').listen((event) {

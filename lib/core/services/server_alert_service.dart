@@ -144,10 +144,7 @@ class ServerAlertService {
     _circuitBreakerUntil = null;
   }
 
-  static Future<bool> refreshSyncPending() async {
-  await _loadSyncFlag();
-  return _syncPending;
-}
+
 
   static bool get isServerAvailable {
     if (_circuitBreakerUntil != null && DateTime.now().isBefore(_circuitBreakerUntil!)) {
@@ -344,6 +341,14 @@ class ServerAlertService {
       final f = await _syncFlagFile();
       _syncPending = f.existsSync();
     } catch (_) {}
+  }
+
+  
+  /// Public wrapper: re-read the sync_pending.flag from disk and return
+  /// whether a sync is still pending. Used by the 60s service-isolate timer.
+  static Future<bool> refreshSyncPending() async {
+    await _loadSyncFlag();
+    return _syncPending;
   }
 
   static void _scheduleRetry() {
