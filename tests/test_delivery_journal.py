@@ -102,6 +102,7 @@ class TestDeliveryJournal(unittest.TestCase):
 
     def test_status_endpoint_reports_latency_and_unacked(self):
         from fastapi.testclient import TestClient
+        import server
         from server import app
         import app.config as config
 
@@ -111,7 +112,8 @@ class TestDeliveryJournal(unittest.TestCase):
         journal.ACK_LATENCIES.append(120)
 
         client = TestClient(app)
-        with patch.object(config, "ADMIN_KEY", "test_adm_key"):
+        with patch.object(server, "ADMIN_KEY", "test_adm_key"), \
+             patch.object(config, "ADMIN_KEY", "test_adm_key"):
             res = client.get("/api/status?format=json", headers={"X-Admin-Key": "test_adm_key"})
 
         self.assertEqual(res.status_code, 200)
