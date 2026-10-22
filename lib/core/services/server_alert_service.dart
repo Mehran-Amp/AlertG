@@ -131,6 +131,19 @@ class ServerAlertService {
   }
 
   /// Whether server calls should be attempted
+    /// Test-only hook: force the circuit breaker open for ~2 minutes so tests
+  /// can exercise the breaker path without a real network failure.
+  @visibleForTesting
+  static void tripCircuitBreakerForTesting() {
+    _circuitBreakerUntil = DateTime.now().add(const Duration(minutes: 2));
+  }
+
+  /// Test-only hook: clear the circuit breaker.
+  @visibleForTesting
+  static void resetCircuitBreakerForTesting() {
+    _circuitBreakerUntil = null;
+  }
+
   static bool get isServerAvailable {
     if (_circuitBreakerUntil != null && DateTime.now().isBefore(_circuitBreakerUntil!)) {
       return false;

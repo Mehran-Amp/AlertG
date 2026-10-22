@@ -112,14 +112,25 @@ void main() {
       expect(ServerAlertService.retryIndexForTesting, 0);
     });
 
-    test('circuit breaker keeps syncPending true and returns false', () async {
+        test('circuit breaker keeps syncPending true and returns false', () async {
       ServerAlertService.registerLoadFailedProvider(() => false);
-      ServerAlertService.setBaseUrlForTesting('https://127.0.0.1:1');
-      await ServerAlertService.fetchPriceViaServer('binance', 'BTCUSDT');
+      ServerAlertService.setBaseUrlForTesting('https://example.invalid');
+
+      // Force the breaker open deterministically (no real network needed).
+      ServerAlertService.tripCircuitBreakerForTesting();
+      expect(ServerAlertService.isServerAvailable, isFalse);
+
+      // Count requests to prove the circuit-breaker path never hits HTTP.
+      final client = _ImmediateClient();
+      ServerAlertService.httpClientForTesting = client;
 
       final ok = await ServerAlertService.syncAllRulesToServer(const []);
       expect(ok, isFalse);
       expect(ServerAlertService.syncPending, isTrue);
+      expect(client.requestCount, 0);
+
+      // Clean up: close the breaker so other tests are not affected.
+      ServerAlertService.resetCircuitBreakerForTesting();
     });
   });
 }
