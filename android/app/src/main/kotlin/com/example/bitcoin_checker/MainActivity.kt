@@ -18,7 +18,12 @@ import java.util.Locale
  * and 1-Tap Direct OEM Autostart Launchers for Xiaomi, Samsung, Huawei, Oppo, Vivo, etc.
  */
 class MainActivity : FlutterActivity() {
-    private val CHANNEL = "com.example.bitcoin_checker/app_lifecycle"
+    // Only widget/settings/activity methods live here. TTS/alarm/vibrate are
+    // handled by AlarmerNativePlugin on app_lifecycle (registered on every
+    // engine by GeneratedPluginRegistrant), so MainActivity must NOT use that
+    // channel — otherwise it overwrites the plugin handler and playAlarm/speak
+    // throw MissingPluginException.
+    private val WIDGET_CHANNEL = "com.example.bitcoin_checker/widget"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,7 +33,7 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
+            MethodChannel(flutterEngine.dartExecutor.binaryMessenger, WIDGET_CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
 
                 "sendToBackground" -> {
