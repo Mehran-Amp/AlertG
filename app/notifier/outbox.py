@@ -124,7 +124,7 @@ def on_alert_token_updated(alert_id: str, new_token: str) -> None:
         if dead_tok not in active_tokens:
             DEAD_TOKENS.discard(dead_tok)
 
-async def enqueue_alert_push(alert, title: str, body: str, data_payload: dict) -> None:
+async def enqueue_alert_push(alert, title: str, body: str, data_payload: dict, fallback_chat_id: str = None) -> None:
     token = (alert.fcm_token or "").strip()
     if not token:
         print(f"⚠️ [Outbox] Alert {alert.id} has no fcm_token, push skipped.")
@@ -143,6 +143,7 @@ async def enqueue_alert_push(alert, title: str, body: str, data_payload: dict) -
     OUTBOX[eid] = {
         "id": eid,
         "alert_id": alert.id,
+        "fallback_chat_id": (fallback_chat_id or "").strip() or None,
         "token": token,
         "title": str(title),
         "body": str(body),
