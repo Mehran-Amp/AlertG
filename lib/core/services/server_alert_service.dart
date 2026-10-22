@@ -18,6 +18,42 @@ class ServerAlertService {
   static String _apiKey = const String.fromEnvironment('API_KEY');
   static bool _initialized = false;
   static DateTime? _circuitBreakerUntil;
+  
+  /// Set to the last successful sync time (null if never).
+  static DateTime? lastSyncOk;
+
+  /// True when a sync is pending (either in flight or a flag file exists).
+  static bool get syncPending => _syncPending;
+
+  static bool _syncPending = false;
+  static bool _syncInFlight = false;
+  static bool _syncDirty = false;
+
+  static Future<File> _syncFlagFile() async {
+    final dir = await getApplicationDocumentsDirectory();
+    return File('${dir.path}/sync_pending.flag');
+  }
+
+  static Future<void> _writeSyncFlag() async {
+    try {
+      final f = await _syncFlagFile();
+      if (!f.parent.existsSync()) f.parent.createSync(recursive: true);
+      await f.writeAsString(DateTime.now().toIso8601String(), flush: true);
+      _syncPending = true;
+    } catch (e) {
+      debugPrint('⚠️ [Sync] write flag failed: $e');
+    }
+  }
+
+  static Future<void> _clearSyncFlag() async {
+    try {
+      final f = await _syncFlagFile();
+      if (f.existsSync()) await f.delete();
+      _syncPending = false;
+    } catch (e) {
+      debugPrint('⚠️ [Sync] clear flag failed: $e');
+    }
+  }
 
   /// Centralized headers builder for internal Python server endpoints
   static Map<String, String> _buildHeaders({Map<String, String>? extra}) {
@@ -177,12 +213,47 @@ class ServerAlertService {
     return 'Mehran.Aminpoor@gmail.com';
   }
 
-  /// Bulk sync all local alert rules to Python server with real FCM Token
+  /// Bulk sync all local alert rules to Python server with real FCM Token.
+  ///
+  /// Single-flight: if a sync is already running, the second caller sets
+  /// `_syncDirty` and returns immediately; when the in-flight sync finishes,
+  /// it runs once more.
+  ///
+  /// A `sync_pending.flag` file is written before the request and deleted only
+  /// on HTTP 2xx. If the process dies mid-sync, the flag survives so the next
+  /// startup can retry.
   static Future<bool> syncAllRulesToServer(List<AlertRule> rules, {String? userId}) async {
+    // Single-flight: coalesce concurrent calls.
+    if (_syncInFlight) {
+      _syncDirty = true;
+      return false;
+    }
+    _syncInFlight = true;
+    try {
+      return await _doSyncAllRulesToServer(rules, userId: userId);
+    } finally {
+      _syncInFlight = false;
+      if (_syncDirty) {
+        _syncDirty = false;
+        debugPrint('🔁 [Sync] dirty set during sync; caller should re-invoke');
+      }
+    }
+  }
+
+  static Future<bool> _doSyncAllRulesToServer(List<AlertRule> rules, {String? userId}) async {
     if (!isServerAvailable) return false;
+
+    // Write the pending flag BEFORE the request.
+    await _writeSyncFlag();
+
     try {
       final fcmToken = await FCMNotificationService.getFCMToken();
-      final activeRules = rules.where((r) => r.isActive && r.exchangeId.toLowerCase() != 'timer' && r.exchangeId.toLowerCase() != 'local').toList();
+      final activeRules = rules
+          .where((r) =>
+              r.isActive &&
+              r.exchangeId.toLowerCase() != 'timer' &&
+              r.exchangeId.toLowerCase() != 'local')
+          .toList();
 
       // Retrieve userEmail & telegram_chat_id from settings.json
       String effectiveUserId = userId ?? 'user_default';
@@ -199,7 +270,7 @@ class ServerAlertService {
           }
         }
       } catch (_) {}
-      
+
       final alertsPayload = activeRules.map((rule) {
         final effectiveTarget = rule.targetPrice ?? rule.upperTargetPrice ?? rule.lowerTargetPrice ?? 0.0;
         final conditionStr = (rule.direction == AlertDirection.below)
@@ -258,6 +329,8 @@ class ServerAlertService {
 
       if (response.statusCode == 200) {
         _circuitBreakerUntil = null;
+        lastSyncOk = DateTime.now();
+        await _clearSyncFlag();
         debugPrint('✅ All alerts successfully synced to Python server for user $effectiveUserId');
         return true;
       } else {

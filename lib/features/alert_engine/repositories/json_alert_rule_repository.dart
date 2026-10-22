@@ -21,6 +21,12 @@ class JsonAlertRuleRepository {
   /// state with an empty list. A user-initiated add (saveRule / import)
   /// clears it.
   bool _loadFailed = false;
+  
+  /// True when the last load() failed and the on-disk data must not be
+  /// overwritten with an incomplete list. ServerAlertService uses this to
+  /// skip syncing an empty list while the local data is still broken.
+  bool get loadFailed => _loadFailed;
+  
 
   JsonAlertRuleRepository(this._storageDirectoryPath);
 
