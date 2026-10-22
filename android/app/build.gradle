@@ -4,9 +4,28 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
-if (file("google-services.json").exists()) {
+// --- google-services.json guard (Step 1B) ---
+// A release build without google-services.json would ship with NO push notifications
+// and nobody would notice. Fail loudly for release/bundle; warn for debug.
+def googleServicesFile = file("google-services.json")
+def requestedTasks = gradle.startParameter.taskNames.join(" ").toLowerCase()
+def isReleaseBuild = requestedTasks ==~ /.*(release|bundle).*/
+
+if (googleServicesFile.exists()) {
     apply plugin: "com.google.gms.google-services"
+} else if (isReleaseBuild) {
+    throw new GradleException(
+            "google-services.json missing: a release build would have no push notifications. " +
+                    "Place android/app/google-services.json before building release/bundle."
+    )
+} else {
+    logger.warn("=" * 78)
+    logger.warn("WARNING: google-services.json is missing (android/app/google-services.json).")
+    logger.warn("         Push notifications will NOT work in this build.")
+    logger.warn("         This is fatal for release/bundle builds; only allowed in debug.")
+    logger.warn("=" * 78)
 }
+// --- end google-services.json guard ---
 
 android {
     namespace = "com.example.bitcoin_checker"
