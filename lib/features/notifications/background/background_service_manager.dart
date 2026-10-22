@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
@@ -7,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../../core/services/fcm_notification_service.dart';
 import '../../../core/services/server_alert_service.dart';
+import '../../../core/services/service_logger.dart';
 import '../../alert_engine/repositories/json_alert_rule_repository.dart';
 import '../../alert_engine/scheduler/scheduler_service.dart';
 import '../../exchanges/registry/exchange_catalog.dart';
@@ -24,7 +26,7 @@ class BackgroundServiceManager {
   static const int notificationId = 777;
   static bool _lastPriceFromServer = false;
 
-  /// Updates foreground persistent notification text with current price source
+  /// Updates foreground persistent notification text with current price source.
   static void updatePriceSource({required bool isFromServer, String? lang}) {
     _lastPriceFromServer = isFromServer;
     try {
@@ -33,7 +35,9 @@ class BackgroundServiceManager {
         'source': isFromServer ? 'fcm' : 'local',
         'lang': lang ?? 'fa',
       });
-    } catch (_) {}
+    } catch (e, st) {
+      ServiceLogger.logError('updatePriceSource', e, st).ignore();
+    }
   }
 
   static Future<void> initializeService() async {
@@ -42,7 +46,6 @@ class BackgroundServiceManager {
     try {
       final service = FlutterBackgroundService();
 
-      // Create low-noise, compact persistent notification channel for Android
       const AndroidNotificationChannel channel = AndroidNotificationChannel(
         notificationChannelId,
         'Alarmer Service',
@@ -56,34 +59,51 @@ class BackgroundServiceManager {
       final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
           FlutterLocalNotificationsPlugin();
 
-      await flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
-          ?.createNotificationChannel(channel);
-
-      await service.configure(
-        androidConfiguration: AndroidConfiguration(
-          onStart: onBackgroundServiceStart,
-          autoStart: true,
-          autoStartOnBoot: true,
-          isForegroundMode: true,
-          notificationChannelId: notificationChannelId,
-          initialNotificationTitle: 'SignalAlert',
-          initialNotificationContent: 'سرویس پایش ۲۴/۷ بازار فعال است • منبع: پایش محلی دستگاه',
-          foregroundServiceNotificationId: notificationId,
-        ),
-        iosConfiguration: IosConfiguration(
-          autoStart: true,
-          onForeground: onBackgroundServiceStart,
-          onBackground: onIosBackground,
-        ),
-      );
-
-      final isRunning = await service.isRunning();
-      if (!isRunning) {
-        await service.startService();
+      try {
+        await flutterLocalNotificationsPlugin
+            .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin>()
+            ?.createNotificationChannel(channel);
+      } catch (e, st) {
+        await ServiceLogger.logError('initializeService.createChannel', e, st);
       }
-    } catch (_) {}
+
+      try {
+        await service.configure(
+          androidConfiguration: AndroidConfiguration(
+            onStart: onBackgroundServiceStart,
+            autoStart: true,
+            autoStartOnBoot: true,
+            isForegroundMode: true,
+            notificationChannelId: notificationChannelId,
+            initialNotificationTitle: 'SignalAlert',
+            initialNotificationContent:
+                'سرویس پایش ۲۴/۷ بازار فعال است • منبع: پایش محلی دستگاه',
+            foregroundServiceNotificationId: notificationId,
+          ),
+          iosConfiguration: IosConfiguration(
+            autoStart: true,
+            onForeground: onBackgroundServiceStart,
+            onBackground: onIosBackground,
+          ),
+        );
+      } catch (e, st) {
+        await ServiceLogger.logError('initializeService.configure', e, st);
+        return;
+      }
+
+      try {
+        final isRunning = await service.isRunning();
+        if (!isRunning) {
+          await service.startService();
+          await ServiceLogger.log('initializeService', 'service.startService() called');
+        }
+      } catch (e, st) {
+        await ServiceLogger.logError('initializeService.startService', e, st);
+      }
+    } catch (e, st) {
+      await ServiceLogger.logError('initializeService.outer', e, st);
+    }
   }
 
   @pragma('vm:entry-point')
@@ -105,20 +125,32 @@ class BackgroundServiceManager {
         final contentText = isFa
             ? 'سرویس پایش ۲۴/۷ بازار فعال است • منبع: $sourceText'
             : '24/7 Market Monitor Active • Source: $sourceText';
-        service.setForegroundNotificationInfo(
-          title: 'SignalAlert',
-          content: contentText,
-        );
+        try {
+          service.setForegroundNotificationInfo(
+            title: 'SignalAlert',
+            content: contentText,
+          );
+        } catch (e, st) {
+          ServiceLogger.logError('setNotificationText', e, st).ignore();
+        }
       }
     }
 
     if (service is AndroidServiceInstance) {
       service.on('setAsForeground').listen((event) {
-        service.setAsForegroundService();
+        try {
+          service.setAsForegroundService();
+        } catch (e, st) {
+          ServiceLogger.logError('setAsForeground', e, st).ignore();
+        }
       });
 
       service.on('setAsBackground').listen((event) {
-        service.setAsBackgroundService();
+        try {
+          service.setAsBackgroundService();
+        } catch (e, st) {
+          ServiceLogger.logError('setAsBackground', e, st).ignore();
+        }
       });
 
       service.on('updatePriceSource').listen((event) {
@@ -130,41 +162,88 @@ class BackgroundServiceManager {
         }
       });
 
-      service.setAsForegroundService();
-      setNotificationText(false, 'fa');
+      try {
+        service.setAsForegroundService();
+        setNotificationText(false, 'fa');
+      } catch (e, st) {
+        ServiceLogger.logError('onBackgroundServiceStart.foreground', e, st).ignore();
+      }
+    }
+
+    // Each init step has its own try/catch and its own log line.
+    // The scheduler MUST start even if FCM or ServerAlertService fail.
+    final notificationService = NotificationService();
+    try {
+      await notificationService.initializeLight();
+      await ServiceLogger.log('init', 'notificationService.initializeLight OK');
+    } catch (e, st) {
+      await ServiceLogger.logError('init.notificationService', e, st);
+    }
+
+    Directory? dir;
+    try {
+      dir = await getApplicationDocumentsDirectory();
+      await ServiceLogger.log('init', 'documents dir: ${dir.path}');
+    } catch (e, st) {
+      await ServiceLogger.logError('init.documentsDir', e, st);
+      return;
+    }
+
+    final alertRuleRepository = JsonAlertRuleRepository(dir.path);
+    try {
+      await alertRuleRepository.load();
+      await ServiceLogger.log(
+          'init', 'alertRuleRepository.load OK (${alertRuleRepository.allRules.length} rules)');
+    } catch (e, st) {
+      await ServiceLogger.logError('init.alertRuleRepository', e, st);
+    }
+
+    final notificationRepository = NotificationRepository(dir.path);
+    try {
+      await notificationRepository.load();
+      await ServiceLogger.log('init', 'notificationRepository.load OK');
+    } catch (e, st) {
+      await ServiceLogger.logError('init.notificationRepository', e, st);
+    }
+
+    final settingsService = SettingsService(dir.path);
+    try {
+      await settingsService.load();
+      await ServiceLogger.log('init', 'settingsService.load OK');
+    } catch (e, st) {
+      await ServiceLogger.logError('init.settingsService', e, st);
     }
 
     try {
-      // Light init only: this isolate has no Activity, and notification 777 is
-      // owned by flutter_background_service (initialize() used to overwrite it).
-      final notificationService = NotificationService();
-      await notificationService.initializeLight();
-
-      final dir = await getApplicationDocumentsDirectory();
-      final alertRuleRepository = JsonAlertRuleRepository(dir.path);
-      await alertRuleRepository.load();
-
-      final notificationRepository = NotificationRepository(dir.path);
-      await notificationRepository.load();
-
-      final settingsService = SettingsService(dir.path);
-      await settingsService.load();
       await ServerAlertService.initialize();
+      await ServiceLogger.log('init', 'ServerAlertService.initialize OK');
+    } catch (e, st) {
+      await ServiceLogger.logError('init.serverAlertService', e, st);
+    }
 
-      // Wire FCM token rotation in background isolate as well
+    try {
       FCMNotificationService.onTokenChanged = (newToken) {
         ServerAlertService.syncAllRulesToServer(
           alertRuleRepository.allRules,
           userId: settingsService.settings.userEmail,
         );
       };
+    } catch (e, st) {
+      await ServiceLogger.logError('init.fcmOnTokenChanged', e, st);
+    }
 
-      // Initialize FCM in background isolate so FCM listener and tokens are active from boot!
+    try {
       await FCMNotificationService.initialize(
         storageDirectoryPath: dir.path,
         requestPermission: false,
       );
+      await ServiceLogger.log('init', 'FCMNotificationService.initialize OK');
+    } catch (e, st) {
+      await ServiceLogger.logError('init.fcmNotificationService', e, st);
+    }
 
+    // Scheduler: ALWAYS started, even if everything above failed.
+    try {
       final exchangeRegistry = ExchangeRegistry();
       for (final ex in ExchangeCatalog.buildAllExchanges()) {
         exchangeRegistry.register(ex);
@@ -178,22 +257,30 @@ class BackgroundServiceManager {
         settingsService: settingsService,
       );
 
-      // Start SchedulerService 24/7 internal engine
       schedulerService.start();
+      await ServiceLogger.log('init', 'schedulerService.start() called');
+    } catch (e, st) {
+      await ServiceLogger.logError('init.schedulerService', e, st);
+    }
 
-      // Periodically reload rules in case user edited them or syncer updated alerts.json
-      Timer.periodic(const Duration(seconds: 10), (timer) async {
-        try {
-          await alertRuleRepository.load();
-          if (service is AndroidServiceInstance) {
-            final hasActiveServer = ServerAlertService.isServerAvailable && FCMNotificationService.isRealFCMActive;
-            setNotificationText(_lastPriceFromServer || hasActiveServer, settingsService.settings.language);
-          }
-        } catch (_) {}
-      });
-    } catch (_) {}
+    Timer.periodic(const Duration(seconds: 10), (timer) async {
+      try {
+        await alertRuleRepository.load();
+        if (service is AndroidServiceInstance) {
+          final hasActiveServer = ServerAlertService.isServerAvailable &&
+              FCMNotificationService.isRealFCMActive;
+          setNotificationText(
+              _lastPriceFromServer || hasActiveServer, settingsService.settings.language);
+        }
+      } catch (e, st) {
+        await ServiceLogger.logError('tick.reload', e, st);
+      }
+    });
+
+    await ServiceLogger.log('service', 'service started');
 
     service.on('stopService').listen((event) {
+      ServiceLogger.log('service', 'stopService received').ignore();
       service.stopSelf();
     });
   }
