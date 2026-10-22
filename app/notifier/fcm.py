@@ -123,13 +123,14 @@ def _send_fcm_sync(fcm_token: str, title: str, body: str, data_payload: dict = N
 
         cls_name = e.__class__.__name__
         err_str = str(e).upper()
-        if (auth_types and isinstance(e, auth_types)) or cls_name in ("PermissionDeniedError", "ThirdPartyAuthError") or "PERMISSION_DENIED" in err_str:
-            print(f"❌ [FCM Auth Error] Permission / authentication failure: {e}")
-            return False, "FCM_AUTH_ERROR"
 
         if (unreg_types and isinstance(e, unreg_types)) or cls_name in ("UnregisteredError", "SenderIdMismatchError"):
             print(f"❌ [FCM Push] token no longer registered: ...{fcm_token[-6:] if fcm_token else ''}")
             return False, "UNREGISTERED"
+
+        if (auth_types and isinstance(e, auth_types)) or cls_name in ("PermissionDeniedError", "ThirdPartyAuthError") or "PERMISSION_DENIED" in err_str:
+            print(f"❌ [FCM Auth Error] Permission / authentication failure: {e}")
+            return False, "FCM_AUTH_ERROR"
 
         if (invalid_types and isinstance(e, invalid_types)) or cls_name in ("InvalidArgumentError", "InvalidPayloadError"):
             print(f"❌ [FCM Push Payload Error] {e}")
