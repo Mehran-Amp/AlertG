@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import '../../exchanges/base/models/market_ticker.dart';
 import '../../exchanges/registry/exchange_registry.dart';
 import '../../notifications/models/notification_log.dart';
 import '../../notifications/repositories/notification_repository.dart';
 import '../../notifications/services/notification_service.dart';
+import '../../notifications/models/alert_dispatch_result.dart';
 import '../../notifications/background/background_service_manager.dart';
 import '../../settings/services/settings_service.dart';
 import '../models/alert_rule.dart';
@@ -180,8 +182,11 @@ class SchedulerService {
               )
             : null;
 
-        // Use sequential alert queue so notification + sound + vibration + voice run sequentially
-        _notificationService.enqueueCriticalAlert(
+        // Use sequential alert queue so notification + sound + vibration + voice run sequentially.
+        // The result determines whether we are allowed to commit the triggered
+        // state: if the banner could not be shown, the alert must stay active
+        // so the next interval retries it.
+        final dispatch = await _notificationService.enqueueCriticalAlert(
           id: rule.uuid.hashCode,
           title: result.title,
           body: finalBody,
@@ -193,6 +198,22 @@ class SchedulerService {
           ttsEnabled: effectiveTts,
           speechText: speechText,
         );
+
+        if (dispatch == AlertDispatchResult.failed) {
+          // Banner was not shown (OS notifications disabled or plugin error).
+          // Keep the rule exactly as it was: only bump lastCheckedAt so the
+          // scheduler retries on the next interval. Do NOT write a
+          // NotificationLog, do NOT deactivate, do NOT start cooldown.
+          final retryRule = rule.copyWith(
+            lastCheckedAt: now,
+            lastCheckedPrice: ticker.lastPrice,
+            previousPrice: prevPrice,
+          );
+          await _alertRuleRepository.saveRule(retryRule, syncToServer: false);
+          NativeWidgetSyncService.syncAlerts(_alertRuleRepository.allRules);
+          debugPrint('🔁 [Scheduler] alert ${rule.uuid} not shown (failed); will retry next interval');
+          return false;
+        }
 
         // Save notification log
         if (_notificationRepository != null) {
