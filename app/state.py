@@ -30,6 +30,7 @@ METRICS: Dict[str, Any] = {
     "fcm_success": 0,
     "fcm_failed": 0,
     "fcm_invalid_token": 0,
+    "fcm_auth_error": 0,
     "outbox_blocked": 0,
     "telegram_sent": 0,
     "webhook_sent": 0,

@@ -295,6 +295,17 @@ async def _deliver_outbox_entry(eid: str) -> None:
                 METRICS["fcm_failed"] = METRICS.get("fcm_failed", 0) + 1
                 aid = entry.get("alert_id") or ""
                 print(f"⚠️ [Outbox Error] Invalid payload for alert {aid}: {msg} (retrying in {delay}s, attempt {entry['attempts']})")
+            elif msg == "FCM_AUTH_ERROR":
+                # FCM_AUTH_ERROR (Phase 2C-2): retry like a transient error, METRICS["fcm_auth_error"]+=1, do NOT block the token.
+                entry["attempts"] = entry.get("attempts", 0) + 1
+                delay = _OUTBOX_RETRY_DELAYS[min(entry["attempts"] - 1, len(_OUTBOX_RETRY_DELAYS) - 1)]
+                entry["next_attempt_at"] = now + delay
+                entry["next_retry_at"] = now + delay
+                entry["last_error"] = str(msg)
+                METRICS["fcm_auth_error"] = METRICS.get("fcm_auth_error", 0) + 1
+                METRICS["fcm_failed"] = METRICS.get("fcm_failed", 0) + 1
+                aid = entry.get("alert_id") or ""
+                print(f"⚠️ [Outbox Auth Error] Alert {aid}: FCM auth failed (retrying in {delay}s, attempt {entry['attempts']})")
             else:
                 # Transient error (including FIREBASE_UNAVAILABLE): outbox treats it like a transient error with attempts incremented.
                 entry["attempts"] = entry.get("attempts", 0) + 1
