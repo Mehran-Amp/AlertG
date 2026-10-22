@@ -1,4 +1,4 @@
-node_modules/
+﻿node_modules/
 build/
 dist/
 coverage/
@@ -18,6 +18,7 @@ android/local.properties
 # Sensitive Firebase & Service Account Keys
 serviceAccountKey.json
 *serviceAccount*.json
+android/app/google-services.json
 *.pem
 *.key
 *.patch
@@ -31,12 +32,15 @@ __pycache__/
 
 # IDE
 .idea/
+.widget_preview/
+devtools_options.yaml
 
 # Runtime data
 user_profiles.json
 fcm_outbox.json
 sync_runs.json
 *.tmp.*
+catalog.staging.json.bak
 catalog.db
 backups/
 *.tar.gz
