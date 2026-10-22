@@ -35,6 +35,7 @@ class JsonAlertRuleRepository {
   /// retries, so a scheduled retry can send the latest in-memory rules.
   void _registerForServerSync() {
     ServerAlertService.registerRulesProvider(() => allRules);
+    ServerAlertService.registerLoadFailedProvider(() => _loadFailed);
   }
 
   // ---------------------------------------------------------------------------

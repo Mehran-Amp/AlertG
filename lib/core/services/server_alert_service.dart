@@ -48,6 +48,15 @@ class ServerAlertService {
   }
 
   
+  /// Optional provider that tells us whether the local repository failed to
+  /// load. When it returns true, sync is refused: pushing an empty/incomplete
+  /// list to the server would make sync_user_alerts delete the user's alerts.
+  static bool Function()? _loadFailedProvider;
+  static void registerLoadFailedProvider(bool Function() provider) {
+    _loadFailedProvider = provider;
+  }
+
+  
   /// Public getter for the registered rules provider (used by the service
   /// isolate's 60s periodic sync and by the UI-resume sync).
   static List<AlertRule> Function()? get rulesProvider => _rulesProvider;
@@ -247,6 +256,15 @@ class ServerAlertService {
   /// on HTTP 2xx. If the process dies mid-sync, the flag survives so the next
   /// startup can retry.
   static Future<bool> syncAllRulesToServer(List<AlertRule> rules, {String? userId}) async {
+        // Guard: if the local repository failed to load, do not push an empty or
+    // incomplete list to the server. sync_user_alerts deletes alerts that are
+    // absent from the payload, so this would silently wipe the user's alerts.
+    final loadFailedProvider = _loadFailedProvider;
+    if (loadFailedProvider != null && loadFailedProvider()) {
+      debugPrint('⏸️ [Sync] skipped: local load failed');
+      return false;
+    }
+
     // Single-flight: coalesce concurrent calls.
     if (_syncInFlight) {
       _syncDirty = true;
