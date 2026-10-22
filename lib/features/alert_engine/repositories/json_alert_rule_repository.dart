@@ -30,6 +30,13 @@ class JsonAlertRuleRepository {
 
   JsonAlertRuleRepository(this._storageDirectoryPath);
 
+  
+  /// Registers this repository as the source of truth for ServerAlertService
+  /// retries, so a scheduled retry can send the latest in-memory rules.
+  void _registerForServerSync() {
+    ServerAlertService.registerRulesProvider(() => allRules);
+  }
+
   // ---------------------------------------------------------------------------
   // Cross-isolate file lock
   //
@@ -217,6 +224,7 @@ class JsonAlertRuleRepository {
       // No file at all -> normal first run, start empty, do NOT set _loadFailed.
     } finally {
       _isLoaded = true;
+      _registerForServerSync();
       _notify();
     }
   }

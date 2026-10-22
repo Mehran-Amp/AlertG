@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -24,10 +25,27 @@ class ServerAlertService {
 
   /// True when a sync is pending (either in flight or a flag file exists).
   static bool get syncPending => _syncPending;
-
+  
   static bool _syncPending = false;
   static bool _syncInFlight = false;
   static bool _syncDirty = false;
+
+
+  // Retry state (backoff 5s, 15s, 60s, 5m; cap 5m).
+  static int _retryIndex = 0;
+  static Timer? _retryTimer;
+  static final List<Duration> _retryDelays = const [
+    Duration(seconds: 5),
+    Duration(seconds: 15),
+    Duration(seconds: 60),
+    Duration(minutes: 5),
+  ];
+
+  /// The repository registers itself here so retries can send the latest rules.
+  static List<AlertRule> Function()? _rulesProvider;
+  static void registerRulesProvider(List<AlertRule> Function() provider) {
+    _rulesProvider = provider;
+  }
 
   static Future<File> _syncFlagFile() async {
     final dir = await getApplicationDocumentsDirectory();
@@ -240,6 +258,33 @@ class ServerAlertService {
     }
   }
 
+    static Future<void> _loadSyncFlag() async {
+    try {
+      final f = await _syncFlagFile();
+      _syncPending = f.existsSync();
+    } catch (_) {}
+  }
+
+  static void _scheduleRetry() {
+    _retryTimer?.cancel();
+    if (_retryIndex >= _retryDelays.length) {
+      _retryIndex = _retryDelays.length - 1;
+    }
+    final delay = _retryDelays[_retryIndex];
+    _retryIndex++;
+    debugPrint('🔁 [Sync] retry in ${delay.inSeconds}s (attempt $_retryIndex)');
+    _retryTimer = Timer(delay, () async {
+      await _loadSyncFlag();
+      if (!_syncPending) return;
+      final provider = _rulesProvider;
+      if (provider == null) {
+        debugPrint('⚠️ [Sync] no rules provider registered; cannot retry');
+        return;
+      }
+      await syncAllRulesToServer(provider());
+    });
+  }
+
   static Future<bool> _doSyncAllRulesToServer(List<AlertRule> rules, {String? userId}) async {
     if (!isServerAvailable) return false;
 
@@ -335,9 +380,11 @@ class ServerAlertService {
         return true;
       } else {
         debugPrint('❌ Sync error: ${_parseErrorMessage(response)}');
+        _scheduleRetry();
       }
     } catch (e) {
       debugPrint('⚠️ Network/Sync Exception: $e');
+      _scheduleRetry();
     }
     return false;
   }
