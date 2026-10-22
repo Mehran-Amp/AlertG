@@ -144,6 +144,11 @@ class ServerAlertService {
     _circuitBreakerUntil = null;
   }
 
+  static Future<bool> refreshSyncPending() async {
+  await _loadSyncFlag();
+  return _syncPending;
+}
+
   static bool get isServerAvailable {
     if (_circuitBreakerUntil != null && DateTime.now().isBefore(_circuitBreakerUntil!)) {
       return false;
