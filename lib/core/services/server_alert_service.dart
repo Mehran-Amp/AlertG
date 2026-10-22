@@ -47,6 +47,12 @@ class ServerAlertService {
     _rulesProvider = provider;
   }
 
+  
+  /// Public getter for the registered rules provider (used by the service
+  /// isolate's 60s periodic sync and by the UI-resume sync).
+  static List<AlertRule> Function()? get rulesProvider => _rulesProvider;
+
+
   static Future<File> _syncFlagFile() async {
     final dir = await getApplicationDocumentsDirectory();
     return File('${dir.path}/sync_pending.flag');

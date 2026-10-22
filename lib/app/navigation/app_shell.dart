@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/localization/app_strings.dart';
 import '../../core/utils/app_lifecycle_helper.dart';
+import '../../core/services/server_alert_service.dart';
 import '../../features/notifications/pages/notification_history_page.dart';
 import '../../features/settings/pages/settings_page.dart';
 import '../../features/settings/services/settings_service.dart';
@@ -19,7 +20,7 @@ class AppShell extends StatefulWidget {
   State<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> {
+class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   int _currentIndex = 1;
   final List<int> _tabHistory = [1];
 
@@ -32,11 +33,39 @@ class _AppShellState extends State<AppShell> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);          // ← این خط جدید
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         FirstLaunchOnboardingWizard.showIfNeeded(context);
       }
     });
+  }
+
+  
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      _retryServerSyncOnResume();
+    }
+  }
+
+  Future<void> _retryServerSyncOnResume() async {
+    try {
+      final provider = ServerAlertService.rulesProvider;
+      if (provider == null) return;
+      // Always push on resume: covers both the pending-flag case and the
+      // "user edited rules while offline" case.
+      await ServerAlertService.syncAllRulesToServer(provider());
+    } catch (e) {
+      debugPrint('⚠️ [Sync] resume retry failed: $e');
+    }
   }
 
   void _onTabSelected(int index) {
