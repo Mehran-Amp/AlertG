@@ -22,41 +22,15 @@ class MainActivity : FlutterActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        AlarmerTtsEngine.init(applicationContext)
+        // TTS init is handled by AlarmerNativePlugin.onAttachedToEngine,
+        // which runs on every FlutterEngine (UI + background isolates).
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
-                "speak" -> {
-                    val text = call.argument<String>("text") ?: ""
-                    val langCode = call.argument<String>("lang") ?: "en"
-                    val rate = (call.argument<Double>("rate") ?: 1.0).toFloat()
-                    val pitch = (call.argument<Double>("pitch") ?: 1.0).toFloat()
-                    AlarmerTtsEngine.speak(applicationContext, text, langCode, rate, pitch)
-                    result.success(true)
-                }
-                "stopSpeak" -> {
-                    AlarmerTtsEngine.stop()
-                    result.success(true)
-                }
-                "playAlarm" -> {
-                    val soundName = call.argument<String>("sound") ?: "alarm_siren"
-                    val vibrate = call.argument<Boolean>("vibrate") ?: true
-                    val volume = (call.argument<Double>("volume") ?: 1.0).toFloat()
-                    AlarmerAlertPlayer.playAlarm(applicationContext, soundName, vibrate, volume)
-                    result.success(true)
-                }
-                "vibrate" -> {
-                    AlarmerAlertPlayer.triggerVibration(applicationContext)
-                    result.success(true)
-                }
-                "stopAlarm" -> {
-                    AlarmerAlertPlayer.stop(applicationContext)
-                    AlarmerTtsEngine.stop()
-                    result.success(true)
-                }
+
                 "sendToBackground" -> {
                     val moved = moveTaskToBack(true)
                     result.success(moved)
