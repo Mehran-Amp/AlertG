@@ -167,5 +167,66 @@ void main() {
       expect(after.lastTriggeredAt, isNotNull);
       expect(after.triggerCount, 1);
     });
+
+    test('user edits targetPrice during evaluation without being overwritten (Phase 2D-1b)', () async {
+      await repo.load();
+      final rule = _makeOneShotRule(uuid: 'rule-concurrent-user-edit');
+      await repo.saveRule(rule, syncToServer: false);
+
+      final fakeNotif = _FakeNotificationService(AlertDispatchResult.success);
+      final fakeExchange = _FakeExchange(48000);
+      final fakeRegistry = _FakeExchangeRegistry(fakeExchange);
+
+      final scheduler = SchedulerService(
+        alertRuleRepository: repo,
+        exchangeRegistry: fakeRegistry,
+        notificationService: fakeNotif,
+      );
+
+      final staleRule = repo.allRules.firstWhere((r) => r.uuid == 'rule-concurrent-user-edit');
+
+      // Meanwhile, user updates targetPrice on disk to 45000
+      final userUpdated = staleRule.copyWith(targetPrice: 45000);
+      await repo.saveRule(userUpdated, syncToServer: false);
+
+      final now = DateTime.now();
+      await scheduler.evaluateSingleRule(staleRule, now);
+
+      // Verify on disk: targetPrice remains 45000 and lastCheckedPrice is 48000
+      await repo.load();
+      final onDisk = repo.allRules.firstWhere((r) => r.uuid == 'rule-concurrent-user-edit');
+      expect(onDisk.targetPrice, 45000);
+      expect(onDisk.lastCheckedPrice, 48000);
+    });
+
+    test('deleted rule during evaluation is not resurrected (Phase 2D-1b)', () async {
+      await repo.load();
+      final rule = _makeOneShotRule(uuid: 'rule-deleted-in-flight');
+      await repo.saveRule(rule, syncToServer: false);
+
+      final fakeNotif = _FakeNotificationService(AlertDispatchResult.success);
+      final fakeExchange = _FakeExchange(60000);
+      final fakeRegistry = _FakeExchangeRegistry(fakeExchange);
+
+      final scheduler = SchedulerService(
+        alertRuleRepository: repo,
+        exchangeRegistry: fakeRegistry,
+        notificationService: fakeNotif,
+      );
+
+      final staleRule = repo.allRules.firstWhere((r) => r.uuid == 'rule-deleted-in-flight');
+
+      // Rule is deleted while evaluation is in-flight
+      await repo.deleteRule('rule-deleted-in-flight');
+      expect(repo.allRules.any((r) => r.uuid == 'rule-deleted-in-flight'), isFalse);
+
+      final now = DateTime.now();
+      final result = await scheduler.evaluateSingleRule(staleRule, now);
+      expect(result, isFalse);
+
+      // Must NOT be resurrected on disk
+      await repo.load();
+      expect(repo.allRules.any((r) => r.uuid == 'rule-deleted-in-flight'), isFalse);
+    });
   });
 }

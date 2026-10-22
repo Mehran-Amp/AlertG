@@ -144,8 +144,11 @@ class SchedulerService {
 
       // Never process non-positive or corrupted prices
       if (ticker == null || ticker.lastPrice <= 0) {
-        final updatedRule = rule.copyWith(lastCheckedAt: now);
-        await _alertRuleRepository.saveRule(updatedRule, syncToServer: false);
+        await _alertRuleRepository.updateRule(
+          rule.uuid,
+          (current) => current.copyWith(lastCheckedAt: now),
+          syncToServer: false,
+        );
         return false;
       }
 
@@ -211,16 +214,18 @@ class SchedulerService {
           // would otherwise be delayed by an hour. Do NOT write a
           // NotificationLog, do NOT deactivate, do NOT start cooldown.
           const retryDelay = Duration(seconds: 30);
-          final retryRule = rule.copyWith(
-            // Backdate lastCheckedAt so the next tick sees it as due after
-            // retryDelay seconds (the scheduler compares against checkIntervalSeconds).
-            lastCheckedAt: now.subtract(
-              Duration(seconds: rule.checkIntervalSeconds) - retryDelay,
-            ),
-            lastCheckedPrice: ticker.lastPrice,
-            previousPrice: prevPrice,
+          final retryLastCheckedAt = now.subtract(
+            Duration(seconds: rule.checkIntervalSeconds) - retryDelay,
           );
-          await _alertRuleRepository.saveRule(retryRule, syncToServer: false);
+          await _alertRuleRepository.updateRule(
+            rule.uuid,
+            (current) => current.copyWith(
+              lastCheckedAt: retryLastCheckedAt,
+              lastCheckedPrice: ticker.lastPrice,
+              previousPrice: prevPrice,
+            ),
+            syncToServer: false,
+          );
           NativeWidgetSyncService.syncAlerts(_alertRuleRepository.allRules);
           debugPrint('🔁 [Scheduler] alert ${rule.uuid} not shown (failed); retry in ${retryDelay.inSeconds}s');
           return false;
@@ -258,10 +263,28 @@ class SchedulerService {
         _triggeredController.add(updatedRule);
       }
 
-      // 4. Save updated rule to repository (only sync to cloud server when alert state changes)
-      await _alertRuleRepository.saveRule(updatedRule, syncToServer: result.isTriggered);
-      NativeWidgetSyncService.syncAlerts(_alertRuleRepository.allRules);
-      return true;
+      // 4. Save updated rule via atomic updateRule (Phase 2D-1b)
+      // Only scheduler-owned fields are mutated on the fresh disk copy!
+      final committed = await _alertRuleRepository.updateRule(
+        rule.uuid,
+        (current) => current.copyWith(
+          lastCheckedAt: now,
+          lastCheckedPrice: ticker.lastPrice,
+          previousPrice: prevPrice,
+          isActive: result.isTriggered ? result.newIsActive : current.isActive,
+          isTriggered: result.isTriggered ? result.newIsTriggered : current.isTriggered,
+          cooldownUntil: result.isTriggered ? result.cooldownUntil : current.cooldownUntil,
+          lastTriggeredAt: result.isTriggered ? now : current.lastTriggeredAt,
+          triggerCount: result.isTriggered ? current.triggerCount + 1 : current.triggerCount,
+          basePrice: result.isTriggered ? result.newBasePrice : current.basePrice,
+          baseVolume: result.isTriggered ? result.newBaseVolume : current.baseVolume,
+        ),
+        syncToServer: result.isTriggered,
+      );
+      if (committed) {
+        NativeWidgetSyncService.syncAlerts(_alertRuleRepository.allRules);
+      }
+      return committed;
     } catch (e, st) {
       // On offline / network failure: keep the last known valid price intact in repository.
       // Log so a silent failure does not hide a real problem.

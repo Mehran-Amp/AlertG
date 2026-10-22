@@ -299,6 +299,47 @@ class JsonAlertRuleRepository {
     _notify(syncToServer: syncToServer);
   }
 
+  /// Atomically updates a rule by re-reading the latest disk state under lock,
+  /// executing [mutate] on the fresh rule instance, and persisting.
+  /// Returns `false` without saving if the rule no longer exists or if _loadFailed is active.
+  Future<bool> updateRule(
+    String uuid,
+    AlertRule Function(AlertRule current) mutate, {
+    bool syncToServer = false,
+  }) async {
+    if (!_isLoaded) await load();
+
+    if (_loadFailed) {
+      debugPrint('⏸️ [Repo] Skipping updateRule(): load failed.');
+      return false;
+    }
+
+    var updated = false;
+
+    await _withFileLock(() async {
+      await _reloadFromDiskUnderLock();
+
+      final index = _rules.indexWhere((r) => r.uuid == uuid);
+      if (index < 0) {
+        // Rule was deleted while evaluation was running; do not resurrect.
+        updated = false;
+        return;
+      }
+
+      final freshRule = _rules[index];
+      final mutatedRule = mutate(freshRule);
+      _rules[index] = mutatedRule;
+      updated = true;
+
+      await _persistRawLocked();
+    });
+
+    if (updated) {
+      _notify(syncToServer: syncToServer);
+    }
+    return updated;
+  }
+
   /// Clear all rules in local storage only (used when switching accounts/sign out without deleting from cloud server)
   Future<void> clearLocalOnly() async {
     _rules.clear();

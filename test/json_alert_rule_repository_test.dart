@@ -109,5 +109,73 @@ void main() {
           .toSet();
       expect(uuids, contains('fresh-rule'));
     });
+
+    test('4) updateRule mutates fresh disk version without losing concurrent user edit (Phase 2D-1a)', () async {
+      await repoA.load();
+      await repoB.load();
+
+      final initial = _makeRule(uuid: 'rule-race').copyWith(targetPrice: 50000);
+      await repoA.saveRule(initial, syncToServer: false);
+
+      // User in repoB updates targetPrice to 55000
+      final userEdit = initial.copyWith(targetPrice: 55000);
+      await repoB.saveRule(userEdit, syncToServer: false);
+
+      // Scheduler in repoA updates only lastCheckedPrice using updateRule
+      final updated = await repoA.updateRule(
+        'rule-race',
+        (current) => current.copyWith(lastCheckedPrice: 49500),
+        syncToServer: false,
+      );
+      expect(updated, isTrue);
+
+      // Verify on disk: targetPrice remains 55000 and lastCheckedPrice is 49500
+      await repoB.load();
+      final savedRule = repoB.allRules.firstWhere((r) => r.uuid == 'rule-race');
+      expect(savedRule.targetPrice, 55000);
+      expect(savedRule.lastCheckedPrice, 49500);
+    });
+
+    test('5) updateRule returns false when rule is deleted and does not resurrect (Phase 2D-1a)', () async {
+      await repoA.load();
+      await repoB.load();
+
+      await repoA.saveRule(_makeRule(uuid: 'rule-to-delete'), syncToServer: false);
+      expect(repoA.allRules.any((r) => r.uuid == 'rule-to-delete'), isTrue);
+
+      // User deletes rule in repoB
+      await repoB.deleteRule('rule-to-delete');
+
+      // Scheduler in repoA attempts updateRule
+      final result = await repoA.updateRule(
+        'rule-to-delete',
+        (current) => current.copyWith(lastCheckedPrice: 12345),
+        syncToServer: false,
+      );
+      expect(result, isFalse);
+
+      // Must NOT be resurrected on disk
+      await repoB.load();
+      expect(repoB.allRules.any((r) => r.uuid == 'rule-to-delete'), isFalse);
+    });
+
+    test('6) updateRule returns false and skips save when _loadFailed is true (Phase 2D-1a)', () async {
+      final mainFile = File('${tmp.path}/alerts.json');
+      await mainFile.writeAsString('{ broken json');
+
+      await repoA.load();
+      expect(repoA.loadFailed, isTrue);
+
+      final result = await repoA.updateRule(
+        'any-uuid',
+        (current) => current.copyWith(lastCheckedPrice: 12345),
+        syncToServer: false,
+      );
+      expect(result, isFalse);
+
+      final content = await mainFile.readAsString();
+      expect(content.contains('{ broken json'), isTrue,
+          reason: 'updateRule must not overwrite corrupt file when _loadFailed is active');
+    });
   });
 }
