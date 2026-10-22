@@ -24,6 +24,68 @@ class JsonAlertRuleRepository {
 
   JsonAlertRuleRepository(this._storageDirectoryPath);
 
+  // ---------------------------------------------------------------------------
+  // Cross-isolate file lock
+  //
+  // The main isolate and the background service isolate both persist the whole
+  // alerts.json list. Without a lock, one write can silently overwrite the
+  // other (lost update). We use an exclusive-create lock file:
+  //   * File.createSync(exclusive: true) throws if the lock already exists.
+  //   * A lock file older than 5s is considered stale and is removed.
+  //   * Retry every 50ms, give up after 2s.
+  // ---------------------------------------------------------------------------
+  static const _lockFileName = 'alerts.json.lock';
+  static const _staleLockMs = 5000;
+  static const _lockRetryMs = 50;
+  static const _lockTimeoutMs = 2000;
+
+  Future<T> _withFileLock<T>(Future<T> Function() action) async {
+    final lockFile = File('$_storageDirectoryPath/$_lockFileName');
+    final deadline =
+        DateTime.now().add(const Duration(milliseconds: _lockTimeoutMs));
+
+    while (true) {
+      try {
+        if (!lockFile.parent.existsSync()) {
+          lockFile.parent.createSync(recursive: true);
+        }
+        lockFile.createSync(exclusive: true);
+        break; // acquired
+      } on FileSystemException {
+        // Lock exists. Check if it is stale.
+        try {
+          if (lockFile.existsSync()) {
+            final ageMs =
+                DateTime.now().difference(lockFile.statSync().modified).inMilliseconds;
+            if (ageMs > _staleLockMs) {
+              try {
+                lockFile.deleteSync();
+              } catch (_) {}
+              continue;
+            }
+          }
+        } catch (_) {}
+
+        if (DateTime.now().isAfter(deadline)) {
+          throw TimeoutException(
+            'Could not acquire $_lockFileName within ${_lockTimeoutMs}ms',
+          );
+        }
+        await Future<void>.delayed(const Duration(milliseconds: _lockRetryMs));
+      }
+    }
+
+    try {
+      return await action();
+    } finally {
+      try {
+        if (lockFile.existsSync()) {
+          lockFile.deleteSync();
+        }
+      } catch (_) {}
+    }
+  }
+
   File get _file => File('$_storageDirectoryPath/alerts.json');
 
   /// Read-only snapshot of current in-memory rules
@@ -169,10 +231,18 @@ class JsonAlertRuleRepository {
     if (oldIndex < newIndex) {
       newIndex -= 1;
     }
-    final rule = _rules.removeAt(oldIndex);
-    _rules.insert(newIndex, rule);
+
+    await _withFileLock(() async {
+      await _reloadFromDiskUnderLock();
+      // Re-validate indexes against the re-read list.
+      if (oldIndex < 0 || oldIndex >= _rules.length) return;
+      final effectiveNew = newIndex > _rules.length ? _rules.length : newIndex;
+      final rule = _rules.removeAt(oldIndex);
+      _rules.insert(effectiveNew, rule);
+      await _persistRawLocked();
+    });
+
     _notify();
-    await _persist();
   }
 
   /// Fetches all active rules for a specific exchange and market symbol
@@ -195,14 +265,23 @@ class JsonAlertRuleRepository {
     // A user-initiated add is authoritative: clear the load-failure guard
     // so subsequent persists/syncs are allowed again.
     _loadFailed = false;
-    final index = _rules.indexWhere((r) => r.uuid == rule.uuid);
-    if (index >= 0) {
-      _rules[index] = rule;
-    } else {
-      _rules.add(rule);
-    }
+
+    await _withFileLock(() async {
+      // Re-read the file under the lock so we never overwrite another
+      // isolate's just-written rule.
+      await _reloadFromDiskUnderLock();
+
+      final index = _rules.indexWhere((r) => r.uuid == rule.uuid);
+      if (index >= 0) {
+        _rules[index] = rule;
+      } else {
+        _rules.add(rule);
+      }
+
+      await _persistRawLocked();
+    });
+
     _notify(syncToServer: syncToServer);
-    await _persist();
   }
 
   /// Clear all rules in local storage only (used when switching accounts/sign out without deleting from cloud server)
@@ -215,12 +294,20 @@ class JsonAlertRuleRepository {
   /// Deletes an alert rule by UUID and persists to disk
   Future<bool> deleteRule(String uuid) async {
     if (!_isLoaded) await load();
-    final initialLength = _rules.length;
-    _rules.removeWhere((r) => r.uuid == uuid);
-    final removed = _rules.length < initialLength;
+    var removed = false;
+
+    await _withFileLock(() async {
+      await _reloadFromDiskUnderLock();
+      final initialLength = _rules.length;
+      _rules.removeWhere((r) => r.uuid == uuid);
+      removed = _rules.length < initialLength;
+      if (removed) {
+        await _persistRawLocked();
+      }
+    });
+
     if (removed) {
       _notify();
-      await _persist();
       // Remove from Python server immediately to stop monitoring
       ServerAlertService.deleteAlertFromServer(uuid).ignore();
     }
@@ -427,6 +514,85 @@ class JsonAlertRuleRepository {
           if (!(next?.isCompleted ?? true)) next?.completeError(e);
         });
       }
+    }
+  }
+
+    /// Re-reads alerts.json into memory while the file lock is held.
+  /// If the file is missing or corrupt, memory is left unchanged so the
+  /// caller's in-memory rule is not lost.
+  Future<void> _reloadFromDiskUnderLock() async {
+    try {
+      final f = _file;
+      if (!await f.exists()) return;
+      final content = await f.readAsString();
+      if (content.trim().isEmpty) return;
+      final dynamic decoded = jsonDecode(content);
+      final List<AlertRule> parsed = <AlertRule>[];
+      if (decoded is Map<String, dynamic> && decoded['rules'] is List) {
+        for (final item in decoded['rules'] as List<dynamic>) {
+          if (item is Map<String, dynamic>) {
+            try {
+              parsed.add(AlertRule.fromJson(item));
+            } catch (_) {}
+          }
+        }
+      } else if (decoded is List<dynamic>) {
+        for (final item in decoded) {
+          if (item is Map<String, dynamic>) {
+            try {
+              parsed.add(AlertRule.fromJson(item));
+            } catch (_) {}
+          }
+        }
+      } else {
+        return;
+      }
+      _rules
+        ..clear()
+        ..addAll(parsed);
+    } catch (e) {
+      debugPrint('⚠️ [Repo] _reloadFromDiskUnderLock failed (keeping memory): $e');
+    }
+  }
+
+  /// Writes the in-memory rules to disk without acquiring the lock again.
+  /// Must only be called while the file lock is held.
+  Future<void> _persistRawLocked() async {
+    try {
+      final payload = {
+        'version': 1,
+        'rules': _rules.map((r) => r.toJson()).toList(),
+      };
+      final jsonString = jsonEncode(payload);
+      final targetFile = _file;
+      final tmpFile = File('${targetFile.path}.tmp');
+      final bakFile = File('${targetFile.path}.bak');
+
+      if (!await targetFile.parent.exists()) {
+        await targetFile.parent.create(recursive: true);
+      }
+
+      await tmpFile.writeAsString(jsonString, flush: true);
+
+      if (await targetFile.exists()) {
+        try {
+          final previous = await targetFile.readAsString();
+          if (previous.trim().isNotEmpty) {
+            jsonDecode(previous);
+            await targetFile.copy(bakFile.path);
+          }
+        } catch (_) {}
+      }
+
+      await tmpFile.rename(targetFile.path);
+    } catch (e, stack) {
+      debugPrint('Error persisting rules (locked): $e\n$stack');
+      try {
+        final tmpFile = File('${_file.path}.tmp');
+        if (await tmpFile.exists()) {
+          await tmpFile.delete();
+        }
+      } catch (_) {}
     }
   }
 
