@@ -44,6 +44,8 @@ catalog.staging.json.bak
 catalog.db
 backups/
 *.tar.gz
+logcat*.txt
+logcat_*.txt
 tmp/
 
 # Flutter Generated Plugin Registrant

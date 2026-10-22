@@ -1,4 +1,4 @@
-package com.example.bitcoin_checker
+package com.example.alarmer_native
 
 import android.content.Context
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -6,12 +6,11 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
 /**
- * FlutterPlugin that attaches the com.example.bitcoin_checker/app_lifecycle channel
- * to every FlutterEngine instance (both Main UI isolate and Background FCM isolate).
- * Allows Background Services, FCM isolates, and Foreground UI to execute native
- * TTS voice speech, audible alarms, and hardware vibration independently of MainActivity.
+ * Registers the com.example.bitcoin_checker/app_lifecycle channel on every
+ * FlutterEngine (main UI, FCM background, foreground service). This is what
+ * MainActivity used to do, but only for its own engine.
  */
-class AlarmerAppLifecyclePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
+class AlarmerNativePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     private var channel: MethodChannel? = null
     private var context: Context? = null
 

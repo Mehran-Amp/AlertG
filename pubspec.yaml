@@ -11,6 +11,9 @@ dependencies:
   flutter:
     sdk: flutter
 
+  alarmer_native:
+    path: plugins/alarmer_native
+
   # --- 1. State Management ---
   flutter_bloc: 8.1.6
   equatable: 2.0.7
@@ -28,7 +31,7 @@ dependencies:
   firebase_messaging: ^15.1.3
 
   # --- 5. Background Execution & Services ---
-  flutter_background_service: 5.0.10
+  flutter_background_service: ^5.1.0
 
   # --- 6. Platform Permissions (Android 14+ / iOS) ---
   permission_handler: 11.3.1

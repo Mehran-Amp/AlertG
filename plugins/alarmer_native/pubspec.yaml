@@ -1,0 +1,19 @@
+name: alarmer_native
+description: Native TTS, alarm, and vibration handlers for Alarmer (registered on every FlutterEngine).
+version: 1.0.0
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.5.0 <4.0.0'
+  flutter: '>=3.24.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.example.alarmer_native
+        pluginClass: AlarmerNativePlugin
