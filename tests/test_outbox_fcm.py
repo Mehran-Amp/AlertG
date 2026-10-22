@@ -14,6 +14,7 @@ import unittest
 import time
 import os
 import json
+import tempfile
 from unittest.mock import AsyncMock, patch, MagicMock
 
 for mod in [
@@ -175,7 +176,7 @@ class TestOutboxFCM(unittest.IsolatedAsyncioTestCase):
                 "title": "Fresh Alert"
             }
         }
-        test_file = "/tmp/test_fcm_outbox_load.json"
+        test_file = os.path.join(tempfile.gettempdir(), "test_fcm_outbox_load.json")
         with open(test_file, "w", encoding="utf-8") as f:
             json.dump(sample_data, f)
 
