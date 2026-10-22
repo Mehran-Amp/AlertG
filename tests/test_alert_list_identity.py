@@ -15,6 +15,7 @@ import asyncio
 from unittest.mock import AsyncMock, patch
 
 import app.storage as storage
+import app.state as state
 from app.models import Alert
 from app.routes.alerts import sync_user_alerts, clear_all_alerts, delete_alert
 from app.engine import checker, sync
@@ -27,6 +28,8 @@ class TestAlertListIdentity(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self._orig_alerts = list(storage.ALERTS_DB)
         self._orig_profiles = dict(storage.USER_PROFILES_DB)
+        self._orig_http_client = state.http_client
+        state.http_client = AsyncMock()
         storage.ALERTS_DB.clear()
         self._disk_patch = patch("app.storage.save_alerts_to_disk_async", new_callable=AsyncMock)
         self._disk_patch.start()
@@ -36,6 +39,7 @@ class TestAlertListIdentity(unittest.IsolatedAsyncioTestCase):
             self._disk_patch.stop()
         except Exception:
             pass
+        state.http_client = self._orig_http_client
         storage.ALERTS_DB.clear()
         storage.ALERTS_DB.extend(self._orig_alerts)
         storage.USER_PROFILES_DB.clear()
@@ -113,7 +117,8 @@ class TestAlertListIdentity(unittest.IsolatedAsyncioTestCase):
         self.assertIsNotNone(synced_alert)
 
         # 1. Evaluate at 99 -> does not trigger
-        with patch("app.engine.checker.get_cached_price", new_callable=AsyncMock) as mock_price, \
+        with patch("app.engine.checker.is_market_open", return_value=True), \
+             patch("app.engine.checker.get_cached_price", new_callable=AsyncMock) as mock_price, \
              patch("app.engine.checker.enqueue_alert_push", new_callable=AsyncMock) as mock_push:
             mock_price.return_value = 99.0
             await check_alerts_job()
