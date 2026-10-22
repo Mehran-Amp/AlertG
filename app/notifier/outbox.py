@@ -8,6 +8,7 @@ from app.config import DATA_DIR
 from app.state import METRICS
 import app.storage as storage
 from app.notifier.fcm import send_fcm_notification_async
+from app.notifier import journal
 
 # Blocked / Dead FCM Tokens: set of tokens flagged as UNREGISTERED or INVALID_TOKEN_FORMAT
 DEAD_TOKENS: Set[str] = set()
@@ -120,8 +121,10 @@ async def enqueue_alert_push(alert, title: str, body: str, data_payload: dict) -
         return
     now = time.time()
     eid = uuid.uuid4().hex
+    delivery_id = eid
     data = {k: ("" if v is None else str(v)) for k, v in (data_payload or {}).items()}
     data["triggered_at"] = str(int(now * 1000))
+    data["delivery_id"] = delivery_id
 
     is_dead = token in DEAD_TOKENS
     blocked_token = token if is_dead else None
@@ -143,6 +146,7 @@ async def enqueue_alert_push(alert, title: str, body: str, data_payload: dict) -
         "blocked_token": blocked_token,
     }
     _update_outbox_metrics()
+    journal.record_queued(delivery_id, alert.id)
     await _save_outbox()                      # durable first...
     if not is_dead:
         _OUTBOX_INFLIGHT.add(eid)
@@ -192,6 +196,7 @@ async def _deliver_outbox_entry(eid: str) -> None:
             ttl_seconds=int(entry["expires_at"] - now),
         )
         if ok:
+            journal.record_sent(eid)
             OUTBOX.pop(eid, None)
             if entry.get("attempts", 0) > 0:
                 print(f"✅ [Outbox] {eid[:8]} delivered after {entry['attempts']} retries.")
