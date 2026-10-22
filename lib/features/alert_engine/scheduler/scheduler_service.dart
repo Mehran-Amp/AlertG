@@ -207,17 +207,22 @@ class SchedulerService {
 
         if (dispatch == AlertDispatchResult.failed) {
           // Banner was not shown (OS notifications disabled or plugin error).
-          // Keep the rule exactly as it was: only bump lastCheckedAt so the
-          // scheduler retries on the next interval. Do NOT write a
+          // Retry soon (30s), not after a full checkInterval: a 1-hour alert
+          // would otherwise be delayed by an hour. Do NOT write a
           // NotificationLog, do NOT deactivate, do NOT start cooldown.
+          const retryDelay = Duration(seconds: 30);
           final retryRule = rule.copyWith(
-            lastCheckedAt: now,
+            // Backdate lastCheckedAt so the next tick sees it as due after
+            // retryDelay seconds (the scheduler compares against checkIntervalSeconds).
+            lastCheckedAt: now.subtract(
+              Duration(seconds: rule.checkIntervalSeconds) - retryDelay,
+            ),
             lastCheckedPrice: ticker.lastPrice,
             previousPrice: prevPrice,
           );
           await _alertRuleRepository.saveRule(retryRule, syncToServer: false);
           NativeWidgetSyncService.syncAlerts(_alertRuleRepository.allRules);
-          debugPrint('🔁 [Scheduler] alert ${rule.uuid} not shown (failed); will retry next interval');
+          debugPrint('🔁 [Scheduler] alert ${rule.uuid} not shown (failed); retry in ${retryDelay.inSeconds}s');
           return false;
         }
 
@@ -257,8 +262,10 @@ class SchedulerService {
       await _alertRuleRepository.saveRule(updatedRule, syncToServer: result.isTriggered);
       NativeWidgetSyncService.syncAlerts(_alertRuleRepository.allRules);
       return true;
-    } catch (_) {
-      // On offline / network failure: keep the last known valid price intact in repository
+    } catch (e, st) {
+      // On offline / network failure: keep the last known valid price intact in repository.
+      // Log so a silent failure does not hide a real problem.
+            debugPrint('❌ [Scheduler] ${rule.uuid} (${rule.marketSymbol}): $e\n$st');
       return false;
     }
   }
