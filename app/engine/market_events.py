@@ -261,13 +261,13 @@ def _load_events_state() -> Tuple[Dict[str, float], Dict[str, Dict[str, str]]]:
     return sent_reminders, user_reminders
 
 
-def save_events_state() -> None:
+def save_events_state(now: Optional[float] = None) -> None:
     """Atomically persists sent reminders and user registrations to disk (Phase 2B-2)."""
     try:
-        now = time.time()
+        now_val = time.time() if now is None else float(now)
         pruned_sent = {
             k: ts for k, ts in SENT_REMINDERS.items()
-            if (now - float(ts)) <= EVENTS_STATE_TTL_SECONDS
+            if (now_val - float(ts)) <= EVENTS_STATE_TTL_SECONDS
         }
         payload = json.dumps({
             "version": 1,
@@ -361,7 +361,7 @@ async def check_and_dispatch_30m_advance_reminders(
                     await send_telegram_alert(c, str(chat_id), card_text)
 
                 SENT_REMINDERS[dedup_key] = now_ts
-                save_events_state()
+                save_events_state(now=now_ts)
                 dispatched_count += 1
             except Exception as e:
                 print(f"⚠️ [Advance Reminder Error] event={event_id} user={user_id}: {_scrub(e)}")

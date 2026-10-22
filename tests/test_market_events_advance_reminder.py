@@ -22,9 +22,9 @@ class TestMarketEventsAdvanceReminder(unittest.IsolatedAsyncioTestCase):
         market_events.EVENT_USER_REMINDERS.clear()
         market_events.MARKET_EVENTS_CACHE.clear()
 
-        # Set up a known event with a fixed start_utc (2,000,000)
+        # Set up a known event with a fixed start_utc in the near future (2 hours ahead)
         self.test_event_id = "test_fomc_event"
-        self.fixed_start_utc = 2_000_000
+        self.fixed_start_utc = int(time.time()) + 7200
         self.test_event = {
             "id": self.test_event_id,
             "category": "macro",
