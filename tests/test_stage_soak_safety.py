@@ -79,10 +79,11 @@ class TestMemorySlope(unittest.TestCase):
 class TestDataIsolation(unittest.TestCase):
     def _run(self, script, args, cwd, extra_env=None):
         env = {k: v for k, v in os.environ.items() if k not in ("DATA_DIR", common.ISOLATION_ENV_FLAG)}
+        env["PYTHONIOENCODING"] = "utf-8"
         env.update(extra_env or {})
         env["PYTHONDONTWRITEBYTECODE"] = "1"
         return subprocess.run([sys.executable, os.path.join(SCRIPTS, script)] + args, cwd=cwd, env=env,
-                              capture_output=True, text=True, timeout=120)
+                              capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
 
     def _sentinels(self, folder):
         files = {"alerts_data.json": "[]", "user_profiles.json": "{}", "fcm_outbox.json": "[]"}
@@ -108,7 +109,8 @@ class TestDataIsolation(unittest.TestCase):
                 " 'outbox': os.path.abspath(outbox.OUTBOX_FILE), 'catalog': os.path.abspath(cfg.CATALOG_FILE)}))"
             ) % (SCRIPTS, ROOT, ROOT)
             env = {k: v for k, v in os.environ.items() if k not in ("DATA_DIR", common.ISOLATION_ENV_FLAG)}
-            res = subprocess.run([sys.executable, "-c", code], cwd=folder, env=env, capture_output=True, text=True, timeout=60)
+            env["PYTHONIOENCODING"] = "utf-8"
+            res = subprocess.run([sys.executable, "-c", code], cwd=folder, env=env, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60)
             self.assertEqual(res.returncode, 0, res.stderr)
             paths = json.loads(res.stdout.strip().splitlines()[-1])
             tmp = os.path.realpath(paths.pop("tmp"))
@@ -178,7 +180,8 @@ class TestDataIsolation(unittest.TestCase):
                 "print('DB_EXISTS', os.path.exists(DB_FILE), os.path.realpath(DB_FILE).startswith(os.path.realpath(tmp)))\n"
             ) % (SCRIPTS, ROOT, ROOT)
             env = {k: v for k, v in os.environ.items() if k not in ("DATA_DIR", common.ISOLATION_ENV_FLAG)}
-            res = subprocess.run([sys.executable, "-c", code], cwd=folder, env=env, capture_output=True, text=True, timeout=90)
+            env["PYTHONIOENCODING"] = "utf-8"
+            res = subprocess.run([sys.executable, "-c", code], cwd=folder, env=env, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=90)
             if res.returncode != 0 or "[TRIGGER]" not in res.stdout:
                 print("--- SUBPROCESS STDOUT ---\n", res.stdout)
                 print("--- SUBPROCESS STDERR ---\n", res.stderr)
@@ -203,14 +206,14 @@ class TestDataIsolation(unittest.TestCase):
         code = ("import sys; sys.path.insert(0, %r); import asyncio, soak_test_48h as s; "
                 "asyncio.run(s.run_soak_test(duration_hours=0.0001, use_mock=True, total_target_seconds=1))") % SCRIPTS
         env = {k: v for k, v in os.environ.items() if k != common.ISOLATION_ENV_FLAG}
-        res = subprocess.run([sys.executable, "-c", code], cwd=ROOT, env=env, capture_output=True, text=True, timeout=60)
+        res = subprocess.run([sys.executable, "-c", code], cwd=ROOT, env=env, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60)
         self.assertNotEqual(res.returncode, 0)
         self.assertIn("not isolated", res.stderr)
 
     def test_isolated_dir_is_removed_on_exit(self):
         code = ("import sys, json; sys.path.insert(0, %r); import _soak_common as c; "
                 "print(c.isolate_data_dir(%r))") % (SCRIPTS, ROOT)
-        res = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, timeout=30)
+        res = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
         self.assertEqual(res.returncode, 0, res.stderr)
         self.assertFalse(os.path.exists(res.stdout.strip()))
 

@@ -1,9 +1,17 @@
 import time
 import asyncio
 import html
+import sys
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any, List
 import httpx
+
+# Force UTF-8 stdout on Windows consoles (cp1252 crashes on emoji prints)
+try:
+    if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
 
 
 from app.state import (

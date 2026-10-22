@@ -26,6 +26,15 @@ import time
 import json
 import asyncio
 import argparse
+
+# Force UTF-8 stdout/stderr on Windows consoles (cp1252 crashes on emoji prints)
+try:
+    if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    if sys.stderr and hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
 from typing import Dict, Any, List
 
 # Ensure repository root is on sys.path
