@@ -22,6 +22,7 @@ import '../services/sound_manager.dart';
 import '../../../core/services/tts_service.dart';
 import '../widgets/device_health_card.dart';
 import 'debug_diagnostics_page.dart';
+import 'notification_health_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -1330,6 +1331,20 @@ class _SettingsPageState extends State<SettingsPage> {
           _buildSectionHeader(isFa ? '۷. پایش ۲۴/۷ و تنظیمات پس‌زمینه و باتری' : '7. 24/7 Background Sync & Battery', theme),
           const SizedBox(height: AppTokens.space8),
           DeviceHealthCard(lang: lang),
+          _buildActionTile(
+            context: context,
+            title: isFa ? '🩺 وضعیت و سلامت اعلان‌ها (Notification Health)' : '🩺 Notification Health & Delivery',
+            subtitle: isFa
+                ? 'مشاهده وضعیت مجوزها، باتری Doze، شروع خودکار، آخرین Sync و نبض سلامت، ارسال تست و کپی لاگ'
+                : 'Permissions, Doze mode, Autostart, sync state, heartbeat, test push, and service logs',
+            icon: Icons.health_and_safety_rounded,
+            color: theme.colorScheme.primary,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => NotificationHealthPage(lang: lang)),
+              );
+            },
+          ),
           const SizedBox(height: AppTokens.space12),
           _buildBackgroundReliabilityCard(context, theme, lang, isFa),
           const SizedBox(height: AppTokens.space20),
