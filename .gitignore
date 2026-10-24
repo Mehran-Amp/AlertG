@@ -1,4 +1,4 @@
-﻿node_modules/
+node_modules/
 build/
 dist/
 coverage/
@@ -67,3 +67,7 @@ delivery_journal.json
 delivery_journal.json.tmp
 
 delivery_journal.json.bad
+
+# AI Studio assets and prompts
+public/assets/aistudio/
+.aistudio/
