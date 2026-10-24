@@ -66,7 +66,7 @@ class DeviceHealthService {
 
       String? fcmTail;
       try {
-        final token = FCMNotificationService.fcmToken;
+        final token = FCMNotificationService.currentToken;
         if (token != null && token.trim().isNotEmpty) {
           final trimmed = token.trim();
           fcmTail = trimmed.length > 6 ? trimmed.substring(trimmed.length - 6) : trimmed;
