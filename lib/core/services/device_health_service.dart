@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -14,7 +15,45 @@ class DeviceHealthService {
   @visibleForTesting
   static Future<bool> Function(Map<String, dynamic> payload)? postOverride;
 
+  @visibleForTesting
+  static Future<Map<String, dynamic>?> Function(String userId)? getOverride;
+
   static const String appVersion = '3.6.1';
+
+  /// Determines if a device heartbeat is considered silent (> 45 minutes old)
+  /// as defined by Phase 3A-3 rules.
+  static bool isSilent(int? ageSeconds) {
+    if (ageSeconds == null) return false;
+    return ageSeconds > 45 * 60;
+  }
+
+  /// Retrieves the latest device health record for a user from the server.
+  /// Returns null if not found (404) or on network failure.
+  static Future<Map<String, dynamic>?> getDeviceHealth({String? userId}) async {
+    try {
+      final uid = (userId ?? '').trim();
+      if (uid.isEmpty) {
+        return null;
+      }
+
+      final override = getOverride;
+      if (override != null) {
+        return await override(uid);
+      }
+
+      final res = await ServerAlertService.get('/api/device/health/$uid');
+      if (res.statusCode == 200) {
+        final decoded = jsonDecode(utf8.decode(res.bodyBytes));
+        if (decoded is Map<String, dynamic> && decoded['status'] == 'ok') {
+          return decoded;
+        }
+      }
+      return null;
+    } catch (e, st) {
+      await ServiceLogger.logError('health.getDeviceHealth', e, st);
+      return null;
+    }
+  }
 
   /// Sends a single heartbeat with current device indicators.
   /// If an indicator cannot be determined, it sends null (do not guess).

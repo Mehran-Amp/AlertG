@@ -20,6 +20,7 @@ import '../models/app_settings.dart';
 import '../services/settings_service.dart';
 import '../services/sound_manager.dart';
 import '../../../core/services/tts_service.dart';
+import '../widgets/device_health_card.dart';
 import 'debug_diagnostics_page.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -1328,6 +1329,8 @@ class _SettingsPageState extends State<SettingsPage> {
           // Section 7: 24/7 Background Alert Delivery Guide & Battery (بخش تنظیمات باتری و پس‌زمینه)
           _buildSectionHeader(isFa ? '۷. پایش ۲۴/۷ و تنظیمات پس‌زمینه و باتری' : '7. 24/7 Background Sync & Battery', theme),
           const SizedBox(height: AppTokens.space8),
+          DeviceHealthCard(lang: lang),
+          const SizedBox(height: AppTokens.space12),
           _buildBackgroundReliabilityCard(context, theme, lang, isFa),
           const SizedBox(height: AppTokens.space20),
 

@@ -1,7 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:provider/provider.dart';
 import '../../core/localization/app_strings.dart';
 import '../../core/services/delivery_ack_service.dart';
+import '../../core/services/device_health_service.dart';
 import '../../core/services/server_alert_service.dart';
 import '../../core/services/service_logger.dart';
 import '../../core/utils/app_lifecycle_helper.dart';
@@ -56,6 +59,31 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       _retryServerSyncOnResume();
       _flushPendingAcksOnResume();
+      _checkServiceAndHeartbeatOnResume();
+    }
+  }
+
+  Future<void> _checkServiceAndHeartbeatOnResume() async {
+    try {
+      final settingsService = context.read<SettingsService>();
+      final uid = settingsService.settings.userEmail ?? '';
+      if (uid.isNotEmpty) {
+        DeviceHealthService.sendHeartbeat(userId: uid).ignore();
+      }
+    } catch (e, st) {
+      ServiceLogger.logError('health.resumeHeartbeat', e, st).ignore();
+    }
+
+    if (!kIsWeb) {
+      try {
+        final isRunning = await FlutterBackgroundService().isRunning();
+        if (!isRunning) {
+          await FlutterBackgroundService().startService();
+          await ServiceLogger.log('service', 'restarted on app resume');
+        }
+      } catch (e, st) {
+        ServiceLogger.logError('service.resumeRestart', e, st).ignore();
+      }
     }
   }
 
