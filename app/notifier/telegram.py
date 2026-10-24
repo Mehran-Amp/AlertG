@@ -99,7 +99,14 @@ async def send_telegram_alert(
                     print(f"⚠️ [Telegram API {status}] 5xx persistent error after {max_5xx_attempts} attempts for {chat_id}: {_scrub(res.text)}")
                     return False
 
-            # Other 4xx (non-429) fail immediately without retry
+            if status == 400 and payload.get("parse_mode") == "HTML":
+                import re
+                plain_text = re.sub(r'<[^>]+>', '', message)
+                payload["parse_mode"] = None
+                payload["text"] = plain_text
+                continue
+
+            # Other 4xx (non-429) or persistent 400 fail without further retry
             print(f"⚠️ [Telegram API {status}] Dispatch failed (no retry) for {chat_id}: {_scrub(res.text)}")
             return False
 
