@@ -146,6 +146,7 @@ class FCMNotificationService {
 
   /// Current cached token value (FCM or fallback)
   static String? get currentToken => _cachedToken;
+  static String? get fcmToken => _cachedToken;
 
   /// Called whenever Google rotates or discovers a new token. Wire this to your alert sync so
   /// the server never keeps pushing to a dead token.

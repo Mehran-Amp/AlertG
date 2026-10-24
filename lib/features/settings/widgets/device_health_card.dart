@@ -48,7 +48,7 @@ class _DeviceHealthCardState extends State<DeviceHealthCard> {
     // 1. Gather local device indicators
     String? tokenTail;
     try {
-      final token = FCMNotificationService.fcmToken;
+      final token = FCMNotificationService.currentToken;
       if (token != null && token.trim().isNotEmpty) {
         final t = token.trim();
         tokenTail = t.length > 6 ? t.substring(t.length - 6) : t;
