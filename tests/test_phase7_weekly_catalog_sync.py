@@ -38,17 +38,20 @@ for mod in [
     'fastapi', 'fastapi.middleware.cors', 'fastapi.responses'
 ]:
     if mod not in sys.modules:
-        m = MagicMock()
-        if mod == 'pydantic':
-            class BaseModel:
-                def __init__(self, **kwargs):
-                    for k, v in kwargs.items():
-                        setattr(self, k, v)
-                def dict(self): return self.__dict__
-                def model_dump(self): return self.__dict__
-            m.BaseModel = BaseModel
-            m.Field = lambda *args, **kwargs: kwargs.get('default', None)
-        sys.modules[mod] = m
+        try:
+            __import__(mod)
+        except ImportError:
+            m = MagicMock()
+            if mod == 'pydantic':
+                class BaseModel:
+                    def __init__(self, **kwargs):
+                        for k, v in kwargs.items():
+                            setattr(self, k, v)
+                    def dict(self): return self.__dict__
+                    def model_dump(self): return self.__dict__
+                m.BaseModel = BaseModel
+                m.Field = lambda *args, **kwargs: kwargs.get('default', None)
+            sys.modules[mod] = m
 
 from app.models import Alert
 from app.config import DATA_DIR, CATALOG_FILE, CATALOG_SNAPSHOTS_DIR, APP_VERSION
