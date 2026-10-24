@@ -33,7 +33,6 @@ CURATED_HIGH_IMPACT_CATALOG: List[Dict[str, Any]] = [
         "summary": "Federal Reserve monetary policy announcement & benchmark rate decision. High volatility expected.",
         "impact": "high",
         "time_utc": "Wednesday 18:00 UTC",
-        "start_utc": parse_event_start_utc("Wednesday 18:00 UTC"),
         "badge_color": "#0284C7", # Sky Blue
         "symbol": "USD"
     },
@@ -45,7 +44,6 @@ CURATED_HIGH_IMPACT_CATALOG: List[Dict[str, Any]] = [
         "summary": "Bureau of Labor Statistics publishes monthly Consumer Price Index measuring consumer inflation.",
         "impact": "high",
         "time_utc": "Thursday 12:30 UTC",
-        "start_utc": parse_event_start_utc("Thursday 12:30 UTC"),
         "badge_color": "#0284C7",
         "symbol": "USD"
     },
@@ -57,7 +55,6 @@ CURATED_HIGH_IMPACT_CATALOG: List[Dict[str, Any]] = [
         "summary": "Major Ethereum consensus and execution client upgrade activated across global validators.",
         "impact": "high",
         "time_utc": "Friday 14:00 UTC",
-        "start_utc": parse_event_start_utc("Friday 14:00 UTC"),
         "badge_color": "#10B981", # Emerald Green
         "symbol": "ETH"
     },
@@ -69,7 +66,6 @@ CURATED_HIGH_IMPACT_CATALOG: List[Dict[str, Any]] = [
         "summary": "Major foundation and liquidity token cliff unlocking into circulating supply.",
         "impact": "high",
         "time_utc": "Saturday 00:00 UTC",
-        "start_utc": parse_event_start_utc("Saturday 00:00 UTC"),
         "badge_color": "#10B981",
         "symbol": "SOL"
     },
@@ -81,7 +77,6 @@ CURATED_HIGH_IMPACT_CATALOG: List[Dict[str, Any]] = [
         "summary": "Weekly change in commercial crude oil barrels held by US firms. Key driver for WTI & Brent.",
         "impact": "high",
         "time_utc": "Wednesday 14:30 UTC",
-        "start_utc": parse_event_start_utc("Wednesday 14:30 UTC"),
         "badge_color": "#F59E0B", # Amber / Orange
         "symbol": "WTI"
     },
@@ -93,7 +88,6 @@ CURATED_HIGH_IMPACT_CATALOG: List[Dict[str, Any]] = [
         "summary": "Joint Ministerial Monitoring Committee meeting to determine voluntary oil supply cuts.",
         "impact": "high",
         "time_utc": "Upcoming Weekend",
-        "start_utc": parse_event_start_utc("Upcoming Weekend"),
         "badge_color": "#F59E0B",
         "symbol": "BRENT"
     },
@@ -105,7 +99,6 @@ CURATED_HIGH_IMPACT_CATALOG: List[Dict[str, Any]] = [
         "summary": "Nvidia reports quarterly revenue, data center GPU sales, and AI infrastructure guidance.",
         "impact": "high",
         "time_utc": "Thursday 20:00 UTC (AMC)",
-        "start_utc": parse_event_start_utc("Thursday 20:00 UTC"),
         "badge_color": "#8B5CF6", # Purple
         "symbol": "NVDA"
     },
@@ -117,7 +110,6 @@ CURATED_HIGH_IMPACT_CATALOG: List[Dict[str, Any]] = [
         "summary": "Apple announces quarterly iPhone, Mac, and Services segment financial performance.",
         "impact": "high",
         "time_utc": "Friday 20:30 UTC (AMC)",
-        "start_utc": parse_event_start_utc("Friday 20:30 UTC"),
         "badge_color": "#8B5CF6",
         "symbol": "AAPL"
     }
@@ -353,6 +345,7 @@ async def check_and_dispatch_30m_advance_reminders(
     """
     if now_ts is None:
         now_ts = time.time()
+    now_dt = datetime.fromtimestamp(now_ts, tz=timezone.utc)
 
     if not EVENT_USER_REMINDERS:
         return 0
@@ -361,17 +354,20 @@ async def check_and_dispatch_30m_advance_reminders(
     dispatched_count = 0
 
     events = MARKET_EVENTS_CACHE if MARKET_EVENTS_CACHE else list(CURATED_HIGH_IMPACT_CATALOG)
-    events_by_id = {e.get("id"): e for e in events if e.get("id")}
+    events_by_id = {e.get("id"): dict(e) for e in events if e.get("id")}
 
     for event_id, users_map in list(EVENT_USER_REMINDERS.items()):
         event = events_by_id.get(event_id)
         if not event:
             continue
 
-        start_utc = event.get("start_utc")
+        # Dynamically compute start_utc at check time (FIX-4a)
+        time_val = event.get("time_utc") if event.get("time_utc") is not None else event.get("start_utc")
+        start_utc = parse_event_start_utc(time_val, now_dt=now_dt)
         if start_utc is None:
-            # Excluded from reminders per rule 2
+            # Excluded from reminders per rule 2: unparseable or invalid
             continue
+        event["start_utc"] = start_utc
 
         remaining = start_utc - now_ts
         # Window: T - 30 minutes with 1-minute tolerance (1800s +- 60s -> [1740, 1860])
@@ -602,14 +598,15 @@ async def refresh_market_events(client: Optional[httpx.AsyncClient] = None):
     except Exception as e:
         print(f"⚠️ [Market Events Sync Error] {_scrub(e)}")
 
-def get_market_events(categories: Optional[List[str]] = None) -> List[Dict[str, Any]]:
-    """Retrieves cached high-impact market events, optionally filtered by categories."""
+def get_market_events(categories: Optional[List[str]] = None, now_dt: Optional[datetime] = None) -> List[Dict[str, Any]]:
+    """Retrieves cached high-impact market events, dynamically computing start_utc at check time (Phase 2B-1 / FIX-4a)."""
+    now = now_dt or datetime.now(timezone.utc)
     raw = MARKET_EVENTS_CACHE if MARKET_EVENTS_CACHE else list(CURATED_HIGH_IMPACT_CATALOG)
     events = []
     for e in raw:
         ev = dict(e)
-        if 'start_utc' not in ev:
-            ev['start_utc'] = parse_event_start_utc(ev.get('time_utc'))
+        time_val = ev.get('time_utc') if ev.get('time_utc') is not None else ev.get('start_utc')
+        ev['start_utc'] = parse_event_start_utc(time_val, now_dt=now)
         events.append(ev)
 
     if not categories:

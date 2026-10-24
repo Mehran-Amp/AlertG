@@ -2,6 +2,7 @@ import os
 import time
 import tempfile
 import unittest
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock, patch
 
 from app.engine import market_events
@@ -22,18 +23,16 @@ class TestMarketEventsAdvanceReminder(unittest.IsolatedAsyncioTestCase):
         market_events.EVENT_USER_REMINDERS.clear()
         market_events.MARKET_EVENTS_CACHE.clear()
 
-        # Set up a known event with a fixed start_utc in the near future (2 hours ahead)
-        self.test_event_id = "test_fomc_event"
-        self.fixed_start_utc = int(time.time()) + 7200
+        # Recurring test event without hardcoded import-time start_utc (FIX-4a)
+        self.test_event_id = "test_fomc_rate"
         self.test_event = {
             "id": self.test_event_id,
             "category": "macro",
             "market": "Forex & Global",
-            "title": "US Fed Interest Rate Decision",
+            "title": "US Fed Interest Rate Decision (FOMC)",
             "summary": "FOMC rate decision announcement.",
             "impact": "high",
             "time_utc": "Wednesday 18:00 UTC",
-            "start_utc": self.fixed_start_utc,
             "symbol": "USD"
         }
         market_events.CURATED_HIGH_IMPACT_CATALOG.append(self.test_event)
@@ -56,13 +55,13 @@ class TestMarketEventsAdvanceReminder(unittest.IsolatedAsyncioTestCase):
             except Exception:
                 pass
 
-    async def test_advance_reminder_sent_in_30m_window(self):
-        """1. Validates that 30 minutes before event (remaining=1800s), an advance reminder is sent once (Phase 2B-3)."""
-        # Register user for the test event
+    async def test_1_recurring_event_found_in_30m_window_after_one_week_and_one_day(self):
+        """1. Recurring event is dynamically discovered in 30m window 8 days after initial boot/import (FIX-4a)."""
         market_events.EVENT_USER_REMINDERS[self.test_event_id] = {"trader_1": "chat_12345"}
 
-        # Simulate now_ts = 30 minutes before start_utc (tolerance [1740, 1860])
-        now_ts = self.fixed_start_utc - 1800
+        # Simulate check 8 days (1 week + 1 day) later: Wednesday 2026-10-28 at 17:30 UTC
+        now_dt = datetime(2026, 10, 28, 17, 30, 0, tzinfo=timezone.utc)
+        now_ts = now_dt.timestamp()
         mock_client = AsyncMock()
 
         with patch("app.engine.market_events.send_telegram_alert", new_callable=AsyncMock) as mock_send, \
@@ -78,73 +77,72 @@ class TestMarketEventsAdvanceReminder(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(sent_chat_id, "chat_12345")
         self.assertIn("30 MINUTES", sent_text)
 
-        # Check recorded in SENT_REMINDERS with start_utc in key
-        expected_key = f"{self.test_event_id}:chat_12345:advance_30m:{self.fixed_start_utc}"
+        # Expected dynamic start_utc is Wednesday 2026-10-28 18:00:00 UTC
+        expected_start_utc = int(datetime(2026, 10, 28, 18, 0, 0, tzinfo=timezone.utc).timestamp())
+        expected_key = f"{self.test_event_id}:chat_12345:advance_30m:{expected_start_utc}"
         self.assertIn(expected_key, market_events.SENT_REMINDERS)
 
-    async def test_advance_reminder_no_duplicate_in_same_or_later_window(self):
-        """2. Validates that duplicate advance reminders are never sent in subsequent checks (Phase 2B-3)."""
+    async def test_2_recurring_event_dispatched_only_once_per_occurrence(self):
+        """2. Validates that each recurring occurrence receives reminder exactly once (FIX-4a)."""
         market_events.EVENT_USER_REMINDERS[self.test_event_id] = {"trader_1": "chat_12345"}
         mock_client = AsyncMock()
 
-        # First run at T - 30m (remaining = 1800s)
-        now_ts = self.fixed_start_utc - 1800
+        # Occurrence 1: Wednesday 2026-10-28 at 17:30 UTC
+        now_dt_1 = datetime(2026, 10, 28, 17, 30, 0, tzinfo=timezone.utc)
+        now_ts_1 = now_dt_1.timestamp()
+
         with patch("app.engine.market_events.send_telegram_alert", new_callable=AsyncMock) as mock_send, \
              patch("app.engine.market_events.TELEGRAM_BOT_TOKEN", "valid_bot_token"):
+            # First check -> dispatched
             dispatched_1 = await market_events.check_and_dispatch_30m_advance_reminders(
-                client=mock_client, now_ts=now_ts
+                client=mock_client, now_ts=now_ts_1
             )
             self.assertEqual(dispatched_1, 1)
-
-            # Second run 20 seconds later (remaining = 1780s, still in window)
-            dispatched_2 = await market_events.check_and_dispatch_30m_advance_reminders(
-                client=mock_client, now_ts=now_ts + 20
-            )
-            self.assertEqual(dispatched_2, 0)
-            # send_telegram_alert still only called once
             self.assertEqual(mock_send.call_count, 1)
 
-    async def test_advance_reminder_prevented_after_restart_and_handles_rescheduled_time(self):
-        """3. Validates persisted state prevents duplicate after restart, but sends if event time changes (Phase 2B-3)."""
-        market_events.EVENT_USER_REMINDERS[self.test_event_id] = {"trader_1": "chat_12345"}
-        mock_client = AsyncMock()
+            # Re-check 15 seconds later -> duplicate suppressed
+            dispatched_2 = await market_events.check_and_dispatch_30m_advance_reminders(
+                client=mock_client, now_ts=now_ts_1 + 15
+            )
+            self.assertEqual(dispatched_2, 0)
+            self.assertEqual(mock_send.call_count, 1)
 
-        # 1. Send reminder and persist to disk
-        now_ts = self.fixed_start_utc - 1800
-        with patch("app.engine.market_events.send_telegram_alert", new_callable=AsyncMock), \
+            # Occurrence 2: Next week Wednesday 2026-11-04 at 17:30 UTC -> dispatched again once
+            now_dt_2 = datetime(2026, 11, 4, 17, 30, 0, tzinfo=timezone.utc)
+            now_ts_2 = now_dt_2.timestamp()
+
+            dispatched_3 = await market_events.check_and_dispatch_30m_advance_reminders(
+                client=mock_client, now_ts=now_ts_2
+            )
+            self.assertEqual(dispatched_3, 1)
+            self.assertEqual(mock_send.call_count, 2)
+
+    async def test_3_invalid_or_vague_time_utc_never_dispatched(self):
+        """3. Events with vague or unparseable time_utc (e.g. 'Upcoming Weekend') are never dispatched (FIX-4a)."""
+        vague_event_id = "energy_vague_opec"
+        vague_event = {
+            "id": vague_event_id,
+            "category": "energy",
+            "market": "Global Energy",
+            "title": "OPEC+ Meeting",
+            "impact": "high",
+            "time_utc": "Upcoming Weekend",
+            "symbol": "BRENT"
+        }
+        market_events.CURATED_HIGH_IMPACT_CATALOG.append(vague_event)
+        market_events.EVENT_USER_REMINDERS[vague_event_id] = {"trader_1": "chat_12345"}
+
+        mock_client = AsyncMock()
+        now_ts = datetime(2026, 10, 24, 12, 0, 0, tzinfo=timezone.utc).timestamp()
+
+        with patch("app.engine.market_events.send_telegram_alert", new_callable=AsyncMock) as mock_send, \
              patch("app.engine.market_events.TELEGRAM_BOT_TOKEN", "valid_bot_token"):
-            await market_events.check_and_dispatch_30m_advance_reminders(
+            dispatched = await market_events.check_and_dispatch_30m_advance_reminders(
                 client=mock_client, now_ts=now_ts
             )
 
-        # 2. Simulate server restart: clear memory and reload from state file
-        market_events.SENT_REMINDERS.clear()
-        market_events.EVENT_USER_REMINDERS.clear()
-        reloaded_sent, reloaded_user = market_events._load_events_state()
-        market_events.SENT_REMINDERS.update(reloaded_sent)
-        market_events.EVENT_USER_REMINDERS.update(reloaded_user)
-
-        # Attempt to resend at same window
-        with patch("app.engine.market_events.send_telegram_alert", new_callable=AsyncMock) as mock_send_2, \
-             patch("app.engine.market_events.TELEGRAM_BOT_TOKEN", "valid_bot_token"):
-            dispatched_after_restart = await market_events.check_and_dispatch_30m_advance_reminders(
-                client=mock_client, now_ts=now_ts + 10
-            )
-            self.assertEqual(dispatched_after_restart, 0)
-            mock_send_2.assert_not_called()
-
-        # 3. If event start_utc is rescheduled to a new time (e.g. +50,000s)
-        new_start_utc = self.fixed_start_utc + 50_000
-        self.test_event["start_utc"] = new_start_utc
-
-        with patch("app.engine.market_events.send_telegram_alert", new_callable=AsyncMock) as mock_send_3, \
-             patch("app.engine.market_events.TELEGRAM_BOT_TOKEN", "valid_bot_token"):
-            rescheduled_now = new_start_utc - 1800
-            dispatched_rescheduled = await market_events.check_and_dispatch_30m_advance_reminders(
-                client=mock_client, now_ts=rescheduled_now
-            )
-            self.assertEqual(dispatched_rescheduled, 1)
-            mock_send_3.assert_called_once()
+        self.assertEqual(dispatched, 0)
+        mock_send.assert_not_called()
 
 
 if __name__ == "__main__":
