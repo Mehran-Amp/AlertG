@@ -1,6 +1,7 @@
 import time
 import tempfile
 import unittest
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock, patch
 
 from app.engine import market_events
@@ -30,7 +31,9 @@ class TestMarketEventsOutboxPush(unittest.IsolatedAsyncioTestCase):
         storage.ALERTS_DB.clear()
 
         self.test_event_id = "test_fomc_push"
-        self.fixed_start_utc = int(time.time()) + 7200
+        now_sec = int(time.time())
+        self.fixed_start_utc = (now_sec // 60) * 60 + 7200
+        fixed_dt = datetime.fromtimestamp(self.fixed_start_utc, tz=timezone.utc)
         self.test_event = {
             "id": self.test_event_id,
             "category": "macro",
@@ -38,7 +41,7 @@ class TestMarketEventsOutboxPush(unittest.IsolatedAsyncioTestCase):
             "title": "US Fed Interest Rate Decision",
             "summary": "FOMC rate decision announcement.",
             "impact": "high",
-            "time_utc": "Wednesday 18:00 UTC",
+            "time_utc": fixed_dt.strftime("%Y-%m-%d %H:%M UTC"),
             "start_utc": self.fixed_start_utc,
             "symbol": "USD"
         }
