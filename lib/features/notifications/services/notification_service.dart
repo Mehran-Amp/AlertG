@@ -66,6 +66,9 @@ class AlertDedup {
         RegExp(r'^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$').hasMatch(clean);
   }
 
+  @visibleForTesting
+  static String safe(String key) => _safe(key);
+
   /// true = this caller owns the alert and must show it.
   static Future<bool> claim(String key, {Duration? window}) async {
     final effectiveWindow = window ?? (_isDeliveryId(key) ? deliveryIdWindow : AlertDedup.window);
@@ -119,6 +122,17 @@ class NotificationService implements NotificationServiceInterface {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
   NotificationService._internal();
+
+  @visibleForTesting
+  static Future<void> Function({
+    required int id,
+    required String title,
+    required String body,
+    String? payload,
+  })? showBannerOverride;
+
+  @visibleForTesting
+  static bool? areNotificationsEnabledOverride;
 
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
@@ -267,6 +281,9 @@ class NotificationService implements NotificationServiceInterface {
   /// Uses FirebaseMessaging because it returns a unified AuthorizationStatus
   /// on both Android (13+ POST_NOTIFICATIONS) and iOS (UNUserNotificationCenter).
   Future<bool> _areNotificationsEnabled() async {
+    if (areNotificationsEnabledOverride != null) {
+      return areNotificationsEnabledOverride!;
+    }
     try {
       final settings = await FirebaseMessaging.instance.getNotificationSettings();
       switch (settings.authorizationStatus) {
@@ -319,7 +336,7 @@ class NotificationService implements NotificationServiceInterface {
   Future<void> _speechChain = Future.value();
   int _pendingSpeech = 0;
 
-      Future<void> _enqueueSpeech(String text) {
+  Future<void> _enqueueSpeech(String text) {
     if (_pendingSpeech >= _maxPendingSpeech) {
       debugPrint('🔇 [NotificationService] speech queue full, skipping voice');
       return Future.value();
@@ -342,7 +359,6 @@ class NotificationService implements NotificationServiceInterface {
       }
     });
     return _speechChain;
-  
   }
 
   /// Shows the alert banner immediately, then sound/haptics/voice.
@@ -369,22 +385,53 @@ class NotificationService implements NotificationServiceInterface {
     Duration maxWait = const Duration(seconds: 12),
   }) async {
     final hasDedupeKey = dedupeKey != null && dedupeKey.trim().isNotEmpty;
-    final effectiveDedupeKey = hasDedupeKey ? dedupeKey.trim() : (payload ?? '$id:$title');
-    final claimWindow = hasDedupeKey ? AlertDedup.deliveryIdWindow : AlertDedup.window;
+    final List<String> claimedKeys = [];
 
-    // 1. Cross-isolate dedup. If another isolate already showed this alert,
-    //    the caller should still commit the state (the other isolate did).
-    if (!await AlertDedup.claim(effectiveDedupeKey, window: claimWindow)) {
-      debugPrint('🔇 [NotificationService] duplicate suppressed: $effectiveDedupeKey');
-      return AlertDispatchResult.duplicate;
+    // 1. Cross-isolate dedup.
+    // When dedupeKey (delivery_id) is provided:
+    //  a) First claim dedupeKey with 10-minute window (deliveryIdWindow).
+    //  b) Then if payload (alert_id) is non-empty, claim payload with 20-second window (window).
+    //  c) If either claim fails, return duplicate (keeping earlier claims).
+    // When dedupeKey is NOT provided (local scheduler):
+    //  Claim payload ?? '$id:$title' with 20-second window.
+    if (hasDedupeKey) {
+      final dKey = dedupeKey.trim();
+      if (!await AlertDedup.claim(dKey, window: AlertDedup.deliveryIdWindow)) {
+        debugPrint('🔇 [NotificationService] duplicate delivery_id suppressed: $dKey');
+        return AlertDispatchResult.duplicate;
+      }
+      claimedKeys.add(dKey);
+
+      if (payload != null && payload.trim().isNotEmpty) {
+        final pKey = payload.trim();
+        if (!await AlertDedup.claim(pKey, window: AlertDedup.window)) {
+          debugPrint('🔇 [NotificationService] duplicate alert_id suppressed: $pKey');
+          // Keep the first claim (delivery_id) and return duplicate
+          return AlertDispatchResult.duplicate;
+        }
+        claimedKeys.add(pKey);
+      }
+    } else {
+      final localKey = (payload != null && payload.trim().isNotEmpty) ? payload.trim() : '$id:$title';
+      if (!await AlertDedup.claim(localKey, window: AlertDedup.window)) {
+        debugPrint('🔇 [NotificationService] duplicate local alert suppressed: $localKey');
+        return AlertDispatchResult.duplicate;
+      }
+      claimedKeys.add(localKey);
+    }
+
+    Future<void> releaseAllClaims() async {
+      for (final key in claimedKeys) {
+        await AlertDedup.release(key);
+      }
     }
 
     // 2. OS-level permission check. If notifications are disabled, do not
-    //    pretend the banner was shown: release the dedup lock and report failure
+    //    pretend the banner was shown: release the dedup locks and report failure
     //    so the scheduler retries on the next interval.
     if (!await _areNotificationsEnabled()) {
       debugPrint('🔕 [NotificationService] notifications disabled at OS level; releasing dedup');
-      await AlertDedup.release(effectiveDedupeKey);
+      await releaseAllClaims();
       return AlertDispatchResult.failed;
     }
 
@@ -397,22 +444,31 @@ class NotificationService implements NotificationServiceInterface {
     final sound = soundName ?? master['soundName'] as String? ?? 'alarm_siren';
 
     try {
-      // 1. Banner FIRST.
-      await showCriticalAlert(
-        id: id,
-        title: title,
-        body: body,
-        payload: payload,
-        soundName: sound,
-        volume: vol,
-        soundEnabled: effSound,
-        vibrationEnabled: effVibration,
-        inAppFeedback: inAppFeedback,
-        master: master,
-      );
+      // 3. Banner FIRST.
+      if (showBannerOverride != null) {
+        await showBannerOverride!(
+          id: id,
+          title: title,
+          body: body,
+          payload: payload,
+        );
+      } else {
+        await showCriticalAlert(
+          id: id,
+          title: title,
+          body: body,
+          payload: payload,
+          soundName: sound,
+          volume: vol,
+          soundEnabled: effSound,
+          vibrationEnabled: effVibration,
+          inAppFeedback: inAppFeedback,
+          master: master,
+        );
+      }
     } catch (e) {
       debugPrint('❌ [NotificationService] banner failed: $e');
-      await AlertDedup.release(effectiveDedupeKey); // let a retry/redelivery through
+      await releaseAllClaims(); // let a retry/redelivery through
       return AlertDispatchResult.failed;
     }
 
