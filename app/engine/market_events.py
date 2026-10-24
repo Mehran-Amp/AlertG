@@ -212,14 +212,15 @@ EVENTS_STATE_FILE = os.path.join(DATA_DIR, "market_events_state.json") if DATA_D
 EVENTS_STATE_TTL_SECONDS = 7 * 24 * 3600  # 7 days
 
 
-def _load_events_state() -> Tuple[Dict[str, float], Dict[str, Dict[str, str]]]:
+def _load_events_state() -> Tuple[Dict[str, float], Dict[str, Dict[str, str]], Dict[str, float]]:
     """
-    Loads sent reminders (key: event_id:chat_id:kind) and user registrations from disk (Phase 2B-2).
+    Loads sent reminders, user registrations, and per-user dispatched events from disk (Phase 2B-2 / FIX-5b).
     - Drops entries older than 7 days.
     - If corrupted, renames to .bad and returns empty state without crashing.
     """
     sent_reminders: Dict[str, float] = {}
     user_reminders: Dict[str, Dict[str, str]] = {}
+    dispatched_events: Dict[str, float] = {}
 
     if os.path.exists(EVENTS_STATE_FILE):
         try:
@@ -244,6 +245,16 @@ def _load_events_state() -> Tuple[Dict[str, float], Dict[str, Dict[str, str]]]:
                             user_reminders[str(ev_id)] = {
                                 str(uid): str(cid) for uid, cid in u_map.items() if cid
                             }
+
+                raw_disp = data.get("dispatched_events", {})
+                if isinstance(raw_disp, dict):
+                    for k, ts in raw_disp.items():
+                        try:
+                            ts_float = float(ts)
+                            if (now - ts_float) <= EVENTS_STATE_TTL_SECONDS:
+                                dispatched_events[str(k)] = ts_float
+                        except (ValueError, TypeError):
+                            pass
         except Exception as e:
             print(f"⚠️ [MarketEvents] Could not read {EVENTS_STATE_FILE}: {e} (keeping a .bad copy)")
             try:
@@ -251,21 +262,26 @@ def _load_events_state() -> Tuple[Dict[str, float], Dict[str, Dict[str, str]]]:
             except Exception:
                 pass
 
-    return sent_reminders, user_reminders
+    return sent_reminders, user_reminders, dispatched_events
 
 
 def save_events_state(now: Optional[float] = None) -> None:
-    """Atomically persists sent reminders and user registrations to disk (Phase 2B-2)."""
+    """Atomically persists sent reminders, user registrations, and dispatched events to disk (Phase 2B-2 / FIX-5b)."""
     try:
         now_val = time.time() if now is None else float(now)
         pruned_sent = {
             k: ts for k, ts in SENT_REMINDERS.items()
             if (now_val - float(ts)) <= EVENTS_STATE_TTL_SECONDS
         }
+        pruned_dispatched = {
+            k: ts for k, ts in DISPATCHED_EVENTS.items()
+            if (now_val - float(ts)) <= EVENTS_STATE_TTL_SECONDS
+        }
         payload = json.dumps({
             "version": 1,
             "sent_reminders": pruned_sent,
             "user_reminders": EVENT_USER_REMINDERS,
+            "dispatched_events": pruned_dispatched,
         }, ensure_ascii=False)
         tmp = f"{EVENTS_STATE_FILE}.tmp"
         with open(tmp, "w", encoding="utf-8") as f:
@@ -277,13 +293,19 @@ def save_events_state(now: Optional[float] = None) -> None:
         print(f"⚠️ [MarketEvents] Save state failed: {e}")
 
 
-_init_sent, _init_user = _load_events_state()
+_init_sent, _init_user, _init_disp = _load_events_state()
 # Sent reminders: 'event_id:chat_id:kind' -> timestamp (epoch seconds)
 SENT_REMINDERS: Dict[str, float] = _init_sent
 # Active reminders: event_id -> Dict[user_id, chat_id]
 EVENT_USER_REMINDERS: Dict[str, Dict[str, str]] = _init_user
-# Per-chat dispatched event tracking
+# Dispatched events: 'user_id:event_id:start_utc' -> timestamp (epoch seconds) (FIX-5b)
+DISPATCHED_EVENTS: Dict[str, float] = _init_disp
+# Per-chat/user dispatched event tracking set in memory
 USER_DISPATCHED_EVENTS: Dict[str, set] = {}
+for _k in DISPATCHED_EVENTS:
+    _parts = _k.split(":")
+    if len(_parts) >= 2:
+        USER_DISPATCHED_EVENTS.setdefault(_parts[0], set()).add(_parts[1])
 
 
 def mark_reminder_sent(event_id: str, chat_id: str, kind: str = "advance_30m", start_utc: Optional[int] = None, sent_at: Optional[float] = None) -> None:
@@ -527,7 +549,21 @@ async def check_and_dispatch_event_notifications(client: httpx.AsyncClient):
 
         for ev in high_impact_events:
             ev_id = ev.get('id')
-            if not ev_id or ev_id in USER_DISPATCHED_EVENTS[clean_uid]:
+            if not ev_id:
+                continue
+
+            time_val = ev.get("time_utc") if ev.get("time_utc") is not None else ev.get("start_utc")
+            start_utc = parse_event_start_utc(time_val)
+            ev["start_utc"] = start_utc
+
+            disp_key = f"{clean_uid}:{ev_id}:{start_utc}"
+            chat_disp_key = f"{chat_id}:{ev_id}:{start_utc}" if chat_id else None
+
+            if disp_key in DISPATCHED_EVENTS or (chat_disp_key and chat_disp_key in DISPATCHED_EVENTS):
+                continue
+            if ev_id in USER_DISPATCHED_EVENTS.get(clean_uid, set()):
+                continue
+            if chat_id and ev_id in USER_DISPATCHED_EVENTS.get(chat_id, set()):
                 continue
 
             category = ev.get('category', '').lower()
@@ -576,11 +612,14 @@ async def check_and_dispatch_event_notifications(client: httpx.AsyncClient):
                     except Exception as e:
                         print(f"⚠️ [Event FCM Outbox Error] user={mask_identifier(user_id)}: {_scrub(e)}")
 
-            USER_DISPATCHED_EVENTS[clean_uid].add(ev_id)
+            now_ts = time.time()
+            DISPATCHED_EVENTS[disp_key] = now_ts
+            if chat_disp_key:
+                DISPATCHED_EVENTS[chat_disp_key] = now_ts
+            USER_DISPATCHED_EVENTS.setdefault(clean_uid, set()).add(ev_id)
             if chat_id:
-                if chat_id not in USER_DISPATCHED_EVENTS:
-                    USER_DISPATCHED_EVENTS[chat_id] = set()
-                USER_DISPATCHED_EVENTS[chat_id].add(ev_id)
+                USER_DISPATCHED_EVENTS.setdefault(chat_id, set()).add(ev_id)
+            save_events_state(now=now_ts)
 
 async def refresh_market_events(client: Optional[httpx.AsyncClient] = None):
     """
