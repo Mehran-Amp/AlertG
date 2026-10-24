@@ -50,6 +50,9 @@ def _parse_ack_waits(raw: str) -> tuple:
     return parsed if parsed else (45, 90, 180)
 
 ACK_WAITS = _parse_ack_waits(os.getenv("ACK_WAITS", "45,90,180"))
+# Phase 3A-3: Shortened ack waits for silent devices (last heartbeat > 45 minutes ago)
+SILENT_ACK_WAITS = (15, 30)
+SILENT_DEVICE_AGE_SECONDS = 45 * 60  # 45 minutes
 
 def _load_outbox_from_disk() -> Dict[str, Dict[str, Any]]:
     if os.path.exists(OUTBOX_FILE):
@@ -147,6 +150,29 @@ async def enqueue_alert_push(alert, title: str, body: str, data_payload: dict, f
     blocked_token = token if is_dead else None
     next_attempt = now + 60.0 if is_dead else now
 
+    # Phase 3A-3: Silent device detection
+    # If user previously had a heartbeat, but last one is > 45 minutes old,
+    # shorten ack waits to (15, 30) seconds to trigger Telegram fallback much sooner.
+    uid = getattr(alert, "user_id", None)
+    if not uid:
+        for a in storage.ALERTS_DB:
+            if a.id == alert.id:
+                uid = getattr(a, "user_id", None)
+                break
+
+    entry_ack_waits = ACK_WAITS
+    if uid:
+        try:
+            from app.routes.devices import get_user_device_health
+            health = get_user_device_health(uid)
+            if health and health.get("received_at"):
+                age_seconds = now - float(health["received_at"])
+                if age_seconds > SILENT_DEVICE_AGE_SECONDS:
+                    entry_ack_waits = SILENT_ACK_WAITS
+                    print(f"⚠️ [Outbox] Silent device detected for user '{uid}' (last heartbeat {int(age_seconds)}s ago). Shortened ack waits to {SILENT_ACK_WAITS}.")
+        except Exception as e:
+            print(f"⚠️ [Outbox] Device health check error: {e}")
+
     OUTBOX[eid] = {
         "id": eid,
         "alert_id": alert.id,
@@ -162,6 +188,7 @@ async def enqueue_alert_push(alert, title: str, body: str, data_payload: dict, f
         "attempts": 0,
         "resend_count": 0,
         "ack_supported": bool(getattr(alert, "ack_supported", False)),
+        "ack_waits": entry_ack_waits,
         "last_error": "",
         "blocked_token": blocked_token,
     }
@@ -195,15 +222,16 @@ async def _deliver_outbox_entry(eid: str) -> None:
                 await _save_outbox()
                 return
 
+            waits = entry.get("ack_waits", ACK_WAITS)
             resend_count = int(entry.get("resend_count", 0))
-            if resend_count < len(ACK_WAITS) - 1:
+            if resend_count < len(waits) - 1:
                 # Resend the same delivery_id with the same payload.
                 entry["resend_count"] = resend_count + 1
                 entry["attempts"] = 0
                 entry["phase"] = "resending"
                 entry["next_attempt_at"] = now
                 entry["next_retry_at"] = now
-                print(f"🔁 [Outbox] {eid[:8]} resending (attempt {entry['resend_count']}/{len(ACK_WAITS) - 1})")
+                print(f"🔁 [Outbox] {eid[:8]} resending (attempt {entry['resend_count']}/{len(waits) - 1})")
                 _update_outbox_metrics()
                 await _save_outbox()
                 # Fall through to send FCM again.
@@ -215,7 +243,7 @@ async def _deliver_outbox_entry(eid: str) -> None:
                 OUTBOX.pop(eid, None)
                 journal.record_unacked(eid)
                 METRICS["fcm_unacked"] = METRICS.get("fcm_unacked", 0) + 1
-                print(f"⌛ [Outbox] {eid[:8]} not acked after {len(ACK_WAITS)} waits; marked unacked")
+                print(f"⌛ [Outbox] {eid[:8]} not acked after {len(waits)} waits; marked unacked")
                 _update_outbox_metrics()
                 await _save_outbox()
 
@@ -267,13 +295,14 @@ async def _deliver_outbox_entry(eid: str) -> None:
             if ack_capable:
                 entry["phase"] = "awaiting_ack"
                 # First wait for a new entry; for a resend use the next slot.
-                idx = min(int(entry.get("resend_count", 0)), len(ACK_WAITS) - 1)
-                wait = ACK_WAITS[idx]
+                waits = entry.get("ack_waits", ACK_WAITS)
+                idx = min(int(entry.get("resend_count", 0)), len(waits) - 1)
+                wait = waits[idx]
                 entry["ack_due_at"] = now + wait
                 entry["next_attempt_at"] = entry["ack_due_at"]
                 entry["next_retry_at"] = entry["ack_due_at"]
                 entry["attempts"] = 0
-                print(f"📨 [Outbox] {eid[:8]} FCM accepted; awaiting ack for {wait}s (resend {entry.get('resend_count', 0)}/{len(ACK_WAITS) - 1})")
+                print(f"📨 [Outbox] {eid[:8]} FCM accepted; awaiting ack for {wait}s (resend {entry.get('resend_count', 0)}/{len(waits) - 1})")
             else:
                 OUTBOX.pop(eid, None)
                 if entry.get("attempts", 0) > 0:
