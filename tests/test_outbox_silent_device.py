@@ -2,6 +2,28 @@ import time
 import unittest
 from unittest.mock import AsyncMock, patch
 
+import sys
+from unittest.mock import MagicMock
+
+for mod in [
+    'httpx', 'pydantic', 'firebase_admin', 'firebase_admin.credentials',
+    'firebase_admin.messaging', 'firebase_admin.exceptions',
+    'apscheduler', 'apscheduler.schedulers', 'apscheduler.schedulers.asyncio',
+    'fastapi', 'fastapi.middleware.cors', 'fastapi.responses'
+]:
+    if mod not in sys.modules:
+        m = MagicMock()
+        if mod == 'pydantic':
+            class BaseModel:
+                def __init__(self, **kwargs):
+                    for k, v in kwargs.items():
+                        setattr(self, k, v)
+                def dict(self): return self.__dict__
+                def model_dump(self): return self.__dict__
+            m.BaseModel = BaseModel
+            m.Field = lambda *args, **kwargs: kwargs.get('default', None)
+        sys.modules[mod] = m
+
 from app.notifier import outbox, journal
 from app.routes import devices
 from app import storage
@@ -101,7 +123,7 @@ class TestOutboxSilentDevice(unittest.IsolatedAsyncioTestCase):
                     mock_tg.assert_called_once_with(eid, "chat_silent_999", "Price Alert", "BTC hit 65k")
 
         finally:
-            storage.ALERTS_DB = [a for a in storage.ALERTS_DB if a.id != "alt-1"]
+            storage.ALERTS_DB[:] = [a for a in storage.ALERTS_DB if a.id != "alt-1"]
 
     async def test_active_device_or_never_seen_retains_default_waits(self):
         """2. Active device (<45m) or user with no prior heartbeat keeps default (45, 90, 180) waits (Phase 3A-3)."""
@@ -132,7 +154,7 @@ class TestOutboxSilentDevice(unittest.IsolatedAsyncioTestCase):
                 for eid, entry in outbox.OUTBOX.items():
                     self.assertEqual(entry.get("ack_waits"), outbox.ACK_WAITS)
         finally:
-            storage.ALERTS_DB = [a for a in storage.ALERTS_DB if a.id not in ("alt-active", "alt-new")]
+            storage.ALERTS_DB[:] = [a for a in storage.ALERTS_DB if a.id not in ("alt-active", "alt-new")]
 
 
 if __name__ == "__main__":
