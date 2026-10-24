@@ -76,10 +76,10 @@ from app.routes.telegram import router as telegram_router
 from app.routes.market_events import router as market_events_router
 from app.routes.deliveries import router as deliveries_router
 from app.routes.devices import router as devices_router
-from app.engine.market_events import refresh_market_events
+from app.engine.market_events import refresh_market_events, check_and_dispatch_30m_advance_reminders
 
 def setup_scheduler_jobs(sched):
-    """Registers periodic jobs on the scheduler: 2s price alert job, daily macro alert job & weekly catalog sync job."""
+    """Registers periodic jobs on the scheduler: 2s price alert job, daily macro alert job, 30s advance reminders, & weekly catalog sync job."""
     sched.add_job(
         check_alerts_job,
         'interval',
@@ -118,6 +118,15 @@ def setup_scheduler_jobs(sched):
         coalesce=True,
         misfire_grace_time=1800,
         id='market_events_6h_job'
+    )
+    sched.add_job(
+        check_and_dispatch_30m_advance_reminders,
+        'interval',
+        seconds=30,
+        max_instances=1,
+        coalesce=True,
+        misfire_grace_time=15,
+        id='advance_reminders_30s_job'
     )
 
 _SERVER_BG_TASKS: Set[asyncio.Task] = set()

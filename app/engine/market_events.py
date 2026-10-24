@@ -486,13 +486,8 @@ async def check_and_dispatch_event_notifications(client: httpx.AsyncClient):
     """
     Checks upcoming events and sends Telegram and FCM alerts to users who have opted into
     events notifications in their user profile (Phase 2B-4). Anti-spam tracks dispatches per user.
+    Note: 30-minute advance reminders are managed by a dedicated 30s scheduler job (FIX-4b).
     """
-    # 1. Dispatch 30-minute advance reminders for registered users (Phase 2B-3 & 2B-4)
-    try:
-        await check_and_dispatch_30m_advance_reminders(client)
-    except Exception as e:
-        print(f"⚠️ [Advance Reminders Dispatch Error] {_scrub(e)}")
-
     events = MARKET_EVENTS_CACHE if MARKET_EVENTS_CACHE else list(CURATED_HIGH_IMPACT_CATALOG)
     if not events:
         return
