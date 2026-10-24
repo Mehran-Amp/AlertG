@@ -7,6 +7,7 @@ import '../../../core/services/server_alert_service.dart';
 import '../../../core/theme/tokens.dart';
 import '../../notifications/services/notification_service.dart';
 import '../services/settings_service.dart';
+import '../widgets/device_health_card.dart';
 
 /// Comprehensive Market Diagnostics & Deep Server Debugging Page
 class DebugDiagnosticsPage extends StatefulWidget {
@@ -820,6 +821,10 @@ $jsonStr
             ],
           ),
         ),
+        const SizedBox(height: AppTokens.space16),
+
+        // Device Health Status Card (Phase 3B)
+        DeviceHealthCard(lang: lang),
         const SizedBox(height: AppTokens.space16),
 
         // 1-Tap Instant Local Lock-Screen Notification Test

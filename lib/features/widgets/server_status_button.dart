@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import '../../core/services/device_health_service.dart';
 import '../../core/services/fcm_notification_service.dart';
 import '../../core/services/server_alert_service.dart';
 import '../settings/models/app_settings.dart';
@@ -527,6 +528,54 @@ class _ServerStatusButtonState extends State<ServerStatusButton> {
                       ],
                     ),
                   ],
+
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        final uid = (settings?.userEmail ?? '').trim();
+                        if (uid.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(isFa ? '⚠️ شناسه کاربر تنظیم نشده است' : '⚠️ User ID is not configured'),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                          return;
+                        }
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(isFa ? '⏳ در حال ارسال پالس سلامت دستگاه...' : '⏳ Sending device heartbeat...'),
+                            duration: const Duration(seconds: 1),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                        final ok = await DeviceHealthService.sendHeartbeat(userId: uid);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(ok
+                                  ? (isFa ? '💓 پالس سلامت دستگاه با موفقیت به سرور ارسال و ثبت شد' : '💓 Device heartbeat reported to server!')
+                                  : (isFa ? 'خطا در ثبت پالس سلامت' : 'Failed to report heartbeat')),
+                              backgroundColor: ok ? Colors.green : Colors.red,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.favorite_rounded, size: 16, color: Colors.pinkAccent),
+                      label: Text(
+                        isFa ? 'ارسال فوری پالس سلامت دستگاه (Heartbeat)' : 'Send Device Heartbeat Ping',
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ),
 
                   const SizedBox(height: 14),
 
