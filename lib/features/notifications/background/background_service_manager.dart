@@ -7,6 +7,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../../core/services/delivery_ack_service.dart';
+import '../../../core/services/device_health_service.dart';
 import '../../../core/services/fcm_notification_service.dart';
 import '../../../core/services/server_alert_service.dart';
 import '../../../core/services/service_logger.dart';
@@ -303,6 +304,28 @@ class BackgroundServiceManager {
     });
 
     await ServiceLogger.log('service', 'service started');
+
+    // Initial device health heartbeat upon startup (Phase 3A-2)
+    try {
+      final uid = settingsService.settings.userEmail ?? '';
+      if (uid.isNotEmpty) {
+        DeviceHealthService.sendHeartbeat(userId: uid).ignore();
+      }
+    } catch (e, st) {
+      ServiceLogger.logError('init.heartbeat', e, st).ignore();
+    }
+
+    // Periodic device health heartbeat every 15 minutes (Phase 3A-2)
+    Timer.periodic(const Duration(minutes: 15), (timer) async {
+      try {
+        final uid = settingsService.settings.userEmail ?? '';
+        if (uid.isNotEmpty) {
+          await DeviceHealthService.sendHeartbeat(userId: uid);
+        }
+      } catch (e, st) {
+        await ServiceLogger.logError('health.periodicHeartbeat', e, st);
+      }
+    });
 
     service.on('stopService').listen((event) {
       ServiceLogger.log('service', 'stopService received').ignore();
