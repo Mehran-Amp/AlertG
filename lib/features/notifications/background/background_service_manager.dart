@@ -117,6 +117,11 @@ class BackgroundServiceManager {
   @pragma('vm:entry-point')
   static void onBackgroundServiceStart(ServiceInstance service) async {
     DartPluginRegistrant.ensureInitialized();
+    final serviceStartTime = DateTime.now();
+    await ServiceLogger.log(
+      'fgs.lifecycle',
+      'service started (type: dataSync, started_at: ${serviceStartTime.toIso8601String()})',
+    );
 
     void setNotificationText(bool isServer, [String lang = 'fa']) {
       if (service is AndroidServiceInstance) {
@@ -327,8 +332,25 @@ class BackgroundServiceManager {
       }
     });
 
-    service.on('stopService').listen((event) {
-      ServiceLogger.log('service', 'stopService received').ignore();
+    // Periodic FGS lifecycle diagnostics log (Phase 3B-1)
+    Timer.periodic(const Duration(minutes: 30), (timer) async {
+      try {
+        final uptime = DateTime.now().difference(serviceStartTime).inMinutes;
+        await ServiceLogger.log(
+          'fgs.lifecycle',
+          'service running heartbeat (uptime: ${uptime}m, type: dataSync)',
+        );
+      } catch (e, st) {
+        await ServiceLogger.logError('fgs.lifecycle.timer', e, st);
+      }
+    });
+
+    service.on('stopService').listen((event) async {
+      final uptime = DateTime.now().difference(serviceStartTime).inMinutes;
+      await ServiceLogger.log(
+        'fgs.lifecycle',
+        'service stop requested (reason: stopService event, uptime: ${uptime}m, payload: $event)',
+      );
       service.stopSelf();
     });
   }
