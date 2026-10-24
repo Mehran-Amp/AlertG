@@ -81,13 +81,11 @@ class TestOutboxSilentDevice(unittest.IsolatedAsyncioTestCase):
                 self.assertAlmostEqual(entry.get("ack_due_at"), now + 15, delta=2.0)
 
                 # Simulate time pass: first ack deadline expires -> resend (attempt 1/1)
+                # _deliver_outbox_entry immediately sends FCM and returns to awaiting_ack with next wait (30s)
                 with patch("time.time", return_value=now + 16):
                     await outbox._deliver_outbox_entry(eid)
-                    self.assertEqual(entry.get("phase"), "resending")
                     self.assertEqual(entry.get("resend_count"), 1)
-
-                    # FCM fires again for resend
-                    await outbox._deliver_outbox_entry(eid)
+                    self.assertEqual(mock_fcm.call_count, 2)
                     self.assertEqual(entry.get("phase"), "awaiting_ack")
                     # Second wait is 30s
                     self.assertAlmostEqual(entry.get("ack_due_at"), (now + 16) + 30, delta=2.0)
@@ -98,7 +96,7 @@ class TestOutboxSilentDevice(unittest.IsolatedAsyncioTestCase):
 
                     # Entry was popped and marked unacked
                     self.assertNotIn(eid, outbox.OUTBOX)
-                    self.assertEqual(journal.get_delivery_status(eid), "unacked")
+                    self.assertEqual(journal.get_status(eid), "unacked")
                     # Telegram fallback triggered
                     mock_tg.assert_called_once_with(eid, "chat_silent_999", "Price Alert", "BTC hit 65k")
 

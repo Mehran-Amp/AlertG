@@ -197,3 +197,7 @@ def clear_telegram_fallback_sent(delivery_id: str) -> None:
 def get_status(delivery_id: str) -> str:
     entry = JOURNAL.get(delivery_id)
     return (entry or {}).get("state", "unknown")
+
+
+# Alias for backward compatibility
+get_delivery_status = get_status
