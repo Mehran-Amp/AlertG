@@ -299,14 +299,29 @@ def is_reminder_sent(event_id: str, chat_id: str, kind: str = "advance_30m", sta
     return key in SENT_REMINDERS
 
 
+def user_supports_ack(user_id: str) -> bool:
+    """Checks if any alert registered for user in ALERTS_DB has ack_supported=True (Phase 2B-4 / FIX-5a)."""
+    clean_uid = (user_id or "").strip().lower()
+    if not clean_uid:
+        return False
+    for a in storage.ALERTS_DB:
+        if getattr(a, "user_id", "").lower() == clean_uid:
+            if getattr(a, "ack_supported", False) is True:
+                return True
+    return False
+
+
 class EventAlertStub:
-    """Lightweight stub to allow market events to route through the outbox delivery pipeline (Phase 2B-4)."""
-    def __init__(self, alert_id: str, user_id: str, fcm_token: str, telegram_chat_id: Optional[str] = None):
+    """Lightweight stub to allow market events to route through the outbox delivery pipeline (Phase 2B-4 / FIX-5a)."""
+    def __init__(self, alert_id: str, user_id: str, fcm_token: str, telegram_chat_id: Optional[str] = None, ack_supported: Optional[bool] = None):
         self.id = alert_id
         self.user_id = user_id
         self.fcm_token = fcm_token
         self.telegram_chat_id = telegram_chat_id
-        self.ack_supported = True
+        if ack_supported is not None:
+            self.ack_supported = bool(ack_supported)
+        else:
+            self.ack_supported = user_supports_ack(user_id)
 
 
 def resolve_user_fcm_token(user_id: str) -> Optional[str]:
@@ -529,8 +544,8 @@ async def check_and_dispatch_event_notifications(client: httpx.AsyncClient):
                 except Exception as e:
                     print(f"⚠️ [Event Telegram Send Error] user={mask_identifier(user_id)}: {_scrub(e)}")
 
-            # 2. FCM Outbox dispatch (Phase 2B-4: routes via outbox with delivery_id & ack)
-            if events_notif_enabled or prof.get('events_fcm_enabled', True):
+            # 2. FCM Outbox dispatch (Phase 2B-4 / FIX-5a: FCM requires explicit opt-in via events_notification_enabled)
+            if events_notif_enabled and prof.get('events_fcm_enabled', True):
                 fcm_token = resolve_user_fcm_token(clean_uid)
                 if fcm_token:
                     try:
