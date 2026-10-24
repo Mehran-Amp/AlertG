@@ -1,3 +1,5 @@
+import os
+import tempfile
 import unittest
 from unittest.mock import AsyncMock, patch
 
@@ -9,20 +11,46 @@ from app.engine.market_events import EventAlertStub, check_and_dispatch_event_no
 
 class TestMarketEventsOptinAndAck(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
+        self._orig_state_file = market_events.EVENTS_STATE_FILE
         self._orig_alerts = list(storage.ALERTS_DB)
         self._orig_profiles = dict(storage.USER_PROFILES_DB)
+        self._orig_sent = dict(market_events.SENT_REMINDERS)
+        self._orig_user = dict(market_events.EVENT_USER_REMINDERS)
+        self._orig_disp = dict(market_events.DISPATCHED_EVENTS)
         self._orig_dispatched = {k: set(v) for k, v in market_events.USER_DISPATCHED_EVENTS.items()}
+
+        self._tmp_file = tempfile.NamedTemporaryFile(suffix=".json", delete=False)
+        self._tmp_file.close()
+        market_events.EVENTS_STATE_FILE = self._tmp_file.name
+
         storage.ALERTS_DB.clear()
         storage.USER_PROFILES_DB.clear()
+        market_events.SENT_REMINDERS.clear()
+        market_events.EVENT_USER_REMINDERS.clear()
+        market_events.DISPATCHED_EVENTS.clear()
         market_events.USER_DISPATCHED_EVENTS.clear()
 
     def tearDown(self):
+        market_events.EVENTS_STATE_FILE = self._orig_state_file
         storage.ALERTS_DB.clear()
         storage.ALERTS_DB.extend(self._orig_alerts)
         storage.USER_PROFILES_DB.clear()
         storage.USER_PROFILES_DB.update(self._orig_profiles)
+        market_events.SENT_REMINDERS.clear()
+        market_events.SENT_REMINDERS.update(self._orig_sent)
+        market_events.EVENT_USER_REMINDERS.clear()
+        market_events.EVENT_USER_REMINDERS.update(self._orig_user)
+        market_events.DISPATCHED_EVENTS.clear()
+        market_events.DISPATCHED_EVENTS.update(self._orig_disp)
         market_events.USER_DISPATCHED_EVENTS.clear()
         market_events.USER_DISPATCHED_EVENTS.update(self._orig_dispatched)
+
+        for p in (self._tmp_file.name, self._tmp_file.name + ".bad", self._tmp_file.name + ".tmp"):
+            try:
+                if os.path.exists(p):
+                    os.remove(p)
+            except Exception:
+                pass
 
     def test_1_user_without_ack_alert_has_ack_supported_false(self):
         """1. EventAlertStub derives ack_supported=False when user has no ack_supported alerts in ALERTS_DB (FIX-5a)."""

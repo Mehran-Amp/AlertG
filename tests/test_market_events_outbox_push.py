@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, patch
 
 from app.engine import market_events
 from app import storage
+from app.models import Alert
 
 
 class TestMarketEventsOutboxPush(unittest.IsolatedAsyncioTestCase):
@@ -17,6 +18,7 @@ class TestMarketEventsOutboxPush(unittest.IsolatedAsyncioTestCase):
         self._orig_cache = list(market_events.MARKET_EVENTS_CACHE)
         self._orig_profiles = dict(storage.USER_PROFILES_DB)
         self._orig_alerts = list(storage.ALERTS_DB)
+        self._orig_disp = dict(market_events.DISPATCHED_EVENTS)
         self._orig_dispatched = dict(market_events.USER_DISPATCHED_EVENTS)
 
         self._tmp_file = tempfile.NamedTemporaryFile(suffix=".json", delete=False)
@@ -26,6 +28,7 @@ class TestMarketEventsOutboxPush(unittest.IsolatedAsyncioTestCase):
         market_events.SENT_REMINDERS.clear()
         market_events.EVENT_USER_REMINDERS.clear()
         market_events.MARKET_EVENTS_CACHE.clear()
+        market_events.DISPATCHED_EVENTS.clear()
         market_events.USER_DISPATCHED_EVENTS.clear()
         storage.USER_PROFILES_DB.clear()
         storage.ALERTS_DB.clear()
@@ -57,6 +60,8 @@ class TestMarketEventsOutboxPush(unittest.IsolatedAsyncioTestCase):
         market_events.CURATED_HIGH_IMPACT_CATALOG.extend(self._orig_catalog)
         market_events.MARKET_EVENTS_CACHE.clear()
         market_events.MARKET_EVENTS_CACHE.extend(self._orig_cache)
+        market_events.DISPATCHED_EVENTS.clear()
+        market_events.DISPATCHED_EVENTS.update(self._orig_disp)
         market_events.USER_DISPATCHED_EVENTS.clear()
         market_events.USER_DISPATCHED_EVENTS.update(self._orig_dispatched)
 
@@ -83,8 +88,21 @@ class TestMarketEventsOutboxPush(unittest.IsolatedAsyncioTestCase):
             "user_id": uid,
             "telegram_chat_id": "chat_555",
             "events_notification_enabled": True,
-            "fcm_token": dummy_fcm
+            "fcm_token": dummy_fcm,
+            "ack_supported": True
         }
+
+        # User has an active alert with ack_supported=True in ALERTS_DB (FIX-5a)
+        storage.ALERTS_DB.append(Alert(
+            id=f"alert_{uid}",
+            user_id=uid,
+            exchange="binance",
+            symbol="BTCUSDT",
+            target_price=50000.0,
+            condition="ABOVE",
+            ack_supported=True,
+            created_at="2026-10-24T00:00:00Z"
+        ))
 
         mock_client = AsyncMock()
 
