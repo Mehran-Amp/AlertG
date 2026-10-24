@@ -322,10 +322,13 @@ def is_reminder_sent(event_id: str, chat_id: str, kind: str = "advance_30m", sta
 
 
 def user_supports_ack(user_id: str) -> bool:
-    """Checks if any alert registered for user in ALERTS_DB has ack_supported=True (Phase 2B-4 / FIX-5a)."""
+    """Checks if any alert registered for user in ALERTS_DB or profile in USER_PROFILES_DB has ack_supported=True (Phase 2B-4 / FIX-5a)."""
     clean_uid = (user_id or "").strip().lower()
     if not clean_uid:
         return False
+    prof = storage.USER_PROFILES_DB.get(clean_uid)
+    if isinstance(prof, dict) and prof.get("ack_supported") is True:
+        return True
     for a in storage.ALERTS_DB:
         if getattr(a, "user_id", "").lower() == clean_uid:
             if getattr(a, "ack_supported", False) is True:
