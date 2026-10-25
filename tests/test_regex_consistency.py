@@ -76,3 +76,12 @@ class TestManagerExamples:
         from app.config import SYMBOL_RE, EXCHANGE_RE
         assert SYMBOL_RE.match("S&P 500")
         assert EXCHANGE_RE.match("Deutsche Börse")
+
+class TestSyncUsesConfigRegex:
+    """REGEX-2: sync.py must not redefine SYMBOL_RE/EXCHANGE_RE locally."""
+
+    def test_sync_uses_config_regex(self):
+        import app.config as config
+        import app.engine.sync as sync_module
+        assert sync_module.SYMBOL_RE is config.SYMBOL_RE
+        assert sync_module.EXCHANGE_RE is config.EXCHANGE_RE        

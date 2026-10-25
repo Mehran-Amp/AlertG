@@ -11,7 +11,7 @@ from typing import List, Dict, Any, Optional, Tuple
 import app.config as config
 from app.config import (
     DATA_DIR, CATALOG_FILE, CATALOG_SNAPSHOTS_DIR, SYNC_RUNS_FILE,
-    APP_VERSION, SYMBOL_RE, CATALOG_SCHEMA_VERSION
+    APP_VERSION, SYMBOL_RE, EXCHANGE_RE, CATALOG_SCHEMA_VERSION
 )
 
 WIKIPEDIA_SP500_URL = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
@@ -88,8 +88,8 @@ class CatalogValidationError(ValueError):
 # -------------------------------------------------------------------------
 # VALIDATION CONSTRAINTS (Phase 4 / v3.2.0)
 # -------------------------------------------------------------------------
-SYMBOL_RE = re.compile(r'^[A-Za-z0-9^][A-Za-z0-9\.\-\=\/\_\s\(\)\&\^]{0,31}$', re.IGNORECASE)
-EXCHANGE_RE = re.compile(r'^[a-zA-Z0-9\_\-\s\.\&öäüéèáà]{2,40}$', re.IGNORECASE)
+#SYMBOL_RE = re.compile(r'^[A-Za-z0-9^][A-Za-z0-9\.\-\=\/\_\s\(\)\&\^]{0,31}$', re.IGNORECASE)
+#EXCHANGE_RE = re.compile(r'^[a-zA-Z0-9\_\-\s\.\&öäüéèáà]{2,40}$', re.IGNORECASE)
 VALID_ASSET_CLASSES = {'stock', 'etf', 'forex', 'index', 'commodity', 'bond', 'macro'}
 VALID_CURRENCIES = {'USD', 'EUR', 'GBP', 'JPY', 'CAD', 'CHF', 'AUD', 'NZD', 'CNY', 'HKD', 'AED', 'IRR', 'IRT'}
 ALLOWED_PROVIDERS = {'yahoo', 'finnhub', 'twelve_data', 'fred'}

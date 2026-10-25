@@ -58,7 +58,7 @@ FRED_API_KEY = os.getenv("FRED_API_KEY", "").strip() or "demo_fred"
 # - No \s (avoids tabs/newlines); only a literal space.
 # - (?!.*\.\.) rejects ".." (manager requirement) while still allowing "BRK.B".
 SYMBOL_RE = re.compile(
-    r'^(?!.*\.\.)[A-Za-z0-9^.=_/\-&](?:[A-Za-z0-9^.=_/\-& ]{0,30}[A-Za-z0-9^.=_/\-&])?$'
+    r'^(?!.*\.\.)[A-Za-z0-9^.=_/\-&\(](?:[A-Za-z0-9^.=_/\-& \(\)]{0,30}[A-Za-z0-9^.=_/\-&\)])?$'
 )
 EXCHANGE_RE = re.compile(
     r'^(?!.*\.\.)[A-Za-z0-9_.\-&öäüéèáà][A-Za-z0-9_.\-&öäüéèáà ]{0,38}[A-Za-z0-9_.\-&öäüéèáà]$',
