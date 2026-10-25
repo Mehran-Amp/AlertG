@@ -5,7 +5,7 @@ from app.config import TELEGRAM_BOT_TOKEN, TELEGRAM_BOT_METADATA, CHAT_ID_RE
 from app.security import API_DEP, _scrub
 from app.models import TelegramTestRequest, Alert
 from app.state import METRICS
-from app.notifier.telegram import format_telegram_history_card, TELEGRAM_BOT_KEYBOARD
+from app.notifier.telegram import format_telegram_history_card, send_telegram_alert, TELEGRAM_BOT_KEYBOARD
 import app.state as state
 
 router = APIRouter()
@@ -61,24 +61,20 @@ async def send_telegram_test_message(req: TelegramTestRequest):
     )
 
     try:
-        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-        res = await state.http_client.post(url, json={
-            "chat_id": chat_id,
-            "text": test_msg,
-            "parse_mode": "HTML",
-            "disable_web_page_preview": True,
-            "reply_markup": TELEGRAM_BOT_KEYBOARD
-        }, timeout=8.0)
-        if res.status_code == 200:
-            METRICS["telegram_sent"] += 1
+        ok = await send_telegram_alert(
+            state.http_client,
+            chat_id,
+            test_msg,
+            reply_markup=TELEGRAM_BOT_KEYBOARD,
+        )
+        if ok:
             return {"status": "ok", "message": "Test alert card sent successfully to your Telegram!", "chat_id": chat_id}
-        else:
-            err_msg = res.text[:200]
-            if res.status_code == 401:
-                raise HTTPException(status_code=502, detail="توکن ربات تلگرام روی سرور نامعتبر یا منقضی شده است (Telegram Bot Unauthorized 401).")
-            elif res.status_code == 400:
-                raise HTTPException(status_code=400, detail="شناسه چت نامعتبر است یا کاربر ربات را استارت نکرده است (/start در ربات تلگرام لازم است).")
-            raise HTTPException(status_code=res.status_code, detail=f"خطای تلگرام: {err_msg}")
+        # send_telegram_alert returns False for: 401 (bad token), persistent 4xx
+        # (e.g. chat not started), persistent 5xx after retries, or network failure.
+        raise HTTPException(
+            status_code=502,
+            detail="ارسال پیام تست به تلگرام ناموفق بود (توکن، شناسه چت، یا اتصال را بررسی کنید).",
+        )
     except HTTPException:
         raise
     except Exception as e:
