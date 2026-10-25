@@ -35,7 +35,7 @@ class BackgroundServiceManager {
     final service = _currentServiceInstance;
     if (service is AndroidServiceInstance) {
       final isFa = lang == 'fa' || lang == 'ar' || lang == 'ckb';
-      final sourceText = isServer
+      final sourceText = isFromServer
           ? (isFa ? 'سرور ابری (FCM)' : 'Cloud Server (FCM)')
           : (isFa ? 'پایش محلی دستگاه' : 'Local Device Engine');
       final contentText = isFa
@@ -48,12 +48,17 @@ class BackgroundServiceManager {
         );
         ServiceLogger.log(
           'bg.notification',
-          'notification 777 text applied: isServer=$isServer, text="$contentText"',
+          'notification 777 text applied: isFromServer=$isFromServer, text="$contentText"',
         ).ignore();
       } catch (e, st) {
         ServiceLogger.logError('applyNotificationInfo', e, st).ignore();
       }
     }
+  }
+
+  /// Public helper to update foreground persistent notification text.
+  static void setNotificationText(bool isFromServer, [String lang = 'fa']) {
+    _applyNotificationInfo(isFromServer: isFromServer, lang: lang);
   }
 
   /// Updates foreground persistent notification text with current price source.
