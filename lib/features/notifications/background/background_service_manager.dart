@@ -11,6 +11,7 @@ import '../../../core/services/device_health_service.dart';
 import '../../../core/services/fcm_notification_service.dart';
 import '../../../core/services/server_alert_service.dart';
 import '../../../core/services/service_logger.dart';
+import '../../../core/services/websocket_client_service.dart';
 import '../../alert_engine/repositories/json_alert_rule_repository.dart';
 import '../../alert_engine/scheduler/scheduler_service.dart';
 import '../../exchanges/registry/exchange_catalog.dart';
@@ -366,12 +367,26 @@ class BackgroundServiceManager {
       }
     });
 
+    // WebSocket Client in Background Service Isolate (Phase 4B-1)
+    try {
+      final uid = settingsService.settings.userEmail ?? '';
+      WebSocketClientService.start(userId: uid);
+      await ServiceLogger.log('init', 'WebSocketClientService.start called (uid: "$uid")');
+    } catch (e, st) {
+      await ServiceLogger.logError('init.webSocketClient', e, st);
+    }
+
     service.on('stopService').listen((event) async {
       final uptime = DateTime.now().difference(serviceStartTime).inMinutes;
       await ServiceLogger.log(
         'fgs.lifecycle',
         'service stop requested (reason: stopService event, uptime: ${uptime}m, payload: $event)',
       );
+      try {
+        WebSocketClientService.stop();
+      } catch (e, st) {
+        ServiceLogger.logError('stopService.webSocket', e, st).ignore();
+      }
       service.stopSelf();
     });
   }

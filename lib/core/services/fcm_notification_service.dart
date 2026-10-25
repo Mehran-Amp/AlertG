@@ -22,32 +22,36 @@ int _notificationIdFor(RemoteMessage m, String alertId) {
   return id == 777 ? 778 : id;
 }
 
-/// Shared by the background handler and the foreground listener.
-/// [inApp] = true when the UI/service isolate is alive (extra sound/haptics ok).
-Future<void> _handleIncomingAlert(RemoteMessage message, {required bool inApp}) async {
-  final d = message.data;
-  final symbol = d['symbol'] ?? '';
-  final priceStr = d['price'] ?? '';
-  final alertId = d['alert_id'] ?? '';
-  final title = d['title'] ?? message.notification?.title ?? '';
-  final body = d['body'] ?? message.notification?.body ?? '';
-  final note = d['note'] ?? '';
-
-  final deliveryId = (d['delivery_id'] ?? '').trim();
+/// Shared central alert handling pipeline for both FCM push and WebSocket alerts.
+/// Enforces cross-channel deduplication via [delivery_id] (Phase 4B-2).
+Future<void> handleAlertDataMap(
+  Map<String, dynamic> d, {
+  String? title,
+  String? body,
+  required bool inApp,
+  String source = 'fcm',
+}) async {
+  final symbol = (d['symbol'] as String?) ?? '';
+  final priceStr = (d['price'] as String?) ?? '';
+  final alertId = (d['alert_id'] as String?) ?? '';
+  final effectiveTitle = title ?? (d['title'] as String?) ?? '';
+  final effectiveBody = body ?? (d['body'] as String?) ?? '';
+  final note = (d['note'] as String?) ?? '';
+  final deliveryId = ((d['delivery_id'] as String?) ?? '').trim();
 
   await ServiceLogger.log(
-    'fcm.handle',
-    'enter inApp=$inApp alert_id=$alertId delivery_id=$deliveryId symbol=$symbol tts_enabled=${d['tts_enabled']} sound_enabled=${d['sound_enabled']} vibration_enabled=${d['vibration_enabled']}',
+    'alert.handle',
+    'enter source=$source inApp=$inApp alert_id=$alertId delivery_id=$deliveryId symbol=$symbol tts_enabled=${d['tts_enabled']} sound_enabled=${d['sound_enabled']} vibration_enabled=${d['vibration_enabled']}',
   );
 
   // Reject ghost / empty pushes without real alert data.
-  if (title.isEmpty && symbol.isEmpty && alertId.isEmpty) {
-    debugPrint('ℹ️ [FCM] Suppressed ghost push without alert payload.');
-    await ServiceLogger.log('fcm.handle', 'suppressed ghost push (no title/symbol/alert_id)');
+  if (effectiveTitle.isEmpty && symbol.isEmpty && alertId.isEmpty) {
+    debugPrint('ℹ️ [$source] Suppressed ghost alert without payload.');
+    await ServiceLogger.log('alert.handle', 'suppressed ghost alert (no title/symbol/alert_id)');
     return;
   }
 
-  // Update background service notification to reflect price arrival from cloud FCM
+  // Update background service notification to reflect price arrival from cloud/socket
   BackgroundServiceManager.updatePriceSource(isFromServer: true);
 
   final double? parsedPrice = double.tryParse(priceStr);
@@ -59,19 +63,19 @@ Future<void> _handleIncomingAlert(RemoteMessage message, {required bool inApp}) 
       customNote: note.isNotEmpty ? note : null,
     );
   } else {
-    speechText = body.isNotEmpty ? body : (title.isNotEmpty ? title : 'هشدار قیمت دریافتی از سرور');
+    speechText = effectiveBody.isNotEmpty
+        ? effectiveBody
+        : (effectiveTitle.isNotEmpty ? effectiveTitle : 'هشدار قیمت دریافتی از سرور');
   }
 
   final ns = NotificationService();
-  // Banner first. Master toggles / volume / sound name are resolved once,
-  // inside enqueueCriticalAlert, from settings.json.
   final dispatch = await ns.enqueueCriticalAlert(
-    id: _notificationIdFor(message, alertId),
-    title: title.isNotEmpty ? title : '🚨 Price Alert',
-    body: body,
+    id: deliveryId.isNotEmpty ? deliveryId.hashCode.abs() : (alertId.isNotEmpty ? alertId.hashCode.abs() : 7777),
+    title: effectiveTitle.isNotEmpty ? effectiveTitle : '🚨 Price Alert',
+    body: effectiveBody,
     payload: alertId.isNotEmpty ? alertId : null,
     dedupeKey: deliveryId.isNotEmpty ? deliveryId : null,
-    soundName: d['sound'],
+    soundName: d['sound'] as String?,
     soundEnabled: d['sound_enabled'] != 'false',
     vibrationEnabled: d['vibration_enabled'] != 'false',
     ttsEnabled: d['tts_enabled'] != 'false',
@@ -81,25 +85,35 @@ Future<void> _handleIncomingAlert(RemoteMessage message, {required bool inApp}) 
   );
 
   await ServiceLogger.log(
-    'fcm.handle',
-    'enqueueCriticalAlert done alert_id=$alertId delivery_id=$deliveryId result=$dispatch speechText="${speechText.length > 60 ? '${speechText.substring(0, 60)}...' : speechText}"',
+    'alert.handle',
+    'enqueueCriticalAlert done source=$source alert_id=$alertId delivery_id=$deliveryId result=$dispatch speechText="${speechText.length > 60 ? '${speechText.substring(0, 60)}...' : speechText}"',
   );
 
-  // Phase 2: ack the server only after the banner is really shown (or a
-  // duplicate confirms it was already shown by another isolate). If the
-  // banner failed, do NOT ack — the server will retry.
+  // Phase 2 / 4: ack the server only after the banner is really shown (or a
+  // duplicate confirms it was already shown by another channel/isolate).
   if ((dispatch == AlertDispatchResult.shown || dispatch == AlertDispatchResult.duplicate)
       && deliveryId.isNotEmpty) {
     try {
       await DeliveryAckService.enqueueAck(deliveryId);
       await DeliveryAckService.flush()
           .timeout(const Duration(seconds: 5), onTimeout: () {});
-      await ServiceLogger.log('fcm.ack', 'acked delivery_id=$deliveryId');
+      await ServiceLogger.log('alert.ack', 'acked delivery_id=$deliveryId source=$source');
     } catch (e, st) {
-      // Never let an ack failure break the FCM handler.
-      await ServiceLogger.logError('fcm.ack', e, st);
+      await ServiceLogger.logError('alert.ack', e, st);
     }
   }
+}
+
+/// Shared by the background handler and the foreground listener.
+/// [inApp] = true when the UI/service isolate is alive (extra sound/haptics ok).
+Future<void> _handleIncomingAlert(RemoteMessage message, {required bool inApp}) async {
+  await handleAlertDataMap(
+    message.data,
+    title: message.notification?.title,
+    body: message.notification?.body,
+    inApp: inApp,
+    source: 'fcm',
+  );
 }
 
 /// Top-level FCM background handler (runs in its own short-lived isolate).
