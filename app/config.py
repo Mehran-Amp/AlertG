@@ -50,8 +50,20 @@ FINNHUB_API_KEY = os.getenv("FINNHUB_API_KEY", "").strip() or "sandbox_key"
 TWELVE_DATA_API_KEY = os.getenv("TWELVE_DATA_API_KEY", "").strip() or "demo"
 FRED_API_KEY = os.getenv("FRED_API_KEY", "").strip() or "demo_fred"
 
-SYMBOL_RE = re.compile(r'^[A-Za-z0-9^.=_/\-]{1,32}$')
-EXCHANGE_RE = re.compile(r'^[a-z0-9_.\-]{1,32}$')
+# Phase REGEX-1: widened to match catalog.json and sync.py, per manager decision.
+# - SYMBOL_RE: 1-32 chars (11 single-letter tickers exist: A, T, C, D, P, F, J, L, Q, O, V).
+# - EXCHANGE_RE: 2-40 chars (matches sync.py; no single-char exchange exists).
+# - Space allowed only in the middle (no leading/trailing space).
+# - '&' allowed; EXCHANGE_RE also allows öäüéèáà.
+# - No \s (avoids tabs/newlines); only a literal space.
+# - (?!.*\.\.) rejects ".." (manager requirement) while still allowing "BRK.B".
+SYMBOL_RE = re.compile(
+    r'^(?!.*\.\.)[A-Za-z0-9^.=_/\-&](?:[A-Za-z0-9^.=_/\-& ]{0,30}[A-Za-z0-9^.=_/\-&])?$'
+)
+EXCHANGE_RE = re.compile(
+    r'^(?!.*\.\.)[A-Za-z0-9_.\-&öäüéèáà][A-Za-z0-9_.\-&öäüéèáà ]{0,38}[A-Za-z0-9_.\-&öäüéèáà]$',
+    re.IGNORECASE,
+)
 CHAT_ID_RE = re.compile(r'^(-?\d{1,20}|@[A-Za-z0-9_]{3,64})$')
 MAX_ALERTS_PER_USER = 200
 MAX_NOTE_LEN = 500
