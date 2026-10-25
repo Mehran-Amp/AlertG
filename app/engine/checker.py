@@ -164,7 +164,7 @@ async def check_alerts_job():
         return
 
     current_time = time.time()
-    METRICS["last_check_ts"] = current_time      # ← فقط این خط اضافه
+    METRICS["last_check_ts"] = current_time
     METRICS["total_checks"] += 1
 
     active_alerts = [

@@ -285,7 +285,7 @@ async def _deliver_outbox_entry(eid: str) -> None:
         if ok:
             global _CONSECUTIVE_FCM_AUTH_ERRORS
             _CONSECUTIVE_FCM_AUTH_ERRORS = 0
-            METRICS["last_fcm_ok_ts"] = now          # ← فقط این خط اضافه
+            METRICS["last_fcm_ok_ts"] = now
             journal.record_sent(eid)
 
             # Phase 2: keep the entry until the app acks if the alert is ack-capable.
