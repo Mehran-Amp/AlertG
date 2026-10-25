@@ -12,8 +12,7 @@ from fastapi.testclient import TestClient
 
 def _client(monkeypatch, *, outbox_len=0, fcm_success=0, fcm_failed=0,
             fcm_auth_error=0, delivery_unacked=0, outbox_blocked=0,
-            last_fcm_auth_error_ts=None, last_fcm_failed_ts=None,
-            fcm_auth_error_window=None, fcm_failed_window=None):
+            last_fcm_auth_error_ts=None, last_fcm_failed_ts=None):
     """Build a TestClient with METRICS + OUTBOX overridden and auth bypassed."""
     from app.state import METRICS
     import app.routes.admin as admin_module
@@ -33,14 +32,20 @@ def _client(monkeypatch, *, outbox_len=0, fcm_success=0, fcm_failed=0,
     METRICS["start_time"] = time.time() - 3600  # 1h uptime
     METRICS["last_fcm_auth_error_ts"] = last_fcm_auth_error_ts
     METRICS["last_fcm_failed_ts"] = last_fcm_failed_ts
-    METRICS["fcm_auth_error_window"] = fcm_auth_error_window
-    METRICS["fcm_failed_window"] = fcm_failed_window
 
     # Override OUTBOX by monkeypatching admin_module.OUTBOX reference
     fake_outbox = {f"id{i}": {"id": f"id{i}"} for i in range(outbox_len)}
     monkeypatch.setattr(admin_module, "OUTBOX", fake_outbox)
 
     return TestClient(server.app)
+
+
+def _clear():
+    import server
+    from app.state import METRICS
+    server.app.dependency_overrides.clear()
+    METRICS.pop("last_fcm_auth_error_ts", None)
+    METRICS.pop("last_fcm_failed_ts", None)
 
 
 class TestHealthDeepHealthy:
@@ -56,8 +61,7 @@ class TestHealthDeepHealthy:
             assert body["checks"]["outbox_len"] == 2
             assert body["warnings"] == []
         finally:
-            import server
-            server.app.dependency_overrides.clear()
+            _clear()
 
 
 class TestHealthDeepDegraded:
@@ -72,8 +76,7 @@ class TestHealthDeepDegraded:
             assert body["status"] == "degraded"
             assert any("outbox backlog" in w for w in body["warnings"])
         finally:
-            import server
-            server.app.dependency_overrides.clear()
+            _clear()
 
 
 class TestHealthDeepFcmAuth:
@@ -87,8 +90,7 @@ class TestHealthDeepFcmAuth:
             body = r.json()
             assert any("auth" in w.lower() for w in body["warnings"])
         finally:
-            import server
-            server.app.dependency_overrides.clear()
+            _clear()
 
 
 class TestHealthDeepWindow:
@@ -110,8 +112,7 @@ class TestHealthDeepWindow:
             assert body["status"] == "ok"
             assert body["checks"]["fcm_auth_error_15m"] == 0
         finally:
-            import server
-            server.app.dependency_overrides.clear()
+            _clear()
 
     def test_stale_fcm_failures_ignored_returns_200(self, monkeypatch):
         """Old failures (> 15m ago) do not trigger 503."""
@@ -129,15 +130,14 @@ class TestHealthDeepWindow:
             assert body["status"] == "ok"
             assert body["checks"]["fcm_failed_15m"] == 0
         finally:
-            import server
-            server.app.dependency_overrides.clear()
+            _clear()
 
     def test_recent_fcm_window_timestamps_returns_503(self, monkeypatch):
         """Recent timestamps in 15m window trigger 503 when threshold is exceeded."""
         now = time.time()
         client = _client(
             monkeypatch,
-            fcm_auth_error_window=[now - 30] * 12,  # 12 errors in last 30s
+            fcm_auth_error=[now - 30] * 12,  # 12 errors in last 30s
             fcm_success=0,
         )
         try:
@@ -147,5 +147,4 @@ class TestHealthDeepWindow:
             assert body["status"] == "degraded"
             assert any("15m" in w for w in body["warnings"])
         finally:
-            import server
-            server.app.dependency_overrides.clear()
+            _clear()

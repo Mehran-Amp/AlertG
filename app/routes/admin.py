@@ -361,36 +361,38 @@ def get_deep_health():
     now = time.time()
     last_fcm_ok_ts = METRICS.get("last_fcm_ok_ts")
     last_check_ts = METRICS.get("last_check_ts")
+    last_fcm_auth_error_ts = METRICS.get("last_fcm_auth_error_ts")
+    last_fcm_failed_ts = METRICS.get("last_fcm_failed_ts")
 
-    def _count_in_window(key: str, window_seconds: float = 900.0) -> int:
-        for alt_key in (f"{key}_ts", f"{key}_window", key):
-            val = METRICS.get(alt_key)
-            if isinstance(val, list):
-                return sum(1 for ts in val if isinstance(ts, (int, float)) and (now - ts) <= window_seconds)
-        val = METRICS.get(key, 0)
-        if isinstance(val, (int, float)):
-            last_ts = METRICS.get(f"last_{key}_ts")
-            if last_ts is not None and (now - float(last_ts)) > window_seconds:
-                return 0
-            return int(val)
-        return 0
+    # FIX-10: 15-minute rolling window for failures
+    if isinstance(fcm_auth_error, list):
+        fcm_auth_error_15m = sum(1 for ts in fcm_auth_error if isinstance(ts, (int, float)) and (now - ts) <= 900.0)
+        fcm_auth_error_count = len(fcm_auth_error)
+    else:
+        if last_fcm_auth_error_ts is not None and (now - float(last_fcm_auth_error_ts)) > 900.0:
+            fcm_auth_error_15m = 0
+        else:
+            fcm_auth_error_15m = int(fcm_auth_error)
+        fcm_auth_error_count = int(fcm_auth_error)
 
-    fcm_auth_error_15m = _count_in_window("fcm_auth_error", 900.0)
-    fcm_failed_15m = _count_in_window("fcm_failed", 900.0)
+    if isinstance(fcm_failed, list):
+        fcm_failed_15m = sum(1 for ts in fcm_failed if isinstance(ts, (int, float)) and (now - ts) <= 900.0)
+        fcm_failed_count = len(fcm_failed)
+    else:
+        if last_fcm_failed_ts is not None and (now - float(last_fcm_failed_ts)) > 900.0:
+            fcm_failed_15m = 0
+        else:
+            fcm_failed_15m = int(fcm_failed)
+        fcm_failed_count = int(fcm_failed)
 
     warnings = []
     if outbox_len > 100:
         warnings.append(f"outbox backlog: {outbox_len} > 100")
     if fcm_auth_error_15m > 10:
         warnings.append(f"persistent FCM auth failures in last 15m: {fcm_auth_error_15m} > 10")
-
-    fcm_has_recent_success = (
-        last_fcm_ok_ts is not None and (now - last_fcm_ok_ts) <= 900.0
-    ) or (fcm_success > 0 and last_fcm_ok_ts is None and fcm_failed_15m == 0)
-
-    if fcm_failed_15m > 50 and not fcm_has_recent_success:
+    if fcm_failed_15m > 50 and fcm_success == 0:
         warnings.append(
-            f"FCM appears down: {fcm_failed_15m} failures in last 15m and 0 recent successes"
+            f"FCM appears down: {fcm_failed_15m} failures in last 15m and 0 successes"
         )
     # Precise 3E-1 criterion: queue is filling AND no successful FCM in > 1h.
     if (
@@ -416,9 +418,9 @@ def get_deep_health():
             "outbox_len": outbox_len,
             "outbox_blocked": outbox_blocked,
             "fcm_success": fcm_success,
-            "fcm_failed": fcm_failed,
+            "fcm_failed": fcm_failed_count,
             "fcm_failed_15m": fcm_failed_15m,
-            "fcm_auth_error": fcm_auth_error,
+            "fcm_auth_error": fcm_auth_error_count,
             "fcm_auth_error_15m": fcm_auth_error_15m,
             "delivery_unacked": delivery_unacked,
             "ack_latency_avg_ms": latency.get("avg_ms"),

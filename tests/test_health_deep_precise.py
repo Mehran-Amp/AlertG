@@ -21,9 +21,10 @@ def _client(monkeypatch, *, outbox_len=0, fcm_success=0, fcm_failed=0,
     METRICS["fcm_auth_error"] = fcm_auth_error
     METRICS["outbox_blocked"] = 0
     METRICS["delivery_unacked"] = 0
-    METRICS["start_time"] = time.time() - 3600
     METRICS["last_fcm_ok_ts"] = last_fcm_ok_ts
     METRICS["last_check_ts"] = last_check_ts
+    METRICS["last_fcm_auth_error_ts"] = None
+    METRICS["last_fcm_failed_ts"] = None
 
     fake_outbox = {f"id{i}": {"id": f"id{i}"} for i in range(outbox_len)}
     monkeypatch.setattr(admin_module, "OUTBOX", fake_outbox)
@@ -33,7 +34,12 @@ def _client(monkeypatch, *, outbox_len=0, fcm_success=0, fcm_failed=0,
 
 def _clear():
     import server
+    from app.state import METRICS
     server.app.dependency_overrides.clear()
+    METRICS.pop("last_fcm_ok_ts", None)
+    METRICS.pop("last_check_ts", None)
+    METRICS.pop("last_fcm_auth_error_ts", None)
+    METRICS.pop("last_fcm_failed_ts", None)
 
 
 class TestStaleFcmWithQueue:
