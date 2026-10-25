@@ -67,6 +67,22 @@ def get_status_dashboard(format: Optional[str] = None, accept: Optional[str] = H
     latency_stats = journal.get_ack_latency_stats()
     unacked_count = METRICS.get("delivery_unacked", 0)
 
+    try:
+        from app.routes.ws import manager as ws_manager
+        ws_stats = {
+            "active_connections": ws_manager.get_active_connections_count(),
+            "active_users": ws_manager.get_active_users_count(),
+            "ws_sent": METRICS.get("ws_sent", 0),
+            "ws_acked": METRICS.get("ws_acked", 0),
+        }
+    except Exception:
+        ws_stats = {
+            "active_connections": 0,
+            "active_users": 0,
+            "ws_sent": 0,
+            "ws_acked": 0,
+        }
+
     wants_json = (format == "json") or (isinstance(accept, str) and "application/json" in accept and format != "html")
     if wants_json:
         return JSONResponse({
@@ -88,6 +104,7 @@ def get_status_dashboard(format: Optional[str] = None, accept: Optional[str] = H
             "ack_latency_p95_ms": latency_stats.get("p95_ms"),
             "unacked_deliveries": unacked_count,
             "delivery_unacked": unacked_count,
+            "websocket": ws_stats,
         })
 
     # Kill switch banner
@@ -220,6 +237,10 @@ def get_status_dashboard(format: Optional[str] = None, accept: Optional[str] = H
                 <div class="card">
                     <div class="card-title">Unacked Deliveries</div>
                     <div class="card-value" style="color:{unacked_color};">{unacked_count}</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">WebSocket Live</div>
+                    <div class="card-value" style="font-size:20px;color:#a855f7;">{ws_stats['active_connections']} <span style="font-size:13px;color:#94a3b8;">({ws_stats['active_users']} usr)</span></div>
                 </div>
             </div>
 

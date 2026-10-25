@@ -44,6 +44,12 @@ class ConnectionManager:
         user_id = (user_id or "").strip()
         return list(self._user_connections.get(user_id, set()))
 
+    def get_active_connections_count(self) -> int:
+        return len(self._socket_to_user)
+
+    def get_active_users_count(self) -> int:
+        return len(self._user_connections)
+
     def update_heartbeat(self, websocket: WebSocket) -> None:
         self._last_heartbeat[websocket] = time.time()
 
@@ -155,6 +161,7 @@ async def websocket_endpoint(websocket: WebSocket):
                         acked = journal.record_acked(delivery_id)
                         if acked and prev_state != "acked":
                             METRICS["fcm_acked"] = METRICS.get("fcm_acked", 0) + 1
+                            METRICS["ws_acked"] = METRICS.get("ws_acked", 0) + 1
                         if acked:
                             await outbox.on_delivery_acked(delivery_id)
                         await websocket.send_json({
