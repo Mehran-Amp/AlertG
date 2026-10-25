@@ -340,14 +340,15 @@ def get_status_dashboard(format: Optional[str] = None, accept: Optional[str] = H
 @router.get("/api/health/deep", dependencies=API_DEP)
 def get_deep_health():
     """
-    Phase 3E-1: Deep health check for load balancers and monitoring.
+    Phase 3E-1 / FIX-10: Deep health check for load balancers and monitoring.
     Returns 503 if the delivery pipeline is clearly degraded.
 
-    Thresholds (approximate; precise timestamps need last_fcm_ok_ts /
-    last_check_ts which are not tracked yet — see the audit note):
+    Thresholds:
       - outbox_len > 100          -> 503 (queue backlog)
-      - fcm_auth_error > 10       -> 503 (persistent auth failure)
-      - fcm_failed > 50 and fcm_success == 0 -> 503 (FCM totally down)
+      - fcm_auth_error in 15m > 10 -> 503 (persistent auth failure in last 15m)
+      - fcm_failed in 15m > 50 and no recent success -> 503 (FCM totally down in last 15m)
+      - outbox_len > 10 and last_fcm_ok_ts > 1h -> 503 (queue filling, no FCM ok)
+      - last_check_ts > 5m        -> 503 (market checker stalled)
     """
     latency = journal.get_ack_latency_stats()
     outbox_len = len(OUTBOX)
@@ -361,14 +362,35 @@ def get_deep_health():
     last_fcm_ok_ts = METRICS.get("last_fcm_ok_ts")
     last_check_ts = METRICS.get("last_check_ts")
 
+    def _count_in_window(key: str, window_seconds: float = 900.0) -> int:
+        for alt_key in (f"{key}_ts", f"{key}_window", key):
+            val = METRICS.get(alt_key)
+            if isinstance(val, list):
+                return sum(1 for ts in val if isinstance(ts, (int, float)) and (now - ts) <= window_seconds)
+        val = METRICS.get(key, 0)
+        if isinstance(val, (int, float)):
+            last_ts = METRICS.get(f"last_{key}_ts")
+            if last_ts is not None and (now - float(last_ts)) > window_seconds:
+                return 0
+            return int(val)
+        return 0
+
+    fcm_auth_error_15m = _count_in_window("fcm_auth_error", 900.0)
+    fcm_failed_15m = _count_in_window("fcm_failed", 900.0)
+
     warnings = []
     if outbox_len > 100:
         warnings.append(f"outbox backlog: {outbox_len} > 100")
-    if fcm_auth_error > 10:
-        warnings.append(f"persistent FCM auth failures: {fcm_auth_error} > 10")
-    if fcm_failed > 50 and fcm_success == 0:
+    if fcm_auth_error_15m > 10:
+        warnings.append(f"persistent FCM auth failures in last 15m: {fcm_auth_error_15m} > 10")
+
+    fcm_has_recent_success = (
+        last_fcm_ok_ts is not None and (now - last_fcm_ok_ts) <= 900.0
+    ) or (fcm_success > 0 and last_fcm_ok_ts is None and fcm_failed_15m == 0)
+
+    if fcm_failed_15m > 50 and not fcm_has_recent_success:
         warnings.append(
-            f"FCM appears down: {fcm_failed} failures and 0 successes"
+            f"FCM appears down: {fcm_failed_15m} failures in last 15m and 0 recent successes"
         )
     # Precise 3E-1 criterion: queue is filling AND no successful FCM in > 1h.
     if (
@@ -395,7 +417,9 @@ def get_deep_health():
             "outbox_blocked": outbox_blocked,
             "fcm_success": fcm_success,
             "fcm_failed": fcm_failed,
+            "fcm_failed_15m": fcm_failed_15m,
             "fcm_auth_error": fcm_auth_error,
+            "fcm_auth_error_15m": fcm_auth_error_15m,
             "delivery_unacked": delivery_unacked,
             "ack_latency_avg_ms": latency.get("avg_ms"),
             "ack_latency_p95_ms": latency.get("p95_ms"),
