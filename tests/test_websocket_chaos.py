@@ -188,7 +188,9 @@ class TestWebSocketChaosAndEdgeCases:
             with client.websocket_connect(f"/ws?api_key={test_key}&user_id={user_id}") as ws:
                 assert manager.is_user_connected(user_id)
 
-                # 3. Trigger outbox redelivery (simulating expiration of initial ack wait)
+                # 3. Simulate expiration of initial ack wait deadline so outbox resends immediately
+                entry["ack_due_at"] = time.time() - 1
+
                 async def _resend():
                     await outbox._deliver_outbox_entry(delivery_id)
 
@@ -196,6 +198,8 @@ class TestWebSocketChaosAndEdgeCases:
 
                 # The reconnected socket receives the redelivered alert
                 resend_msg = ws.receive_json()
+                if resend_msg.get("type") == "ping":
+                    resend_msg = ws.receive_json()
                 assert resend_msg.get("type") == "alert"
                 assert resend_msg.get("delivery_id") == delivery_id
                 assert resend_msg.get("title") == "Offline Enqueued Alert"
@@ -203,6 +207,8 @@ class TestWebSocketChaosAndEdgeCases:
                 # 4. User sends ACK over the reconnected WebSocket
                 ws.send_json({"action": "ack", "delivery_id": delivery_id})
                 ack_resp = ws.receive_json()
+                if ack_resp.get("type") == "ping":
+                    ack_resp = ws.receive_json()
                 assert ack_resp.get("status") == "acked"
 
                 # Outbox is cleared and journal is marked acked
