@@ -3,7 +3,7 @@ import json
 import time
 import uuid
 import asyncio
-from typing import Dict, Any, Set
+from typing import Dict, Any, Set, Optional
 from app.config import DATA_DIR
 from app.state import METRICS
 import app.storage as storage
