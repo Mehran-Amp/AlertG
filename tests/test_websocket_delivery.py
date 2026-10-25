@@ -69,8 +69,7 @@ class TestWebSocketAlertDeliveryAndAck:
                         body="BTC hit 68,000",
                         data_payload={"symbol": "BTCUSDT", "price": "68000"},
                     )
-                    eid = list(outbox.OUTBOX.keys())[0]
-                    await outbox._deliver_outbox_entry(eid)
+                    await asyncio.sleep(0.05)
 
                 asyncio.run(_send())
 
@@ -108,12 +107,12 @@ class TestWebSocketAlertDeliveryAndAck:
                         body="ETH above 3500",
                         data_payload={"symbol": "ETHUSDT"},
                     )
-                    eid = list(outbox.OUTBOX.keys())[0]
-                    await outbox._deliver_outbox_entry(eid)
+                    await asyncio.sleep(0.05)
 
                 asyncio.run(_send_ack())
 
                 msg = ws.receive_json()
+                assert msg.get("type") == "alert"
                 delivery_id = msg["delivery_id"]
 
                 # Send ACK back via WebSocket
@@ -151,8 +150,7 @@ class TestWebSocketAlertDeliveryAndAck:
                     body="SOL reached 200",
                     data_payload={"symbol": "SOLUSDT"},
                 )
-                eid = list(outbox.OUTBOX.keys())[0]
-                await outbox._deliver_outbox_entry(eid)
+                await asyncio.sleep(0.05)
 
             asyncio.run(_send_offline())
 

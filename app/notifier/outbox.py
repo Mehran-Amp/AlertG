@@ -76,7 +76,14 @@ def _load_outbox_from_disk() -> Dict[str, Dict[str, Any]]:
 
 OUTBOX: Dict[str, Dict[str, Any]] = _load_outbox_from_disk()
 _OUTBOX_INFLIGHT: set = set()
-_outbox_lock = asyncio.Lock()
+_outbox_lock: Optional[asyncio.Lock] = None
+
+def _get_outbox_lock() -> asyncio.Lock:
+    global _outbox_lock
+    loop = asyncio.get_running_loop()
+    if _outbox_lock is None or getattr(_outbox_lock, "_loop", None) not in (None, loop):
+        _outbox_lock = asyncio.Lock()
+    return _outbox_lock
 
 def _update_outbox_metrics():
     METRICS["outbox_blocked"] = sum(1 for e in OUTBOX.values() if e.get("blocked_token"))
@@ -86,7 +93,7 @@ _update_outbox_metrics()
 
 async def _save_outbox():
     _update_outbox_metrics()
-    async with _outbox_lock:
+    async with _get_outbox_lock():
         try:
             payload = json.dumps(OUTBOX, ensure_ascii=False)
 
