@@ -117,18 +117,16 @@ class TestWebSocketObservability:
             mock_fcm.return_value = (True, "OK")
 
             with client.websocket_connect(f"/ws?api_key={api_k}&user_id={user_id}") as ws:
-                # Enqueue alert for user
-                eid = outbox.enqueue(
-                    alert=alert,
-                    title="BTC Spike",
-                    body="BTC hit 75k",
-                    data={"price": "75000"},
-                    trigger_price=75000.0,
-                )
+                async def _send():
+                    await outbox.enqueue_alert_push(
+                        alert=alert,
+                        title="BTC Spike",
+                        body="BTC hit 75k",
+                        data_payload={"price": "75000"},
+                    )
+                    await asyncio.sleep(0.05)
 
-                # Execute delivery
-                loop = asyncio.get_event_loop()
-                loop.run_until_complete(outbox._deliver_outbox_entry(eid, outbox.OUTBOX[eid]))
+                asyncio.run(_send())
 
                 # Drain alert from socket
                 msg = None
@@ -138,7 +136,9 @@ class TestWebSocketObservability:
                         msg = raw
                         break
                 assert msg is not None
-                assert msg["delivery_id"] == eid
+                assert msg.get("title") == "BTC Spike"
+                delivery_id = msg.get("delivery_id")
+                assert delivery_id is not None
 
                 # Check metric via /status
                 res = client.get("/status?format=json", headers={"x-admin-key": admin_k})
@@ -157,52 +157,58 @@ class TestWebSocketObservability:
         monkeypatch.setattr(config, "ADMIN_KEY", admin_k)
         monkeypatch.setattr(server, "ADMIN_KEY", admin_k)
 
+        alert = self._make_alert("alt-obs-3", user_id=user_id)
+        storage.ALERTS_DB.append(alert)
+
         client = TestClient(app)
-        eid = "deliv-obs-ack-3"
 
-        # Setup entry in awaiting_ack
-        now = time.time()
-        journal.record_sent(eid)
-        outbox.OUTBOX[eid] = {
-            "id": eid,
-            "alert_id": "alt-obs-3",
-            "fcm_token": "token123",
-            "title": "Title",
-            "body": "Body",
-            "data": {},
-            "trigger_price": 75000.0,
-            "created_at": now,
-            "expires_at": now + 300,
-            "ack_supported": True,
-            "delivery_phase": "awaiting_ack",
-            "resend_count": 0,
-            "ack_due_at": now + 45,
-            "attempts": 1,
-            "last_error": None,
-        }
+        with patch("app.notifier.outbox.send_fcm_notification_async", new_callable=AsyncMock) as mock_fcm:
+            mock_fcm.return_value = (True, "OK")
 
-        with client.websocket_connect(f"/ws?api_key={api_k}&user_id={user_id}") as ws:
-            # Send WS ACK
-            ws.send_json({"action": "ack", "delivery_id": eid})
+            with client.websocket_connect(f"/ws?api_key={api_k}&user_id={user_id}") as ws:
+                async def _send():
+                    await outbox.enqueue_alert_push(
+                        alert=alert,
+                        title="ETH Breakout",
+                        body="ETH above 3500",
+                        data_payload={"symbol": "ETHUSDT"},
+                    )
+                    await asyncio.sleep(0.05)
 
-            # Receive ack_response (skip ping if any)
-            resp = None
-            for _ in range(5):
-                raw = ws.receive_json()
-                if raw.get("type") == "ack_response":
-                    resp = raw
-                    break
+                asyncio.run(_send())
 
-            assert resp is not None
-            assert resp["delivery_id"] == eid
-            assert resp["status"] == "acked"
+                # Receive alert frame
+                msg = None
+                for _ in range(5):
+                    raw = ws.receive_json()
+                    if raw.get("type") == "alert":
+                        msg = raw
+                        break
+                assert msg is not None
+                delivery_id = msg["delivery_id"]
 
-            # Check journal
-            assert journal.get_status(eid) == "acked"
+                # Send WS ACK
+                ws.send_json({"action": "ack", "delivery_id": delivery_id})
 
-            # Check metrics in /status
-            res = client.get("/status?format=json", headers={"x-admin-key": admin_k})
-            assert res.status_code == 200
-            body = res.json()
-            assert body["websocket"]["ws_acked"] == 1
-            assert METRICS.get("ws_acked") == 1
+                # Receive ack_response (skip ping if any)
+                resp = None
+                for _ in range(5):
+                    raw = ws.receive_json()
+                    if raw.get("type") == "ack_response":
+                        resp = raw
+                        break
+
+                assert resp is not None
+                assert resp["delivery_id"] == delivery_id
+                assert resp["status"] == "acked"
+
+                # Check journal
+                assert journal.get_status(delivery_id) == "acked"
+
+                # Check metrics in /status
+                res = client.get("/status?format=json", headers={"x-admin-key": admin_k})
+                assert res.status_code == 200
+                body = res.json()
+                assert body["websocket"]["ws_acked"] == 1
+                assert METRICS.get("ws_acked") == 1
+
