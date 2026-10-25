@@ -34,6 +34,7 @@ class TestTelegramRouteUsesSendTelegramAlert:
 
         # Ensure the module has the function imported (it does after the fix).
         monkeypatch.setattr(tg_route, "send_telegram_alert", fake_send_telegram_alert)
+        monkeypatch.setattr(tg_route, "TELEGRAM_BOT_TOKEN", "fake_test_bot_token_123")
 
         # Stub http_client so the route's "not initialized" guard does not trip.
         class _FakeClient:
@@ -64,6 +65,7 @@ class TestTelegramRouteNoDoubleMetric:
             return True
 
         monkeypatch.setattr(tg_route, "send_telegram_alert", fake_send_telegram_alert)
+        monkeypatch.setattr(tg_route, "TELEGRAM_BOT_TOKEN", "fake_test_bot_token_123")
 
         class _FakeClient:
             pass
@@ -93,6 +95,7 @@ class TestTelegramRouteReturns502OnFailure:
             return False
 
         monkeypatch.setattr(tg_route, "send_telegram_alert", fake_send_telegram_alert)
+        monkeypatch.setattr(tg_route, "TELEGRAM_BOT_TOKEN", "fake_test_bot_token_123")
 
         class _FakeClient:
             pass
