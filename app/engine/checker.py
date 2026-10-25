@@ -3,7 +3,7 @@ import asyncio
 import html
 import sys
 from datetime import datetime, timezone
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Tuple
 import httpx
 
 # Force UTF-8 stdout on Windows consoles (cp1252 crashes on emoji prints)
