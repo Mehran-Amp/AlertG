@@ -27,16 +27,56 @@ class BackgroundServiceManager {
   static const String notificationChannelId = 'alarmer_foreground_service';
   static const int notificationId = 777;
   static bool _lastPriceFromServer = false;
+  static ServiceInstance? _currentServiceInstance;
+
+  /// Applies foreground persistent notification text with current price source (777).
+  static void _applyNotificationInfo({required bool isFromServer, String lang = 'fa'}) {
+    final service = _currentServiceInstance;
+    if (service is AndroidServiceInstance) {
+      final isFa = lang == 'fa' || lang == 'ar' || lang == 'ckb';
+      final sourceText = isServer
+          ? (isFa ? 'سرور ابری (FCM)' : 'Cloud Server (FCM)')
+          : (isFa ? 'پایش محلی دستگاه' : 'Local Device Engine');
+      final contentText = isFa
+          ? 'سرویس پایش ۲۴/۷ بازار فعال است • منبع: $sourceText'
+          : '24/7 Market Monitor Active • Source: $sourceText';
+      try {
+        service.setForegroundNotificationInfo(
+          title: 'SignalAlert',
+          content: contentText,
+        );
+        ServiceLogger.log(
+          'bg.notification',
+          'notification 777 text applied: isServer=$isServer, text="$contentText"',
+        ).ignore();
+      } catch (e, st) {
+        ServiceLogger.logError('applyNotificationInfo', e, st).ignore();
+      }
+    }
+  }
 
   /// Updates foreground persistent notification text with current price source.
   static void updatePriceSource({required bool isFromServer, String? lang}) {
     _lastPriceFromServer = isFromServer;
+    final effectiveLang = lang ?? 'fa';
+
+    // 1. Direct application if running inside the background service isolate
+    if (_currentServiceInstance != null) {
+      _applyNotificationInfo(isFromServer: isFromServer, lang: effectiveLang);
+      return;
+    }
+
+    // 2. Inter-isolate event dispatch if called from main UI isolate
     try {
       final service = FlutterBackgroundService();
       service.invoke('updatePriceSource', {
         'source': isFromServer ? 'fcm' : 'local',
-        'lang': lang ?? 'fa',
+        'lang': effectiveLang,
       });
+      ServiceLogger.log(
+        'bg.notification',
+        'updatePriceSource dispatched from UI isolate: isServer=$isFromServer',
+      ).ignore();
     } catch (e, st) {
       ServiceLogger.logError('updatePriceSource', e, st).ignore();
     }
@@ -117,31 +157,12 @@ class BackgroundServiceManager {
   @pragma('vm:entry-point')
   static void onBackgroundServiceStart(ServiceInstance service) async {
     DartPluginRegistrant.ensureInitialized();
+    _currentServiceInstance = service;
     final serviceStartTime = DateTime.now();
     await ServiceLogger.log(
       'fgs.lifecycle',
       'service started (type: dataSync, started_at: ${serviceStartTime.toIso8601String()})',
     );
-
-    void setNotificationText(bool isServer, [String lang = 'fa']) {
-      if (service is AndroidServiceInstance) {
-        final isFa = lang == 'fa' || lang == 'ar' || lang == 'ckb';
-        final sourceText = isServer
-            ? (isFa ? 'سرور ابری (FCM)' : 'Cloud Server (FCM)')
-            : (isFa ? 'پایش محلی دستگاه' : 'Local Device Engine');
-        final contentText = isFa
-            ? 'سرویس پایش ۲۴/۷ بازار فعال است • منبع: $sourceText'
-            : '24/7 Market Monitor Active • Source: $sourceText';
-        try {
-          service.setForegroundNotificationInfo(
-            title: 'SignalAlert',
-            content: contentText,
-          );
-        } catch (e, st) {
-          ServiceLogger.logError('setNotificationText', e, st).ignore();
-        }
-      }
-    }
 
     if (service is AndroidServiceInstance) {
       service.on('setAsForeground').listen((event) {
@@ -165,13 +186,13 @@ class BackgroundServiceManager {
           final isServer = event['source'] == 'fcm';
           final lang = event['lang'] as String? ?? 'fa';
           _lastPriceFromServer = isServer;
-          setNotificationText(isServer, lang);
+          _applyNotificationInfo(isFromServer: isServer, lang: lang);
         }
       });
 
       try {
         service.setAsForegroundService();
-        setNotificationText(false, 'fa');
+        _applyNotificationInfo(isFromServer: false, lang: 'fa');
       } catch (e, st) {
         ServiceLogger.logError('onBackgroundServiceStart.foreground', e, st).ignore();
       }
