@@ -171,7 +171,7 @@ def check_once() -> int:
         if _can_restart(state, now):
             restarted = _try_restart()
             state["last_restart_ts"] = now
-        if restarted and _can_alert(state, now):
+        if _can_alert(state, now):
             _send_admin_alert(
                 f"🚨 <b>AlertG: server was down</b>\n"
                 f"<blockquote>Health check could not reach {HEALTH_URL}.\n"

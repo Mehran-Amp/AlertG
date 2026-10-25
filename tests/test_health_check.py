@@ -66,10 +66,11 @@ class TestDegradedAlerts:
 
 
 class TestUnreachableRestarts:
-    def test_unreachable_restarts(self, monkeypatch, tmp_path):
+    def test_unreachable_restart_succeeded_alerts_success(self, monkeypatch, tmp_path):
         mod = _load_module(monkeypatch, tmp_path)
         calls = []
-        monkeypatch.setattr(mod, "_send_admin_alert", lambda text: True)
+        alerts = []
+        monkeypatch.setattr(mod, "_send_admin_alert", lambda text: alerts.append(text) or True)
         monkeypatch.setattr(mod, "_api_key", lambda: "test-key")
         monkeypatch.setattr(mod, "_try_restart", lambda: calls.append("restart") or True)
 
@@ -80,3 +81,25 @@ class TestUnreachableRestarts:
         rc = mod.check_once()
         assert rc == 1
         assert calls == ["restart"]
+        assert len(alerts) == 1
+        assert "succeeded" in alerts[0]
+        assert "failed" not in alerts[0]
+
+    def test_unreachable_restart_failed_alerts_failure(self, monkeypatch, tmp_path):
+        mod = _load_module(monkeypatch, tmp_path)
+        calls = []
+        alerts = []
+        monkeypatch.setattr(mod, "_send_admin_alert", lambda text: alerts.append(text) or True)
+        monkeypatch.setattr(mod, "_api_key", lambda: "test-key")
+        monkeypatch.setattr(mod, "_try_restart", lambda: calls.append("restart_fail") and False)
+
+        def boom(req, timeout):
+            raise urllib.error.URLError(ConnectionRefusedError("refused"))
+        monkeypatch.setattr(urllib.request, "urlopen", boom)
+
+        rc = mod.check_once()
+        assert rc == 1
+        assert calls == ["restart_fail"]
+        assert len(alerts) == 1
+        assert "failed" in alerts[0]
+        assert "succeeded" not in alerts[0]
