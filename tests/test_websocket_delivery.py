@@ -62,13 +62,17 @@ class TestWebSocketAlertDeliveryAndAck:
             with client.websocket_connect(f"/ws?api_key={test_key}&user_id={user_id}") as ws:
                 assert manager.is_user_connected(user_id)
 
-                # Enqueue alert push (triggers immediate _deliver_outbox_entry)
-                asyncio.run(outbox.enqueue_alert_push(
-                    alert=alert,
-                    title="BTC Target Hit",
-                    body="BTC hit 68,000",
-                    data_payload={"symbol": "BTCUSDT", "price": "68000"},
-                ))
+                async def _send():
+                    await outbox.enqueue_alert_push(
+                        alert=alert,
+                        title="BTC Target Hit",
+                        body="BTC hit 68,000",
+                        data_payload={"symbol": "BTCUSDT", "price": "68000"},
+                    )
+                    eid = list(outbox.OUTBOX.keys())[0]
+                    await outbox._deliver_outbox_entry(eid)
+
+                asyncio.run(_send())
 
                 # Receive message on WebSocket
                 msg = ws.receive_json()
@@ -97,12 +101,17 @@ class TestWebSocketAlertDeliveryAndAck:
             mock_fcm.return_value = (True, "OK")
 
             with client.websocket_connect(f"/ws?api_key={test_key}&user_id={user_id}") as ws:
-                asyncio.run(outbox.enqueue_alert_push(
-                    alert=alert,
-                    title="ETH Breakout",
-                    body="ETH above 3500",
-                    data_payload={"symbol": "ETHUSDT"},
-                ))
+                async def _send_ack():
+                    await outbox.enqueue_alert_push(
+                        alert=alert,
+                        title="ETH Breakout",
+                        body="ETH above 3500",
+                        data_payload={"symbol": "ETHUSDT"},
+                    )
+                    eid = list(outbox.OUTBOX.keys())[0]
+                    await outbox._deliver_outbox_entry(eid)
+
+                asyncio.run(_send_ack())
 
                 msg = ws.receive_json()
                 delivery_id = msg["delivery_id"]
@@ -135,12 +144,17 @@ class TestWebSocketAlertDeliveryAndAck:
         with patch("app.notifier.outbox.send_fcm_notification_async", new_callable=AsyncMock) as mock_fcm:
             mock_fcm.return_value = (True, "OK")
 
-            asyncio.run(outbox.enqueue_alert_push(
-                alert=alert,
-                title="SOL Target Hit",
-                body="SOL reached 200",
-                data_payload={"symbol": "SOLUSDT"},
-            ))
+            async def _send_offline():
+                await outbox.enqueue_alert_push(
+                    alert=alert,
+                    title="SOL Target Hit",
+                    body="SOL reached 200",
+                    data_payload={"symbol": "SOLUSDT"},
+                )
+                eid = list(outbox.OUTBOX.keys())[0]
+                await outbox._deliver_outbox_entry(eid)
+
+            asyncio.run(_send_offline())
 
             mock_fcm.assert_called_once()
             # Outbox should have the entry in awaiting_ack

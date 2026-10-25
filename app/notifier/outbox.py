@@ -294,7 +294,7 @@ async def _deliver_outbox_entry(eid: str) -> None:
                         "body": entry["body"],
                         "data": entry["data"],
                     }
-                    _spawn(ws_manager.send_to_user(target_uid, ws_msg))
+                    await ws_manager.send_to_user(target_uid, ws_msg)
                     METRICS["ws_sent"] = METRICS.get("ws_sent", 0) + 1
             except Exception as ws_err:
                 print(f"⚠️ [Outbox WS] Error dispatching on WebSocket: {ws_err}")
