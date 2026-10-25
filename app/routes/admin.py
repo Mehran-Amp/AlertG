@@ -357,6 +357,10 @@ def get_deep_health():
     fcm_auth_error = METRICS.get("fcm_auth_error", 0)
     delivery_unacked = METRICS.get("delivery_unacked", 0)
 
+    now = time.time()
+    last_fcm_ok_ts = METRICS.get("last_fcm_ok_ts")
+    last_check_ts = METRICS.get("last_check_ts")
+
     warnings = []
     if outbox_len > 100:
         warnings.append(f"outbox backlog: {outbox_len} > 100")
@@ -365,6 +369,23 @@ def get_deep_health():
     if fcm_failed > 50 and fcm_success == 0:
         warnings.append(
             f"FCM appears down: {fcm_failed} failures and 0 successes"
+        )
+    # Precise 3E-1 criterion: queue is filling AND no successful FCM in > 1h.
+    if (
+        outbox_len > 10
+        and last_fcm_ok_ts is not None
+        and (now - last_fcm_ok_ts) > 3600
+    ):
+        warnings.append(
+            f"no successful FCM in {int(now - last_fcm_ok_ts)}s (> 3600s) with {outbox_len} queued"
+        )
+    # Checker stalled: no cycle in > 5 minutes (job runs every 2s).
+    if (
+        last_check_ts is not None
+        and (now - last_check_ts) > 300
+    ):
+        warnings.append(
+            f"checker stalled: no cycle in {int(now - last_check_ts)}s (> 300s)"
         )
 
     payload = {
@@ -380,6 +401,9 @@ def get_deep_health():
             "ack_latency_p95_ms": latency.get("p95_ms"),
             "ack_latency_count": latency.get("count", 0),
             "uptime_seconds": int(time.time() - METRICS.get("start_time", time.time())),
+            "last_fcm_ok_ts": last_fcm_ok_ts,
+            "last_check_ts": last_check_ts,
+            "now": now,
         },
         "warnings": warnings,
     }
