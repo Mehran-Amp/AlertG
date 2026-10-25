@@ -140,21 +140,30 @@ async def websocket_endpoint(websocket: WebSocket):
             except Exception:
                 pass
 
-            msg_type = (parsed.get("type") if isinstance(parsed, dict) else text).strip().lower()
-            if msg_type == "ping":
+            msg_action = (parsed.get("action") or parsed.get("type") if isinstance(parsed, dict) else text).strip().lower()
+            if msg_action == "ping":
                 await websocket.send_json({"type": "pong", "ts": time.time()})
-            elif msg_type == "pong":
+            elif msg_action == "pong":
                 manager.update_heartbeat(websocket)
-            elif isinstance(parsed, dict) and parsed.get("action") == "ack":
-                # Ready for Phase 4A-2: delivery ACK over socket
-                delivery_id = parsed.get("delivery_id")
+            elif msg_action in ("ack", "delivery_ack"):
+                delivery_id = parsed.get("delivery_id") if isinstance(parsed, dict) else None
                 if delivery_id:
                     try:
-                        from app.notifier import journal
-                        journal.record_acked(delivery_id)
-                        await websocket.send_json({"type": "ack_response", "delivery_id": delivery_id, "status": "acked"})
-                    except Exception:
-                        pass
+                        from app.notifier import journal, outbox
+                        from app.state import METRICS
+                        prev_state = journal.get_status(delivery_id)
+                        acked = journal.record_acked(delivery_id)
+                        if acked and prev_state != "acked":
+                            METRICS["fcm_acked"] = METRICS.get("fcm_acked", 0) + 1
+                        if acked:
+                            await outbox.on_delivery_acked(delivery_id)
+                        await websocket.send_json({
+                            "type": "ack_response",
+                            "delivery_id": delivery_id,
+                            "status": "acked" if acked else "unknown",
+                        })
+                    except Exception as e:
+                        print(f"⚠️ [WS Ack Error] {e}")
     except WebSocketDisconnect:
         pass
     except Exception:

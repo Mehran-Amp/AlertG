@@ -176,6 +176,7 @@ async def enqueue_alert_push(alert, title: str, body: str, data_payload: dict, f
     OUTBOX[eid] = {
         "id": eid,
         "alert_id": alert.id,
+        "user_id": uid or getattr(alert, "user_id", None),
         "fallback_chat_id": (fallback_chat_id or "").strip() or None,
         "token": token,
         "title": str(title),
@@ -274,6 +275,29 @@ async def _deliver_outbox_entry(eid: str) -> None:
                 )
                 if not still_used:
                     DEAD_TOKENS.discard(blocked)
+
+        # Phase 4A-2: If user is connected via WebSocket, send alert with identical delivery_id
+        target_uid = entry.get("user_id")
+        if not target_uid and entry.get("alert_id"):
+            for a in storage.ALERTS_DB:
+                if a.id == entry.get("alert_id"):
+                    target_uid = getattr(a, "user_id", None)
+                    break
+        if target_uid:
+            try:
+                from app.routes.ws import manager as ws_manager
+                if ws_manager.is_user_connected(target_uid):
+                    ws_msg = {
+                        "type": "alert",
+                        "delivery_id": eid,
+                        "title": entry["title"],
+                        "body": entry["body"],
+                        "data": entry["data"],
+                    }
+                    _spawn(ws_manager.send_to_user(target_uid, ws_msg))
+                    METRICS["ws_sent"] = METRICS.get("ws_sent", 0) + 1
+            except Exception as ws_err:
+                print(f"⚠️ [Outbox WS] Error dispatching on WebSocket: {ws_err}")
 
         ok, msg = await send_fcm_notification_async(
             fcm_token=current_token,
