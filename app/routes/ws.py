@@ -79,15 +79,14 @@ def _validate_ws_auth(websocket: WebSocket) -> bool:
     """Validates API Key from query parameters (?api_key=, ?token=) or headers."""
     api_k = getattr(config, 'API_KEY', '')
     admin_k = getattr(config, 'ADMIN_KEY', '')
-    try:
-        import server
-        server_api_k = getattr(server, 'API_KEY', '')
-        if server_api_k:
-            api_k = server_api_k
-    except Exception:
-        pass
+    if not api_k:
+        try:
+            import server
+            api_k = getattr(server, 'API_KEY', '')
+        except Exception:
+            pass
 
-    # Check query params
+    # Check query params and headers
     query = websocket.query_params
     provided = (
         query.get("api_key")
@@ -97,7 +96,7 @@ def _validate_ws_auth(websocket: WebSocket) -> bool:
         or ""
     ).strip()
 
-    if not provided or not api_k:
+    if not provided or (not api_k and not admin_k):
         return False
 
     return _key_matches(provided, api_k) or _key_matches(provided, admin_k)

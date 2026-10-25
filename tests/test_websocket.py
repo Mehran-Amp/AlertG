@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
 from server import app
+import server
 import app.config as config
 from app.routes.ws import manager
 
@@ -18,6 +19,7 @@ class TestWebSocketAuthAndRegistry:
         test_key = "test_ws_secret_key_123"
         user_id = "test_trader_42"
         monkeypatch.setattr(config, "API_KEY", test_key)
+        monkeypatch.setattr(server, "API_KEY", test_key)
 
         client = TestClient(app)
         assert not manager.is_user_connected(user_id)
@@ -36,6 +38,7 @@ class TestWebSocketPingPong:
     def test_ws_ping_pong(self, monkeypatch):
         test_key = "test_ws_secret_key_123"
         monkeypatch.setattr(config, "API_KEY", test_key)
+        monkeypatch.setattr(server, "API_KEY", test_key)
 
         client = TestClient(app)
         with client.websocket_connect(f"/ws?api_key={test_key}&user_id=ping_user") as ws:
@@ -58,6 +61,7 @@ class TestWebSocketAuthRejection:
     def test_ws_missing_or_invalid_auth_rejected(self, monkeypatch):
         test_key = "test_ws_secret_key_123"
         monkeypatch.setattr(config, "API_KEY", test_key)
+        monkeypatch.setattr(server, "API_KEY", test_key)
 
         client = TestClient(app)
 
