@@ -336,6 +336,57 @@ def get_status_dashboard(format: Optional[str] = None, accept: Optional[str] = H
     """
     return HTMLResponse(content=page)
 
+@router.get("/health/deep", dependencies=API_DEP)
+@router.get("/api/health/deep", dependencies=API_DEP)
+def get_deep_health():
+    """
+    Phase 3E-1: Deep health check for load balancers and monitoring.
+    Returns 503 if the delivery pipeline is clearly degraded.
+
+    Thresholds (approximate; precise timestamps need last_fcm_ok_ts /
+    last_check_ts which are not tracked yet — see the audit note):
+      - outbox_len > 100          -> 503 (queue backlog)
+      - fcm_auth_error > 10       -> 503 (persistent auth failure)
+      - fcm_failed > 50 and fcm_success == 0 -> 503 (FCM totally down)
+    """
+    latency = journal.get_ack_latency_stats()
+    outbox_len = len(OUTBOX)
+    outbox_blocked = METRICS.get("outbox_blocked", 0)
+    fcm_success = METRICS.get("fcm_success", 0)
+    fcm_failed = METRICS.get("fcm_failed", 0)
+    fcm_auth_error = METRICS.get("fcm_auth_error", 0)
+    delivery_unacked = METRICS.get("delivery_unacked", 0)
+
+    warnings = []
+    if outbox_len > 100:
+        warnings.append(f"outbox backlog: {outbox_len} > 100")
+    if fcm_auth_error > 10:
+        warnings.append(f"persistent FCM auth failures: {fcm_auth_error} > 10")
+    if fcm_failed > 50 and fcm_success == 0:
+        warnings.append(
+            f"FCM appears down: {fcm_failed} failures and 0 successes"
+        )
+
+    payload = {
+        "status": "degraded" if warnings else "ok",
+        "checks": {
+            "outbox_len": outbox_len,
+            "outbox_blocked": outbox_blocked,
+            "fcm_success": fcm_success,
+            "fcm_failed": fcm_failed,
+            "fcm_auth_error": fcm_auth_error,
+            "delivery_unacked": delivery_unacked,
+            "ack_latency_avg_ms": latency.get("avg_ms"),
+            "ack_latency_p95_ms": latency.get("p95_ms"),
+            "ack_latency_count": latency.get("count", 0),
+            "uptime_seconds": int(time.time() - METRICS.get("start_time", time.time())),
+        },
+        "warnings": warnings,
+    }
+    if warnings:
+        return JSONResponse(status_code=503, content=payload)
+    return payload
+
 @router.get("/api/debug/inspect/{exchange}/{symbol}", dependencies=ADMIN_DEP)
 @router.get("/debug/inspect/{exchange}/{symbol}", dependencies=ADMIN_DEP)
 async def inspect_market_source(exchange: str, symbol: str):
