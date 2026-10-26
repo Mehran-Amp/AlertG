@@ -40,3 +40,28 @@ class TestReleaseGateFail:
         mod._record("pytest tests", False, "stub failure")
         failed = [r for r in mod.results if not r[1]]
         assert len(failed) == 1
+
+class TestGateWarnVsFail:
+    """GATE-1: skip is WARN, unchecked sign-off is FAIL."""
+
+    def test_unchecked_boxes_fail(self, monkeypatch, tmp_path):
+        mod = _load(monkeypatch)
+        p = tmp_path / "docs" / "release_gate.md"
+        p.parent.mkdir(parents=True)
+        p.write_text("- [ ] pending\n- [x] done\n")
+        monkeypatch.setattr(mod, "ROOT", tmp_path)
+        mod.check_release_gate_md()
+        failed = [r for r in mod.results if not r[1]]
+        assert len(failed) == 1
+        assert "unchecked" in failed[0][2]
+
+    def test_skip_is_warn_not_pass(self, monkeypatch, tmp_path):
+        mod = _load(monkeypatch)
+        import urllib.error
+        import urllib.request
+        def boom(*a, **kw):
+            raise urllib.error.URLError("refused")
+        monkeypatch.setattr(urllib.request, "urlopen", boom)
+        mod.check_health_deep()
+        assert mod.results[-1][1] is True
+        assert "WARN" in mod.results[-1][2]

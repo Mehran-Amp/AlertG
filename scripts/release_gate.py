@@ -83,10 +83,12 @@ def check_health_deep():
         else:
             _record("/health/deep", False, f"HTTP {resp.status} status={body.get('status')}")
     except Exception as e:
+        # GATE-1: skip is WARN, not PASS. The gate still passes in non-strict
+        # mode, but the reason is marked WARN so it is visible.
         if os.getenv("RELEASE_GATE_STRICT", "") == "1":
             _record("/health/deep", False, str(e))
         else:
-            _record("/health/deep", True, f"skipped (server not reachable: {e})")
+            _record("/health/deep", True, f"WARN: skipped (server not reachable: {e})")
 
 
 def check_unacked():
@@ -105,7 +107,7 @@ def check_unacked():
         if os.getenv("RELEASE_GATE_STRICT", "") == "1":
             _record(f"unacked <= {UNACKED_THRESHOLD}", False, str(e))
         else:
-            _record(f"unacked <= {UNACKED_THRESHOLD}", True, f"skipped (server not reachable: {e})")
+            _record(f"unacked <= {UNACKED_THRESHOLD}", True, f"WARN: skipped (server not reachable: {e})")
 
 
 def check_release_gate_md():
@@ -118,10 +120,9 @@ def check_release_gate_md():
     if unchecked == 0:
         _record("docs/release_gate.md complete", True)
     else:
-        if os.getenv("RELEASE_GATE_STRICT", "") == "1":
-            _record("docs/release_gate.md complete", False, f"{unchecked} unchecked boxes (strict)")
-        else:
-            _record("docs/release_gate.md complete", True, f"{unchecked} unchecked (WARN: fill before release)")
+        # GATE-1: unchecked boxes mean the device matrix was not signed off.
+        # This must FAIL, not WARN, until the 2A-6 device tests are done.
+        _record("docs/release_gate.md complete", False, f"{unchecked} unchecked boxes (sign-off required)")
 
 
 def check_rollback_plan():
