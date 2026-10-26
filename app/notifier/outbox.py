@@ -301,7 +301,7 @@ async def _deliver_outbox_entry(eid: str) -> None:
                         "body": entry["body"],
                         "data": entry["data"],
                     }
-                    await ws_manager.send_to_user(target_uid, ws_msg)
+                    _spawn(_send_ws_with_timeout(ws_manager, target_uid, ws_msg))
                     METRICS["ws_sent"] = METRICS.get("ws_sent", 0) + 1
             except Exception as ws_err:
                 print(f"⚠️ [Outbox WS] Error dispatching on WebSocket: {ws_err}")
@@ -426,6 +426,18 @@ async def on_delivery_acked(delivery_id: str) -> bool:
     _update_outbox_metrics()
     await _save_outbox()
     return True
+
+async def _send_ws_with_timeout(ws_manager, user_id: str, message: dict) -> None:
+    """FIX-WS-1: send WS with a hard 3s timeout, off the FCM critical path."""
+    try:
+        await asyncio.wait_for(
+            ws_manager.send_to_user(user_id, message),
+            timeout=3.0,
+        )
+    except asyncio.TimeoutError:
+        print(f"⚠️ [Outbox] WS send timed out after 3s for user {user_id}")
+    except Exception as e:
+        print(f"⚠️ [Outbox] WS send failed for user {user_id}: {e}")
 
 async def _send_telegram_fallback(eid: str, chat_id: str, title: str, body: str) -> None:
     """Phase 2: send a short diagnostic via Telegram when the push is never acked."""
