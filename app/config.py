@@ -98,3 +98,6 @@ KILL_SWITCHES = [k.strip().lower() for k in os.getenv("KILL_SWITCHES", os.getenv
 # Phase WS-OFF-1: WebSocket is OFF by default until cPanel proxies /ws.
 # Set WS_ENABLED=true (and configure reverse proxy) to enable it.
 WS_ENABLED = os.getenv("WS_ENABLED", "").strip().lower() in ("1", "true", "yes", "on")
+
+# Phase Sync-Toggle: Automated weekly catalog sync flag (disabled by default; manual CLI sync preferred)
+WEEKLY_CATALOG_SYNC_ENABLED = os.getenv("WEEKLY_CATALOG_SYNC_ENABLED", "").strip().lower() in ("1", "true", "yes", "on")

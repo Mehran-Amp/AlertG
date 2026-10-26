@@ -164,12 +164,13 @@ class TestPhase7WeeklyCatalogSync(unittest.IsolatedAsyncioTestCase):
 
     def test_01_weekly_job_registered_on_scheduler(self):
         """1. Verify weekly job on scheduler (Saturday ~06:00 UTC)"""
-        if not scheduler.get_job('weekly_catalog_sync_job'):
-            setup_scheduler_jobs(scheduler)
+        with patch.object(config, "WEEKLY_CATALOG_SYNC_ENABLED", True):
+            if not scheduler.get_job('weekly_catalog_sync_job'):
+                setup_scheduler_jobs(scheduler)
 
-        sync_job = scheduler.get_job('weekly_catalog_sync_job')
-        self.assertIsNotNone(sync_job, "weekly_catalog_sync_job must be registered on scheduler")
-        self.assertEqual(sync_job.func, weekly_catalog_sync_job)
+            sync_job = scheduler.get_job('weekly_catalog_sync_job')
+            self.assertIsNotNone(sync_job, "weekly_catalog_sync_job must be registered on scheduler")
+            self.assertEqual(sync_job.func, weekly_catalog_sync_job)
 
         # Verify cron triggers for Saturday 06:00 UTC
         trigger = sync_job.trigger

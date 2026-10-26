@@ -1,4 +1,4 @@
-004150e3f2448cbe1ba0220a744eaab5  app/config.py
+dd791c6854d3fa359af7666d3e7fee06  app/config.py
 f90b4f33ed1b8d36c4c44da2678374df  app/engine/__init__.py
 92b424950dded3d3eb6ec255123a74c4  app/engine/calendar.py
 d5020b40a6448cb72d22ff06d73bd2e7  app/engine/categories.py
@@ -169,11 +169,12 @@ c310ff056bdb7249aea77659dba1d6c3  scripts/health_check.py
 8248e97c4895acc84e8d1340ccf7b651  scripts/make_baseline.py
 e5e9e9774ebb8f1105b9fae44642e251  scripts/probe_catalog.py
 241351d38b0df6ec230b755212ad92e7  scripts/release_gate.py
+0bff58d2849d70442fdee105b2b99007  scripts/run_catalog_sync.py
 dcf88aac3a9efdf171181a2563781fdb  scripts/soak_delivery.py
 8e080905fcec9330ac17116d65638fc5  scripts/soak_test_48h.py
 7e921b29d6eff58ba2e2840770c44c48  scripts/validate_catalog_offline.py
 f150293f1c74f6050b34a296dd4ecdce  scripts/verify_alerts_real_data.py
-9801afeb4d51cc51551ae8c32d73faa9  server.py
+a3870a76e968ce50ed246c2029572638  server.py
 c5bb5839a65af94f89a0c4a838f31975  tests/conftest.py
 6c4bf02b85c1e0e427b9ea6bfcc0af86  tests/test_ack_supported_flag.py
 e2447e6dc27ad7e1d851a512690ece6f  tests/test_admin_test_alert_push.py
@@ -223,7 +224,7 @@ e475ef3081666f0fcfb5e536982e1824  tests/test_phase5_resilient_providers.py
 4f4d7872d46fe7c2700802f22d6cb62f  tests/test_phase6_probe_and_observability.py
 a57100299667cb096f9b156d59fa27a8  tests/test_phase6_probe_catalog.py
 027eacf242c44547db9563f9435b6233  tests/test_phase7_iran_market_separation.py
-bbb2c6d11ba47e8548b5b59acb41222d  tests/test_phase7_weekly_catalog_sync.py
+eb21ac377527b852db0e44d81585524f  tests/test_phase7_weekly_catalog_sync.py
 144696bc623b6de7dbf03aa400899d7f  tests/test_phase8_apply_catalog.py
 c79dca002b30312b34e530180dfe5920  tests/test_phase9_observability.py
 ce7a4dd05c28d22157b58bfa8e106606  tests/test_regex_consistency.py
@@ -240,5 +241,6 @@ fb8bd4bba710696a3e6183698dede10c  tests/test_telegram_retry.py
 fab08580fc7a2d5dea3531a3fe010bfc  tests/test_websocket_chaos.py
 05f256878eff96f9fa4058c86b371741  tests/test_websocket_delivery.py
 92def8930137a52490d4b4915f61e136  tests/test_websocket_observability.py
+47a81ec3825d1ef2f2276e264fc8bdaf  tests/test_weekly_catalog_sync_toggle.py
 6d48efa8cfb59a6b687bbc763b308ca5  tests/test_ws_disabled.py
 2483a81164119ee8dbb256906040cab6  tests/test_ws_stale_cleanup.py

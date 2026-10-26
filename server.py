@@ -19,8 +19,10 @@ from app.config import (
     SERVICE_ACCOUNT_FILE, CACHE_TTL_IRAN,
     IRAN_BRIDGE_URL, IRAN_BRIDGE_TOKEN,
     SYMBOL_RE, EXCHANGE_RE, CHAT_ID_RE,
-    MAX_ALERTS_PER_USER, MAX_NOTE_LEN, MAX_WEBHOOK_LEN
+    MAX_ALERTS_PER_USER, MAX_NOTE_LEN, MAX_WEBHOOK_LEN,
+    WEEKLY_CATALOG_SYNC_ENABLED
 )
+import app.config as config
 from app.security import (
     require_api_key, require_admin, API_DEP, ADMIN_DEP,
     _key_matches, _scrub, _clamp_interval, _validate_market_args,
@@ -99,18 +101,21 @@ def setup_scheduler_jobs(sched):
         misfire_grace_time=3600,
         id='macro_alerts_daily_job'
     )
-    sched.add_job(
-        weekly_catalog_sync_job,
-        'cron',
-        day_of_week='sat',
-        hour=6,
-        minute=0,
-        timezone=timezone.utc,
-        max_instances=1,
-        coalesce=True,
-        misfire_grace_time=7200,
-        id='weekly_catalog_sync_job'
-    )
+    if getattr(config, "WEEKLY_CATALOG_SYNC_ENABLED", WEEKLY_CATALOG_SYNC_ENABLED):
+        sched.add_job(
+            weekly_catalog_sync_job,
+            'cron',
+            day_of_week='sat',
+            hour=6,
+            minute=0,
+            timezone=timezone.utc,
+            max_instances=1,
+            coalesce=True,
+            misfire_grace_time=7200,
+            id='weekly_catalog_sync_job'
+        )
+    else:
+        logger.info("ℹ️ [Scheduler] weekly_catalog_sync_job skipped (WEEKLY_CATALOG_SYNC_ENABLED=false)")
     sched.add_job(
         refresh_market_events,
         'interval',

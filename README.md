@@ -47,3 +47,41 @@ nohup python3 scripts/soak_test_48h.py --duration-hours 48 --server-pid $(cat se
 - `--server-pid` samples the real server's RSS; the soak's own RSS is reported separately and labelled as such.
 - The leak verdict is a growth slope (MB/hour, warm-up ignored) and is `INCONCLUSIVE` for runs shorter than 10 minutes.
 - Synthetic alerts use an unreachable target price (`--target-price` to override) so they never trigger or deactivate.
+
+## به‌روزرسانی دستی کاتالوگ (Manual Catalog Update)
+همگام‌سازی خودکار هفتگی در سرور به صورت پیش‌فرض غیرفعال است (`WEEKLY_CATALOG_SYNC_ENABLED=false`). به‌روزرسانی کاتالوگ در ۴ گام استاندارد انجام می‌پذیرد:
+
+### ۱. دانه اولیه (Seed)
+استخراج یا آماده‌سازی نمادهای کاندیدا در فایل‌های seed یا کاندیدا:
+```bash
+python3 scripts/build_seed_catalogs.py
+# یا بررسی فایل‌های آماده: seed/etfs_extended.json و candidate_catalog_phase2.json
+```
+
+### ۲. اعتبارسنجی و تست قیمت (Probe)
+اعتبارسنجی ساختاری و استعلام پاسخ‌دهی زنده از ۴ ارائه‌دهنده مجاز (Yahoo, Finnhub, Twelve Data, FRED):
+```bash
+python3 scripts/validate_catalog_offline.py candidate_catalog_phase2.json
+python3 scripts/probe_catalog.py --candidate candidate_catalog_phase2.json --sample 20
+```
+
+### ۳. پیش‌نمایش و اعمال (Apply)
+بررسی تغییرات با `--dry-run` و سپس اعمال تغییرات روی `catalog.json` (همراه با اسنپ‌شات نسخه قبلی در `catalog_snapshots/`):
+```bash
+# پیش‌نمایش امن (Dry-run):
+python3 scripts/run_catalog_sync.py --dry-run
+# یا برای الحاق کاتالوگ با سقف‌های ایمنی:
+python3 scripts/apply_catalog_expansion.py --candidate candidate_catalog_phase2.json --dry-run
+
+# اعمال نهایی روی نسخه کاتالوگ:
+python3 scripts/apply_catalog_expansion.py --candidate candidate_catalog_phase2.json
+```
+
+### ۴. تست و ارزیابی (Test)
+اجرای تست‌های آفلاین، بررسی دلتا از طریق API و کنترل یکپارچگی مانیفست:
+```bash
+PYTHONPATH=. pytest tests/test_phase2_catalog_expansion.py tests/test_phase2_apply_expansion.py -v
+curl -s -H "X-API-Key: <API_KEY>" "http://127.0.0.1:8000/api/symbols/catalog?since_version=2"
+python3 scripts/make_baseline.py --skip-api
+md5sum -c docs/MD5_MANIFEST.txt
+```
