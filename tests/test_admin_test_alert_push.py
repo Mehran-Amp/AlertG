@@ -53,3 +53,45 @@ class TestAdminTestAlertPush:
             assert r.status_code == 400
         finally:
             server.app.dependency_overrides.clear()
+
+
+        def test_chat_id_propagated_to_outbox(self, monkeypatch):
+            """TEST-1c: the provided chat_id must be stored on the outbox entry
+            as fallback_chat_id."""
+            async def fake_send(**kwargs):
+                return True, "MOCK_OK"
+            import app.notifier.outbox as outbox_mod
+            monkeypatch.setattr(outbox_mod, "send_fcm_notification_async", fake_send)
+
+            import app.storage as storage
+            from app.models import Alert
+            fake_alert = Alert(
+                id="test_alert_chat_id",
+                user_id="test_user_chat",
+                symbol="BTCUSDT",
+                exchange="binance",
+                condition="ABOVE",
+                target_price=100.0,
+                fcm_token="x" * 60,
+                is_active=True,
+            )
+            storage.ALERTS_DB.append(fake_alert)
+
+            import server
+            from app.security import require_admin
+            server.app.dependency_overrides[require_admin] = lambda: None
+            client = TestClient(server.app)
+            try:
+                r = client.post(
+                    "/api/admin/test/alert-push?user_id=test_user_chat&chat_id=123456789"
+                )
+                assert r.status_code == 200
+                data = r.json()
+                delivery_id = data["delivery_id"]
+                # Check the outbox entry
+                entry = outbox_mod.OUTBOX.get(delivery_id)
+                assert entry is not None
+                assert entry.get("fallback_chat_id") == "123456789"
+            finally:
+                server.app.dependency_overrides.clear()
+                storage.ALERTS_DB.remove(fake_alert)

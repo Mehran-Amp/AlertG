@@ -992,6 +992,7 @@ async def admin_test_alert_push(
     user_id: str = "test_user",
     title: str = "🧪 Test Alert",
     body: str = "Synthetic alert for 2A-6",
+    chat_id: str = "",
 ):
     """TEST-1: push a synthetic alert through the real outbox pipeline
     (record_queued -> FCM -> ack -> journal). Returns the delivery_id so the
@@ -1024,15 +1025,30 @@ async def admin_test_alert_push(
     alert.fcm_token = token
 
     before_queued = METRICS.get("delivery_queued", 0)
+    # TEST-1c: use provided chat_id, or fall back to one of the user's alerts
+    fallback_chat = (chat_id or "").strip()
+    if not fallback_chat:
+        from app.storage import USER_PROFILES_DB
+        prof = USER_PROFILES_DB.get(user_id.lower(), {})
+        fallback_chat = (prof.get("telegram_chat_id") or "").strip()
+    if not fallback_chat:
+        for a in ALERTS_DB:
+            if getattr(a, "user_id", "").lower() == user_id.lower() and (a.telegram_chat_id or "").strip():
+                fallback_chat = a.telegram_chat_id.strip()
+                break
+
     await outbox.enqueue_alert_push(
         alert, title, body, {
             "alert_id": alert.id,
             "symbol": "BTCUSDT",
             "price": "1.0",
+            "title": title,
+            "body": body,
             "tts_enabled": "true",
             "sound_enabled": "true",
             "vibration_enabled": "true",
-        }
+        },
+        fallback_chat_id=fallback_chat or None,
     )
 
     delivery_id = None
