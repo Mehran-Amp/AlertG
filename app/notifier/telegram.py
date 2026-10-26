@@ -28,7 +28,17 @@ def get_exchange_display_name(exchange_id: str) -> str:
         'coinex': 'CoinEx', 'okx': 'OKX', 'bybit': 'Bybit',
         'bitbarg': 'BitBarg', 'tetherland': 'Tetherland', 'abantether': 'AbanTether',
         'global_stocks': 'Global Stocks', 'stocks': 'Stocks', 'forex': 'Forex',
-        'macro': 'Macro', 'bonds': 'Bonds', 'wallstreet': 'Wall Street', 'iran_market': 'IR_M'
+        'macro': 'Macro', 'bonds': 'Bonds', 'wallstreet': 'Wall Street', 'iran_market': 'IR_M',
+        # Catalog exchanges that need explicit casing (capitalize() would
+        # lowercase internal letters like "ö" in "Deutsche börse").
+        'deutsche börse': 'Deutsche Börse',
+        'euronext paris': 'Euronext Paris',
+        'us treasury': 'US Treasury',
+        'forex major': 'Forex Major',
+        'us indices': 'US Indices',
+        'tokyo stock exchange': 'Tokyo Stock Exchange',
+        'london stock exchange': 'London Stock Exchange',
+        'nyse arca': 'NYSE Arca',
     }
     return mapping.get((exchange_id or '').lower(), (exchange_id or 'Market').capitalize())
 
