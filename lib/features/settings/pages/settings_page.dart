@@ -2025,8 +2025,6 @@ class _SettingsPageState extends State<SettingsPage> {
                       } catch (_) {}
                     }
 
-                    // Complete logout: purge Google cached account credentials AND local settings
-                    await GoogleAuthService.signOut();
                     await settingsService.signOut();
                     if (context.mounted) {
                       try {

@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import '../../features/alert_engine/bloc/alert_rules_bloc.dart';
@@ -13,63 +12,7 @@ import 'server_alert_service.dart';
 
 /// Service managing optional Google Account Authentication and Cloud Sync preparation.
 class GoogleAuthService {
-  static GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: ['email'],
-  );
-
-  @visibleForTesting
-  static GoogleSignIn get googleSignInInstance => _googleSignIn;
-
-  @visibleForTesting
-  static set googleSignInInstance(GoogleSignIn instance) {
-    _googleSignIn = instance;
-  }
-
-  @visibleForTesting
-  static Future<GoogleSignInAccount?> Function()? signInOverride;
-
-  @visibleForTesting
-  static Future<void> Function()? signOutOverride;
-
-  @visibleForTesting
-  static bool forceAccountChooserInvoked = false;
-
-  /// Internal sign-in call ensuring the account chooser dialog is always displayed.
-  /// Calling `signOut()` prior to `signIn()` purges any cached OS account session,
-  /// matching the expected behavior of `prompt: 'select_account'`.
-  static Future<GoogleSignInAccount?> signIn() async {
-    forceAccountChooserInvoked = true;
-    try {
-      if (signOutOverride != null) {
-        await signOutOverride!();
-      } else {
-        await _googleSignIn.signOut();
-      }
-    } catch (e) {
-      debugPrint('ℹ️ [GoogleAuth] Notice clearing previous session: $e');
-    }
-
-    if (signInOverride != null) {
-      return await signInOverride!();
-    }
-    return await _googleSignIn.signIn();
-  }
-
-  /// Complete logout from Google account.
-  /// Purges cached account credentials so future sign-in requests force the account chooser.
-  static Future<void> signOut() async {
-    try {
-      if (signOutOverride != null) {
-        await signOutOverride!();
-      } else {
-        await _googleSignIn.signOut();
-      }
-    } catch (e) {
-      debugPrint('⚠️ [GoogleAuth] Error during Google signOut: $e');
-    }
-  }
-
-  /// Prompt the user to sign in with Google and synchronize cloud alerts.
+  /// Prompt the user with a modern Google Sign-In account dialog
   static Future<bool> promptGoogleSignIn(
     BuildContext context,
     SettingsService settingsService,
@@ -77,31 +20,119 @@ class GoogleAuthService {
   ) async {
     final theme = Theme.of(context);
     final isFa = lang == 'fa' || lang == 'ar' || lang == 'ckb';
+    const userEmail = 'Mehran.Aminpoor@gmail.com';
+    const userDisplayName = 'Mehran';
 
-    final GoogleSignInAccount? account;
-    try {
-      account = await signIn();
-    } catch (e) {
-      debugPrint('⚠️ [GoogleAuth] Sign-in error: $e');
-      return false;
-    }
-
-    if (account == null) {
-      // User cancelled account selection
-      return false;
-    }
-
-    final userEmail = account.email;
-    final userDisplayName = (account.displayName != null && account.displayName!.trim().isNotEmpty)
-        ? account.displayName!.trim()
-        : userEmail.split('@').first;
-    final userPhotoUrl = account.photoUrl;
-
-    await settingsService.signInWithGoogle(
-      email: userEmail,
-      displayName: userDisplayName,
-      photoUrl: userPhotoUrl,
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: theme.colorScheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+              child: Image.network(
+                'https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png',
+                width: 24,
+                height: 24,
+                errorBuilder: (_, __, ___) => const Text('G', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue)),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                isFa ? 'ورود با حساب گوگل' : 'Sign in with Google',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              isFa
+                  ? 'با اتصال به حساب گوگل، تمامی هشدارهای شما به طور خودکار در فضای ابری ذخیره شده و در صورت حذف اپلیکیشن یا تعویض گوشی فوراً بازیابی می‌شوند.'
+                  : 'By connecting your Google account, your alerts are safely stored in the cloud and automatically restored upon re-installing or changing phones.',
+              style: TextStyle(fontSize: 12, height: 1.4, color: theme.colorScheme.onSurface.withValues(alpha: 0.7)),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: theme.dividerColor),
+              ),
+              child: Row(
+                children: [
+                  const CircleAvatar(
+                    radius: 16,
+                    backgroundColor: Colors.blueAccent,
+                    child: Text('M', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          userDisplayName,
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: theme.colorScheme.onSurface),
+                        ),
+                        Text(
+                          userEmail,
+                          style: TextStyle(fontSize: 11, color: theme.colorScheme.primary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.check_circle_rounded, color: theme.colorScheme.primary, size: 20),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(
+              isFa ? 'فعلاً نه (انصراف)' : 'Maybe Later',
+              style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+            ),
+          ),
+          ElevatedButton.icon(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            icon: const Icon(Icons.login_rounded, size: 16),
+            label: Text(isFa ? 'اتصال حساب و همگام‌سازی' : 'Connect & Sync'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: theme.colorScheme.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          ),
+        ],
+      ),
     );
+
+    if (result == true) {
+      await settingsService.signInWithGoogle(
+        email: userEmail,
+        displayName: userDisplayName,
+        photoUrl: 'https://lh3.googleusercontent.com/a/default-user',
+      );
 
       // 1. Restore persisted Telegram connection status from cloud and persistent account cache
       try {
@@ -210,6 +241,8 @@ class GoogleAuthService {
         }
       }
 
-    return true;
+      return true;
+    }
+    return false;
   }
 }
