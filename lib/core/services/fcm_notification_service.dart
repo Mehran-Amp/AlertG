@@ -52,8 +52,13 @@ Future<void> handleAlertDataMap(
     return;
   }
 
-  // Update background service notification to reflect price arrival from cloud/socket
-  BackgroundServiceManager.updatePriceSource(isFromServer: true);
+  // DEV-2: only update the FGS notification text when running in the UI
+  // isolate (inApp=true). In the FCM background isolate `inApp` is false and
+  // `FlutterBackgroundService()` is unavailable, so the call is skipped and
+  // the FGS notification text is left as-is.
+  if (inApp) {
+    BackgroundServiceManager.updatePriceSource(isFromServer: true);
+  }
 
   final double? parsedPrice = double.tryParse(priceStr);
   final String speechText;

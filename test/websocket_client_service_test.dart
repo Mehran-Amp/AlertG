@@ -155,6 +155,6 @@ void main() {
         dedupeKey: testDeliveryId,
       );
       expect(duplicateResult, equals(AlertDispatchResult.duplicate));
-    }, skip: 'DEV-2 pending: updatePriceSource must not be called from FCM isolate');
+    });
   });
 }
