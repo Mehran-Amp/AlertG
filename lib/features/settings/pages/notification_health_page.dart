@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
-
+import '../../../core/services/service_logger.dart';
 import '../../../core/services/delivery_ack_service.dart';
 import '../../../core/services/device_health_service.dart';
 import '../../../core/services/fcm_notification_service.dart';
@@ -63,7 +63,9 @@ class _NotificationHealthPageState extends State<NotificationHealthPage> {
       try {
         notif = await Permission.notification.status.isGranted;
         battery = await Permission.ignoreBatteryOptimizations.status.isGranted;
-      } catch (_) {}
+      } catch (e, st) {
+        ServiceLogger.logError('notification_health.line66', e, st).ignore();
+      }
     }
 
     final lastSync = ServerAlertService.lastSyncOk;
@@ -76,7 +78,9 @@ class _NotificationHealthPageState extends State<NotificationHealthPage> {
         final t = token.trim();
         tokenTail = t.length > 6 ? t.substring(t.length - 6) : t;
       }
-    } catch (_) {}
+    } catch (e, st) {
+      ServiceLogger.logError('notification_health.line79', e, st).ignore();
+    }
 
     Map<String, dynamic>? healthRecord;
     int? heartbeatAge;
@@ -89,7 +93,9 @@ class _NotificationHealthPageState extends State<NotificationHealthPage> {
           heartbeatAge = healthRecord['age_seconds'] as int?;
         }
       }
-    } catch (_) {}
+    } catch (e, st) {
+      ServiceLogger.logError('notification_health.line92', e, st).ignore();
+    }
 
     int pendingAcks = 0;
     String logPreview = '';
@@ -113,7 +119,9 @@ class _NotificationHealthPageState extends State<NotificationHealthPage> {
           logPreview = lines.sublist(start).join('\n');
         }
       }
-    } catch (_) {}
+    } catch (e, st) {
+      ServiceLogger.logError('notification_health.line116', e, st).ignore();
+    }
 
     if (mounted) {
       setState(() {
@@ -222,7 +230,9 @@ class _NotificationHealthPageState extends State<NotificationHealthPage> {
       if (logFile.existsSync()) {
         fullLogs = await logFile.readAsString();
       }
-    } catch (_) {}
+    } catch (e, st) {
+      ServiceLogger.logError('notification_health.line225', e, st).ignore();
+    }
 
     if (fullLogs.isEmpty) {
       fullLogs = 'لاگی در حافظه ثبت نشده است یا سرویس هنوز لاگی تولید نکرده است.';
