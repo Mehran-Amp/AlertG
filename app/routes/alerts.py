@@ -241,6 +241,9 @@ async def sync_user_alerts(payload: dict):
     fcm_token = str(payload.get('fcm_token') or '').strip()
     alerts_data = payload.get('alerts', [])
     ack_supported_flag = bool(payload.get('ack_supported', False))
+    sync_mode = str(payload.get('sync_mode') or 'mirror').strip().lower()
+    if sync_mode not in ('mirror', 'merge'):
+        raise HTTPException(status_code=400, detail="sync_mode must be 'mirror' or 'merge'.")
     if user_id == 'user_default' and len(fcm_token) <= 10:
         raise HTTPException(status_code=400, detail="user_id or a valid fcm_token is required.")
     if len(user_id) > 128 or len(fcm_token) > 512:
@@ -261,6 +264,7 @@ async def sync_user_alerts(payload: dict):
                 item['webhook_url'] = None
 
     backup_snapshot = None
+    should_backup = sync_mode == 'mirror'  # SYNC-1b: only mirror can shrink
 
     async with _db_lock:
         existing_map = {a.id: a for a in storage.ALERTS_DB if (a.user_id == user_id or a.fcm_token == fcm_token)}
@@ -346,15 +350,28 @@ async def sync_user_alerts(payload: dict):
 
         # SYNC-1a-fix: snapshot only inside the lock, write outside.
         current_user_alerts = [a for a in storage.ALERTS_DB if (a.user_id or "").lower() == user_id.lower()]
-        if len(current_user_alerts) > 0 and len(new_alerts) < len(current_user_alerts):
+        if should_backup and len(current_user_alerts) > 0 and len(new_alerts) < len(current_user_alerts):
             backup_snapshot = [a.model_dump() if hasattr(a, 'model_dump') else a.dict() for a in current_user_alerts]
 
-        if user_id == 'user_default':
-            storage.ALERTS_DB[:] = [a for a in storage.ALERTS_DB if a.fcm_token != fcm_token]
-        elif len(fcm_token) > 10:
-            storage.ALERTS_DB[:] = [a for a in storage.ALERTS_DB if (a.user_id != user_id and a.fcm_token != fcm_token)]
-        else:
-            storage.ALERTS_DB[:] = [a for a in storage.ALERTS_DB if a.user_id != user_id]
+        # SYNC-1b: mirror = replace (current behavior); merge = upsert (no delete)
+        if sync_mode == 'mirror':
+            if user_id == 'user_default':
+                storage.ALERTS_DB[:] = [a for a in storage.ALERTS_DB if a.fcm_token != fcm_token]
+            elif len(fcm_token) > 10:
+                storage.ALERTS_DB[:] = [a for a in storage.ALERTS_DB if (a.user_id != user_id and a.fcm_token != fcm_token)]
+            else:
+                storage.ALERTS_DB[:] = [a for a in storage.ALERTS_DB if a.user_id != user_id]
+
+        # For merge: replace only alerts with matching id (same user), keep others, add new
+        if sync_mode == 'merge':
+            existing_ids = {a.id for a in new_alerts}
+            storage.ALERTS_DB[:] = [
+                a for a in storage.ALERTS_DB
+                if not (
+                    (a.user_id or "").lower() == user_id.lower()
+                    and a.id in existing_ids
+                )
+            ]
         storage.ALERTS_DB.extend(new_alerts)
 
         if user_id.lower() != 'user_default':
@@ -403,7 +420,7 @@ async def sync_user_alerts(payload: dict):
 
     await save_alerts_to_disk_async(storage.ALERTS_DB)
     active_remaining = len([a for a in storage.ALERTS_DB if a.is_active])
-    print(f"🔄 [API] Bulk Synced {added_count} alert(s) for user {mask_identifier(user_id)} (Active remaining: {active_remaining})")
+    print(f"🔄 [API] Bulk Synced {added_count} alert(s) for user {mask_identifier(user_id)} (mode: {sync_mode}, Active remaining: {active_remaining})")
 
     for item in alerts_data:
         r_id = item.get('id')
@@ -415,7 +432,7 @@ async def sync_user_alerts(payload: dict):
             except Exception:
                 pass
 
-    return {"status": "synced", "count": added_count, "total_active": active_remaining}
+    return {"status": "synced", "count": added_count, "total_active": active_remaining, "mode": sync_mode}
 
 
 @router.delete("/api/alerts", dependencies=API_DEP)
