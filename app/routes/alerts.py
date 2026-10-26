@@ -1,3 +1,7 @@
+import os
+import json
+import time
+from app.config import DATA_DIR
 import uuid
 import math
 from datetime import datetime, timezone
@@ -338,6 +342,43 @@ async def sync_user_alerts(payload: dict):
             new_alerts.append(alert_obj)
             added_count += 1
 
+        # SYNC-1a: back up user alerts before a destructive sync.
+        # If the new list has fewer alerts than the current one, save the
+        # current user's alerts to alerts_backup/ atomically.
+        current_user_alerts = [a for a in storage.ALERTS_DB if (a.user_id or "").lower() == user_id.lower()]
+        if len(current_user_alerts) > 0 and len(new_alerts) < len(current_user_alerts):
+            try:
+                import hashlib
+                uid_hash = hashlib.sha256(user_id.lower().encode()).hexdigest()[:8]
+                ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+                backup_dir = os.path.join(DATA_DIR, "alerts_backup")
+                os.makedirs(backup_dir, exist_ok=True)
+                backup_path = os.path.join(backup_dir, f"{uid_hash}_{ts}.json")
+                backup_data = [a.model_dump() if hasattr(a, 'model_dump') else a.dict() for a in current_user_alerts]
+                tmp_path = f"{backup_path}.tmp"
+                with open(tmp_path, "w", encoding="utf-8") as f:
+                    json.dump(backup_data, f, ensure_ascii=False, indent=2)
+                    f.flush()
+                    os.fsync(f.fileno())
+                os.replace(tmp_path, backup_path)
+                print(f"📦 [API] Backed up {len(current_user_alerts)} alert(s) for user {mask_identifier(user_id)} -> {backup_path}")
+                # Prune: keep max 20 files or 7 days
+                all_backups = sorted(
+                    [os.path.join(backup_dir, f) for f in os.listdir(backup_dir) if f.endswith(".json")],
+                    key=os.path.getmtime, reverse=True
+                )
+                for old in all_backups[20:]:
+                    try: os.remove(old)
+                    except Exception: pass
+                cutoff = time.time() - 7 * 86400
+                for old in all_backups:
+                    try:
+                        if os.path.getmtime(old) < cutoff:
+                            os.remove(old)
+                    except Exception: pass
+            except Exception as e:
+                print(f"⚠️ [API] Backup failed for user {mask_identifier(user_id)}: {e}")
+
         if user_id == 'user_default':
             storage.ALERTS_DB[:] = [a for a in storage.ALERTS_DB if a.fcm_token != fcm_token]
         elif len(fcm_token) > 10:
@@ -372,6 +413,7 @@ async def sync_user_alerts(payload: dict):
                 pass
 
     return {"status": "synced", "count": added_count, "total_active": active_remaining}
+
 
 @router.delete("/api/alerts", dependencies=API_DEP)
 @router.delete("/alerts", dependencies=API_DEP)
