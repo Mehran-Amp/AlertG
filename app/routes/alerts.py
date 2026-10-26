@@ -3,7 +3,7 @@ import math
 from datetime import datetime, timezone
 from typing import Optional, List
 from fastapi import APIRouter, HTTPException
-
+from app.markets.common import normalize_symbol
 from app.config import (
     SYMBOL_RE, EXCHANGE_RE, CHAT_ID_RE,
     MAX_ALERTS_PER_USER, MAX_NOTE_LEN
@@ -33,7 +33,7 @@ def _trigger_signature(x) -> tuple:
 
     if isinstance(x, dict):
         exchange = (x.get('exchange') or '').strip().lower()
-        symbol = (x.get('symbol') or '').strip().upper()
+        symbol = normalize_symbol(x.get('symbol') or '')
         condition = (x.get('condition') or '').strip().upper()
         condition_type = x.get('condition_type') or 'priceThreshold'
         try:
@@ -48,7 +48,7 @@ def _trigger_signature(x) -> tuple:
         alert_nature = x.get('alert_nature') or 'price'
     else:
         exchange = (getattr(x, 'exchange', None) or '').strip().lower()
-        symbol = (getattr(x, 'symbol', None) or '').strip().upper()
+        symbol = normalize_symbol(getattr(x, 'symbol', None) or '')
         condition = (getattr(x, 'condition', None) or '').strip().upper()
         condition_type = getattr(x, 'condition_type', None) or 'priceThreshold'
         try:
@@ -83,7 +83,7 @@ trigger_signature = _trigger_signature
 async def create_alert(alert_in: AlertCreate):
     alert_in.condition = (alert_in.condition or 'ABOVE').strip().upper()
     alert_in.exchange = (alert_in.exchange or '').strip().lower()
-    alert_in.symbol = (alert_in.symbol or '').strip().upper()
+    alert_in.symbol = normalize_symbol(alert_in.symbol or '')
     if not EXCHANGE_RE.match(alert_in.exchange) or not SYMBOL_RE.match(alert_in.symbol):
         raise HTTPException(status_code=400, detail="Invalid exchange or symbol.")
     if not math.isfinite(alert_in.target_price):
