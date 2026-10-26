@@ -210,8 +210,6 @@ class GoogleAuthService {
         }
       }
 
-      return true;
-    }
-    return false;
+    return true;
   }
 }
