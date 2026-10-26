@@ -55,7 +55,13 @@ void main() async {
     );
   };
 
-  await FCMNotificationService.initialize(storageDirectoryPath: dir.path);
+  // DEV-4: request permission via NotificationService.requestPermissions()
+  // (UI isolate, with Activity). Calling requestPermission here can fail when
+  // the Activity is momentarily unavailable (e.g. during hot restart / attach).
+  await FCMNotificationService.initialize(
+    storageDirectoryPath: dir.path,
+    requestPermission: false,
+  );
 
   // Update initial price source state in persistent notification
   BackgroundServiceManager.updatePriceSource(
