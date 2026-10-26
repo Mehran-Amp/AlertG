@@ -986,3 +986,65 @@ def toggle_feature_flag(flag: str, enabled: Optional[bool] = None):
     }
 
 
+
+@router.post("/api/admin/test/alert-push", dependencies=ADMIN_DEP)
+async def admin_test_alert_push(
+    user_id: str = "test_user",
+    title: str = "🧪 Test Alert",
+    body: str = "Synthetic alert for 2A-6",
+):
+    """TEST-1: push a synthetic alert through the real outbox pipeline
+    (record_queued -> FCM -> ack -> journal). Returns the delivery_id so the
+    caller can wait for ack."""
+    from app.notifier import outbox, journal
+    from app.state import METRICS
+    from app.storage import ALERTS_DB
+    import uuid
+
+    class _TestAlert:
+        def __init__(self, uid):
+            self.id = f"test_{uuid.uuid4().hex[:8]}"
+            self.user_id = uid
+            self.fcm_token = ""
+            self.ack_supported = True
+            self.telegram_chat_id = None
+            self.alert_nature = "price"
+            self.exchange = "binance"
+            self.symbol = "BTCUSDT"
+
+    token = None
+    for a in ALERTS_DB:
+        if getattr(a, "user_id", "").lower() == user_id.lower() and (a.fcm_token or "").strip():
+            token = a.fcm_token.strip()
+            break
+    if not token:
+        raise HTTPException(status_code=400, detail=f"No FCM token for user {user_id}")
+
+    alert = _TestAlert(user_id)
+    alert.fcm_token = token
+
+    before_queued = METRICS.get("delivery_queued", 0)
+    await outbox.enqueue_alert_push(
+        alert, title, body, {"alert_id": alert.id, "symbol": "BTCUSDT", "price": "1.0"}
+    )
+
+    delivery_id = None
+    for eid in list(outbox.OUTBOX.keys()):
+        if outbox.OUTBOX[eid].get("alert_id") == alert.id:
+            delivery_id = eid
+            break
+    if not delivery_id:
+        for did, entry in journal.JOURNAL.items():
+            if entry.get("alert_id") == alert.id:
+                delivery_id = did
+                break
+
+    return {
+        "status": "queued",
+        "delivery_id": delivery_id,
+        "alert_id": alert.id,
+        "user_id": user_id,
+        "token_tail": "..." + token[-6:],
+        "queued_before": before_queued,
+        "queued_after": METRICS.get("delivery_queued", 0),
+    }
