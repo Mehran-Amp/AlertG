@@ -23,32 +23,35 @@ import json
 import unittest
 from unittest.mock import MagicMock
 
-# Mock non-standard packages if running in minimal test environment
+# Mock non-standard packages only if not installed in minimal test environment
 for mod in [
     'fastapi', 'fastapi.middleware.cors', 'fastapi.responses', 'pydantic', 'httpx',
     'apscheduler', 'apscheduler.schedulers', 'apscheduler.schedulers.asyncio',
     'firebase_admin', 'firebase_admin.credentials', 'firebase_admin.messaging', 'firebase_admin.exceptions'
 ]:
-    if mod not in sys.modules:
-        m = MagicMock()
-        if mod == 'fastapi':
-            class MockAPIRouter:
-                def get(self, *args, **kwargs): return lambda func: func
-                def post(self, *args, **kwargs): return lambda func: func
-                def delete(self, *args, **kwargs): return lambda func: func
-                def put(self, *args, **kwargs): return lambda func: func
-            m.APIRouter = MockAPIRouter
-            m.Depends = lambda x: x
-            m.HTTPException = Exception
-        if mod == 'pydantic':
-            class BaseModel:
-                def __init__(self, **kwargs):
-                    for k, v in kwargs.items(): setattr(self, k, v)
-                def dict(self): return self.__dict__
-                def model_dump(self): return self.__dict__
-            m.BaseModel = BaseModel
-            m.Field = lambda *args, **kwargs: kwargs.get('default', None)
-        sys.modules[mod] = m
+    try:
+        __import__(mod)
+    except ImportError:
+        if mod not in sys.modules:
+            m = MagicMock()
+            if mod == 'fastapi':
+                class MockAPIRouter:
+                    def get(self, *args, **kwargs): return lambda func: func
+                    def post(self, *args, **kwargs): return lambda func: func
+                    def delete(self, *args, **kwargs): return lambda func: func
+                    def put(self, *args, **kwargs): return lambda func: func
+                m.APIRouter = MockAPIRouter
+                m.Depends = lambda x: x
+                m.HTTPException = Exception
+            if mod == 'pydantic':
+                class BaseModel:
+                    def __init__(self, **kwargs):
+                        for k, v in kwargs.items(): setattr(self, k, v)
+                    def dict(self): return self.__dict__
+                    def model_dump(self): return self.__dict__
+                m.BaseModel = BaseModel
+                m.Field = lambda *args, **kwargs: kwargs.get('default', None)
+            sys.modules[mod] = m
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if ROOT not in sys.path:
@@ -79,14 +82,14 @@ class TestPhase2CatalogExpansion(unittest.TestCase):
             cls.catalog_data = json.load(f)
 
     def test_01_seed_counts(self):
-        """Validates exact counts: 114 ETFs, 88 Stocks, 202 Candidates"""
+        """Validates exact counts: 113 ETFs, 88 Stocks, 201 Candidates (SPLG excluded)"""
         etfs_symbols = self.etfs_data.get("symbols", [])
         stocks_symbols = self.stocks_data.get("symbols", [])
         candidate_symbols = self.candidate_data.get("symbols", [])
 
-        self.assertEqual(len(etfs_symbols), 114, f"Expected 114 ETFs, got {len(etfs_symbols)}")
+        self.assertEqual(len(etfs_symbols), 113, f"Expected 113 ETFs, got {len(etfs_symbols)}")
         self.assertEqual(len(stocks_symbols), 88, f"Expected 88 stocks, got {len(stocks_symbols)}")
-        self.assertEqual(len(candidate_symbols), 202, f"Expected 202 candidates, got {len(candidate_symbols)}")
+        self.assertEqual(len(candidate_symbols), 201, f"Expected 201 candidates, got {len(candidate_symbols)}")
 
         # Verify header metadata
         self.assertEqual(self.etfs_data.get("source"), "curated owner list 2026-10-20")
@@ -110,27 +113,35 @@ class TestPhase2CatalogExpansion(unittest.TestCase):
             self.assertEqual(len(ids), len(set(ids)), f"Duplicate IDs found in {label}")
             self.assertEqual(len(syms), len(set(syms)), f"Duplicate symbols found in {label}")
 
-    def test_03_no_collision_with_existing_catalog(self):
-        """Verifies strictly zero collision with symbols already in catalog.json"""
-        existing_ids = {s.get("id", "").upper() for s in self.catalog_data.get("symbols", [])}
-        existing_syms = {s.get("symbol", "").upper() for s in self.catalog_data.get("symbols", [])}
+    def test_03_candidates_in_catalog_and_previous_symbols_unchanged(self):
+        """Verifies every candidate exists exactly once in catalog.json and no previous symbols changed"""
+        catalog_symbols = self.catalog_data.get("symbols", [])
+        cat_ids = [s.get("id", "").upper() for s in catalog_symbols]
+        cat_syms = [s.get("symbol", "").upper() for s in catalog_symbols]
+        catalog_id_map = {s.get("id", "").upper(): s for s in catalog_symbols}
 
         candidate_symbols = self.candidate_data.get("symbols", [])
         for item in candidate_symbols:
             item_id = item.get("id", "").upper()
             item_sym = item.get("symbol", "").upper()
-            self.assertNotIn(item_id, existing_ids, f"Collision: {item_id} already exists in catalog.json")
-            self.assertNotIn(item_sym, existing_syms, f"Collision: {item_sym} already exists in catalog.json")
+            # Each candidate must appear exactly once in catalog.json
+            self.assertEqual(cat_ids.count(item_id), 1, f"Candidate ID {item_id} must appear exactly once in catalog.json")
+            self.assertEqual(cat_syms.count(item_sym), 1, f"Candidate symbol {item_sym} must appear exactly once in catalog.json")
 
-        # Explicitly verify excluded symbols
+        # Verify SPLG is absent
+        self.assertNotIn("SPLG", cat_ids, "SPLG must not be in catalog.json")
+        self.assertNotIn("SPLG", [x.get("id") for x in self.etfs_data.get("symbols", [])], "SPLG must not be in etfs_extended.json")
+        self.assertNotIn("SPLG", [x.get("id") for x in self.candidate_data.get("symbols", [])], "SPLG must not be in candidate_catalog_phase2.json")
+
+        # Verify excluded symbols still exist in catalog
         excluded_etfs = ['SPY', 'QQQ', 'IWM', 'GLD']
         for s in excluded_etfs:
-            self.assertIn(s, existing_ids, f"{s} should be in catalog.json")
+            self.assertIn(s, catalog_id_map, f"{s} should be in catalog.json")
             self.assertNotIn(s, [x.get("id") for x in self.etfs_data["symbols"]], f"{s} must be excluded from etfs_extended.json")
 
         excluded_stocks = ['TSM', 'ASML', 'RACE', 'SHOP', 'SNOW', 'DDOG', 'TWLO', 'HOOD', 'COIN', 'MSTR', 'RKLB', 'ASTS', 'SPCX']
         for s in excluded_stocks:
-            self.assertIn(s, existing_ids, f"{s} should be in catalog.json")
+            self.assertIn(s, catalog_id_map, f"{s} should be in catalog.json")
             self.assertNotIn(s, [x.get("id") for x in self.stocks_data["symbols"]], f"{s} must be excluded from us_non_sp500.json")
 
     def test_04_mandatory_fields_and_schema(self):

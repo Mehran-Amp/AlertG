@@ -2,7 +2,7 @@
   "source": "curated owner list 2026-10-20",
   "fetched_at": "2026-10-20T04:22:33Z",
   "asset_class": "etf",
-  "total_count": 114,
+  "total_count": 113,
   "symbols": [
     {
       "id": "VOO",
@@ -1622,34 +1622,6 @@
         },
         "twelve_data": {
           "symbol": "RSP",
-          "priority": 3
-        }
-      },
-      "data_frequency": "live",
-      "is_delayed": false
-    },
-    {
-      "id": "SPLG",
-      "symbol": "SPLG",
-      "nameEn": "SPDR Portfolio S&P 500 ETF",
-      "nameFa": "SPDR Portfolio S&P 500 ETF",
-      "category": "etf",
-      "asset_class": "etf",
-      "marketName": "NYSE Arca",
-      "exchange": "NYSE Arca",
-      "currency": "USD",
-      "tier": "popular",
-      "provider_map": {
-        "yahoo": {
-          "symbol": "SPLG",
-          "priority": 1
-        },
-        "finnhub": {
-          "symbol": "SPLG",
-          "priority": 2
-        },
-        "twelve_data": {
-          "symbol": "SPLG",
           "priority": 3
         }
       },

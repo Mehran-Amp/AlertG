@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "catalog_version": 2,
-  "app_version": "3.7.0",
-  "last_sync_at": "2026-10-12T14:17:47.309157+00:00",
-  "total_active": 571,
-  "total_symbols": 571,
+  "catalog_version": 3,
+  "app_version": "3.9.1",
+  "last_sync_at": "2026-10-26T14:51:50.052294+00:00",
+  "total_active": 772,
+  "total_symbols": 772,
   "symbols": [
     {
       "id": "US10Y",
@@ -8015,6 +8015,6815 @@
       "delisted_at": null,
       "added_at": "2026-10-14T14:35:00.000000+00:00",
       "currency": "USD"
+    },
+    {
+      "id": "VOO",
+      "symbol": "VOO",
+      "nameEn": "Vanguard S&P 500 ETF",
+      "nameFa": "Vanguard S&P 500 ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VOO",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VOO",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VOO",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "IVV",
+      "symbol": "IVV",
+      "nameEn": "iShares Core S&P 500 ETF",
+      "nameFa": "iShares Core S&P 500 ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "IVV",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "IVV",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "IVV",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "VTI",
+      "symbol": "VTI",
+      "nameEn": "Vanguard Total Stock Market ETF",
+      "nameFa": "Vanguard Total Stock Market ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VTI",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VTI",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VTI",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "QQQM",
+      "symbol": "QQQM",
+      "nameEn": "Invesco NASDAQ 100 ETF",
+      "nameFa": "Invesco NASDAQ 100 ETF",
+      "category": "etf",
+      "marketName": "NASDAQ",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "QQQM",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "QQQM",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "QQQM",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "DIA",
+      "symbol": "DIA",
+      "nameEn": "SPDR Dow Jones Industrial Average ETF Trust",
+      "nameFa": "SPDR Dow Jones Industrial Average ETF Trust",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "DIA",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "DIA",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "DIA",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "VEA",
+      "symbol": "VEA",
+      "nameEn": "Vanguard FTSE Developed Markets ETF",
+      "nameFa": "Vanguard FTSE Developed Markets ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VEA",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VEA",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VEA",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "VWO",
+      "symbol": "VWO",
+      "nameEn": "Vanguard FTSE Emerging Markets ETF",
+      "nameFa": "Vanguard FTSE Emerging Markets ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VWO",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VWO",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VWO",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "EEM",
+      "symbol": "EEM",
+      "nameEn": "iShares MSCI Emerging Markets ETF",
+      "nameFa": "iShares MSCI Emerging Markets ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "EEM",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "EEM",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "EEM",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "EFA",
+      "symbol": "EFA",
+      "nameEn": "iShares MSCI EAFE ETF",
+      "nameFa": "iShares MSCI EAFE ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "EFA",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "EFA",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "EFA",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "IEMG",
+      "symbol": "IEMG",
+      "nameEn": "iShares Core MSCI Emerging Markets ETF",
+      "nameFa": "iShares Core MSCI Emerging Markets ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "IEMG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "IEMG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "IEMG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "AGG",
+      "symbol": "AGG",
+      "nameEn": "iShares Core U.S. Aggregate Bond ETF",
+      "nameFa": "iShares Core U.S. Aggregate Bond ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "AGG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "AGG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "AGG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "BND",
+      "symbol": "BND",
+      "nameEn": "Vanguard Total Bond Market ETF",
+      "nameFa": "Vanguard Total Bond Market ETF",
+      "category": "etf",
+      "marketName": "NASDAQ",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BND",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BND",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BND",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "TLT",
+      "symbol": "TLT",
+      "nameEn": "iShares 20+ Year Treasury Bond ETF",
+      "nameFa": "iShares 20+ Year Treasury Bond ETF",
+      "category": "etf",
+      "marketName": "NASDAQ",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "TLT",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "TLT",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "TLT",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "IEF",
+      "symbol": "IEF",
+      "nameEn": "iShares 7-10 Year Treasury Bond ETF",
+      "nameFa": "iShares 7-10 Year Treasury Bond ETF",
+      "category": "etf",
+      "marketName": "NASDAQ",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "IEF",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "IEF",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "IEF",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SHY",
+      "symbol": "SHY",
+      "nameEn": "iShares 1-3 Year Treasury Bond ETF",
+      "nameFa": "iShares 1-3 Year Treasury Bond ETF",
+      "category": "etf",
+      "marketName": "NASDAQ",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SHY",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SHY",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SHY",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "LQD",
+      "symbol": "LQD",
+      "nameEn": "iShares iBoxx $ Investment Grade Corporate Bond ETF",
+      "nameFa": "iShares iBoxx $ Investment Grade Corporate Bond ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "LQD",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "LQD",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "LQD",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "HYG",
+      "symbol": "HYG",
+      "nameEn": "iShares iBoxx $ High Yield Corporate Bond ETF",
+      "nameFa": "iShares iBoxx $ High Yield Corporate Bond ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "HYG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "HYG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "HYG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "IAU",
+      "symbol": "IAU",
+      "nameEn": "iShares Gold Trust",
+      "nameFa": "iShares Gold Trust",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "IAU",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "IAU",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "IAU",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SLV",
+      "symbol": "SLV",
+      "nameEn": "iShares Silver Trust",
+      "nameFa": "iShares Silver Trust",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SLV",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SLV",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SLV",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "USO",
+      "symbol": "USO",
+      "nameEn": "United States Oil Fund LP",
+      "nameFa": "United States Oil Fund LP",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "USO",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "USO",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "USO",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "UNG",
+      "symbol": "UNG",
+      "nameEn": "United States Natural Gas Fund LP",
+      "nameFa": "United States Natural Gas Fund LP",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "UNG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "UNG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "UNG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "DBC",
+      "symbol": "DBC",
+      "nameEn": "Invesco DB Commodity Index Tracking Fund",
+      "nameFa": "Invesco DB Commodity Index Tracking Fund",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "DBC",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "DBC",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "DBC",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "VNQ",
+      "symbol": "VNQ",
+      "nameEn": "Vanguard Real Estate ETF",
+      "nameFa": "Vanguard Real Estate ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VNQ",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VNQ",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VNQ",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "XLK",
+      "symbol": "XLK",
+      "nameEn": "Technology Select Sector SPDR Fund",
+      "nameFa": "Technology Select Sector SPDR Fund",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XLK",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XLK",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XLK",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "XLF",
+      "symbol": "XLF",
+      "nameEn": "Financial Select Sector SPDR Fund",
+      "nameFa": "Financial Select Sector SPDR Fund",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XLF",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XLF",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XLF",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "XLE",
+      "symbol": "XLE",
+      "nameEn": "Energy Select Sector SPDR Fund",
+      "nameFa": "Energy Select Sector SPDR Fund",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XLE",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XLE",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XLE",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "XLV",
+      "symbol": "XLV",
+      "nameEn": "Health Care Select Sector SPDR Fund",
+      "nameFa": "Health Care Select Sector SPDR Fund",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XLV",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XLV",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XLV",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "XLY",
+      "symbol": "XLY",
+      "nameEn": "Consumer Discretionary Select Sector SPDR Fund",
+      "nameFa": "Consumer Discretionary Select Sector SPDR Fund",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XLY",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XLY",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XLY",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "XLP",
+      "symbol": "XLP",
+      "nameEn": "Consumer Staples Select Sector SPDR Fund",
+      "nameFa": "Consumer Staples Select Sector SPDR Fund",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XLP",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XLP",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XLP",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "XLI",
+      "symbol": "XLI",
+      "nameEn": "Industrial Select Sector SPDR Fund",
+      "nameFa": "Industrial Select Sector SPDR Fund",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XLI",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XLI",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XLI",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "XLU",
+      "symbol": "XLU",
+      "nameEn": "Utilities Select Sector SPDR Fund",
+      "nameFa": "Utilities Select Sector SPDR Fund",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XLU",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XLU",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XLU",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "XLB",
+      "symbol": "XLB",
+      "nameEn": "Materials Select Sector SPDR Fund",
+      "nameFa": "Materials Select Sector SPDR Fund",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XLB",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XLB",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XLB",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "XLRE",
+      "symbol": "XLRE",
+      "nameEn": "Real Estate Select Sector SPDR Fund",
+      "nameFa": "Real Estate Select Sector SPDR Fund",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XLRE",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XLRE",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XLRE",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "XLC",
+      "symbol": "XLC",
+      "nameEn": "Communication Services Select Sector SPDR Fund",
+      "nameFa": "Communication Services Select Sector SPDR Fund",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XLC",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XLC",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XLC",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SMH",
+      "symbol": "SMH",
+      "nameEn": "VanEck Semiconductor ETF",
+      "nameFa": "VanEck Semiconductor ETF",
+      "category": "etf",
+      "marketName": "NASDAQ",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SMH",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SMH",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SMH",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SOXX",
+      "symbol": "SOXX",
+      "nameEn": "iShares Semiconductor ETF",
+      "nameFa": "iShares Semiconductor ETF",
+      "category": "etf",
+      "marketName": "NASDAQ",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SOXX",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SOXX",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SOXX",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "ARKK",
+      "symbol": "ARKK",
+      "nameEn": "ARK Innovation ETF",
+      "nameFa": "ARK Innovation ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "ARKK",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "ARKK",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "ARKK",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "ARKG",
+      "symbol": "ARKG",
+      "nameEn": "ARK Genomic Revolution ETF",
+      "nameFa": "ARK Genomic Revolution ETF",
+      "category": "etf",
+      "marketName": "Cboe BZX",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "ARKG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "ARKG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "ARKG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "ARKW",
+      "symbol": "ARKW",
+      "nameEn": "ARK Next Generation Internet ETF",
+      "nameFa": "ARK Next Generation Internet ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "ARKW",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "ARKW",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "ARKW",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "VUG",
+      "symbol": "VUG",
+      "nameEn": "Vanguard Growth ETF",
+      "nameFa": "Vanguard Growth ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VUG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VUG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VUG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "VTV",
+      "symbol": "VTV",
+      "nameEn": "Vanguard Value ETF",
+      "nameFa": "Vanguard Value ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VTV",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VTV",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VTV",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "VIG",
+      "symbol": "VIG",
+      "nameEn": "Vanguard Dividend Appreciation ETF",
+      "nameFa": "Vanguard Dividend Appreciation ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VIG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VIG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VIG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SCHD",
+      "symbol": "SCHD",
+      "nameEn": "Schwab U.S. Dividend Equity ETF",
+      "nameFa": "Schwab U.S. Dividend Equity ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SCHD",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SCHD",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SCHD",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SCHG",
+      "symbol": "SCHG",
+      "nameEn": "Schwab U.S. Large-Cap Growth ETF",
+      "nameFa": "Schwab U.S. Large-Cap Growth ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SCHG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SCHG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SCHG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SCHB",
+      "symbol": "SCHB",
+      "nameEn": "Schwab U.S. Broad Market ETF",
+      "nameFa": "Schwab U.S. Broad Market ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SCHB",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SCHB",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SCHB",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "JEPI",
+      "symbol": "JEPI",
+      "nameEn": "JPMorgan Equity Premium Income ETF",
+      "nameFa": "JPMorgan Equity Premium Income ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "JEPI",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "JEPI",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "JEPI",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "JEPQ",
+      "symbol": "JEPQ",
+      "nameEn": "JPMorgan Nasdaq Equity Premium Income ETF",
+      "nameFa": "JPMorgan Nasdaq Equity Premium Income ETF",
+      "category": "etf",
+      "marketName": "NASDAQ",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "JEPQ",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "JEPQ",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "JEPQ",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "QYLD",
+      "symbol": "QYLD",
+      "nameEn": "Global X NASDAQ 100 Covered Call ETF",
+      "nameFa": "Global X NASDAQ 100 Covered Call ETF",
+      "category": "etf",
+      "marketName": "NASDAQ",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "QYLD",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "QYLD",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "QYLD",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "DVY",
+      "symbol": "DVY",
+      "nameEn": "iShares Select Dividend ETF",
+      "nameFa": "iShares Select Dividend ETF",
+      "category": "etf",
+      "marketName": "NASDAQ",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "DVY",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "DVY",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "DVY",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "VYM",
+      "symbol": "VYM",
+      "nameEn": "Vanguard High Dividend Yield ETF",
+      "nameFa": "Vanguard High Dividend Yield ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VYM",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VYM",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VYM",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "IWF",
+      "symbol": "IWF",
+      "nameEn": "iShares Russell 1000 Growth ETF",
+      "nameFa": "iShares Russell 1000 Growth ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "IWF",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "IWF",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "IWF",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "IWD",
+      "symbol": "IWD",
+      "nameEn": "iShares Russell 1000 Value ETF",
+      "nameFa": "iShares Russell 1000 Value ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "IWD",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "IWD",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "IWD",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "MDY",
+      "symbol": "MDY",
+      "nameEn": "SPDR S&P MidCap 400 ETF Trust",
+      "nameFa": "SPDR S&P MidCap 400 ETF Trust",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "MDY",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "MDY",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "MDY",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "IJH",
+      "symbol": "IJH",
+      "nameEn": "iShares Core S&P Mid-Cap ETF",
+      "nameFa": "iShares Core S&P Mid-Cap ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "IJH",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "IJH",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "IJH",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "IJR",
+      "symbol": "IJR",
+      "nameEn": "iShares Core S&P Small-Cap ETF",
+      "nameFa": "iShares Core S&P Small-Cap ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "IJR",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "IJR",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "IJR",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "VB",
+      "symbol": "VB",
+      "nameEn": "Vanguard Small-Cap ETF",
+      "nameFa": "Vanguard Small-Cap ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VB",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VB",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VB",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "VO",
+      "symbol": "VO",
+      "nameEn": "Vanguard Mid-Cap ETF",
+      "nameFa": "Vanguard Mid-Cap ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VO",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VO",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VO",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "RSP",
+      "symbol": "RSP",
+      "nameEn": "Invesco S&P 500 Equal Weight ETF",
+      "nameFa": "Invesco S&P 500 Equal Weight ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "RSP",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "RSP",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "RSP",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SPYG",
+      "symbol": "SPYG",
+      "nameEn": "SPDR Portfolio S&P 500 Growth ETF",
+      "nameFa": "SPDR Portfolio S&P 500 Growth ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SPYG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SPYG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SPYG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SPYV",
+      "symbol": "SPYV",
+      "nameEn": "SPDR Portfolio S&P 500 Value ETF",
+      "nameFa": "SPDR Portfolio S&P 500 Value ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SPYV",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SPYV",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SPYV",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "TQQQ",
+      "symbol": "TQQQ",
+      "nameEn": "ProShares UltraPro QQQ",
+      "nameFa": "ProShares UltraPro QQQ",
+      "category": "etf",
+      "marketName": "NASDAQ",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "TQQQ",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "TQQQ",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "TQQQ",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SQQQ",
+      "symbol": "SQQQ",
+      "nameEn": "ProShares UltraPro Short QQQ",
+      "nameFa": "ProShares UltraPro Short QQQ",
+      "category": "etf",
+      "marketName": "NASDAQ",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SQQQ",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SQQQ",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SQQQ",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SOXL",
+      "symbol": "SOXL",
+      "nameEn": "Direxion Daily Semiconductor Bull 3X Shares",
+      "nameFa": "Direxion Daily Semiconductor Bull 3X Shares",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SOXL",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SOXL",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SOXL",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SOXS",
+      "symbol": "SOXS",
+      "nameEn": "Direxion Daily Semiconductor Bear 3X Shares",
+      "nameFa": "Direxion Daily Semiconductor Bear 3X Shares",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SOXS",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SOXS",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SOXS",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "UPRO",
+      "symbol": "UPRO",
+      "nameEn": "ProShares UltraPro S&P500",
+      "nameFa": "ProShares UltraPro S&P500",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "UPRO",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "UPRO",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "UPRO",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SPXU",
+      "symbol": "SPXU",
+      "nameEn": "ProShares UltraPro Short S&P500",
+      "nameFa": "ProShares UltraPro Short S&P500",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SPXU",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SPXU",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SPXU",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "TNA",
+      "symbol": "TNA",
+      "nameEn": "Direxion Daily Small Cap Bull 3X Shares",
+      "nameFa": "Direxion Daily Small Cap Bull 3X Shares",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "TNA",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "TNA",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "TNA",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "TZA",
+      "symbol": "TZA",
+      "nameEn": "Direxion Daily Small Cap Bear 3X Shares",
+      "nameFa": "Direxion Daily Small Cap Bear 3X Shares",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "TZA",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "TZA",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "TZA",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "LABU",
+      "symbol": "LABU",
+      "nameEn": "Direxion Daily S&P Biotech Bull 3X Shares",
+      "nameFa": "Direxion Daily S&P Biotech Bull 3X Shares",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "LABU",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "LABU",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "LABU",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "FNGU",
+      "symbol": "FNGU",
+      "nameEn": "MicroSectors FANG+ Index 3X Leveraged ETN",
+      "nameFa": "MicroSectors FANG+ Index 3X Leveraged ETN",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "FNGU",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "FNGU",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "FNGU",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "UVXY",
+      "symbol": "UVXY",
+      "nameEn": "ProShares Ultra VIX Short-Term Futures ETF",
+      "nameFa": "ProShares Ultra VIX Short-Term Futures ETF",
+      "category": "etf",
+      "marketName": "Cboe BZX",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "UVXY",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "UVXY",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "UVXY",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "VXX",
+      "symbol": "VXX",
+      "nameEn": "iPath Series B S&P 500 VIX Short-Term Futures ETN",
+      "nameFa": "iPath Series B S&P 500 VIX Short-Term Futures ETN",
+      "category": "etf",
+      "marketName": "Cboe BZX",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VXX",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VXX",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VXX",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SVXY",
+      "symbol": "SVXY",
+      "nameEn": "ProShares Short VIX Short-Term Futures ETF",
+      "nameFa": "ProShares Short VIX Short-Term Futures ETF",
+      "category": "etf",
+      "marketName": "Cboe BZX",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SVXY",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SVXY",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SVXY",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "IBIT",
+      "symbol": "IBIT",
+      "nameEn": "iShares Bitcoin Trust ETF",
+      "nameFa": "iShares Bitcoin Trust ETF",
+      "category": "etf",
+      "marketName": "NASDAQ",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "IBIT",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "IBIT",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "IBIT",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "FBTC",
+      "symbol": "FBTC",
+      "nameEn": "Fidelity Wise Origin Bitcoin Fund",
+      "nameFa": "Fidelity Wise Origin Bitcoin Fund",
+      "category": "etf",
+      "marketName": "Cboe BZX",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "FBTC",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "FBTC",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "FBTC",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "GBTC",
+      "symbol": "GBTC",
+      "nameEn": "Grayscale Bitcoin Trust",
+      "nameFa": "Grayscale Bitcoin Trust",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "GBTC",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "GBTC",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "GBTC",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "ETHE",
+      "symbol": "ETHE",
+      "nameEn": "Grayscale Ethereum Trust",
+      "nameFa": "Grayscale Ethereum Trust",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "ETHE",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "ETHE",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "ETHE",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "BITO",
+      "symbol": "BITO",
+      "nameEn": "ProShares Bitcoin Strategy ETF",
+      "nameFa": "ProShares Bitcoin Strategy ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BITO",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BITO",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BITO",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "URA",
+      "symbol": "URA",
+      "nameEn": "Global X Uranium ETF",
+      "nameFa": "Global X Uranium ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "URA",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "URA",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "URA",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "COPX",
+      "symbol": "COPX",
+      "nameEn": "Global X Copper Miners ETF",
+      "nameFa": "Global X Copper Miners ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "COPX",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "COPX",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "COPX",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "GDX",
+      "symbol": "GDX",
+      "nameEn": "VanEck Gold Miners ETF",
+      "nameFa": "VanEck Gold Miners ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "GDX",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "GDX",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "GDX",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "GDXJ",
+      "symbol": "GDXJ",
+      "nameEn": "VanEck Junior Gold Miners ETF",
+      "nameFa": "VanEck Junior Gold Miners ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "GDXJ",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "GDXJ",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "GDXJ",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SIL",
+      "symbol": "SIL",
+      "nameEn": "Global X Silver Miners ETF",
+      "nameFa": "Global X Silver Miners ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SIL",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SIL",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SIL",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "XBI",
+      "symbol": "XBI",
+      "nameEn": "SPDR S&P Biotech ETF",
+      "nameFa": "SPDR S&P Biotech ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XBI",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XBI",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XBI",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "IBB",
+      "symbol": "IBB",
+      "nameEn": "iShares Biotechnology ETF",
+      "nameFa": "iShares Biotechnology ETF",
+      "category": "etf",
+      "marketName": "NASDAQ",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "IBB",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "IBB",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "IBB",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "KRE",
+      "symbol": "KRE",
+      "nameEn": "SPDR S&P Regional Banking ETF",
+      "nameFa": "SPDR S&P Regional Banking ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "KRE",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "KRE",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "KRE",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "KWEB",
+      "symbol": "KWEB",
+      "nameEn": "KraneShares CSI China Internet ETF",
+      "nameFa": "KraneShares CSI China Internet ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "KWEB",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "KWEB",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "KWEB",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "FXI",
+      "symbol": "FXI",
+      "nameEn": "iShares China Large-Cap ETF",
+      "nameFa": "iShares China Large-Cap ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "FXI",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "FXI",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "FXI",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "MCHI",
+      "symbol": "MCHI",
+      "nameEn": "iShares MSCI China ETF",
+      "nameFa": "iShares MSCI China ETF",
+      "category": "etf",
+      "marketName": "NASDAQ",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "MCHI",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "MCHI",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "MCHI",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "EWJ",
+      "symbol": "EWJ",
+      "nameEn": "iShares MSCI Japan ETF",
+      "nameFa": "iShares MSCI Japan ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "EWJ",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "EWJ",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "EWJ",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "EWZ",
+      "symbol": "EWZ",
+      "nameEn": "iShares MSCI Brazil ETF",
+      "nameFa": "iShares MSCI Brazil ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "EWZ",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "EWZ",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "EWZ",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "EWY",
+      "symbol": "EWY",
+      "nameEn": "iShares MSCI South Korea ETF",
+      "nameFa": "iShares MSCI South Korea ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "EWY",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "EWY",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "EWY",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "INDA",
+      "symbol": "INDA",
+      "nameEn": "iShares MSCI India ETF",
+      "nameFa": "iShares MSCI India ETF",
+      "category": "etf",
+      "marketName": "Cboe BZX",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "INDA",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "INDA",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "INDA",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "EWW",
+      "symbol": "EWW",
+      "nameEn": "iShares MSCI Mexico ETF",
+      "nameFa": "iShares MSCI Mexico ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "EWW",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "EWW",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "EWW",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "EWG",
+      "symbol": "EWG",
+      "nameEn": "iShares MSCI Germany ETF",
+      "nameFa": "iShares MSCI Germany ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "EWG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "EWG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "EWG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "EWU",
+      "symbol": "EWU",
+      "nameEn": "iShares MSCI United Kingdom ETF",
+      "nameFa": "iShares MSCI United Kingdom ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "EWU",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "EWU",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "EWU",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "VGK",
+      "symbol": "VGK",
+      "nameEn": "Vanguard FTSE Europe ETF",
+      "nameFa": "Vanguard FTSE Europe ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VGK",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VGK",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VGK",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "VXUS",
+      "symbol": "VXUS",
+      "nameEn": "Vanguard Total International Stock ETF",
+      "nameFa": "Vanguard Total International Stock ETF",
+      "category": "etf",
+      "marketName": "NASDAQ",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VXUS",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VXUS",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VXUS",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "BNDX",
+      "symbol": "BNDX",
+      "nameEn": "Vanguard Total International Bond ETF",
+      "nameFa": "Vanguard Total International Bond ETF",
+      "category": "etf",
+      "marketName": "NASDAQ",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BNDX",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BNDX",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BNDX",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "TIP",
+      "symbol": "TIP",
+      "nameEn": "iShares TIPS Bond ETF",
+      "nameFa": "iShares TIPS Bond ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "TIP",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "TIP",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "TIP",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SGOV",
+      "symbol": "SGOV",
+      "nameEn": "iShares 0-3 Month Treasury Bond ETF",
+      "nameFa": "iShares 0-3 Month Treasury Bond ETF",
+      "category": "etf",
+      "marketName": "Cboe BZX",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SGOV",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SGOV",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SGOV",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "BIL",
+      "symbol": "BIL",
+      "nameEn": "SPDR Bloomberg 1-3 Month T-Bill ETF",
+      "nameFa": "SPDR Bloomberg 1-3 Month T-Bill ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BIL",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BIL",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BIL",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SPDW",
+      "symbol": "SPDW",
+      "nameEn": "SPDR Portfolio Developed World ex-US ETF",
+      "nameFa": "SPDR Portfolio Developed World ex-US ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SPDW",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SPDW",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SPDW",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "ITA",
+      "symbol": "ITA",
+      "nameEn": "iShares U.S. Aerospace & Defense ETF",
+      "nameFa": "iShares U.S. Aerospace & Defense ETF",
+      "category": "etf",
+      "marketName": "Cboe BZX",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "ITA",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "ITA",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "ITA",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "JETS",
+      "symbol": "JETS",
+      "nameEn": "U.S. Global Jets ETF",
+      "nameFa": "U.S. Global Jets ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "JETS",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "JETS",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "JETS",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "XOP",
+      "symbol": "XOP",
+      "nameEn": "SPDR S&P Oil & Gas Exploration & Production ETF",
+      "nameFa": "SPDR S&P Oil & Gas Exploration & Production ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XOP",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XOP",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XOP",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "OIH",
+      "symbol": "OIH",
+      "nameEn": "VanEck Oil Services ETF",
+      "nameFa": "VanEck Oil Services ETF",
+      "category": "etf",
+      "marketName": "NASDAQ",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "OIH",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "OIH",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "OIH",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "TAN",
+      "symbol": "TAN",
+      "nameEn": "Invesco Solar ETF",
+      "nameFa": "Invesco Solar ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "TAN",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "TAN",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "TAN",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "ICLN",
+      "symbol": "ICLN",
+      "nameEn": "iShares Global Clean Energy ETF",
+      "nameFa": "iShares Global Clean Energy ETF",
+      "category": "etf",
+      "marketName": "NASDAQ",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "ICLN",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "ICLN",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "ICLN",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "LIT",
+      "symbol": "LIT",
+      "nameEn": "Global X Lithium & Battery Tech ETF",
+      "nameFa": "Global X Lithium & Battery Tech ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "LIT",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "LIT",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "LIT",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "BOTZ",
+      "symbol": "BOTZ",
+      "nameEn": "Global X Robotics & Artificial Intelligence ETF",
+      "nameFa": "Global X Robotics & Artificial Intelligence ETF",
+      "category": "etf",
+      "marketName": "NASDAQ",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BOTZ",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BOTZ",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BOTZ",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "CIBR",
+      "symbol": "CIBR",
+      "nameEn": "First Trust NASDAQ Cybersecurity ETF",
+      "nameFa": "First Trust NASDAQ Cybersecurity ETF",
+      "category": "etf",
+      "marketName": "NASDAQ",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "CIBR",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "CIBR",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "CIBR",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "HACK",
+      "symbol": "HACK",
+      "nameEn": "Amplify Cybersecurity ETF",
+      "nameFa": "Amplify Cybersecurity ETF",
+      "category": "etf",
+      "marketName": "NYSE Arca",
+      "unit": "USD",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "HACK",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "HACK",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "HACK",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "BABA",
+      "symbol": "BABA",
+      "nameEn": "Alibaba Group Holding Limited",
+      "nameFa": "Alibaba Group Holding Limited",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BABA",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BABA",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BABA",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "China",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "PDD",
+      "symbol": "PDD",
+      "nameEn": "PDD Holdings Inc.",
+      "nameFa": "PDD Holdings Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "PDD",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "PDD",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "PDD",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "China",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "JD",
+      "symbol": "JD",
+      "nameEn": "JD.com, Inc.",
+      "nameFa": "JD.com, Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "JD",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "JD",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "JD",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "China",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "BIDU",
+      "symbol": "BIDU",
+      "nameEn": "Baidu, Inc.",
+      "nameFa": "Baidu, Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BIDU",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BIDU",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BIDU",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "China",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "NIO",
+      "symbol": "NIO",
+      "nameEn": "NIO Inc.",
+      "nameFa": "NIO Inc.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "NIO",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "NIO",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "NIO",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "China",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "XPEV",
+      "symbol": "XPEV",
+      "nameEn": "XPeng Inc.",
+      "nameFa": "XPeng Inc.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "XPEV",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "XPEV",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "XPEV",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "China",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "LI",
+      "symbol": "LI",
+      "nameEn": "Li Auto Inc.",
+      "nameFa": "Li Auto Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "LI",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "LI",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "LI",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "China",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "BILI",
+      "symbol": "BILI",
+      "nameEn": "Bilibili Inc.",
+      "nameFa": "Bilibili Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BILI",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BILI",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BILI",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "China",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "TME",
+      "symbol": "TME",
+      "nameEn": "Tencent Music Entertainment Group",
+      "nameFa": "Tencent Music Entertainment Group",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "TME",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "TME",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "TME",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "China",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "NTES",
+      "symbol": "NTES",
+      "nameEn": "NetEase, Inc.",
+      "nameFa": "NetEase, Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "NTES",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "NTES",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "NTES",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "China",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SAP",
+      "symbol": "SAP",
+      "nameEn": "SAP SE",
+      "nameFa": "SAP SE",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SAP",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SAP",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SAP",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "Germany",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "TM",
+      "symbol": "TM",
+      "nameEn": "Toyota Motor Corporation",
+      "nameFa": "Toyota Motor Corporation",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "TM",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "TM",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "TM",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "Japan",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SONY",
+      "symbol": "SONY",
+      "nameEn": "Sony Group Corporation",
+      "nameFa": "Sony Group Corporation",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SONY",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SONY",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SONY",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "Japan",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "NVO",
+      "symbol": "NVO",
+      "nameEn": "Novo Nordisk A/S",
+      "nameFa": "Novo Nordisk A/S",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "NVO",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "NVO",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "NVO",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "Denmark",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "AZN",
+      "symbol": "AZN",
+      "nameEn": "AstraZeneca PLC",
+      "nameFa": "AstraZeneca PLC",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "AZN",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "AZN",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "AZN",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "United Kingdom",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SHEL",
+      "symbol": "SHEL",
+      "nameEn": "Shell plc",
+      "nameFa": "Shell plc",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SHEL",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SHEL",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SHEL",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "United Kingdom",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "BP",
+      "symbol": "BP",
+      "nameEn": "BP p.l.c.",
+      "nameFa": "BP p.l.c.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BP",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BP",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BP",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "United Kingdom",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "TTE",
+      "symbol": "TTE",
+      "nameEn": "TotalEnergies SE",
+      "nameFa": "TotalEnergies SE",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "TTE",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "TTE",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "TTE",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "France",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "UL",
+      "symbol": "UL",
+      "nameEn": "Unilever PLC",
+      "nameFa": "Unilever PLC",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "UL",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "UL",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "UL",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "United Kingdom",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "HSBC",
+      "symbol": "HSBC",
+      "nameEn": "HSBC Holdings plc",
+      "nameFa": "HSBC Holdings plc",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "HSBC",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "HSBC",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "HSBC",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "United Kingdom",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "BHP",
+      "symbol": "BHP",
+      "nameEn": "BHP Group Limited",
+      "nameFa": "BHP Group Limited",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BHP",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BHP",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BHP",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "Australia",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "RIO",
+      "symbol": "RIO",
+      "nameEn": "Rio Tinto Group",
+      "nameFa": "Rio Tinto Group",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "RIO",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "RIO",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "RIO",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "United Kingdom",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "VALE",
+      "symbol": "VALE",
+      "nameEn": "Vale S.A.",
+      "nameFa": "Vale S.A.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "VALE",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "VALE",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "VALE",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "Brazil",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "MUFG",
+      "symbol": "MUFG",
+      "nameEn": "Mitsubishi UFJ Financial Group, Inc.",
+      "nameFa": "Mitsubishi UFJ Financial Group, Inc.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "MUFG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "MUFG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "MUFG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "Japan",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SMFG",
+      "symbol": "SMFG",
+      "nameEn": "Sumitomo Mitsui Financial Group, Inc.",
+      "nameFa": "Sumitomo Mitsui Financial Group, Inc.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SMFG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SMFG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SMFG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "Japan",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "HMC",
+      "symbol": "HMC",
+      "nameEn": "Honda Motor Co., Ltd.",
+      "nameFa": "Honda Motor Co., Ltd.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "HMC",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "HMC",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "HMC",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "Japan",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "NVS",
+      "symbol": "NVS",
+      "nameEn": "Novartis AG",
+      "nameFa": "Novartis AG",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "NVS",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "NVS",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "NVS",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "Switzerland",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SNY",
+      "symbol": "SNY",
+      "nameEn": "Sanofi",
+      "nameFa": "Sanofi",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SNY",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SNY",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SNY",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "France",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "GSK",
+      "symbol": "GSK",
+      "nameEn": "GSK plc",
+      "nameFa": "GSK plc",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "GSK",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "GSK",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "GSK",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "United Kingdom",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "DEO",
+      "symbol": "DEO",
+      "nameEn": "Diageo plc",
+      "nameFa": "Diageo plc",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "DEO",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "DEO",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "DEO",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "United Kingdom",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "BTI",
+      "symbol": "BTI",
+      "nameEn": "British American Tobacco p.l.c.",
+      "nameFa": "British American Tobacco p.l.c.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BTI",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BTI",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BTI",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "United Kingdom",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "ING",
+      "symbol": "ING",
+      "nameEn": "ING Groep N.V.",
+      "nameFa": "ING Groep N.V.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "ING",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "ING",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "ING",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "Netherlands",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "DB",
+      "symbol": "DB",
+      "nameEn": "Deutsche Bank AG",
+      "nameFa": "Deutsche Bank AG",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "DB",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "DB",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "DB",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "Germany",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SAN",
+      "symbol": "SAN",
+      "nameEn": "Banco Santander, S.A.",
+      "nameFa": "Banco Santander, S.A.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SAN",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SAN",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SAN",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "Spain",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "BBVA",
+      "symbol": "BBVA",
+      "nameEn": "Banco Bilbao Vizcaya Argentaria, S.A.",
+      "nameFa": "Banco Bilbao Vizcaya Argentaria, S.A.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BBVA",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BBVA",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BBVA",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "Spain",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "UBS",
+      "symbol": "UBS",
+      "nameEn": "UBS Group AG",
+      "nameFa": "UBS Group AG",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "UBS",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "UBS",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "UBS",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "Switzerland",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "STLA",
+      "symbol": "STLA",
+      "nameEn": "Stellantis N.V.",
+      "nameFa": "Stellantis N.V.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "STLA",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "STLA",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "STLA",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "Netherlands",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SPOT",
+      "symbol": "SPOT",
+      "nameEn": "Spotify Technology S.A.",
+      "nameFa": "Spotify Technology S.A.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SPOT",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SPOT",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SPOT",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "Sweden",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "ARM",
+      "symbol": "ARM",
+      "nameEn": "Arm Holdings plc",
+      "nameFa": "Arm Holdings plc",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "ARM",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "ARM",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "ARM",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "United Kingdom",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "NOK",
+      "symbol": "NOK",
+      "nameEn": "Nokia Corporation",
+      "nameFa": "Nokia Corporation",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "NOK",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "NOK",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "NOK",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "Finland",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "BB",
+      "symbol": "BB",
+      "nameEn": "BlackBerry Limited",
+      "nameFa": "BlackBerry Limited",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BB",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BB",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BB",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "Canada",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "CCJ",
+      "symbol": "CCJ",
+      "nameEn": "Cameco Corporation",
+      "nameFa": "Cameco Corporation",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "CCJ",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "CCJ",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "CCJ",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "Canada",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "URG",
+      "symbol": "URG",
+      "nameEn": "Ur-Energy Inc.",
+      "nameFa": "Ur-Energy Inc.",
+      "category": "stock",
+      "marketName": "NYSE American",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "URG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "URG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "URG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "Canada",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "DNN",
+      "symbol": "DNN",
+      "nameEn": "Denison Mines Corp.",
+      "nameFa": "Denison Mines Corp.",
+      "category": "stock",
+      "marketName": "NYSE American",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "DNN",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "DNN",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "DNN",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "Canada",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "NXE",
+      "symbol": "NXE",
+      "nameEn": "NexGen Energy Ltd.",
+      "nameFa": "NexGen Energy Ltd.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "NXE",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "NXE",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "NXE",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "Canada",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "ONON",
+      "symbol": "ONON",
+      "nameEn": "On Holding AG",
+      "nameFa": "On Holding AG",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "ONON",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "ONON",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "ONON",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": true,
+      "country": "Switzerland",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "NET",
+      "symbol": "NET",
+      "nameEn": "Cloudflare, Inc.",
+      "nameFa": "Cloudflare, Inc.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "NET",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "NET",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "NET",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "ZS",
+      "symbol": "ZS",
+      "nameEn": "Zscaler, Inc.",
+      "nameFa": "Zscaler, Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "ZS",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "ZS",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "ZS",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "OKTA",
+      "symbol": "OKTA",
+      "nameEn": "Okta, Inc.",
+      "nameFa": "Okta, Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "OKTA",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "OKTA",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "OKTA",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "MDB",
+      "symbol": "MDB",
+      "nameEn": "MongoDB, Inc.",
+      "nameFa": "MongoDB, Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "MDB",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "MDB",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "MDB",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "TEAM",
+      "symbol": "TEAM",
+      "nameEn": "Atlassian Corporation",
+      "nameFa": "Atlassian Corporation",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "TEAM",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "TEAM",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "TEAM",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "DOCU",
+      "symbol": "DOCU",
+      "nameEn": "DocuSign, Inc.",
+      "nameFa": "DocuSign, Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "DOCU",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "DOCU",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "DOCU",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "ROKU",
+      "symbol": "ROKU",
+      "nameEn": "Roku, Inc.",
+      "nameFa": "Roku, Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "ROKU",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "ROKU",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "ROKU",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "AFRM",
+      "symbol": "AFRM",
+      "nameEn": "Affirm Holdings, Inc.",
+      "nameFa": "Affirm Holdings, Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "AFRM",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "AFRM",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "AFRM",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "UPST",
+      "symbol": "UPST",
+      "nameEn": "Upstart Holdings, Inc.",
+      "nameFa": "Upstart Holdings, Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "UPST",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "UPST",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "UPST",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SOFI",
+      "symbol": "SOFI",
+      "nameEn": "SoFi Technologies, Inc.",
+      "nameFa": "SoFi Technologies, Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SOFI",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SOFI",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SOFI",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "RIVN",
+      "symbol": "RIVN",
+      "nameEn": "Rivian Automotive, Inc.",
+      "nameFa": "Rivian Automotive, Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "RIVN",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "RIVN",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "RIVN",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "LCID",
+      "symbol": "LCID",
+      "nameEn": "Lucid Group, Inc.",
+      "nameFa": "Lucid Group, Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "LCID",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "LCID",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "LCID",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "GME",
+      "symbol": "GME",
+      "nameEn": "GameStop Corp.",
+      "nameFa": "GameStop Corp.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "GME",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "GME",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "GME",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "AMC",
+      "symbol": "AMC",
+      "nameEn": "AMC Entertainment Holdings, Inc.",
+      "nameFa": "AMC Entertainment Holdings, Inc.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "AMC",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "AMC",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "AMC",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SNAP",
+      "symbol": "SNAP",
+      "nameEn": "Snap Inc.",
+      "nameFa": "Snap Inc.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SNAP",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SNAP",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SNAP",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "PINS",
+      "symbol": "PINS",
+      "nameEn": "Pinterest, Inc.",
+      "nameFa": "Pinterest, Inc.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "PINS",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "PINS",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "PINS",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "LYFT",
+      "symbol": "LYFT",
+      "nameEn": "Lyft, Inc.",
+      "nameFa": "Lyft, Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "LYFT",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "LYFT",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "LYFT",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "U",
+      "symbol": "U",
+      "nameEn": "Unity Software Inc.",
+      "nameFa": "Unity Software Inc.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "U",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "U",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "U",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "RBLX",
+      "symbol": "RBLX",
+      "nameEn": "Roblox Corporation",
+      "nameFa": "Roblox Corporation",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "RBLX",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "RBLX",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "RBLX",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "DKNG",
+      "symbol": "DKNG",
+      "nameEn": "DraftKings Inc.",
+      "nameFa": "DraftKings Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "DKNG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "DKNG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "DKNG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "CHWY",
+      "symbol": "CHWY",
+      "nameEn": "Chewy, Inc.",
+      "nameFa": "Chewy, Inc.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "CHWY",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "CHWY",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "CHWY",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "W",
+      "symbol": "W",
+      "nameEn": "Wayfair Inc.",
+      "nameFa": "Wayfair Inc.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "W",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "W",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "W",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "ETSY",
+      "symbol": "ETSY",
+      "nameEn": "Etsy, Inc.",
+      "nameFa": "Etsy, Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "ETSY",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "ETSY",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "ETSY",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "PTON",
+      "symbol": "PTON",
+      "nameEn": "Peloton Interactive, Inc.",
+      "nameFa": "Peloton Interactive, Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "PTON",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "PTON",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "PTON",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "PLUG",
+      "symbol": "PLUG",
+      "nameEn": "Plug Power Inc.",
+      "nameFa": "Plug Power Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "PLUG",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "PLUG",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "PLUG",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "FCEL",
+      "symbol": "FCEL",
+      "nameEn": "FuelCell Energy, Inc.",
+      "nameFa": "FuelCell Energy, Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "FCEL",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "FCEL",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "FCEL",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "BLNK",
+      "symbol": "BLNK",
+      "nameEn": "Blink Charging Co.",
+      "nameFa": "Blink Charging Co.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "BLNK",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "BLNK",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "BLNK",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "CHPT",
+      "symbol": "CHPT",
+      "nameEn": "ChargePoint Holdings, Inc.",
+      "nameFa": "ChargePoint Holdings, Inc.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "CHPT",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "CHPT",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "CHPT",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "QS",
+      "symbol": "QS",
+      "nameEn": "QuantumScape Corporation",
+      "nameFa": "QuantumScape Corporation",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "QS",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "QS",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "QS",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "JOBY",
+      "symbol": "JOBY",
+      "nameEn": "Joby Aviation, Inc.",
+      "nameFa": "Joby Aviation, Inc.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "JOBY",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "JOBY",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "JOBY",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "ACHR",
+      "symbol": "ACHR",
+      "nameEn": "Archer Aviation Inc.",
+      "nameFa": "Archer Aviation Inc.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "ACHR",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "ACHR",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "ACHR",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "IONQ",
+      "symbol": "IONQ",
+      "nameEn": "IonQ, Inc.",
+      "nameFa": "IonQ, Inc.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "IONQ",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "IONQ",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "IONQ",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "RGTI",
+      "symbol": "RGTI",
+      "nameEn": "Rigetti Computing, Inc.",
+      "nameFa": "Rigetti Computing, Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "RGTI",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "RGTI",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "RGTI",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "QBTS",
+      "symbol": "QBTS",
+      "nameEn": "D-Wave Quantum Inc.",
+      "nameFa": "D-Wave Quantum Inc.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "QBTS",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "QBTS",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "QBTS",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SOUN",
+      "symbol": "SOUN",
+      "nameEn": "SoundHound AI, Inc.",
+      "nameFa": "SoundHound AI, Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SOUN",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SOUN",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SOUN",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "OKLO",
+      "symbol": "OKLO",
+      "nameEn": "Oklo Inc.",
+      "nameFa": "Oklo Inc.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "OKLO",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "OKLO",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "OKLO",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "SMR",
+      "symbol": "SMR",
+      "nameEn": "NuScale Power Corporation",
+      "nameFa": "NuScale Power Corporation",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "SMR",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "SMR",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "SMR",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "NNE",
+      "symbol": "NNE",
+      "nameEn": "Nano Nuclear Energy Inc.",
+      "nameFa": "Nano Nuclear Energy Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "NNE",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "NNE",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "NNE",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "UEC",
+      "symbol": "UEC",
+      "nameEn": "Uranium Energy Corp.",
+      "nameFa": "Uranium Energy Corp.",
+      "category": "stock",
+      "marketName": "NYSE American",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "UEC",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "UEC",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "UEC",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "HIMS",
+      "symbol": "HIMS",
+      "nameEn": "Hims & Hers Health, Inc.",
+      "nameFa": "Hims & Hers Health, Inc.",
+      "category": "stock",
+      "marketName": "NYSE",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "HIMS",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "HIMS",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "HIMS",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "CELH",
+      "symbol": "CELH",
+      "nameEn": "Celsius Holdings, Inc.",
+      "nameFa": "Celsius Holdings, Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "CELH",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "CELH",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "CELH",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
+    },
+    {
+      "id": "DUOL",
+      "symbol": "DUOL",
+      "nameEn": "Duolingo, Inc.",
+      "nameFa": "Duolingo, Inc.",
+      "category": "stock",
+      "marketName": "NASDAQ",
+      "unit": "$",
+      "currency": "USD",
+      "is_active": 1,
+      "delisted_at": null,
+      "tier": "popular",
+      "provider_map": {
+        "yahoo": {
+          "symbol": "DUOL",
+          "priority": 1
+        },
+        "finnhub": {
+          "symbol": "DUOL",
+          "priority": 2
+        },
+        "twelve_data": {
+          "symbol": "DUOL",
+          "priority": 3
+        }
+      },
+      "data_frequency": "live",
+      "is_delayed": false,
+      "source": "curated owner list 2026-10-20",
+      "verified_provider": "yahoo",
+      "last_verified_at": "2026-10-20T04:22:33Z",
+      "is_adr": false,
+      "country": "US",
+      "added_at": "2026-10-26T14:51:50.052294+00:00"
     }
   ]
 }

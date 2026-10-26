@@ -3,7 +3,7 @@ import re
 import json
 from typing import Dict, Any
 
-APP_VERSION = "3.7.0"
+APP_VERSION = "3.9.1"
 
 DATA_DIR = os.getenv("DATA_DIR", ".")
 CATALOG_FILE = os.getenv("CATALOG_FILE") or (os.path.join(DATA_DIR, "catalog.json") if DATA_DIR != "." else "catalog.json")
