@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install deps
+        run: pip install -r requirements.txt
+      - name: Import server
+        run: python -c "import server"
+      - name: pytest (no env)
+        run: python -m pytest tests -q
+      - name: pytest (with dummy env)
+        env:
+          API_KEY: test-key
+          ADMIN_KEY: test-admin
+        run: python -m pytest tests -q
+
+  flutter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.5'
+          channel: 'stable'
+      - name: flutter pub get
+        run: flutter pub get
+      - name: flutter analyze
+        run: flutter analyze --no-fatal-warnings --no-fatal-infos
+      - name: flutter test
+        run: flutter test
