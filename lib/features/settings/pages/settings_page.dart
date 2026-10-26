@@ -1018,66 +1018,75 @@ class _SettingsPageState extends State<SettingsPage> {
                 const SizedBox(height: 8),
 
                 // 1. 🔔 ویبره (Vibration)
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  secondary: Icon(Icons.vibration_rounded, color: settings.vibrationEnabled ? theme.colorScheme.primary : theme.colorScheme.onSurface.withValues(alpha: 0.4)),
-                  title: Text(
-                    isFa ? '🔔 ویبره (Vibration)' : '🔔 Vibration',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+                  Material(
+                    color: Colors.transparent,
+                    child: SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      secondary: Icon(Icons.vibration_rounded, color: settings.vibrationEnabled ? theme.colorScheme.primary : theme.colorScheme.onSurface.withValues(alpha: 0.4)),
+                      title: Text(
+                        isFa ? '🔔 ویبره (Vibration)' : '🔔 Vibration',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+                      ),
+                      subtitle: Text(
+                        isFa ? 'لرزش سراسری دستگاه هنگام وقوع هشدارها' : 'Global device vibration upon alert trigger',
+                        style: TextStyle(fontSize: 10.5, color: theme.colorScheme.onSurface.withValues(alpha: 0.55)),
+                      ),
+                      value: settings.vibrationEnabled,
+                      activeThumbColor: Colors.white,
+                      activeTrackColor: theme.colorScheme.primary,
+                      inactiveThumbColor: Colors.grey.shade400,
+                      inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
+                      onChanged: (val) => settingsService.toggleVibration(val),
+                    ),
                   ),
-                  subtitle: Text(
-                    isFa ? 'لرزش سراسری دستگاه هنگام وقوع هشدارها' : 'Global device vibration upon alert trigger',
-                    style: TextStyle(fontSize: 10.5, color: theme.colorScheme.onSurface.withValues(alpha: 0.55)),
-                  ),
-                  value: settings.vibrationEnabled,
-                  activeThumbColor: Colors.white,
-                  activeTrackColor: theme.colorScheme.primary,
-                  inactiveThumbColor: Colors.grey.shade400,
-                  inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
-                  onChanged: (val) => settingsService.toggleVibration(val),
-                ),
                 Divider(height: 1, color: theme.dividerColor),
 
-                // 2. 🔊 صدا (Sound)
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  secondary: Icon(Icons.volume_up_rounded, color: settings.soundEnabled ? theme.colorScheme.primary : theme.colorScheme.onSurface.withValues(alpha: 0.4)),
-                  title: Text(
-                    isFa ? '🔊 صدا (Sound)' : '🔊 Sound & Alarm Tone',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+                  // 2. 🔊 صدا (Sound)
+                  Material(
+                    color: Colors.transparent,
+                    child: SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      secondary: Icon(Icons.volume_up_rounded, color: settings.soundEnabled ? theme.colorScheme.primary : theme.colorScheme.onSurface.withValues(alpha: 0.4)),
+                      title: Text(
+                        isFa ? '🔊 صدا (Sound)' : '🔊 Sound & Alarm Tone',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+                      ),
+                      subtitle: Text(
+                        isFa ? 'پخش صدای زنگ و آهنگ هشدار برای آلارم‌ها' : 'Global alarm sound chime playback',
+                        style: TextStyle(fontSize: 10.5, color: theme.colorScheme.onSurface.withValues(alpha: 0.55)),
+                      ),
+                      value: settings.soundEnabled,
+                      activeThumbColor: Colors.white,
+                      activeTrackColor: theme.colorScheme.primary,
+                      inactiveThumbColor: Colors.grey.shade400,
+                      inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
+                      onChanged: (val) => settingsService.toggleSound(val),
+                    ),
                   ),
-                  subtitle: Text(
-                    isFa ? 'پخش صدای زنگ و آهنگ هشدار برای آلارم‌ها' : 'Global alarm sound chime playback',
-                    style: TextStyle(fontSize: 10.5, color: theme.colorScheme.onSurface.withValues(alpha: 0.55)),
-                  ),
-                  value: settings.soundEnabled,
-                  activeThumbColor: Colors.white,
-                  activeTrackColor: theme.colorScheme.primary,
-                  inactiveThumbColor: Colors.grey.shade400,
-                  inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
-                  onChanged: (val) => settingsService.toggleSound(val),
-                ),
                 Divider(height: 1, color: theme.dividerColor),
 
-                // 3. 🗣️ Voice Speech (خوانش صوتی هوشمند)
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  secondary: Icon(Icons.record_voice_over_rounded, color: settings.ttsEnabled ? theme.colorScheme.primary : theme.colorScheme.onSurface.withValues(alpha: 0.4)),
-                  title: Text(
-                    isFa ? '🗣️ اعلام صوتی (Voice Speech)' : '🗣️ Voice Speech (TTS)',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+                  // 3. 🗣️ Voice Speech (خوانش صوتی هوشمند)
+                  Material(
+                    color: Colors.transparent,
+                    child: SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      secondary: Icon(Icons.record_voice_over_rounded, color: settings.ttsEnabled ? theme.colorScheme.primary : theme.colorScheme.onSurface.withValues(alpha: 0.4)),
+                      title: Text(
+                        isFa ? '🗣️ اعلام صوتی (Voice Speech)' : '🗣️ Voice Speech (TTS)',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+                      ),
+                      subtitle: Text(
+                        isFa ? 'خوانش نام دارایی و قیمت به زبان انگلیسی با صدای طبیعی' : 'Global voice speech announcement for alerts',
+                        style: TextStyle(fontSize: 10.5, color: theme.colorScheme.onSurface.withValues(alpha: 0.55)),
+                      ),
+                      value: settings.ttsEnabled,
+                      activeThumbColor: Colors.white,
+                      activeTrackColor: theme.colorScheme.primary,
+                      inactiveThumbColor: Colors.grey.shade400,
+                      inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
+                      onChanged: (val) => settingsService.toggleTts(val),
+                    ),
                   ),
-                  subtitle: Text(
-                    isFa ? 'خوانش نام دارایی و قیمت به زبان انگلیسی با صدای طبیعی' : 'Global voice speech announcement for alerts',
-                    style: TextStyle(fontSize: 10.5, color: theme.colorScheme.onSurface.withValues(alpha: 0.55)),
-                  ),
-                  value: settings.ttsEnabled,
-                  activeThumbColor: Colors.white,
-                  activeTrackColor: theme.colorScheme.primary,
-                  inactiveThumbColor: Colors.grey.shade400,
-                  inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
-                  onChanged: (val) => settingsService.toggleTts(val),
-                ),
                 const SizedBox(height: 10),
 
                 // Test Alarm & Voice Speech Buttons
@@ -2534,39 +2543,45 @@ class _SettingsPageState extends State<SettingsPage> {
           const SizedBox(height: AppTokens.space8),
 
           // 1. Switch for Banner Display
-          SwitchListTile.adaptive(
-            contentPadding: EdgeInsets.zero,
-            title: Text(
-              isFa ? 'نمایش نوار رویدادها زیر عنوان صفحه' : 'Display Market Events Banner',
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          Material(
+            color: Colors.transparent,
+            child: SwitchListTile.adaptive(
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                isFa ? 'نمایش نوار رویدادها زیر عنوان صفحه' : 'Display Market Events Banner',
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+              ),
+              subtitle: Text(
+                isFa ? 'رویدادهای داغ کریپتو، فارکس، نفت و سهام' : 'Show single-line ticker below titlebar',
+                style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+              ),
+              value: settings.showMarketEventsBanner,
+              activeColor: accentColor,
+              onChanged: (val) {
+                settingsService.updateSettings(settings.copyWith(showMarketEventsBanner: val));
+              },
             ),
-            subtitle: Text(
-              isFa ? 'رویدادهای داغ کریپتو، فارکس، نفت و سهام' : 'Show single-line ticker below titlebar',
-              style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
-            ),
-            value: settings.showMarketEventsBanner,
-            activeColor: accentColor,
-            onChanged: (val) {
-              settingsService.updateSettings(settings.copyWith(showMarketEventsBanner: val));
-            },
           ),
 
           // 2. Switch for Notifications
-          SwitchListTile.adaptive(
-            contentPadding: EdgeInsets.zero,
-            title: Text(
-              isFa ? 'دریافت ناتیفیکیشن برای رویدادهای مهم' : 'Receive Event Notifications',
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          Material(
+            color: Colors.transparent,
+            child: SwitchListTile.adaptive(
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                isFa ? 'دریافت ناتیفیکیشن برای رویدادهای مهم' : 'Receive Event Notifications',
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+              ),
+              subtitle: Text(
+                isFa ? 'ارسال خودکار به اپلیکیشن و ربات تلگرام' : 'Send push and Telegram alert for major events',
+                style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+              ),
+              value: settings.eventsNotificationEnabled,
+              activeColor: accentColor,
+              onChanged: (val) {
+                settingsService.updateSettings(settings.copyWith(eventsNotificationEnabled: val));
+              },
             ),
-            subtitle: Text(
-              isFa ? 'ارسال خودکار به اپلیکیشن و ربات تلگرام' : 'Send push and Telegram alert for major events',
-              style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
-            ),
-            value: settings.eventsNotificationEnabled,
-            activeColor: accentColor,
-            onChanged: (val) {
-              settingsService.updateSettings(settings.copyWith(eventsNotificationEnabled: val));
-            },
           ),
 
           const SizedBox(height: 8),
