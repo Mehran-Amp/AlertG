@@ -11,7 +11,8 @@ from app.security import API_DEP, _validate_market_args
 from app.state import PRICE_CACHE, IRAN_MARKET_CACHE
 from app.markets.base import normalize_symbol
 from app.engine.checker import get_cached_price
-from app.engine.calendar import get_all_markets_status
+from app.engine.calendar import get_all_markets_status, get_canonical_market_state
+from app.engine.categories import resolve_symbol_category
 import app.state as state
 
 logger = logging.getLogger(__name__)
@@ -61,16 +62,22 @@ async def get_live_price(exchange: str, symbol: str):
             elif exchange in ['global_stocks', 'stocks', 'macro', 'forex', 'bonds', 'wallstreet', 'binance', 'crypto']:
                 data_freq = "live"
 
+        data_date_val = meta.get("data_date") or meta.get("date")
+        is_fred = "FRED" in source_name or clean_sym in ('FEDFUNDS', 'UNRATE', 'CPIAUCSL', 'US02Y', 'US10Y', 'US30Y', 'US05Y', 'US13W', 'WALCL', 'M2SL', 'DTWEXBGS')
+
         eff_state = meta.get("state", "LIVE")
-        if data_freq in ('daily', 'weekly', 'monthly', 'quarterly', 'annual') and eff_state == "LIVE":
+        cat = resolve_symbol_category(exchange, symbol)
+        if is_fred or "FRED" in source_name:
+            eff_state = "delayed"
+        elif cat in ('stock', 'etf', 'index', 'forex') or exchange.lower() in ('global_stocks', 'stocks', 'forex', 'yahoo'):
+            raw_ms = meta.get("marketState") or meta.get("state")
+            eff_state = get_canonical_market_state(category=cat, raw_market_state=raw_ms)
+        elif data_freq in ('daily', 'weekly', 'monthly', 'quarterly', 'annual') and eff_state == "LIVE":
             eff_state = "delayed"
 
         eff_currency = meta.get("currency")
         if not eff_currency:
             eff_currency = "TMN" if exchange in ['iran_market', 'tse'] else "USD"
-
-        data_date_val = meta.get("data_date") or meta.get("date")
-        is_fred = "FRED" in source_name or clean_sym in ('FEDFUNDS', 'UNRATE', 'CPIAUCSL', 'US02Y', 'US10Y', 'US30Y', 'US05Y', 'US13W', 'WALCL', 'M2SL', 'DTWEXBGS')
 
         # For FRED data (daily/weekly/monthly), asOf must strictly be observation date (data_date to epoch), not server time
         as_of_val = None

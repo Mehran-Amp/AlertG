@@ -681,16 +681,18 @@ class YahooFinanceAdapter(BaseMarketAdapter):
                         'asOf': int(as_of_ts) if as_of_ts else int(time.time()),
                         'state': m_state,
                         'currency': currency,
-                        'source': 'Yahoo Finance'
+                        'source': 'Yahoo Finance',
+                        'marketState': m_state
                     }
                 elif m_state in ['CLOSED', 'closed', 'POST', 'PRE']:
                     prev_p = meta.get('chartPreviousClose') or meta.get('previousClose')
                     return {
                         'price': float(prev_p) if prev_p else None,
                         'asOf': int(as_of_ts) if as_of_ts else int(time.time()),
-                        'state': 'closed',
+                        'state': 'CLOSED',
                         'currency': currency,
-                        'source': 'Yahoo Finance'
+                        'source': 'Yahoo Finance',
+                        'marketState': m_state
                     }
         return None
 

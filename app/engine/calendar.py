@@ -91,27 +91,68 @@ def is_us_market_open(now_dt: Optional[datetime] = None, check_cache: bool = Tru
 
 def is_forex_market_open(now_dt: Optional[datetime] = None) -> Tuple[bool, str]:
     """
-    Forex Calendar (Phase 6):
-    - 24 hours continuously from Sunday evening (17:00 ET) to Friday evening (17:00 ET).
-    - Weekend closed: Friday 17:00 ET to Sunday 17:00 ET.
+    Forex Calendar:
+    - 24 hours continuously from Sunday 22:00 UTC to Friday 22:00 UTC.
+    - Weekend closed: Friday 22:00 UTC to Sunday 22:00 UTC.
+    - State is REGULAR when open, CLOSED when closed.
     """
-    ny_time = get_ny_now(now_dt)
-    weekday = ny_time.weekday()
-    t = ny_time.time()
-    border_17 = dtime(17, 0)
+    if now_dt is not None:
+        if now_dt.tzinfo is None:
+            utc_dt = now_dt.replace(tzinfo=timezone.utc)
+        else:
+            utc_dt = now_dt.astimezone(timezone.utc)
+    else:
+        utc_dt = datetime.now(timezone.utc)
 
-    if weekday == 6:  # Sunday
-        if t >= border_17:
-            return True, 'OPEN'
+    weekday = utc_dt.weekday()  # Monday=0, Tuesday=1, Wednesday=2, Thursday=3, Friday=4, Saturday=5, Sunday=6
+    t = utc_dt.time()
+    border_22 = dtime(22, 0)
+
+    if weekday == 5:  # Saturday
         return False, 'CLOSED'
-    elif weekday == 5:  # Saturday
+    elif weekday == 6:  # Sunday
+        if t >= border_22:
+            return True, 'REGULAR'
         return False, 'CLOSED'
     elif weekday == 4:  # Friday
-        if t < border_17:
-            return True, 'OPEN'
+        if t < border_22:
+            return True, 'REGULAR'
         return False, 'CLOSED'
     else:  # Monday (0), Tuesday (1), Wednesday (2), Thursday (3)
-        return True, 'OPEN'
+        return True, 'REGULAR'
+
+
+def get_canonical_market_state(
+    category: str,
+    raw_market_state: Optional[str] = None,
+    now_dt: Optional[datetime] = None
+) -> str:
+    """
+    Returns canonical market state for stocks, etfs, indices, and forex.
+    Strictly one of: 'REGULAR', 'PRE', 'POST', 'CLOSED'.
+    - If raw_market_state from Yahoo is recognized, maps directly.
+    - Otherwise calculates schedule from calendar:
+      * US Equities/ETFs/Indices: 09:30-16:00 ET (PRE 04:00-09:30, POST 16:00-20:00).
+      * Forex: Sunday 22:00 UTC - Friday 22:00 UTC (REGULAR when open, CLOSED when closed).
+    """
+    if raw_market_state:
+        st = str(raw_market_state).strip().upper()
+        if st in ('REGULAR', 'PRE', 'POST', 'CLOSED'):
+            return st
+        if st in ('PREPRE', 'PRE_MARKET'):
+            return 'PRE'
+        if st in ('POSTPOST', 'AFTER_HOURS', 'POST_MARKET'):
+            return 'POST'
+        if st in ('CLOSE', 'CLOSED'):
+            return 'CLOSED'
+
+    cat = (category or '').strip().lower()
+    if cat == 'forex':
+        _, state = is_forex_market_open(now_dt)
+        return state
+    else:
+        _, state = is_us_market_open(now_dt, check_cache=False)
+        return state
 
 
 # ===================================================================

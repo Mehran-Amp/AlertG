@@ -1,6 +1,6 @@
 dd791c6854d3fa359af7666d3e7fee06  app/config.py
 f90b4f33ed1b8d36c4c44da2678374df  app/engine/__init__.py
-92b424950dded3d3eb6ec255123a74c4  app/engine/calendar.py
+ec8280cd7fcd1c9f923778f86bfc7aa2  app/engine/calendar.py
 d5020b40a6448cb72d22ff06d73bd2e7  app/engine/categories.py
 7ba95b080fecfc2dd0a98dde8e48ee50  app/engine/checker.py
 e98453454c08377f61559f7d2405a097  app/engine/features.py
@@ -14,7 +14,7 @@ efea3ce3d1ecdfd2c39ab3eea4a8907a  app/markets/calendar.py
 2d10d491855d5aedc4d089e161a7a5ea  app/markets/catalog_sync.py
 fedafe45def90ee25993155f5c525a27  app/markets/common.py
 49c214ad16b9f5097e277dde3175407d  app/markets/crypto.py
-689ba80590a23a061f394ec29b1d9160  app/markets/global_stocks.py
+85e6d401c81e05c37f811aa9a9b47a9d  app/markets/global_stocks.py
 7091ed26dac212bb9486d9b994dcf17d  app/markets/iran.py
 62b8e74f12c0523f1d70bcc7946657cc  app/markets/kill_switch.py
 09b7f83ec29e097710089e7dcb6bc532  app/markets/limiter.py
@@ -32,7 +32,7 @@ b9e87e7e2606db853504d5e5bf961b87  app/routes/__init__.py
 d64ccdc17b9763c41b00204c38b78572  app/routes/deliveries.py
 7b4ab40a244a744da8b8e04e9ecfe3e0  app/routes/devices.py
 56806e174dc2222c55e678371486b183  app/routes/market_events.py
-861dbd811e8513ab135d76905748d340  app/routes/prices.py
+c2188f04ca1e4100b95bcd33ae6d7522  app/routes/prices.py
 7e1599810699dfc6bb55ec0ccd8aa8dd  app/routes/symbols.py
 658b0475710cbceb5d0da57c90955564  app/routes/telegram.py
 68859bd9c3fb6693c584240f26bcf8ec  app/routes/user.py
@@ -196,6 +196,7 @@ c32d37689b98709c920dda597859e1ec  tests/test_market_events_advance_reminder.py
 3227826a667ddc3c4c001eaf467aba5b  tests/test_market_events_outbox_push.py
 b7b8de02ca6d608901fee0c058f3a40c  tests/test_market_events_persistence.py
 2ddb1f6dae0c76addc69b4c7c7a07dbd  tests/test_market_events_start_utc.py
+18bc0577675c9c148604e8a52dad6ab9  tests/test_market_state_canonical.py
 1e41c684078b536b5545a0e7e335151c  tests/test_notification_delivery_phase1.py
 91621c542346a7acc517d0119261b489  tests/test_outbox_awaiting_ack.py
 a8fc14a4de775aaf6133b46fe23719f9  tests/test_outbox_dead_token.py
