@@ -57,7 +57,12 @@ class DeviceHealthService {
 
   /// Sends a single heartbeat with current device indicators.
   /// If an indicator cannot be determined, it sends null (do not guess).
-  static Future<bool> sendHeartbeat({String? userId}) async {
+  ///
+  /// DEV-1: [fgsRunning] is optional. When the caller knows the foreground
+  /// service state (the service isolate passes `true`), it is used directly
+  /// and `FlutterBackgroundService().isRunning()` is NOT called. Only the UI
+  /// isolate (fgsRunning == null) falls back to isRunning().
+  static Future<bool> sendHeartbeat({String? userId, bool? fgsRunning}) async {
     try {
       final uid = (userId ?? '').trim();
       if (uid.isEmpty) {
@@ -93,13 +98,15 @@ class DeviceHealthService {
         await ServiceLogger.logError('health.batteryPermission', e, st);
       }
 
-      bool? fgsRunning;
-      try {
-        if (!kIsWeb) {
-          fgsRunning = await FlutterBackgroundService().isRunning();
+      // DEV-1: use the caller-provided value when present; only the UI
+      // isolate queries FlutterBackgroundService().isRunning().
+      bool? effectiveFgsRunning = fgsRunning;
+      if (effectiveFgsRunning == null && !kIsWeb) {
+        try {
+          effectiveFgsRunning = await FlutterBackgroundService().isRunning();
+        } catch (e, st) {
+          await ServiceLogger.logError('health.fgsRunning', e, st);
         }
-      } catch (e, st) {
-        await ServiceLogger.logError('health.fgsRunning', e, st);
       }
 
       final payload = <String, dynamic>{
@@ -108,7 +115,7 @@ class DeviceHealthService {
         'app_version': appVersion,
         'notifications_enabled': notificationsEnabled,
         'battery_unrestricted': batteryUnrestricted,
-        'fgs_running': fgsRunning,
+        'fgs_running': effectiveFgsRunning,
         'ts_ms': DateTime.now().millisecondsSinceEpoch,
       };
 

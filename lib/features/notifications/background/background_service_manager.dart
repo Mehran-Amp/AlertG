@@ -352,7 +352,7 @@ class BackgroundServiceManager {
     try {
       final uid = settingsService.settings.userEmail ?? '';
       if (uid.isNotEmpty) {
-        DeviceHealthService.sendHeartbeat(userId: uid).ignore();
+        DeviceHealthService.sendHeartbeat(userId: uid, fgsRunning: true).ignore();
       }
     } catch (e, st) {
       ServiceLogger.logError('init.heartbeat', e, st).ignore();
@@ -363,7 +363,7 @@ class BackgroundServiceManager {
       try {
         final uid = settingsService.settings.userEmail ?? '';
         if (uid.isNotEmpty) {
-          await DeviceHealthService.sendHeartbeat(userId: uid);
+          await DeviceHealthService.sendHeartbeat(userId: uid, fgsRunning: true);
         }
       } catch (e, st) {
         await ServiceLogger.logError('health.periodicHeartbeat', e, st);
