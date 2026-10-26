@@ -4,27 +4,48 @@ import 'package:bitcoin_checker/core/services/fcm_notification_service.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('DEV-4b: onBackgroundMessage registration', () {
-    test('UI isolate (registerBackgroundHandler=true) registers handler', () async {
-      expect(
-        () => FCMNotificationService.initialize(
-          storageDirectoryPath: '/tmp/test',
-          requestPermission: false,
-          registerBackgroundHandler: true,
-        ),
-        returnsNormally,
-      );
+  group('DEV-4c: onBackgroundMessage registration', () {
+    tearDown(() {
+      FCMNotificationService.onBackgroundMessageRegisterOverride = null;
+      FCMNotificationService.forceFirebaseInitializedForTesting = false;
     });
 
-    test('service isolate (registerBackgroundHandler=false) does not crash', () async {
-      expect(
-        () => FCMNotificationService.initialize(
-          storageDirectoryPath: '/tmp/test',
+    test('UI isolate (registerBackgroundHandler=true) registers handler exactly once', () async {
+      int callCount = 0;
+      FCMNotificationService.onBackgroundMessageRegisterOverride = (handler) async {
+        callCount++;
+      };
+      FCMNotificationService.forceFirebaseInitializedForTesting = true;
+      try {
+        await FCMNotificationService.initialize(
+          storageDirectoryPath: '/tmp/test_dev4c',
+          requestPermission: false,
+          registerBackgroundHandler: true,
+        );
+      } finally {
+        FCMNotificationService.forceFirebaseInitializedForTesting = false;
+      }
+      expect(callCount, equals(1),
+          reason: 'onBackgroundMessage must be called exactly once in UI isolate');
+    });
+
+    test('service isolate (registerBackgroundHandler=false) never registers handler', () async {
+      int callCount = 0;
+      FCMNotificationService.onBackgroundMessageRegisterOverride = (handler) async {
+        callCount++;
+      };
+      FCMNotificationService.forceFirebaseInitializedForTesting = true;
+      try {
+        await FCMNotificationService.initialize(
+          storageDirectoryPath: '/tmp/test_dev4c',
           requestPermission: false,
           registerBackgroundHandler: false,
-        ),
-        returnsNormally,
-      );
+        );
+      } finally {
+        FCMNotificationService.forceFirebaseInitializedForTesting = false;
+      }
+      expect(callCount, equals(0),
+          reason: 'onBackgroundMessage must NOT be called in service isolate');
     });
   });
 }

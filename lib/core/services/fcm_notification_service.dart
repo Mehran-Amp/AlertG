@@ -176,7 +176,13 @@ class FCMNotificationService {
   /// Called whenever Google rotates or discovers a new token. Wire this to your alert sync so
   /// the server never keeps pushing to a dead token.
   static void Function(String token)? onTokenChanged;
-
+  /// DEV-4c: test hook to bypass Firebase initialization in unit tests.
+  @visibleForTesting
+  static bool forceFirebaseInitializedForTesting = false;
+  /// DEV-4c: test hook so tests can verify that onBackgroundMessage is
+  /// actually registered (not just that initialize() does not throw).
+  @visibleForTesting
+  static Future<void> Function(Future<void> Function(RemoteMessage))? onBackgroundMessageRegisterOverride;
   /// [requestPermission] must be false in the foreground-service isolate
   /// (no Activity there, and onBackgroundMessage cannot be called on background isolates).
   static Future<void> initialize({
@@ -197,13 +203,35 @@ class FCMNotificationService {
       await Firebase.initializeApp();
       _firebaseInitialized = true;
     } catch (e) {
-      // "already initialized" lands here too; treat as initialized.
       _firebaseInitialized = Firebase.apps.isNotEmpty;
       debugPrint('ℹ️ Firebase Core init note: $e');
     }
 
+    // DEV-4c: test hook to force _firebaseInitialized without a real Firebase app.
+    if (forceFirebaseInitializedForTesting) {
+      _firebaseInitialized = true;
+    }
+
     if (_firebaseInitialized && !_handlersRegistered) {
       _handlersRegistered = true;
+
+      // 1. onBackgroundMessage FIRST (does not require FirebaseMessaging.instance)
+      // DEV-4b: register only in UI isolate; service isolate passes false.
+      if (registerBackgroundHandler) {
+        try {
+          final register = onBackgroundMessageRegisterOverride ??
+              FirebaseMessaging.onBackgroundMessage;
+          register(firebaseMessagingBackgroundHandler);
+        } catch (e) {
+          debugPrint('⚠️ FCM onBackgroundMessage registration note: $e');
+        }
+      }
+
+      // DEV-4c: in unit tests without a real Firebase app, skip the rest.
+      if (forceFirebaseInitializedForTesting) {
+        return;
+      }
+
       final fcm = FirebaseMessaging.instance;
 
       try {
@@ -213,13 +241,14 @@ class FCMNotificationService {
       }
 
       // 1. Listeners FIRST:
-      // Note: onBackgroundMessage can ONLY be called on root isolate with an Activity!
       // DEV-4b: onBackgroundMessage must be registered in the UI isolate
       // (where it is allowed) even when requestPermission is false. Only the
       // service isolate (which runs without an Activity) must not register it.
       if (registerBackgroundHandler) {
         try {
-          FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+          final register = onBackgroundMessageRegisterOverride ??
+              FirebaseMessaging.onBackgroundMessage;
+          register(firebaseMessagingBackgroundHandler);
         } catch (e) {
           debugPrint('⚠️ FCM onBackgroundMessage registration note: $e');
         }
