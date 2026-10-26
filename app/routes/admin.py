@@ -1025,7 +1025,14 @@ async def admin_test_alert_push(
 
     before_queued = METRICS.get("delivery_queued", 0)
     await outbox.enqueue_alert_push(
-        alert, title, body, {"alert_id": alert.id, "symbol": "BTCUSDT", "price": "1.0"}
+        alert, title, body, {
+            "alert_id": alert.id,
+            "symbol": "BTCUSDT",
+            "price": "1.0",
+            "tts_enabled": "true",
+            "sound_enabled": "true",
+            "vibration_enabled": "true",
+        }
     )
 
     delivery_id = None
