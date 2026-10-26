@@ -165,12 +165,8 @@ class BackgroundServiceManager {
     DartPluginRegistrant.ensureInitialized();
     _currentServiceInstance = service;
     final serviceStartTime = DateTime.now();
-    // FIX-6: log the actual setAsForegroundService() result (success or failure)
-    // below, not before it. The "service started" log stays here as an entry marker.
-    await ServiceLogger.log(
-      'fgs.lifecycle',
-      'service started (type: dataSync, started_at: ${serviceStartTime.toIso8601String()})',
-    );
+    // FIX-6b: no disk I/O before setAsForegroundService(). The lifecycle log
+    // is written after startForeground succeeds, without await.
 
     if (service is AndroidServiceInstance) {
       service.on('setAsForeground').listen((event) {
@@ -201,14 +197,15 @@ class BackgroundServiceManager {
       try {
         service.setAsForegroundService();
         _applyNotificationInfo(isFromServer: false, lang: 'fa');
-        // FIX-6: log fgs.lifecycle only after setAsForegroundService() succeeded.
+        // FIX-6b: log fgs.lifecycle (started + foreground OK) AFTER
+        // startForeground succeeds, without await, so no disk I/O blocks
+        // the Android FGS deadline.
         ServiceLogger.log(
           'fgs.lifecycle',
-          'setAsForegroundService() OK (type: dataSync)',
+          'service started + setAsForegroundService OK '
+              '(type: dataSync, started_at: ${serviceStartTime.toIso8601String()})',
         ).ignore();
       } catch (e, st) {
-        // FIX-6: log the failure in fgs.lifecycle so it is visible in the
-        // diagnostic page, not only in the generic error log.
         ServiceLogger.log(
           'fgs.lifecycle',
           'setAsForegroundService() FAILED: $e',
