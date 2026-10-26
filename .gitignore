@@ -71,3 +71,7 @@ delivery_journal.json.bad
 # AI Studio assets and prompts
 public/assets/aistudio/
 .aistudio/
+market_events_state.json
+health_check_state.json
+health_check.log
+watchdog.log
