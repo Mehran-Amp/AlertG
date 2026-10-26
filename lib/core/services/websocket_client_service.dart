@@ -57,7 +57,9 @@ class WebSocketClientService {
     _reconnectTimer = null;
     try {
       _socket?.close();
-    } catch (_) {}
+    } catch (e, st) {
+      ServiceLogger.logError('ws.client.stopClose', e, st).ignore();
+    }
     _socket = null;
     ServiceLogger.log('ws.client', 'WebSocket client stopped').ignore();
   }
@@ -74,9 +76,11 @@ class WebSocketClientService {
       final uri = Uri.parse(baseUrl);
       final scheme = uri.scheme == 'https' ? 'wss' : 'ws';
       final portPart = uri.hasPort ? ':${uri.port}' : '';
-      wsUrl = '$scheme://${uri.host}$portPart/ws?api_key=${Uri.encodeComponent(apiKey)}&user_id=${Uri.encodeComponent(userId)}';
+      // Security: API key is sent only via X-API-Key header (below), never in
+      // the query string, so it does not leak into access logs / proxies.
+      wsUrl = '$scheme://${uri.host}$portPart/ws?user_id=${Uri.encodeComponent(userId)}';
     } catch (e) {
-      wsUrl = 'wss://aisocialfeed.com/ws?api_key=${Uri.encodeComponent(apiKey)}&user_id=${Uri.encodeComponent(userId)}';
+      wsUrl = 'wss://aisocialfeed.com/ws?user_id=${Uri.encodeComponent(userId)}';
     }
 
     await ServiceLogger.log(
