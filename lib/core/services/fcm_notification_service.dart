@@ -16,6 +16,7 @@ import 'tts_service.dart';
 /// Stable Android notification id derived from the server alert id, so a
 /// repeated push for the same rule REPLACES its banner instead of stacking.
 /// Never collides with the foreground-service notification (777).
+// ignore: unused_element
 int _notificationIdFor(RemoteMessage m, String alertId) {
   final seed = alertId.isNotEmpty ? alertId : (m.messageId ?? m.hashCode.toString());
   final id = seed.hashCode & 0x7FFFFFFF;
@@ -25,12 +26,12 @@ int _notificationIdFor(RemoteMessage m, String alertId) {
 /// Shared central alert handling pipeline for both FCM push and WebSocket alerts.
 /// Enforces cross-channel deduplication via [delivery_id] (Phase 4B-2).
 Future<void> handleAlertDataMap(
-  Map<String, dynamic> d, {
-  String? title,
-  String? body,
-  required bool inApp,
-  String source = 'fcm',
-}) async {
+    Map<String, dynamic> d, {
+      String? title,
+      String? body,
+      required bool inApp,
+      String source = 'fcm',
+    }) async {
   final symbol = (d['symbol'] as String?) ?? '';
   final priceStr = (d['price'] as String?) ?? '';
   final alertId = (d['alert_id'] as String?) ?? '';
@@ -70,7 +71,12 @@ Future<void> handleAlertDataMap(
 
   final ns = NotificationService();
   final dispatch = await ns.enqueueCriticalAlert(
-    id: deliveryId.isNotEmpty ? deliveryId.hashCode.abs() : (alertId.isNotEmpty ? alertId.hashCode.abs() : 7777),
+    // Use alert_id (stable per rule) for the notification id so repeated
+    // pushes for the same alert REPLACE the banner instead of stacking.
+    // delivery_id changes on every resend; using it would stack banners.
+    id: alertId.isNotEmpty
+        ? alertId.hashCode.abs()
+        : (deliveryId.isNotEmpty ? deliveryId.hashCode.abs() : 7777),
     title: effectiveTitle.isNotEmpty ? effectiveTitle : '🚨 Price Alert',
     body: effectiveBody,
     payload: alertId.isNotEmpty ? alertId : null,
@@ -91,8 +97,8 @@ Future<void> handleAlertDataMap(
 
   // Phase 2 / 4: ack the server only after the banner is really shown (or a
   // duplicate confirms it was already shown by another channel/isolate).
-  if ((dispatch == AlertDispatchResult.shown || dispatch == AlertDispatchResult.duplicate)
-      && deliveryId.isNotEmpty) {
+  if ((dispatch == AlertDispatchResult.shown || dispatch == AlertDispatchResult.duplicate) &&
+      deliveryId.isNotEmpty) {
     try {
       await DeliveryAckService.enqueueAck(deliveryId);
       await DeliveryAckService.flush()
@@ -176,7 +182,9 @@ class FCMNotificationService {
     if (_storageDir == null) {
       try {
         _storageDir = (await getApplicationDocumentsDirectory()).path;
-      } catch (_) {}
+      } catch (e, st) {
+        await ServiceLogger.logError('fcm.initStorageDir', e, st);
+      }
     }
 
     try {
@@ -194,7 +202,9 @@ class FCMNotificationService {
 
       try {
         await fcm.setAutoInitEnabled(true);
-      } catch (_) {}
+      } catch (e, st) {
+        await ServiceLogger.logError('fcm.setAutoInitEnabled', e, st);
+      }
 
       // 1. Listeners FIRST:
       // Note: onBackgroundMessage can ONLY be called on root isolate with an Activity!
@@ -216,7 +226,6 @@ class FCMNotificationService {
         });
 
         fcm.onTokenRefresh.listen((t) {
-          final wasFallback = !isRealFCMToken(_cachedToken);
           _cachedToken = t;
           _saveTokenToDisk(t);
           _stopBackgroundTokenRetry();
@@ -240,13 +249,10 @@ class FCMNotificationService {
       try {
         final token = await fcm.getToken().timeout(const Duration(seconds: 8));
         if (token != null && token.isNotEmpty) {
-          final wasFallback = _cachedToken == null || !isRealFCMToken(_cachedToken);
           _cachedToken = token;
           await _saveTokenToDisk(token);
           _stopBackgroundTokenRetry();
-          if (wasFallback) {
-            onTokenChanged?.call(token);
-          }
+          onTokenChanged?.call(token);
           debugPrint('✅ FCM Token successfully resolved: ...${token.length > 6 ? token.substring(token.length - 6) : token}');
           return;
         }
@@ -285,7 +291,9 @@ class FCMNotificationService {
       }
       try {
         if (_firebaseInitialized) {
-          final token = await FirebaseMessaging.instance.getToken().timeout(const Duration(seconds: 6));
+          final token = await FirebaseMessaging.instance
+              .getToken()
+              .timeout(const Duration(seconds: 6));
           if (token != null && token.isNotEmpty && isRealFCMToken(token)) {
             _cachedToken = token;
             await _saveTokenToDisk(token);
@@ -294,7 +302,9 @@ class FCMNotificationService {
             debugPrint('🎯 [FCM Retry] Real token obtained after retry #$_retryAttempts: ...${token.substring(token.length - 6)}');
           }
         }
-      } catch (_) {}
+      } catch (e, st) {
+        await ServiceLogger.logError('fcm.retryToken', e, st);
+      }
     });
   }
 
@@ -308,7 +318,9 @@ class FCMNotificationService {
       if (_storageDir != null) {
         await File('$_storageDir/device_token.txt').writeAsString(token, flush: true);
       }
-    } catch (_) {}
+    } catch (e, st) {
+      await ServiceLogger.logError('fcm.saveTokenToDisk', e, st);
+    }
   }
 
   static Future<String?> _loadTokenFromDisk() async {
@@ -320,7 +332,9 @@ class FCMNotificationService {
           if (content.isNotEmpty) return content;
         }
       }
-    } catch (_) {}
+    } catch (e, st) {
+      await ServiceLogger.logError('fcm.loadTokenFromDisk', e, st);
+    }
     return null;
   }
 
@@ -343,7 +357,9 @@ class FCMNotificationService {
     }
     try {
       if (_firebaseInitialized) {
-        final token = await FirebaseMessaging.instance.getToken().timeout(const Duration(seconds: 4));
+        final token = await FirebaseMessaging.instance
+            .getToken()
+            .timeout(const Duration(seconds: 4));
         if (token != null && token.isNotEmpty && isRealFCMToken(token)) {
           _cachedToken = token;
           await _saveTokenToDisk(token);
@@ -352,7 +368,9 @@ class FCMNotificationService {
           return token;
         }
       }
-    } catch (_) {}
+    } catch (e, st) {
+      await ServiceLogger.logError('fcm.getFCMToken', e, st);
+    }
 
     if (_cachedToken != null && _cachedToken!.isNotEmpty) return _cachedToken!;
 
