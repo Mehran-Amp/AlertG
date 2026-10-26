@@ -7,7 +7,7 @@ import app.storage as storage
 
 
 @pytest.fixture(autouse=True)
-def isolate_test_environment(tmp_path, monkeypatch):
+def isolate_test_environment(tmp_path, monkeypatch, request):
     """
     Guarantees zero tests write into real sync_runs.json, catalog.json, or alerts_data.json.
     All storage and sync paths are bound to a clean isolated tmp_path directory for every test.
@@ -31,7 +31,11 @@ def isolate_test_environment(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "SYNC_RUNS_FILE", test_runs)
     monkeypatch.setattr(config, "ALERTS_DATA_FILE", test_db)
     monkeypatch.setattr(config, "USER_PROFILES_FILE", test_prof)
-
+    # WS-OFF-1: WS_ENABLED is false in production. Most tests (including all
+    # WebSocket tests) need it on. test_ws_disabled.py sets it to False
+    # explicitly via monkeypatch, which overrides this.
+    if "test_ws_disabled" not in request.node.nodeid:
+        monkeypatch.setattr(config, "WS_ENABLED", True)
     # Monkeypatch module-level overrides
     monkeypatch.setattr(sync_module, "CATALOG_FILE", test_cat)
     monkeypatch.setattr(sync_module, "CATALOG_SNAPSHOTS_DIR", test_snaps)

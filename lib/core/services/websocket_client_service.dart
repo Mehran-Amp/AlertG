@@ -17,6 +17,10 @@ class WebSocketClientService {
   static Timer? _reconnectTimer;
   static String? _currentUserId;
 
+  /// WS-OFF-1: WebSocket is OFF until the server (WS_ENABLED) and the
+  /// reverse proxy both support it. Set to true only after that.
+  static bool wsEnabled = false;
+
   static bool get isConnected => _socket != null;
   static int get currentBackoffSeconds => _reconnectBackoffSeconds[_backoffIndex];
   static List<int> get reconnectBackoffSchedule => List.unmodifiable(_reconnectBackoffSeconds);
@@ -43,6 +47,13 @@ class WebSocketClientService {
 
   /// Starts the persistent WebSocket client loop with backoff reconnection.
   static void start({required String userId}) {
+    if (!wsEnabled) {
+      ServiceLogger.log(
+        'ws.client',
+        'WebSocket disabled (wsEnabled=false); skipping connect',
+      ).ignore();
+      return;
+    }
     _currentUserId = userId.isNotEmpty ? userId : 'anonymous';
     if (_running) return;
     _running = true;
@@ -95,11 +106,11 @@ class WebSocketClientService {
       ).timeout(const Duration(seconds: 8));
 
       _socket = socket;
-      _backoffIndex = 0; // Reset backoff on successful connection
+      _backoffIndex = 0;
       await ServiceLogger.log('ws.client', 'connected successfully to server WebSocket');
 
       socket.listen(
-        (data) => _onMessage(data),
+            (data) => _onMessage(data),
         onError: (e) async {
           await ServiceLogger.logError('ws.client.onError', e);
           _scheduleReconnect();
@@ -159,14 +170,12 @@ class WebSocketClientService {
           data['delivery_id'] = deliveryId;
         }
 
-        // Send instant ACK back over the socket
         if (deliveryId.isNotEmpty) {
           final ack = jsonEncode({'action': 'ack', 'delivery_id': deliveryId});
           _socket?.add(ack);
           onOutgoingMessageForTest?.call(ack);
         }
 
-        // Route through central deduplicated alert handler (Phase 4B-2)
         handleAlertDataMap(
           data,
           title: title,

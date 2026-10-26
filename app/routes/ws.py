@@ -117,6 +117,13 @@ async def websocket_endpoint(websocket: WebSocket):
     - Registers user connection for targeted alert dispatches.
     - Maintains 30s ping/pong heartbeat.
     """
+    # WS-OFF-1: WebSocket is disabled by default until the reverse proxy
+    # on aisocialfeed.com forwards /ws to AlertG with Upgrade: websocket.
+    # Without this, the client retries forever and user_id is exposed via query.
+    if not getattr(config, "WS_ENABLED", False):
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="WebSocket disabled")
+        return
+
     if not _validate_ws_auth(websocket):
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Invalid or missing API key")
         return

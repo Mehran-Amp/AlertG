@@ -95,3 +95,6 @@ TELEGRAM_ADMIN_CHAT_ID = os.getenv("TELEGRAM_ADMIN_CHAT_ID", "").strip()
 KILL_SWITCH_PROVIDERS = [p.strip().lower() for p in os.getenv("KILL_SWITCH_PROVIDERS", os.getenv("DISABLED_PROVIDERS", "")).split(",") if p.strip()]
 KILL_SWITCH_CATEGORIES = [c.strip().lower() for c in os.getenv("KILL_SWITCH_CATEGORIES", os.getenv("DISABLED_CATEGORIES", "")).split(",") if c.strip()]
 KILL_SWITCHES = [k.strip().lower() for k in os.getenv("KILL_SWITCHES", os.getenv("KILL_SWITCH", "")).split(",") if k.strip()]
+# Phase WS-OFF-1: WebSocket is OFF by default until cPanel proxies /ws.
+# Set WS_ENABLED=true (and configure reverse proxy) to enable it.
+WS_ENABLED = os.getenv("WS_ENABLED", "").strip().lower() in ("1", "true", "yes", "on")
