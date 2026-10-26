@@ -133,6 +133,29 @@ async def websocket_endpoint(websocket: WebSocket):
         except Exception:
             pass
 
+    # FIX-WS-2: cleanup loop that disconnects sockets with no pong in >90s
+    async def _cleanup_loop():
+        try:
+            while True:
+                await asyncio.sleep(30)
+                now = time.time()
+                stale = [
+                    ws for ws, last in manager._last_heartbeat.items()
+                    if now - last > 90
+                ]
+                for ws in stale:
+                    try:
+                        await ws.close(code=status.WS_1001_GOING_AWAY, reason="stale heartbeat")
+                    except Exception:
+                        pass
+                    manager.disconnect(ws)
+                    from app.state import METRICS
+                    METRICS["ws_stale_disconnected"] = METRICS.get("ws_stale_disconnected", 0) + 1
+        except Exception:
+            pass
+
+    cleanup_task = asyncio.create_task(_cleanup_loop())
+
     ping_task = asyncio.create_task(_ping_loop())
     try:
         while True:
@@ -177,4 +200,5 @@ async def websocket_endpoint(websocket: WebSocket):
         pass
     finally:
         ping_task.cancel()
+        cleanup_task.cancel()
         manager.disconnect(websocket)
