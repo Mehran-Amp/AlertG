@@ -39,6 +39,25 @@ void main() async {
 
   final settingsService = SettingsService(dir.path);
   await settingsService.load();
+  // FIX-RESTORE: if the user is already logged in (email persisted in settings),
+  // restore their alerts from the server BEFORE syncing — otherwise an empty
+  // local list would wipe the server-side alerts (sync_user_alerts removes
+  // absent alerts).
+  final _savedEmail = settingsService.settings.userEmail ?? '';
+  if (_savedEmail.isNotEmpty) {
+    try {
+      final _restored = await ServerAlertService.restoreUserAlertsFromCloud(
+        repository: alertRuleRepository,
+        userEmail: _savedEmail,
+      );
+      if (_restored > 0) {
+        await alertRuleRepository.load();
+        debugPrint('☁️ [Main] Restored $_restored alerts from cloud');
+      }
+    } catch (e) {
+      debugPrint('⚠️ [Main] Restore alerts failed: $e');
+    }
+  }
   await ServerAlertService.initialize();
   await CatalogSyncService.instance.initialize(); // symbol catalog: disk cache + background delta sync
 
@@ -49,10 +68,13 @@ void main() async {
       isFromServer: true,
       lang: settingsService.settings.language,
     );
-    ServerAlertService.syncAllRulesToServer(
-      alertRuleRepository.allRules,
-      userId: settingsService.settings.userEmail,
-    );
+    // FIX-EMPTY-SYNC: never push an empty list (would delete server-side alerts).
+    if (alertRuleRepository.allRules.isNotEmpty) {
+      ServerAlertService.syncAllRulesToServer(
+        alertRuleRepository.allRules,
+        userId: settingsService.settings.userEmail,
+      );
+    }
   };
 
   // DEV-4b: requestPermission:false avoids the getSystemService-null error
@@ -71,11 +93,13 @@ void main() async {
     lang: settingsService.settings.language,
   );
 
-  // Sync all active alert rules to Python server for 24/7 background FCM monitoring
-  ServerAlertService.syncAllRulesToServer(
-    alertRuleRepository.allRules,
-    userId: settingsService.settings.userEmail,
-  );
+  // FIX-EMPTY-SYNC: never push an empty list.
+  if (alertRuleRepository.allRules.isNotEmpty) {
+    ServerAlertService.syncAllRulesToServer(
+      alertRuleRepository.allRules,
+      userId: settingsService.settings.userEmail,
+    );
+  }
 
   // Sync initial widget state with loaded alerts and active theme
   await NativeWidgetSyncService.syncAlerts(
