@@ -356,7 +356,7 @@ class TestPriceMetadataUnitsAndFrequency(unittest.IsolatedAsyncioTestCase):
             ("UNRATE", 4.1, "%", "%", "monthly", True, "delayed", "2024-05-01", 1714521600, "FRED"),
             ("CPIAUCSL", 314.069, "PTS", "PTS", "monthly", True, "delayed", "2024-05-01", 1714521600, "FRED"),
             ("US02Y", 4.95, "%", "%", "daily", True, "delayed", "2024-05-01", 1714521600, "FRED"),
-            ("AAPL", 185.5, "USD", None, "live", False, "LIVE", None, 1714529999, "Yahoo Finance"),
+            ("AAPL", 185.5, "USD", None, "live", False, "REGULAR", None, 1714529999, "Yahoo Finance"),
         ]
 
         for sym, price, exp_curr, exp_unit, exp_freq, exp_delayed, exp_state, exp_date, exp_asof, exp_source in cases:
@@ -551,7 +551,15 @@ class TestFredAsOfAndCheckerStaleness(unittest.TestCase):
         # 65 days old: stale
         self.assertTrue(is_data_stale(now - (65 * 86400), 'monthly', current_time=now))
 
-        # 4. Non-FRED / live / default (threshold = 3600s = 1 hour unchanged)
+        # 4. Quarterly (threshold = 120 days)
+        self.assertFalse(is_data_stale(now - (110 * 86400), 'quarterly', current_time=now))
+        self.assertTrue(is_data_stale(now - (130 * 86400), 'quarterly', current_time=now))
+
+        # 5. Annual (threshold = 400 days)
+        self.assertFalse(is_data_stale(now - (380 * 86400), 'annual', current_time=now))
+        self.assertTrue(is_data_stale(now - (420 * 86400), 'annual', current_time=now))
+
+        # 6. Non-FRED / live / default (threshold = 3600s = 1 hour unchanged)
         # 30 minutes old: fresh
         self.assertFalse(is_data_stale(now - 1800, 'live', current_time=now))
         self.assertFalse(is_data_stale(now - 1800, None, current_time=now))

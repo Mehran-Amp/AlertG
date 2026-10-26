@@ -68,6 +68,8 @@ PRICE_FETCH_SEMAPHORE = _DynamicSemaphore(PRICE_FETCH_CONCURRENCY)
 def is_data_stale(as_of: Optional[float], data_frequency: Optional[str] = None, current_time: Optional[float] = None) -> bool:
     """
     Stale data guard: validates data age against an appropriate threshold based on data_frequency:
+    - annual: 400 days (34,560,000s)
+    - quarterly: 120 days (10,368,000s)
     - monthly: several weeks to 2 months (60 days = 5,184,000s) so older monthly observations do not give false alerts
     - weekly: several weeks (21 days = 1,814,400s)
     - daily: several days (7 days = 604,800s)
@@ -77,7 +79,11 @@ def is_data_stale(as_of: Optional[float], data_frequency: Optional[str] = None, 
         return False
     now = current_time if current_time is not None else time.time()
     freq = (data_frequency or '').lower().strip()
-    if freq == 'monthly':
+    if freq == 'annual':
+        threshold = 400 * 86400.0  # 400 days
+    elif freq == 'quarterly':
+        threshold = 120 * 86400.0  # 120 days
+    elif freq == 'monthly':
         threshold = 60 * 86400.0  # several weeks up to 2 months
     elif freq == 'weekly':
         threshold = 21 * 86400.0  # several weeks

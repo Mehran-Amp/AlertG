@@ -2,7 +2,7 @@ dd791c6854d3fa359af7666d3e7fee06  app/config.py
 f90b4f33ed1b8d36c4c44da2678374df  app/engine/__init__.py
 ec8280cd7fcd1c9f923778f86bfc7aa2  app/engine/calendar.py
 d5020b40a6448cb72d22ff06d73bd2e7  app/engine/categories.py
-7ba95b080fecfc2dd0a98dde8e48ee50  app/engine/checker.py
+8cb2ab08b0cc9461f904a0de543cb81a  app/engine/checker.py
 e98453454c08377f61559f7d2405a097  app/engine/features.py
 01b6cc5536e3593d0eb232886a809e58  app/engine/limiter.py
 50fc866229ae30c30cd7d8e4c131d760  app/engine/market_events.py
@@ -188,6 +188,7 @@ ab431f232169d1b00f0d0c8cd426cbc0  tests/test_delivery_journal.py
 6e0c3ed5fa0e6c682f58afcdfac39cd6  tests/test_device_heartbeat.py
 085f41953c1065cb55f472dfa8fbb4ad  tests/test_fcm_auth_error.py
 c68bac49cdba3d015bd545743f771192  tests/test_firebase_error_classes.py
+504978920e80e70fbe8d30675e6fbec0  tests/test_fred_stale_thresholds.py
 c645955079c5f9ab042d3faa0c29d3e6  tests/test_health_check.py
 5f7a17eaea92910e7276140bf80482a6  tests/test_health_deep.py
 65187cf07f5e65263bd6f3dbd8ed4074  tests/test_health_deep_precise.py
@@ -210,7 +211,7 @@ f588d31c7fdb7007e09044a5cc7c7128  tests/test_outbox_telegram_fallback.py
 be581cd00e03b7d6a5d4af105c84c4be  tests/test_phase10_testing_and_release.py
 78c17ae7fe9412f999fff6463e6ee0e3  tests/test_phase2_apply_expansion.py
 32eaf8a80bead7339d9ddd8582ce1309  tests/test_phase2_catalog_expansion.py
-9e547b147664ec05907bb97de5084cca  tests/test_phase2_global_stocks.py
+4f28facbbe9f4e3b0d361dbf0c746c78  tests/test_phase2_global_stocks.py
 83a4a6e71ab6057196966ea1eb2e64ea  tests/test_phase3_baseline_and_catalog.py
 6ef019f02405a65f83e5eec40a208d22  tests/test_phase3_create_alert_flow.py
 d67a93c19011a3d1ab5c4058bf03bd7d  tests/test_phase3_stability_engine.py
