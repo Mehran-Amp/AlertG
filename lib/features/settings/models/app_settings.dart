@@ -403,6 +403,7 @@ class AppSettings {
           borderRadius: BorderRadius.circular(14),
           side: BorderSide(color: border, width: 1),
         ),
+          clipBehavior: Clip.antiAlias,
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: surface,
