@@ -276,7 +276,34 @@ class ServerAlertService {
     }
     return 'Mehran.Aminpoor@gmail.com';
   }
+  /// SYNC-2: baseline marker. If missing, the app sends sync_mode=merge
+  /// (safe: never deletes server-side alerts). Written only after a
+  /// successful restore or when the server returns 0 alerts for this user.
+  static Future<File> _baselineFile() async {
+    final dir = await getApplicationDocumentsDirectory();
+    return File('${dir.path}/sync_baseline.json');
+  }
 
+  static Future<bool> hasBaseline() async {
+    try {
+      final f = await _baselineFile();
+      return f.existsSync();
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static Future<void> _writeBaseline() async {
+    try {
+      final f = await _baselineFile();
+      await f.writeAsString(
+        jsonEncode({'set_at': DateTime.now().toUtc().toIso8601String()}),
+        flush: true,
+      );
+    } catch (e) {
+      debugPrint('⚠️ [Sync] baseline write failed: $e');
+    }
+  }
   /// Bulk sync all local alert rules to Python server with real FCM Token.
   ///
   /// Single-flight: if a sync is already running, the second caller sets
@@ -452,11 +479,14 @@ class ServerAlertService {
       }).toList();
 
       final url = Uri.parse('$effectiveBaseUrl/api/alerts/sync');
+      // SYNC-2: if no baseline yet, send merge (never delete server alerts).
+      final syncMode = (await hasBaseline()) ? 'mirror' : 'merge';
       final payload = {
         'user_id': effectiveUserId,
         'fcm_token': fcmToken,
         'ack_supported': true,
         'alerts': alertsPayload,
+        'sync_mode': syncMode,
       };
 
       final client = httpClientForTesting;
@@ -471,12 +501,14 @@ class ServerAlertService {
       if (response.statusCode == 200) {
         _circuitBreakerUntil = null;
         lastSyncOk = DateTime.now();
-        // Success: reset backoff so the next failure starts at 5s again, and
-        // cancel any scheduled retry so a stale timer cannot fire.
         _retryIndex = 0;
         _retryTimer?.cancel();
         await _clearSyncFlag();
-        debugPrint('✅ All alerts successfully synced to Python server for user $effectiveUserId');
+        // SYNC-2: write baseline after first successful sync.
+        if (syncMode == 'merge' || alertsPayload.isNotEmpty) {
+          await _writeBaseline();
+        }
+        debugPrint('✅ All alerts successfully synced to Python server for user $effectiveUserId (mode: $syncMode)');
         return true;
       } else {
         debugPrint('❌ Sync error: ${_parseErrorMessage(response)}');
@@ -728,6 +760,8 @@ class ServerAlertService {
           if (imported > 0) {
             await repo.load();
           }
+          // SYNC-2: write baseline after a successful restore (even 0 alerts).
+          await _writeBaseline();
           debugPrint('☁️ Successfully restored $imported alert(s) from cloud for $cleanUser (Telegram Chat ID: $cloudChatId)');
           return imported;
         }
