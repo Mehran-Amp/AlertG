@@ -401,15 +401,12 @@ async def get_user_alerts(user_id: str, fcm_token: Optional[str] = None):
             a_fcm = (a.fcm_token or "").strip()
 
             is_match = False
-            # 1. Exact or lowercase user_id match
             if clean_uid and a_uid == clean_uid:
                 if clean_uid == 'user_default':
-                    # Guest users must strictly match exact device FCM token
                     if clean_fcm and a_fcm and a_fcm == clean_fcm:
                         is_match = True
                 else:
                     is_match = True
-            # 2. Guest user query with exact device FCM token (never startswith)
             elif clean_uid == 'user_default' and clean_fcm and a_fcm and a_fcm == clean_fcm:
                 is_match = True
 
@@ -417,18 +414,22 @@ async def get_user_alerts(user_id: str, fcm_token: Optional[str] = None):
                 seen_ids.add(a.id)
                 results.append(a)
 
-        # Ensure user profile has telegram_chat_id populated only if found on this user's own alerts
+        # Prepare profile update (only data, no I/O inside the lock)
+        profile_update = None
         if clean_uid and clean_uid != 'user_default':
             first_chat = next((a.telegram_chat_id for a in results if a.telegram_chat_id and a.user_id.lower() == clean_uid), None)
             if first_chat:
-                storage.USER_PROFILES_DB[clean_uid] = {
+                profile_update = {
                     "user_id": clean_uid,
                     "telegram_chat_id": str(first_chat).strip(),
                     "is_connected": True,
                     "updated_at": datetime.now(timezone.utc).isoformat()
                 }
-                await save_user_profiles_to_disk_async(storage.USER_PROFILES_DB)
-                await save_alerts_to_disk_async(storage.ALERTS_DB)
+
+    # I/O OUTSIDE the lock to avoid deadlock with save_alerts_to_disk_async
+    if profile_update:
+        storage.USER_PROFILES_DB[clean_uid] = profile_update
+        await save_user_profiles_to_disk_async(storage.USER_PROFILES_DB)
 
     return results
  
