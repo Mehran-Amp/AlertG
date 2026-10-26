@@ -129,6 +129,8 @@ def on_alert_token_updated(alert_id: str, new_token: str) -> None:
             old_blocked = entry.get("blocked_token")
             if old_blocked and old_blocked != new_t:
                 entry["blocked_token"] = None
+                entry["blocked_at"] = None
+                entry["unacked_recorded"] = False
                 entry["next_attempt_at"] = now
                 entry["next_retry_at"] = now
                 if eid not in _OUTBOX_INFLIGHT:
@@ -266,7 +268,26 @@ async def _deliver_outbox_entry(eid: str) -> None:
         blocked = entry.get("blocked_token")
         if blocked:
             if current_token == blocked:
-                # Next delivery attempts MUST SKIP calling FCM if alert.fcm_token == entry.get("blocked_token") and just re-arm next_retry_at = now + 60.0
+                # FIX-DEAD-TOKEN: record the first block time once.
+                if not entry.get("blocked_at"):
+                    entry["blocked_at"] = now
+                    await _save_outbox()
+                # After the total ack_waits elapsed since first block:
+                # record unacked once + send Telegram once. Do NOT pop the entry.
+                waits = entry.get("ack_waits", ACK_WAITS)
+                total_wait = sum(waits)
+                elapsed = now - entry["blocked_at"]
+                if elapsed >= total_wait and not entry.get("unacked_recorded"):
+                    entry["unacked_recorded"] = True
+                    journal.record_unacked(eid)
+                    METRICS["fcm_unacked"] = METRICS.get("fcm_unacked", 0) + 1
+                    print(f"⌛ [Outbox] {eid[:8]} blocked token, budget exhausted; marked unacked")
+                    fallback_chat = entry.get("fallback_chat_id")
+                    title_text = entry.get("title") or ""
+                    body_text = entry.get("body") or ""
+                    await _save_outbox()
+                    if fallback_chat and not journal.was_telegram_fallback_sent(eid):
+                        _spawn(_send_telegram_fallback(eid, fallback_chat, title_text, body_text))
                 entry["next_attempt_at"] = now + 60.0
                 entry["next_retry_at"] = now + 60.0
                 _update_outbox_metrics()
@@ -275,6 +296,8 @@ async def _deliver_outbox_entry(eid: str) -> None:
             else:
                 # When alert.fcm_token changes, entry["blocked_token"] is cleared
                 entry["blocked_token"] = None
+                entry["blocked_at"] = None
+                entry["unacked_recorded"] = False
                 still_used = any(
                     (getattr(a, "fcm_token", None) or "").strip() == blocked
                     for a in storage.ALERTS_DB
