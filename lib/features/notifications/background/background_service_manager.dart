@@ -281,6 +281,7 @@ class BackgroundServiceManager {
       await FCMNotificationService.initialize(
         storageDirectoryPath: dir.path,
         requestPermission: false,
+        registerBackgroundHandler: false,  // DEV-4b: service isolate cannot register FCM background handler
       );
       await ServiceLogger.log('init', 'FCMNotificationService.initialize OK');
     } catch (e, st) {

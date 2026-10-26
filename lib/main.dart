@@ -55,7 +55,15 @@ void main() async {
     );
   };
 
-  await FCMNotificationService.initialize(storageDirectoryPath: dir.path);
+  // DEV-4b: requestPermission:false avoids the getSystemService-null error
+  // when the Activity is momentarily unavailable. registerBackgroundHandler:true
+  // keeps FirebaseMessaging.onBackgroundMessage registered in the UI isolate,
+  // which is required for background push delivery.
+  await FCMNotificationService.initialize(
+    storageDirectoryPath: dir.path,
+    requestPermission: false,
+    registerBackgroundHandler: true,
+  );
 
   // Update initial price source state in persistent notification
   BackgroundServiceManager.updatePriceSource(

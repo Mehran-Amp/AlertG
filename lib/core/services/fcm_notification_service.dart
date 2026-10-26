@@ -182,6 +182,7 @@ class FCMNotificationService {
   static Future<void> initialize({
     String? storageDirectoryPath,
     bool requestPermission = true,
+    bool registerBackgroundHandler = true,
   }) async {
     _storageDir = storageDirectoryPath;
     if (_storageDir == null) {
@@ -213,7 +214,10 @@ class FCMNotificationService {
 
       // 1. Listeners FIRST:
       // Note: onBackgroundMessage can ONLY be called on root isolate with an Activity!
-      if (requestPermission) {
+      // DEV-4b: onBackgroundMessage must be registered in the UI isolate
+      // (where it is allowed) even when requestPermission is false. Only the
+      // service isolate (which runs without an Activity) must not register it.
+      if (registerBackgroundHandler) {
         try {
           FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
         } catch (e) {
