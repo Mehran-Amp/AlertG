@@ -67,17 +67,9 @@ def _send_fcm_sync(fcm_token: str, title: str, body: str, data_payload: dict = N
                 priority='high',
                 ttl=effective_ttl,
                 direct_boot_ok=True,
-                notification=messaging.AndroidNotification(
-                    title=str(title),
-                    body=str(body),
-                    channel_id=channel_setting,
-                    sound=android_sound,
-                    priority='max',
-                    visibility='public',
-                    default_sound=is_default_sound and is_sound_on,
-                    default_vibrate_timings=is_vib_on,
-                    default_light_settings=True,
-                )
+                # 3C-2: data-only. The Dart handler shows the banner, plays the
+                # alarm, and speaks TTS. Removing AndroidNotification prevents
+                # the OS from showing a second banner + sound.
             ),
             apns=messaging.APNSConfig(
                 payload=messaging.APNSPayload(
