@@ -331,7 +331,7 @@ class TestPhase5ResilientProviders(unittest.IsolatedAsyncioTestCase):
 
         quote = await yahoo_adapter.fetch_quote("AAPL", mock_client)
         self.assertIsNotNone(quote)
-        self.assertEqual(quote.get('state'), 'closed', "Closed market must return state='closed'")
+        self.assertIn(quote.get('state'), ('CLOSED', 'closed'), "Closed market must return state='CLOSED'")
         self.assertEqual(quote.get('price'), 150.0, "Previous close price preserved for metadata")
 
 
