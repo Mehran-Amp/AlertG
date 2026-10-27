@@ -1,0 +1,13 @@
+[
+  {"symbol": "BTCUSDT", "price": "67450.50000000"},
+  {"symbol": "ETHUSDT", "price": "2620.10000000"},
+  {"symbol": "SOLUSDT", "price": "178.45000000"},
+  {"symbol": "BNBUSDT", "price": "595.20000000"},
+  {"symbol": "1INCHUSDT", "price": "0.32450000"},
+  {"symbol": "1000SATSUSDT", "price": "0.00028120"},
+  {"symbol": "BTCUPUSDT", "price": "14.25000000"},
+  {"symbol": "BTCDOWNUSDT", "price": "0.04100000"},
+  {"symbol": "BTCUSDC", "price": "67448.00000000"},
+  {"symbol": "ETHBTC", "price": "0.03885000"},
+  {"symbol": "BTCEUR", "price": "62150.00000000"}
+]

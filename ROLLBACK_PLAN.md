@@ -123,6 +123,7 @@
   * وضعیت سلامت اندپوینت‌های Legacy: دست‌نخورده با ۹۴ نماد طلایی (`status: OK`)
 * **نتیجه نهایی رول‌بک استیجینگ**: **✅ PASS (کاملاً موفق، ایزوله و بدون ایجاد سربار یا از دست رفتن داده)**
 
+
 ---
 
 ### ۶. دستورالعمل رول‌بک فاز ۳ کریپتو (Crypto Strict Core V2 Rollback)
@@ -139,4 +140,21 @@
    python -m unittest tests/test_crypto_strict_contract_red.py
    ```
    (در حالت خاموش، تست شماره ۵ پاس شده و عملکرد قدیمی بدون تغییر تایید می‌شود).
+
+---
+
+### ۷. دستورالعمل رول‌بک زیرفاز ۴a کریپتو (Binance Adapter Rollback)
+طبق قواعد R3، R4 و R6:
+1. **ایزولاسیون ماژولار**:
+   آداپتور بایننس در پوشه مجزای `app/markets/adapters/` پیاده‌سازی شده و هیچ وابستگی متقابلی با سایر صرافی‌ها یا بازارهای سهام و ایران ندارد.
+2. **قطع فوری اضطراری با Kill-Switch**:
+   در صورت نیاز به غیرفعال‌سازی آنی آداپتور بدون نیاز به ریستارت، کلید provider اختصاصی `crypto_binance` را قطع کنید:
+   ```bash
+   export KILL_SWITCH_PROVIDERS=crypto_binance
+   ```
+3. **اعتبارسنجی آفلاین پس از رول‌بک**:
+   ```bash
+   python -m unittest tests/test_crypto_strict_contract_red.py tests/test_crypto_adapter_binance.py
+   ```
+
 
