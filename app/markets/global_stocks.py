@@ -673,23 +673,25 @@ class YahooFinanceAdapter(BaseMarketAdapter):
                 meta = chart[0].get('meta', {})
                 p = meta.get('regularMarketPrice')
                 as_of_ts = meta.get('regularMarketTime') or meta.get('currentTradingPeriod', {}).get('regular', {}).get('end')
-                m_state = meta.get('marketState', 'REGULAR')
+                raw_state = meta.get('marketState') or 'REGULAR'
+                m_state = str(raw_state).strip().upper()
+                state_norm = m_state.lower()  # canonical lowercase for 'state'
                 currency = meta.get('currency', 'USD')
                 if p is not None and float(p) > 0:
                     return {
                         'price': float(p),
                         'asOf': int(as_of_ts) if as_of_ts else int(time.time()),
-                        'state': m_state,
+                        'state': state_norm,
                         'currency': currency,
                         'source': 'Yahoo Finance',
                         'marketState': m_state
                     }
-                elif m_state in ['CLOSED', 'closed', 'POST', 'PRE']:
+                elif m_state in ['CLOSED', 'POST', 'PRE']:
                     prev_p = meta.get('chartPreviousClose') or meta.get('previousClose')
                     return {
                         'price': float(prev_p) if prev_p else None,
                         'asOf': int(as_of_ts) if as_of_ts else int(time.time()),
-                        'state': 'CLOSED',
+                        'state': 'closed',
                         'currency': currency,
                         'source': 'Yahoo Finance',
                         'marketState': m_state
