@@ -26,6 +26,7 @@ def get_exchange_display_name(exchange_id: str) -> str:
         'tabdeal': 'Tabdeal', 'ramzinex': 'Ramzinex', 'kucoin': 'KuCoin',
         'mexc': 'MEXC', 'gateio': 'Gate.io', 'gate': 'Gate.io',
         'coinex': 'CoinEx', 'okx': 'OKX', 'bybit': 'Bybit',
+        'lbank': 'LBank', 'bitget': 'Bitget', 'kraken': 'Kraken', 'bingx': 'BingX', 'coinbase': 'Coinbase',
         'bitbarg': 'BitBarg', 'tetherland': 'Tetherland', 'abantether': 'AbanTether',
         'global_stocks': 'Global Stocks', 'stocks': 'Stocks', 'forex': 'Forex',
         'macro': 'Macro', 'bonds': 'Bonds', 'wallstreet': 'Wall Street', 'iran_market': 'IR_M',
