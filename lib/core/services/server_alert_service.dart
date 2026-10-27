@@ -8,10 +8,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import '../../features/alert_engine/models/alert_rule.dart';
 import '../../features/alert_engine/repositories/json_alert_rule_repository.dart';
-import '../../features/exchanges/base/currency_pair.dart';
 import '../../features/watchlist/pages/create_alert_flow.dart' show CheckUnit;
 import 'fcm_notification_service.dart';
-import 'package:flutter/foundation.dart' show visibleForTesting;
 
 
 /// ServerAlertService handles communication with the Python Alert Engine backend
@@ -276,8 +274,11 @@ class ServerAlertService {
     } catch (e) {
       debugPrint('Error getting effective user id: $e');
     }
-    return 'Mehran.Aminpoor@gmail.com';
-  }
+    // AUTH-OFF-1: no hardcoded account fallback. Guests (no userEmail and
+    // no deviceId) are routed to the shared guest bucket `user_default`,
+    // which the server already uses for anonymous users. Never fall back
+    // to a specific person's email.
+    return 'user_default';  }
   /// SYNC-2: baseline marker. If missing, the app sends sync_mode=merge
   /// (safe: never deletes server-side alerts). Written only after a
   /// successful restore or when the server returns 0 alerts for this user.
@@ -811,18 +812,12 @@ class ServerAlertService {
   /// Helper method to convert (unitValue, CheckUnit) into total seconds
   static int calculateIntervalInSeconds(int unitValue, CheckUnit unit) {
     final val = unitValue <= 0 ? 10 : unitValue;
-    switch (unit) {
-      case CheckUnit.seconds:
-        return val;
-      case CheckUnit.minutes:
-        return val * 60;
-      case CheckUnit.hours:
-        return val * 3600;
-      default:
-        return val * 60;
-    }
+    return switch (unit) {
+      CheckUnit.seconds => val,
+      CheckUnit.minutes => val * 60,
+      CheckUnit.hours => val * 3600,
+    };
   }
-
   /// Create and register a new alert on the Python server
   static Future<bool> createAlertOnServer({
     String? ruleId,

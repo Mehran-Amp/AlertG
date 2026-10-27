@@ -5,7 +5,6 @@ import 'package:intl/intl.dart' hide TextDirection;
 import 'package:provider/provider.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/services/asset_naming_service.dart';
-import '../../../core/services/google_auth_service.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/utils/crypto_icons.dart';
 import '../../../core/utils/format_utils.dart';
@@ -14,7 +13,6 @@ import '../../alert_engine/repositories/json_alert_rule_repository.dart';
 import '../../alert_engine/scheduler/scheduler_service.dart';
 import '../../exchanges/registry/exchange_registry.dart';
 import '../../settings/services/settings_service.dart';
-import '../../widgets/alert_home_widget.dart';
 import '../../widgets/server_status_button.dart';
 import '../../market_events/widgets/market_event_banner.dart';
 import 'create_alert_flow.dart';
@@ -313,17 +311,9 @@ class _WatchlistPageState extends State<WatchlistPage> {
   }
 
   Future<void> _openCreateFlow() async {
-    final settingsService = context.read<SettingsService>();
-    final settings = settingsService.settings;
-    final lang = settings.language;
-
-    // Ensure user has connected Google Account for cloud sync and telegram integration
-    if (!settings.isSignedInWithGoogle) {
-      final signedIn = await GoogleAuthService.promptGoogleSignIn(context, settingsService, lang);
-      if (!signedIn) {
-        return; // User cancelled login dialog
-      }
-    }
+    // AUTH-OFF-1: cloud account is disabled until server-side token
+    // verification is in place. Do NOT block alert creation on sign-in —
+    // guests can create alerts normally.
 
     if (!mounted) return;
     final registry = context.read<ExchangeRegistry>();

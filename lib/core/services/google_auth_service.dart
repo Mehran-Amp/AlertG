@@ -1,248 +1,32 @@
-import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:provider/provider.dart';
-import '../../features/alert_engine/bloc/alert_rules_bloc.dart';
-import '../../features/alert_engine/bloc/alert_rules_event.dart';
-import '../../features/alert_engine/repositories/json_alert_rule_repository.dart';
 import '../../features/settings/services/settings_service.dart';
-import 'fcm_notification_service.dart';
-import 'server_alert_service.dart';
+import '../config.dart';
 
-/// Service managing optional Google Account Authentication and Cloud Sync preparation.
+/// Service managing optional Google Account Authentication and Cloud Sync
+/// preparation.
+///
+/// AUTH-OFF-1: Google Sign-In is disabled until the server verifies Google
+/// ID tokens. The previous implementation showed a mock Google dialog with
+/// a hardcoded email (the project owner's account), which let any user on
+/// any device sign in as that account. The cloud-sync pipeline itself
+/// (`ServerAlertService.restoreUserAlertsFromCloud`, `claimGuestAlerts`,
+/// `syncAllRulesToServer`) is unchanged and will be re-enabled once real
+/// server-side token verification is in place.
 class GoogleAuthService {
-  /// Prompt the user with a modern Google Sign-In account dialog
+  /// AUTH-OFF-1: no-op. Returns false and shows nothing.
+  ///
+  /// Set [AppConfig.kCloudAccountEnabled] to true only after the server
+  /// verifies Google ID tokens and a real device build has been tested.
   static Future<bool> promptGoogleSignIn(
-    BuildContext context,
-    SettingsService settingsService,
-    String lang,
-  ) async {
-    final theme = Theme.of(context);
-    final isFa = lang == 'fa' || lang == 'ar' || lang == 'ckb';
-    const userEmail = 'Mehran.Aminpoor@gmail.com';
-    const userDisplayName = 'Mehran';
-
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: theme.colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-              child: Image.network(
-                'https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png',
-                width: 24,
-                height: 24,
-                errorBuilder: (_, __, ___) => const Text('G', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue)),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                isFa ? 'ورود با حساب گوگل' : 'Sign in with Google',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              isFa
-                  ? 'با اتصال به حساب گوگل، تمامی هشدارهای شما به طور خودکار در فضای ابری ذخیره شده و در صورت حذف اپلیکیشن یا تعویض گوشی فوراً بازیابی می‌شوند.'
-                  : 'By connecting your Google account, your alerts are safely stored in the cloud and automatically restored upon re-installing or changing phones.',
-              style: TextStyle(fontSize: 12, height: 1.4, color: theme.colorScheme.onSurface.withValues(alpha: 0.7)),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: theme.dividerColor),
-              ),
-              child: Row(
-                children: [
-                  const CircleAvatar(
-                    radius: 16,
-                    backgroundColor: Colors.blueAccent,
-                    child: Text('M', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          userDisplayName,
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: theme.colorScheme.onSurface),
-                        ),
-                        Text(
-                          userEmail,
-                          style: TextStyle(fontSize: 11, color: theme.colorScheme.primary),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(Icons.check_circle_rounded, color: theme.colorScheme.primary, size: 20),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(
-              isFa ? 'فعلاً نه (انصراف)' : 'Maybe Later',
-              style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
-            ),
-          ),
-          ElevatedButton.icon(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            icon: const Icon(Icons.login_rounded, size: 16),
-            label: Text(isFa ? 'اتصال حساب و همگام‌سازی' : 'Connect & Sync'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: theme.colorScheme.primary,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (result == true) {
-      await settingsService.signInWithGoogle(
-        email: userEmail,
-        displayName: userDisplayName,
-        photoUrl: 'https://lh3.googleusercontent.com/a/default-user',
-      );
-
-      // 1. Restore persisted Telegram connection status from cloud and persistent account cache
-      try {
-        final tgStatus = await ServerAlertService.fetchUserTelegramStatus(userEmail);
-        String? targetChatId;
-        if (tgStatus != null && tgStatus['is_connected'] == true) {
-          targetChatId = (tgStatus['telegram_chat_id'] as String?)?.trim();
-        }
-
-        // Fallback A: Check local account profile snapshot
-        if (targetChatId == null || targetChatId.isEmpty) {
-          try {
-            final dir = await getApplicationDocumentsDirectory();
-            final profFile = File('${dir.path}/account_profile_${userEmail.trim().toLowerCase()}.json');
-            if (await profFile.exists()) {
-              final profData = jsonDecode(await profFile.readAsString());
-              final cId = (profData['telegram_chat_id'] as String?)?.trim();
-              if (cId != null && cId.isNotEmpty) {
-                targetChatId = cId;
-              }
-            }
-          } catch (_) {}
-        }
-
-        // Fallback B: Check last connected bot file
-        if (targetChatId == null || targetChatId.isEmpty) {
-          try {
-            final dir = await getApplicationDocumentsDirectory();
-            final lastTgFile = File('${dir.path}/last_telegram_chat.txt');
-            if (await lastTgFile.exists()) {
-              final lastTg = (await lastTgFile.readAsString()).trim();
-              if (lastTg.isNotEmpty) {
-                targetChatId = lastTg;
-              }
-            }
-          } catch (_) {}
-        }
-
-        if (targetChatId != null && targetChatId.isNotEmpty) {
-          await settingsService.setTelegramChatId(targetChatId);
-          debugPrint('📱 [Cloud Sync] Restored active Telegram Chat ID: $targetChatId');
-        }
-      } catch (e) {
-        debugPrint('⚠️ Error fetching Telegram status on sign in: $e');
-      }
-
-      // 2. Explicitly claim any guest alerts created on this device under 'user_default'
-      int claimedCount = 0;
-      try {
-        final fcmToken = await FCMNotificationService.getFCMToken();
-        claimedCount = await ServerAlertService.claimGuestAlerts(
-          userId: userEmail,
-          fcmToken: fcmToken,
-        );
-        debugPrint('🎉 [GoogleAuth] Claimed $claimedCount guest alert(s) for $userEmail');
-      } catch (e) {
-        debugPrint('⚠️ Error claiming guest alerts on sign in: $e');
-      }
-
-      // 3. Restore all cloud alerts from user's account (including newly claimed alerts)
-      final restoredCount = await ServerAlertService.restoreUserAlertsFromCloud(
-        context: context,
-        userEmail: userEmail,
-      );
-
-      // Check if restored alerts or persistent file gave us the active Telegram Chat ID
-      if (settingsService.settings.telegramChatId == null || settingsService.settings.telegramChatId!.isEmpty) {
-        try {
-          final dir = await getApplicationDocumentsDirectory();
-          final profFile = File('${dir.path}/account_profile_${userEmail.trim().toLowerCase()}.json');
-          if (await profFile.exists()) {
-            final profData = jsonDecode(await profFile.readAsString());
-            final cId = (profData['telegram_chat_id'] as String?)?.trim();
-            if (cId != null && cId.isNotEmpty) {
-              await settingsService.setTelegramChatId(cId);
-              debugPrint('📱 [Cloud Sync] Restored active Telegram Chat ID from profile: $cId');
-            }
-          }
-        } catch (_) {}
-      }
-
-      // 4. If there were local guest alerts before sign-in, merge them with the cloud account
-      try {
-        final repo = context.read<JsonAlertRuleRepository>();
-        if (repo.allRules.isNotEmpty) {
-          await ServerAlertService.syncAllRulesToServer(repo.allRules, userId: userEmail);
-        }
-      } catch (_) {}
-
-      if (context.mounted) {
-        try {
-          context.read<AlertRulesBloc>().add(const LoadAlertRules());
-        } catch (_) {}
-
-        final totalAlerts = restoredCount + claimedCount;
-        if (totalAlerts > 0) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(isFa
-                  ? '☁️ $totalAlerts هشدار با موفقیت بازیابی و به حساب شما منتقل شدند.'
-                  : '☁️ Successfully restored $totalAlerts alert(s) to your account.'),
-              behavior: SnackBarBehavior.floating,
-              backgroundColor: theme.colorScheme.primary,
-            ),
-          );
-        }
-      }
-
-      return true;
+      BuildContext context,
+      SettingsService settingsService,
+      String lang,
+      ) async {
+    if (!AppConfig.kCloudAccountEnabled) {
+      debugPrint('ℹ [GoogleAuth] Cloud account is disabled (AUTH-OFF-1).');
+      return false;
     }
+    debugPrint('⚠ [GoogleAuth] Cloud account flag is on but feature is not implemented yet.');
     return false;
   }
 }

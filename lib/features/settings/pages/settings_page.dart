@@ -23,6 +23,7 @@ import '../../../core/services/tts_service.dart';
 import '../widgets/device_health_card.dart';
 import 'debug_diagnostics_page.dart';
 import 'notification_health_page.dart';
+import '../../../core/config.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -2054,7 +2055,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     visualDensity: VisualDensity.compact,
                   ),
                 )
-              else
+              else if (AppConfig.kCloudAccountEnabled)
                 ElevatedButton.icon(
                   onPressed: () async {
                     final signedIn = await GoogleAuthService.promptGoogleSignIn(context, settingsService, lang);
