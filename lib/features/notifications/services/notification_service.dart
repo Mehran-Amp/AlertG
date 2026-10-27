@@ -502,21 +502,9 @@ class NotificationService implements NotificationServiceInterface {
     final effVibration =
         (m['vibrationEnabled'] as bool? ?? true) && vibrationEnabled;
 
-    final String channelId;
-    final String channelName;
-    if (effSound && effVibration) {
-      channelId = chSoundVibrate;
-      channelName = 'Price Alerts (Sound & Vibration)';
-    } else if (effSound) {
-      channelId = chSoundOnly;
-      channelName = 'Price Alerts (Sound Only)';
-    } else if (effVibration) {
-      channelId = chVibrateOnly;
-      channelName = 'Price Alerts (Vibration Only)';
-    } else {
-      channelId = chSilentVoice;
-      channelName = 'Price Alerts (Silent & Voice Only)';
-    }
+    // 3C-2: always use the silent channel. playAlarm handles sound + vibration.
+    final String channelId = chSilentVoice;
+    final String channelName = 'Price Alerts (Silent & Voice Only)';
 
     final cleanSound = (soundName.isNotEmpty ? soundName : 'alarm_siren')
         .replaceAll('.wav', '')
@@ -531,14 +519,12 @@ class NotificationService implements NotificationServiceInterface {
       importance: (effSound || effVibration) ? Importance.max : Importance.high,
       priority: Priority.max,
       ticker: '⚡ Price Alert Triggered',
-      enableVibration: effVibration,
-      vibrationPattern:
-          effVibration ? Int64List.fromList([0, 500, 200, 500, 200, 500]) : null,
-      playSound: effSound,
-      sound: effSound ? RawResourceAndroidNotificationSound(cleanSound) : null,
+      enableVibration: false,          // 3C-2: vibration played by playAlarm, not the OS channel
+      vibrationPattern: null,          // 3C-2
+      playSound: false,                // 3C-2: sound played by playAlarm
+      sound: null,                     // 3C-2
       category: AndroidNotificationCategory.alarm,
-      audioAttributesUsage:
-          effSound ? AudioAttributesUsage.alarm : AudioAttributesUsage.notification,
+      audioAttributesUsage: AudioAttributesUsage.notification,
       visibility: NotificationVisibility.public,
       showWhen: true,
       when: DateTime.now().millisecondsSinceEpoch,
