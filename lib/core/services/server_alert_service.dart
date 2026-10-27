@@ -11,6 +11,8 @@ import '../../features/alert_engine/repositories/json_alert_rule_repository.dart
 import '../../features/exchanges/base/currency_pair.dart';
 import '../../features/watchlist/pages/create_alert_flow.dart' show CheckUnit;
 import 'fcm_notification_service.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
+
 
 /// ServerAlertService handles communication with the Python Alert Engine backend
 class ServerAlertService {
@@ -504,8 +506,11 @@ class ServerAlertService {
         _retryIndex = 0;
         _retryTimer?.cancel();
         await _clearSyncFlag();
-        // SYNC-2: write baseline after first successful sync.
-        if (syncMode == 'merge' || alertsPayload.isNotEmpty) {
+        // FIX-BASELINE-1: baseline is only written when the payload is
+        // non-empty. An empty merge sync (e.g. before restore from server)
+        // must NOT create a baseline, otherwise the next sync will treat the
+        // user as having no alerts and wipe the server-side list.
+        if (alertsPayload.isNotEmpty) {
           await _writeBaseline();
         }
         debugPrint('✅ All alerts successfully synced to Python server for user $effectiveUserId (mode: $syncMode)');
@@ -519,6 +524,24 @@ class ServerAlertService {
       _scheduleRetry();
     }
     return false;
+  }
+
+  @visibleForTesting
+  static Future<void> writeBaselineForTesting() async {
+    await _writeBaseline();
+  }
+
+  @visibleForTesting
+  static Future<void> deleteBaseline() async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final f = File('${dir.path}/sync_baseline.json');
+      if (await f.exists()) {
+        await f.delete();
+      }
+    } catch (e) {
+      debugPrint('⚠ [Baseline] deleteBaseline failed: $e');
+    }
   }
 
   /// Helper to sync all rules in context repository to server
@@ -1104,6 +1127,8 @@ class ServerAlertService {
             final data = jsonDecode(utf8.decode(response.bodyBytes));
             if (data is Map && data['status'] == 'error') {
               final detail = data['detail'] ?? 'خطای تلگرام';
+
+
               debugPrint('⚠️ [Telegram Test] Server returned business error: $detail');
               return {'success': false, 'error': 'خطای سرور تلگرام: $detail'};
             }
