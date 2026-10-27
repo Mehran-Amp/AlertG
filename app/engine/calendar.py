@@ -92,34 +92,23 @@ def is_us_market_open(now_dt: Optional[datetime] = None, check_cache: bool = Tru
 def is_forex_market_open(now_dt: Optional[datetime] = None) -> Tuple[bool, str]:
     """
     Forex Calendar:
-    - 24 hours continuously from Sunday 22:00 UTC to Friday 22:00 UTC.
-    - Weekend closed: Friday 22:00 UTC to Sunday 22:00 UTC.
+    - 24 hours continuously from Sunday 17:00 ET to Friday 17:00 ET.
+    - Weekend closed: Friday 17:00 ET to Sunday 17:00 ET.
     - State is REGULAR when open, CLOSED when closed.
+    - Uses America/New_York so EDT/EST transitions are handled correctly.
     """
-    if now_dt is not None:
-        if now_dt.tzinfo is None:
-            utc_dt = now_dt.replace(tzinfo=timezone.utc)
-        else:
-            utc_dt = now_dt.astimezone(timezone.utc)
-    else:
-        utc_dt = datetime.now(timezone.utc)
-
-    weekday = utc_dt.weekday()  # Monday=0, Tuesday=1, Wednesday=2, Thursday=3, Friday=4, Saturday=5, Sunday=6
-    t = utc_dt.time()
-    border_22 = dtime(22, 0)
+    ny_time = get_ny_now(now_dt)
+    weekday = ny_time.weekday()  # Monday=0 ... Sunday=6
+    t = ny_time.time()
+    border_17 = dtime(17, 0)
 
     if weekday == 5:  # Saturday
         return False, 'CLOSED'
-    elif weekday == 6:  # Sunday
-        if t >= border_22:
-            return True, 'REGULAR'
-        return False, 'CLOSED'
-    elif weekday == 4:  # Friday
-        if t < border_22:
-            return True, 'REGULAR'
-        return False, 'CLOSED'
-    else:  # Monday (0), Tuesday (1), Wednesday (2), Thursday (3)
-        return True, 'REGULAR'
+    if weekday == 6:  # Sunday
+        return (True, 'REGULAR') if t >= border_17 else (False, 'CLOSED')
+    if weekday == 4:  # Friday
+        return (True, 'REGULAR') if t < border_17 else (False, 'CLOSED')
+    return True, 'REGULAR'  # Monday..Thursday
 
 
 def get_canonical_market_state(
@@ -133,7 +122,7 @@ def get_canonical_market_state(
     - If raw_market_state from Yahoo is recognized, maps directly.
     - Otherwise calculates schedule from calendar:
       * US Equities/ETFs/Indices: 09:30-16:00 ET (PRE 04:00-09:30, POST 16:00-20:00).
-      * Forex: Sunday 22:00 UTC - Friday 22:00 UTC (REGULAR when open, CLOSED when closed).
+      * Forex: Sunday 17:00 ET - Friday 17:00 ET (REGULAR when open, CLOSED when closed).
     """
     if raw_market_state:
         st = str(raw_market_state).strip().upper()

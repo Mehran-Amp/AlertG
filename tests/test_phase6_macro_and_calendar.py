@@ -26,6 +26,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime, timezone
 import zoneinfo
 import time
+from app.engine.calendar import is_forex_market_open, NY_TZ
 for mod in [
     'fastapi', 'fastapi.middleware.cors', 'fastapi.responses', 'pydantic', 'httpx',
     'apscheduler', 'apscheduler.schedulers', 'apscheduler.schedulers.asyncio',
@@ -419,6 +420,39 @@ class TestPhase6MacroAndCalendar(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(status_dict['crypto']['status'], 'open')
         self.assertEqual(status_dict['crypto']['state_fa'], 'باز')
         self.assertTrue(status_dict['crypto']['is_open'])
+
+    def test_forex_handles_dst_transitions(self):
+        """
+        Forex boundary must follow ET, not fixed UTC, so summer (EDT) and
+        winter (EST) both report REGULAR between Sunday 17:00 ET and Friday 17:00 ET.
+        """
+        # Summer (EDT = UTC-4): Sunday 17:30 ET -> REGULAR
+        summer_sun = datetime(2026, 7, 5, 17, 30, 0, tzinfo=NY_TZ)
+        self.assertTrue(is_forex_market_open(summer_sun)[0],
+                        "Summer EDT Sunday 17:30 ET must be REGULAR")
+
+        # Winter (EST = UTC-5): Sunday 17:30 ET -> REGULAR
+        winter_sun = datetime(2026, 1, 4, 17, 30, 0, tzinfo=NY_TZ)
+        self.assertTrue(is_forex_market_open(winter_sun)[0],
+                        "Winter EST Sunday 17:30 ET must be REGULAR")
+
+    def test_forex_friday_close_boundary(self):
+        """
+        Forex must close at Friday 17:00 ET (not a fixed UTC hour),
+        so that Friday 16:59 ET is REGULAR and Friday 17:01 ET is CLOSED
+        in both EDT and EST.
+        """
+        # Summer Friday (EDT): 16:59 ET -> REGULAR, 17:01 ET -> CLOSED
+        summer_fri_open = datetime(2026, 7, 3, 16, 59, 0, tzinfo=NY_TZ)
+        summer_fri_closed = datetime(2026, 7, 3, 17, 1, 0, tzinfo=NY_TZ)
+        self.assertTrue(is_forex_market_open(summer_fri_open)[0])
+        self.assertFalse(is_forex_market_open(summer_fri_closed)[0])
+
+        # Winter Friday (EST): 16:59 ET -> REGULAR, 17:01 ET -> CLOSED
+        winter_fri_open = datetime(2026, 1, 2, 16, 59, 0, tzinfo=NY_TZ)
+        winter_fri_closed = datetime(2026, 1, 2, 17, 1, 0, tzinfo=NY_TZ)
+        self.assertTrue(is_forex_market_open(winter_fri_open)[0])
+        self.assertFalse(is_forex_market_open(winter_fri_closed)[0])
 
 
 if __name__ == '__main__':

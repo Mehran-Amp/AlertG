@@ -20,7 +20,7 @@ import time
 import pytest
 from datetime import datetime, timezone
 import zoneinfo
-
+from app.engine.calendar import get_canonical_market_state, NY_TZ
 from fastapi.testclient import TestClient
 
 from app.engine.calendar import (
@@ -75,27 +75,35 @@ class TestCanonicalMarketState:
         sat_utc = datetime(2026, 10, 24, 15, 0, 0, tzinfo=timezone.utc)
         assert get_canonical_market_state('forex', now_dt=sat_utc) == 'CLOSED'
 
-    def test_forex_schedule_windows_utc(self):
-        """Forex schedule: Sunday 22:00 UTC to Friday 22:00 UTC is REGULAR; weekends CLOSED."""
-        # Sunday before 22:00 UTC -> CLOSED
-        sun_before_22 = datetime(2026, 10, 25, 20, 0, 0, tzinfo=timezone.utc)
-        assert get_canonical_market_state('forex', now_dt=sun_before_22) == 'CLOSED'
+    def test_forex_schedule_windows_et(self):
+        """Forex schedule: Sunday 17:00 ET to Friday 17:00 ET is REGULAR; weekends CLOSED.
 
-        # Sunday after 22:00 UTC -> REGULAR
-        sun_after_22 = datetime(2026, 10, 25, 22, 30, 0, tzinfo=timezone.utc)
-        assert get_canonical_market_state('forex', now_dt=sun_after_22) == 'REGULAR'
+        Uses America/New_York so EDT/EST transitions are handled correctly
+        (in EDT, 17:00 ET = 21:00 UTC; in EST, 17:00 ET = 22:00 UTC).
+        """
+        # Sunday before 17:00 ET -> CLOSED
+        sun_before_17 = datetime(2026, 10, 25, 16, 0, 0, tzinfo=NY_TZ)
+        assert get_canonical_market_state('forex', now_dt=sun_before_17) == 'CLOSED'
+
+        # Sunday after 17:00 ET -> REGULAR
+        sun_after_17 = datetime(2026, 10, 25, 17, 30, 0, tzinfo=NY_TZ)
+        assert get_canonical_market_state('forex', now_dt=sun_after_17) == 'REGULAR'
 
         # Midweek Wednesday -> REGULAR
-        wed_midday = datetime(2026, 10, 28, 14, 0, 0, tzinfo=timezone.utc)
+        wed_midday = datetime(2026, 10, 28, 14, 0, 0, tzinfo=NY_TZ)
         assert get_canonical_market_state('forex', now_dt=wed_midday) == 'REGULAR'
 
-        # Friday before 22:00 UTC -> REGULAR
-        fri_before_22 = datetime(2026, 10, 30, 21, 0, 0, tzinfo=timezone.utc)
-        assert get_canonical_market_state('forex', now_dt=fri_before_22) == 'REGULAR'
+        # Friday before 17:00 ET -> REGULAR
+        fri_before_17 = datetime(2026, 10, 30, 16, 0, 0, tzinfo=NY_TZ)
+        assert get_canonical_market_state('forex', now_dt=fri_before_17) == 'REGULAR'
 
-        # Friday after 22:00 UTC -> CLOSED
-        fri_after_22 = datetime(2026, 10, 30, 22, 15, 0, tzinfo=timezone.utc)
-        assert get_canonical_market_state('forex', now_dt=fri_after_22) == 'CLOSED'
+        # Friday after 17:00 ET -> CLOSED
+        fri_after_17 = datetime(2026, 10, 30, 18, 0, 0, tzinfo=NY_TZ)
+        assert get_canonical_market_state('forex', now_dt=fri_after_17) == 'CLOSED'
+
+        # Saturday -> CLOSED
+        sat_midday = datetime(2026, 10, 31, 12, 0, 0, tzinfo=NY_TZ)
+        assert get_canonical_market_state('forex', now_dt=sat_midday) == 'CLOSED'
 
     def test_yahoo_market_state_precedence(self):
         """When Yahoo returns valid marketState, it takes precedence over local calendar."""
