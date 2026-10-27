@@ -287,9 +287,18 @@ async def check_alerts_job():
                 is_initially_triggered = True
 
             if is_initially_triggered:
-                alert.waiting_for_cross = True
-                print(f"🛡️ [Edge Guard] {alert.symbol} ({alert.exchange}): initial price {current_price} already meets target {eff_target}. Armed for crossing.")
-                return
+                # Edge Guard: only arm for crossing if the alert was restored
+                # from a previous session (last_eval_price is not None) or
+                # explicitly synced with waiting_for_cross=True. For a freshly
+                # created alert (last_eval_price is None and waiting_for_cross
+                # is False), trigger immediately instead of waiting for a cross.
+                if getattr(alert, 'last_eval_price', None) is None and not getattr(alert, 'waiting_for_cross', False):
+                    # Fresh alert: fall through to trigger below.
+                    pass
+                else:
+                    alert.waiting_for_cross = True
+                    print(f"🛡️ [Edge Guard] {alert.symbol} ({alert.exchange}): initial price {current_price} already meets target {eff_target}. Armed for crossing.")
+                    return
 
         # If waiting for price to cross to the non-triggered side first:
         if getattr(alert, 'waiting_for_cross', False):
