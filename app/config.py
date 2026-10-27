@@ -101,3 +101,7 @@ WS_ENABLED = os.getenv("WS_ENABLED", "").strip().lower() in ("1", "true", "yes",
 
 # Phase Sync-Toggle: Automated weekly catalog sync flag (disabled by default; manual CLI sync preferred)
 WEEKLY_CATALOG_SYNC_ENABLED = os.getenv("WEEKLY_CATALOG_SYNC_ENABLED", "").strip().lower() in ("1", "true", "yes", "on")
+
+# Phase 3: Strict Crypto Price Core (Rule R1: exchange isolation, zero cross-exchange fallback)
+CRYPTO_STRICT_V2 = os.getenv("CRYPTO_STRICT_V2", "false").strip().lower() in ("1", "true", "yes", "on")
+

@@ -1,6 +1,12 @@
+import os
 from typing import List, Dict, Any, Optional
 import httpx
+import app.config as config
 from app.markets.common import normalize_symbol
+from app.markets.crypto_strict import fetch_crypto_strict, CryptoPriceResult
+
+def is_crypto_strict_enabled() -> bool:
+    return getattr(config, "CRYPTO_STRICT_V2", False) or os.getenv("CRYPTO_STRICT_V2", "false").lower() in ("true", "1", "yes")
 
 async def fetch_crypto(
     client: httpx.AsyncClient,
@@ -44,6 +50,13 @@ async def fetch_crypto(
         if clean_dex_sym.startswith('0x'):
             p = await _try_fetch('GeckoTerminal Token API', f'https://api.geckoterminal.com/api/v2/simple/networks/eth/token_price/{clean_dex_sym}', _extract_geckoterminal)
             if p and not collect_all_traces: return p
+        return None
+
+    # Phase 3: Strict Crypto Core (Rule R1: Exchange isolation, zero fallback)
+    if is_crypto_strict_enabled():
+        strict_res = await fetch_crypto_strict(client, exchange, symbol, _try_fetch, traces)
+        if strict_res.price is not None and strict_res.price > 0:
+            return strict_res.price
         return None
 
     # 3. GLOBAL CRYPTO (Binance, MEXC, KuCoin, Gate.io, CoinEx)

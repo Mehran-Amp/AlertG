@@ -1,21 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-AlertG — Phase 1 Executable Red Tests (Contract Enforcement).
-These tests verify Rule R1:
+AlertG — Phase 3 Contract Enforcement Tests.
+Verifies Rule R1:
 1. Alert = (exchange_id, base_currency, market_symbol).
 2. Price comes strictly and exclusively from the specified exchange.
 3. No fallback to Binance, no fallback to another exchange, no aggregators.
-4. Unknown exchange must return None/UNKNOWN_EXCHANGE, never default to Binance.
-
-Status: These tests are marked with @unittest.expectedFailure against the current
-v1 codebase (app/markets/crypto.py) because current code falls back to Binance.
-In Phase 3 (Strict Price Core behind CRYPTO_STRICT_V2), these tests will turn GREEN.
-Zero product code changes in this phase.
+4. Unknown exchange returns None/UNKNOWN_EXCHANGE.
+5. In Phase 3, these tests are active assertions (GREEN) with CRYPTO_STRICT_V2=true.
+6. When CRYPTO_STRICT_V2=false, exact legacy fallback is preserved for backward compatibility.
 """
 
 import unittest
 import sys
+import os
 from unittest.mock import AsyncMock, MagicMock
 from typing import Dict, Any, Optional
 
@@ -37,24 +35,31 @@ except ImportError:
     sys.modules['apscheduler.schedulers'] = apscheduler
     sys.modules['apscheduler.schedulers.asyncio'] = apscheduler
 
+import app.config as config
 from app.markets.crypto import fetch_crypto
 
 
 class TestCryptoStrictContractRed(unittest.IsolatedAsyncioTestCase):
     """
     Contract acceptance tests enforcing Rule R1 (Exchange Isolation).
-    Currently expected to FAIL against legacy fetch_crypto implementation.
+    In Phase 3, these tests are GREEN under CRYPTO_STRICT_V2=True.
     """
 
     def setUp(self):
         self.mock_client = AsyncMock()
+        # Enable strict mode for tests
+        os.environ['CRYPTO_STRICT_V2'] = 'true'
+        config.CRYPTO_STRICT_V2 = True
 
-    @unittest.expectedFailure
+    def tearDown(self):
+        # Reset flag
+        os.environ['CRYPTO_STRICT_V2'] = 'false'
+        config.CRYPTO_STRICT_V2 = False
+
     async def test_01_unknown_exchange_must_not_fallback_to_binance(self):
         """
         [Rule R1] An unknown or unregistered exchange ID must NEVER default to Binance.
-        Current Bug: For any unknown exchange, fetch_crypto defaults to Binance spot price.
-        Expected: Return None (UNKNOWN_EXCHANGE).
+        Expected: Return None (UNKNOWN_EXCHANGE), zero queries to Binance.
         """
         queried_sources = []
 
@@ -85,19 +90,18 @@ class TestCryptoStrictContractRed(unittest.IsolatedAsyncioTestCase):
             "R1 VIOLATION: Binance API was queried for an unknown exchange alert!"
         )
 
-    @unittest.expectedFailure
     async def test_02_okx_alert_must_not_evaluate_with_binance_price(self):
         """
-        [Rule R1] An alert set on OKX must NEVER be evaluated with Binance's price.
-        Current Bug: OKX is not registered in backend fetch_crypto, so it falls back to Binance.
-        Expected: Return None until OKX adapter is implemented in Phase 4f; never query Binance.
+        [Rule R1] An alert set on OKX must query ONLY OKX endpoint; never query Binance.
         """
         queried_sources = []
 
         async def mock_try_fetch(source_name: str, url: str, extract_func) -> Optional[float]:
             queried_sources.append(source_name)
-            if 'Binance' in source_name:
+            if 'OKX' in source_name:
                 return 65120.0
+            if 'Binance' in source_name:
+                return 65000.0
             return None
 
         traces = []
@@ -110,31 +114,24 @@ class TestCryptoStrictContractRed(unittest.IsolatedAsyncioTestCase):
             collect_all_traces=False
         )
 
-        self.assertIsNone(
-            price,
-            f"R1 VIOLATION: OKX alert evaluated with Binance price={price}"
-        )
-        self.assertNotIn(
-            'Binance Spot API',
-            queried_sources,
-            "R1 VIOLATION: Binance Spot API was queried for an OKX alert!"
-        )
+        self.assertEqual(price, 65120.0, "OKX must return OKX price")
+        self.assertIn('OKX Spot API', queried_sources, "OKX Spot API must be queried")
+        self.assertNotIn('Binance Spot API', queried_sources, "Binance must NEVER be queried for OKX")
 
-    @unittest.expectedFailure
     async def test_03_lbank_alert_must_not_fallback_to_other_exchanges(self):
         """
-        [Rule R1] An alert set on LBank must NEVER query Binance, MEXC, or KuCoin.
-        Current Bug: LBank is not in backend fetch_crypto, so it defaults to Binance/MEXC loop.
-        Expected: Return None until LBank adapter is active in Phase 4e; zero cross-exchange calls.
+        [Rule R1] An alert set on LBank must query ONLY LBank; never query Binance or MEXC.
         """
         queried_sources = []
 
         async def mock_try_fetch(source_name: str, url: str, extract_func) -> Optional[float]:
             queried_sources.append(source_name)
-            if 'Binance' in source_name:
+            if 'LBank' in source_name:
                 return 65200.0
+            if 'Binance' in source_name:
+                return 65000.0
             if 'MEXC' in source_name:
-                return 65250.0
+                return 65050.0
             return None
 
         traces = []
@@ -147,32 +144,22 @@ class TestCryptoStrictContractRed(unittest.IsolatedAsyncioTestCase):
             collect_all_traces=False
         )
 
-        self.assertIsNone(
-            price,
-            f"R1 VIOLATION: LBank alert evaluated with price={price} from {queried_sources}"
-        )
-        self.assertNotIn(
-            'Binance Spot API',
-            queried_sources,
-            "R1 VIOLATION: Binance API was queried for an LBank alert!"
-        )
+        self.assertEqual(price, 65200.0, "LBank must return LBank price")
+        self.assertIn('LBank Spot API', queried_sources, "LBank Spot API must be queried")
+        self.assertNotIn('Binance Spot API', queried_sources, "Binance must NEVER be queried for LBank")
+        self.assertNotIn('MEXC Spot API', queried_sources, "MEXC must NEVER be queried for LBank")
 
-    @unittest.expectedFailure
     async def test_04_coin_missing_on_selected_exchange_must_not_steal_from_another(self):
         """
-        [Rule R1] If a coin is missing on KuCoin (e.g. 404 or None), fetch_crypto must NOT
-        fall through to MEXC, Gate.io, or Binance to steal their price.
-        Current Bug: When KuCoin returns None, the loop continues and returns the next provider's price.
-        Expected: KuCoin fails -> stop immediately, return None (NO_PRICE/SYMBOL_NOT_LISTED).
+        [Rule R1] If a coin is missing on KuCoin (returns None), fetch_crypto must NOT
+        fall through to MEXC, Gate.io, or Binance. Must return None immediately.
         """
         queried_sources = []
 
         async def mock_try_fetch(source_name: str, url: str, extract_func) -> Optional[float]:
             queried_sources.append(source_name)
-            # KuCoin does NOT have this coin
             if 'KuCoin' in source_name:
                 return None
-            # But Binance and MEXC DO have it
             if 'Binance' in source_name:
                 return 0.05
             if 'MEXC' in source_name:
@@ -199,6 +186,39 @@ class TestCryptoStrictContractRed(unittest.IsolatedAsyncioTestCase):
             ['KuCoin Spot API'],
             f"R1 VIOLATION: Additional exchanges were queried after KuCoin: {queried_sources}"
         )
+
+    async def test_05_legacy_fallback_preserved_when_flag_is_off(self):
+        """
+        [Backward Compatibility R6] When CRYPTO_STRICT_V2=False, the exact legacy
+        behavior (prioritization and fallback) is 100% preserved.
+        """
+        os.environ['CRYPTO_STRICT_V2'] = 'false'
+        config.CRYPTO_STRICT_V2 = False
+
+        queried_sources = []
+
+        async def mock_try_fetch(source_name: str, url: str, extract_func) -> Optional[float]:
+            queried_sources.append(source_name)
+            # KuCoin fails, but Binance returns
+            if 'KuCoin' in source_name:
+                return None
+            if 'Binance' in source_name:
+                return 50000.0
+            return None
+
+        traces = []
+        price = await fetch_crypto(
+            client=self.mock_client,
+            exchange='kucoin',
+            symbol='BTCUSDT',
+            _try_fetch=mock_try_fetch,
+            traces=traces,
+            collect_all_traces=False
+        )
+
+        # In legacy mode (flag=False), KuCoin falls back to Binance!
+        self.assertEqual(price, 50000.0)
+        self.assertIn('Binance Spot API', queried_sources)
 
 
 if __name__ == '__main__':
