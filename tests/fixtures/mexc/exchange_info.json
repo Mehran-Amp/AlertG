@@ -1,0 +1,149 @@
+{
+  "timezone": "CST",
+  "serverTime": 1730000000000,
+  "symbols": [
+    {
+      "symbol": "BTCUSDT",
+      "status": "ENABLED",
+      "baseAsset": "BTC",
+      "baseAssetPrecision": 8,
+      "quoteAsset": "USDT",
+      "quotePrecision": 8,
+      "quoteAssetPrecision": 8,
+      "isSpotTradingAllowed": true,
+      "permissions": ["SPOT"],
+      "filters": [
+        {"filterType": "PRICE_FILTER", "minPrice": "0.01000000"},
+        {"filterType": "LOT_SIZE", "minQty": "0.00001000"}
+      ]
+    },
+    {
+      "symbol": "ETHUSDT",
+      "status": "1",
+      "baseAsset": "ETH",
+      "baseAssetPrecision": 8,
+      "quoteAsset": "USDT",
+      "quotePrecision": 8,
+      "quoteAssetPrecision": 8,
+      "isSpotTradingAllowed": true,
+      "permissions": ["SPOT"],
+      "filters": [
+        {"filterType": "PRICE_FILTER", "minPrice": "0.01000000"},
+        {"filterType": "LOT_SIZE", "minQty": "0.00010000"}
+      ]
+    },
+    {
+      "symbol": "SOLUSDT",
+      "status": "TRADING",
+      "baseAsset": "SOL",
+      "baseAssetPrecision": 8,
+      "quoteAsset": "USDT",
+      "quotePrecision": 8,
+      "quoteAssetPrecision": 8,
+      "isSpotTradingAllowed": true,
+      "permissions": ["SPOT"]
+    },
+    {
+      "symbol": "KASUSDT",
+      "status": "ENABLED",
+      "baseAsset": "KAS",
+      "baseAssetPrecision": 8,
+      "quoteAsset": "USDT",
+      "quotePrecision": 8,
+      "quoteAssetPrecision": 8,
+      "isSpotTradingAllowed": true,
+      "permissions": ["SPOT"]
+    },
+    {
+      "symbol": "1INCHUSDT",
+      "status": "ENABLED",
+      "baseAsset": "1INCH",
+      "baseAssetPrecision": 8,
+      "quoteAsset": "USDT",
+      "quotePrecision": 8,
+      "quoteAssetPrecision": 8,
+      "isSpotTradingAllowed": true,
+      "permissions": ["SPOT"]
+    },
+    {
+      "symbol": "BTC3LUSDT",
+      "status": "ENABLED",
+      "baseAsset": "BTC3L",
+      "baseAssetPrecision": 8,
+      "quoteAsset": "USDT",
+      "quotePrecision": 8,
+      "quoteAssetPrecision": 8,
+      "isSpotTradingAllowed": true,
+      "permissions": ["SPOT"],
+      "tags": ["etf", "leveraged"]
+    },
+    {
+      "symbol": "BTC3SUSDT",
+      "status": "ENABLED",
+      "baseAsset": "BTC3S",
+      "baseAssetPrecision": 8,
+      "quoteAsset": "USDT",
+      "quotePrecision": 8,
+      "quoteAssetPrecision": 8,
+      "isSpotTradingAllowed": true,
+      "permissions": ["SPOT"],
+      "tags": ["etf", "leveraged"]
+    },
+    {
+      "symbol": "ETH5LUSDT",
+      "status": "ENABLED",
+      "baseAsset": "ETH5L",
+      "baseAssetPrecision": 8,
+      "quoteAsset": "USDT",
+      "quotePrecision": 8,
+      "quoteAssetPrecision": 8,
+      "isSpotTradingAllowed": true,
+      "permissions": ["SPOT"],
+      "tags": ["etf"]
+    },
+    {
+      "symbol": "OLDCOINUSDT",
+      "status": "DISABLED",
+      "baseAsset": "OLDCOIN",
+      "baseAssetPrecision": 8,
+      "quoteAsset": "USDT",
+      "quotePrecision": 8,
+      "quoteAssetPrecision": 8,
+      "isSpotTradingAllowed": true,
+      "permissions": ["SPOT"]
+    },
+    {
+      "symbol": "BTCUSDC",
+      "status": "ENABLED",
+      "baseAsset": "BTC",
+      "baseAssetPrecision": 8,
+      "quoteAsset": "USDC",
+      "quotePrecision": 8,
+      "quoteAssetPrecision": 8,
+      "isSpotTradingAllowed": true,
+      "permissions": ["SPOT"]
+    },
+    {
+      "symbol": "ETHBTC",
+      "status": "ENABLED",
+      "baseAsset": "ETH",
+      "baseAssetPrecision": 8,
+      "quoteAsset": "BTC",
+      "quotePrecision": 8,
+      "quoteAssetPrecision": 8,
+      "isSpotTradingAllowed": true,
+      "permissions": ["SPOT"]
+    },
+    {
+      "symbol": "FUTURES_USDT",
+      "status": "ENABLED",
+      "baseAsset": "FUTURES",
+      "baseAssetPrecision": 8,
+      "quoteAsset": "USDT",
+      "quotePrecision": 8,
+      "quoteAssetPrecision": 8,
+      "isSpotTradingAllowed": false,
+      "permissions": ["FUTURES"]
+    }
+  ]
+}

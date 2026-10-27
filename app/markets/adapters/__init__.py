@@ -10,6 +10,8 @@ from app.markets.adapters.base import (
     SinglePriceResult,
     classify_http_error,
 )
+from app.markets.adapters.binance import BinanceAdapter
+from app.markets.adapters.mexc import MEXCAdapter
 
 __all__ = [
     "BaseExchangeAdapter",
@@ -17,4 +19,6 @@ __all__ = [
     "BatchPriceResult",
     "SinglePriceResult",
     "classify_http_error",
+    "BinanceAdapter",
+    "MEXCAdapter",
 ]

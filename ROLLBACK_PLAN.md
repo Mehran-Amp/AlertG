@@ -157,4 +157,21 @@
    python -m unittest tests/test_crypto_strict_contract_red.py tests/test_crypto_adapter_binance.py
    ```
 
+---
+
+### ۸. دستورالعمل رول‌بک زیرفاز ۴b کریپتو (MEXC Adapter Rollback)
+طبق قواعد R3، R4 و R6:
+1. **ایزولاسیون ماژولار**:
+   آداپتور MEXC در فایل مجزای `app/markets/adapters/mexc.py` پیاده‌سازی شده و از نظر فضا و حافظه کاملاً مستقل است.
+2. **قطع فوری اضطراری با Kill-Switch**:
+   در صورت نیاز به قطع آنی MEXC بدون اختلال در عملکرد Binance یا سایر صرافی‌ها:
+   ```bash
+   export KILL_SWITCH_PROVIDERS=crypto_mexc
+   ```
+3. **اعتبارسنجی آفلاین پس از رول‌بک**:
+   ```bash
+   python -m unittest tests/test_crypto_adapter_mexc.py
+   ```
+
+
 
