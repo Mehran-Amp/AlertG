@@ -3020,11 +3020,10 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
               }),
               const SizedBox(height: 8),
 
-              // 3.3 Sound & Vibration Toggles
-              Row(
-                children: [
-                  Expanded(
-                    child: SwitchListTile(
+                // 3.3 Sound & Vibration Toggles
+                Column(
+                  children: [
+                    SwitchListTile(
                       dense: true,
                       contentPadding: EdgeInsets.zero,
                       title: Text(
@@ -3038,10 +3037,9 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
                       inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
                       onChanged: (val) => setState(() => _soundEnabled = val),
                     ),
-                  ),
-                  Expanded(
-                    child: SwitchListTile(
+                    SwitchListTile(
                       dense: true,
+                      contentPadding: EdgeInsets.zero,
                       title: Text(
                         AppStrings.get('flash_sos_label', lang),
                         style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
@@ -3053,9 +3051,7 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
                       inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
                       onChanged: (val) => setState(() => _flashEnabled = val),
                     ),
-                  ),
-                  Expanded(
-                    child: SwitchListTile(
+                    SwitchListTile(
                       dense: true,
                       contentPadding: EdgeInsets.zero,
                       title: Text(
@@ -3069,11 +3065,10 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
                       inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
                       onChanged: (val) => setState(() => _vibrationEnabled = val),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
 
-              const SizedBox(height: 10),
+                const SizedBox(height: 10),
 
               // 3.4 Text-to-Speech (TTS) Voice Announcer
               Material(

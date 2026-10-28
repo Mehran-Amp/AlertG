@@ -89,6 +89,7 @@ Future<void> handleAlertDataMap(
     soundName: d['sound'] as String?,
     soundEnabled: d['sound_enabled'] != 'false',
     vibrationEnabled: d['vibration_enabled'] != 'false',
+    flashEnabled: d['flash_enabled'] == 'true',
     ttsEnabled: d['tts_enabled'] != 'false',
     speechText: speechText,
     inAppFeedback: inApp,

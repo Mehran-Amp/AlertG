@@ -895,6 +895,7 @@ async def test_push_notification(fcm_token: Optional[str] = None, title: Optiona
             "note": "تست اتصال زنده سرور",
             "sound_enabled": "true",
             "vibration_enabled": "true",
+            "flash_enabled": "true",
             "tts_enabled": "true",
             "sound": "alarm_siren",
             "channel_id": "alarmer_channel_sound_vibrate_v5",
