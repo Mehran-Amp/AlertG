@@ -1,0 +1,99 @@
+{
+  "code": "200000",
+  "data": [
+    {
+      "symbol": "BTC-USDT",
+      "name": "BTC-USDT",
+      "baseCurrency": "BTC",
+      "quoteCurrency": "USDT",
+      "enableTrading": true,
+      "priceIncrement": "0.1",
+      "baseMinSize": "0.00001",
+      "category": "spot"
+    },
+    {
+      "symbol": "ETH-USDT",
+      "name": "ETH-USDT",
+      "baseCurrency": "ETH",
+      "quoteCurrency": "USDT",
+      "enableTrading": true,
+      "priceIncrement": "0.01",
+      "baseMinSize": "0.0001",
+      "category": "spot"
+    },
+    {
+      "symbol": "SOL-USDT",
+      "name": "SOL-USDT",
+      "baseCurrency": "SOL",
+      "quoteCurrency": "USDT",
+      "enableTrading": true,
+      "priceIncrement": "0.01",
+      "baseMinSize": "0.01",
+      "category": "spot"
+    },
+    {
+      "symbol": "KCS-USDT",
+      "name": "KCS-USDT",
+      "baseCurrency": "KCS",
+      "quoteCurrency": "USDT",
+      "enableTrading": true,
+      "priceIncrement": "0.001",
+      "baseMinSize": "0.1",
+      "category": "spot"
+    },
+    {
+      "symbol": "1INCH-USDT",
+      "name": "1INCH-USDT",
+      "baseCurrency": "1INCH",
+      "quoteCurrency": "USDT",
+      "enableTrading": true,
+      "priceIncrement": "0.0001",
+      "baseMinSize": "0.1",
+      "category": "spot"
+    },
+    {
+      "symbol": "BTC3L-USDT",
+      "name": "BTC3L-USDT",
+      "baseCurrency": "BTC3L",
+      "quoteCurrency": "USDT",
+      "enableTrading": true,
+      "priceIncrement": "0.0001",
+      "baseMinSize": "0.1",
+      "category": "etf"
+    },
+    {
+      "symbol": "BTC3S-USDT",
+      "name": "BTC3S-USDT",
+      "baseCurrency": "BTC3S",
+      "quoteCurrency": "USDT",
+      "enableTrading": true,
+      "priceIncrement": "0.0001",
+      "baseMinSize": "0.1",
+      "category": "etf"
+    },
+    {
+      "symbol": "HALT-USDT",
+      "name": "HALT-USDT",
+      "baseCurrency": "HALT",
+      "quoteCurrency": "USDT",
+      "enableTrading": false,
+      "category": "spot"
+    },
+    {
+      "symbol": "BTC-USDC",
+      "name": "BTC-USDC",
+      "baseCurrency": "BTC",
+      "quoteCurrency": "USDC",
+      "enableTrading": true,
+      "category": "spot"
+    },
+    {
+      "symbol": "ETH-BTC",
+      "name": "ETH-BTC",
+      "baseCurrency": "ETH",
+      "quoteCurrency": "BTC",
+      "enableTrading": true,
+      "category": "spot"
+    }
+  ]
+}

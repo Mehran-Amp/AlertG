@@ -1,0 +1,71 @@
+{
+  "code": "200000",
+  "data": {
+    "time": 1730000000000,
+    "ticker": [
+      {
+        "symbol": "BTC-USDT",
+        "symbolName": "BTC-USDT",
+        "buy": "67410.0",
+        "sell": "67410.5",
+        "last": "67410.25"
+      },
+      {
+        "symbol": "ETH-USDT",
+        "symbolName": "ETH-USDT",
+        "buy": "2619.0",
+        "sell": "2619.5",
+        "last": "2619.20"
+      },
+      {
+        "symbol": "SOL-USDT",
+        "symbolName": "SOL-USDT",
+        "buy": "178.1",
+        "sell": "178.2",
+        "last": "178.15"
+      },
+      {
+        "symbol": "KCS-USDT",
+        "symbolName": "KCS-USDT",
+        "buy": "10.45",
+        "sell": "10.48",
+        "last": "10.46"
+      },
+      {
+        "symbol": "1INCH-USDT",
+        "symbolName": "1INCH-USDT",
+        "buy": "0.3235",
+        "sell": "0.3245",
+        "last": "0.3240"
+      },
+      {
+        "symbol": "BTC3L-USDT",
+        "symbolName": "BTC3L-USDT",
+        "buy": "3.85",
+        "sell": "3.89",
+        "last": "3.87"
+      },
+      {
+        "symbol": "BTC3S-USDT",
+        "symbolName": "BTC3S-USDT",
+        "buy": "0.098",
+        "sell": "0.099",
+        "last": "0.0985"
+      },
+      {
+        "symbol": "BTC-USDC",
+        "symbolName": "BTC-USDC",
+        "buy": "67405.0",
+        "sell": "67406.0",
+        "last": "67405.5"
+      },
+      {
+        "symbol": "ETH-BTC",
+        "symbolName": "ETH-BTC",
+        "buy": "0.0388",
+        "sell": "0.0389",
+        "last": "0.03885"
+      }
+    ]
+  }
+}

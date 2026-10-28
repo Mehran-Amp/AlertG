@@ -12,6 +12,7 @@ from app.markets.adapters.base import (
 )
 from app.markets.adapters.binance import BinanceAdapter
 from app.markets.adapters.mexc import MEXCAdapter
+from app.markets.adapters.kucoin import KuCoinAdapter
 
 __all__ = [
     "BaseExchangeAdapter",
@@ -21,4 +22,5 @@ __all__ = [
     "classify_http_error",
     "BinanceAdapter",
     "MEXCAdapter",
+    "KuCoinAdapter",
 ]

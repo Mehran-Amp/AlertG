@@ -173,5 +173,22 @@
    python -m unittest tests/test_crypto_adapter_mexc.py
    ```
 
+---
+
+### ۹. دستورالعمل رول‌بک زیرفاز ۴c کریپتو (KuCoin Adapter Rollback)
+طبق قواعد R3، R4 و R6:
+1. **ایزولاسیون ماژولار**:
+   آداپتور KuCoin در فایل مجزای `app/markets/adapters/kucoin.py` پیاده‌سازی شده و از نظر فضا و حافظه کاملاً مستقل است.
+2. **قطع فوری اضطراری با Kill-Switch**:
+   در صورت نیاز به قطع آنی KuCoin بدون اختلال در عملکرد سایر صرافی‌ها:
+   ```bash
+   export KILL_SWITCH_PROVIDERS=crypto_kucoin
+   ```
+3. **اعتبارسنجی آفلاین پس از رول‌بک**:
+   ```bash
+   python -m unittest tests/test_crypto_adapter_kucoin.py
+   ```
+
+
 
 
