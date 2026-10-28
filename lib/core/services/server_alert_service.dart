@@ -632,10 +632,14 @@ class ServerAlertService {
         },
       );
       final response = await http.get(url, headers: _buildHeaders()).timeout(const Duration(seconds: 8));
+      debugPrint('🔍 [Restore] GET $url');
+      debugPrint('🔍 [Restore] status: ${response.statusCode}');
+      debugPrint('🔍 [Restore] body: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
 
       if (response.statusCode == 200) {
         final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
         if (decoded is List && decoded.isNotEmpty) {
+          debugPrint('🔍 [Restore] decoded: ${decoded.length} alerts');
           JsonAlertRuleRepository? repo = repository;
           if (repo == null && context != null) {
             try {
