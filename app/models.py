@@ -34,6 +34,7 @@ class AlertCreate(BaseModel):
     alert_nature: Optional[str] = "price"    # 'price' | 'timer' | 'macro'
     sound_enabled: bool = True
     vibration_enabled: bool = True
+    flash_enabled: bool = False
     tts_enabled: bool = True
     sound: Optional[str] = "alarm_siren"
     telegram_chat_id: Optional[str] = None
@@ -84,6 +85,7 @@ class AlertPublic(BaseModel):
     alert_nature: Optional[str] = "price"
     sound_enabled: bool = True
     vibration_enabled: bool = True
+    flash_enabled: bool = False
     tts_enabled: bool = True
     sound: Optional[str] = "alarm_siren"
     telegram_chat_id: Optional[str] = None

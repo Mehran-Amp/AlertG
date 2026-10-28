@@ -412,6 +412,7 @@ async def check_alerts_job():
                     "note": alert.note or "",
                     "sound_enabled": "true" if alert.sound_enabled else "false",
                     "vibration_enabled": "true" if alert.vibration_enabled else "false",
+                    "flash_enabled": "true" if alert.flash_enabled else "false",
                     "tts_enabled": "true" if alert.tts_enabled else "false",
                     "sound": alert.sound or "alarm_siren"
                 },

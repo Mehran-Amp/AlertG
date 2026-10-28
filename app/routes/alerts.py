@@ -143,6 +143,7 @@ async def create_alert(alert_in: AlertCreate):
             existing.alert_nature = alert_in.alert_nature or "price"
             existing.sound_enabled = alert_in.sound_enabled
             existing.vibration_enabled = alert_in.vibration_enabled
+            existing.flash_enabled = alert_in.flash_enabled
             existing.tts_enabled = alert_in.tts_enabled
             existing.sound = alert_in.sound or "alarm_siren"
             existing.telegram_chat_id = alert_in.telegram_chat_id
@@ -186,6 +187,7 @@ async def create_alert(alert_in: AlertCreate):
                 alert_nature=alert_in.alert_nature or "price",
                 sound_enabled=alert_in.sound_enabled,
                 vibration_enabled=alert_in.vibration_enabled,
+                flash_enabled=alert_in.flash_enabled,
                 tts_enabled=alert_in.tts_enabled,
                 sound=alert_in.sound or "alarm_siren",
                 telegram_chat_id=alert_in.telegram_chat_id,
@@ -333,6 +335,7 @@ async def sync_user_alerts(payload: dict):
                 alert_nature=item.get('alert_nature') or 'price',
                 sound_enabled=bool(item.get('sound_enabled', True)),
                 vibration_enabled=bool(item.get('vibration_enabled', True)),
+                flash_enabled=bool(item.get('flash_enabled', False)),
                 tts_enabled=bool(item.get('tts_enabled', True)),
                 sound=item.get('sound', 'alarm_siren'),
                 telegram_chat_id=eff_chat,
