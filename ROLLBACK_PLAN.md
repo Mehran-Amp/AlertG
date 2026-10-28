@@ -274,6 +274,25 @@
    python -m unittest tests/test_crypto_catalog_builder.py
    ```
 
+---
+
+### ۱۵. دستورالعمل رول‌بک فاز ۶ (Crypto Symbols API Rollback)
+طبق قواعد R3، R4، R5 و R6:
+1. **ایزولاسیون صددرصدی و عدم تداخل**:
+   - مسیرهای `/api/crypto/exchanges` و `/api/crypto/symbols/{exchange}` صرفاً در ماژول اختصاصی `app/routes/crypto_symbols.py` قرار دارند.
+   - کلیه اندپوینت‌های موجود (`/api/symbols`، `/api/symbols/wallstreet-macro`، `/api/symbols/changes`، `/api/symbols/catalog`) و فایل‌های داده‌ای مثل `catalog.json` و `iran_catalog.json` کاملاً دست‌نخورده باقی مانده‌اند.
+2. **غیرفعال‌سازی یا حذف سریع**:
+   - در صورت نیاز به غیرفعال‌سازی این اندپوینت‌ها، کافی است خط مربوط به ثبت این روتر در `server.py` غیرفعال شود:
+   ```python
+   # app.include_router(crypto_symbols_router)
+   ```
+   یا متغیر محیطی احراز هویت کنترل گردد.
+3. **اعتبارسنجی آفلاین پس از رول‌بک**:
+   ```bash
+   python -m unittest tests/test_crypto_symbols_api.py
+   ```
+
+
 
 
 

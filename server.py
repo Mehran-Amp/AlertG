@@ -74,6 +74,7 @@ from app.routes.user import router as user_router
 from app.routes.prices import router as prices_router
 from app.routes.admin import router as admin_router, PROBE_TARGETS
 from app.routes.symbols import router as symbols_router
+from app.routes.crypto_symbols import router as crypto_symbols_router
 from app.routes.telegram import router as telegram_router
 from app.routes.market_events import router as market_events_router
 from app.routes.deliveries import router as deliveries_router
@@ -269,6 +270,7 @@ app.include_router(user_router)
 app.include_router(prices_router)
 app.include_router(admin_router)
 app.include_router(symbols_router)
+app.include_router(crypto_symbols_router)
 app.include_router(telegram_router)
 app.include_router(market_events_router)
 app.include_router(deliveries_router)

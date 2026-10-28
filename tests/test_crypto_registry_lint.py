@@ -43,8 +43,47 @@ except ImportError:
 try:
     import fastapi
 except ImportError:
-    fastapi = MagicMock()
+    import types
+    fastapi = types.ModuleType('fastapi')
+    fastapi.__path__ = []
+    class APIRouter:
+        def get(self, *a, **kw): return lambda fn: fn
+        def post(self, *a, **kw): return lambda fn: fn
+        def delete(self, *a, **kw): return lambda fn: fn
+        def put(self, *a, **kw): return lambda fn: fn
+        def patch(self, *a, **kw): return lambda fn: fn
+        def include_router(self, *a, **kw): pass
+    class Response:
+        def __init__(self, content=b"", status_code=200, headers=None, media_type=None, **kwargs):
+            self.content = content if isinstance(content, bytes) else str(content).encode("utf-8")
+            self.status_code = status_code
+            self.headers = headers or {}
+    class Request: pass
+    class HTTPException(Exception):
+        def __init__(self, status_code=500, detail="", **kwargs):
+            super().__init__(detail)
+            self.status_code = status_code
+            self.detail = detail
+    fastapi.APIRouter = APIRouter
+    fastapi.HTTPException = HTTPException
+    fastapi.Response = Response
+    fastapi.Request = Request
+    fastapi.Header = MagicMock()
+    fastapi.Depends = MagicMock()
+    fastapi.Query = lambda default=None, **kw: default
     sys.modules['fastapi'] = fastapi
+
+    resp_mod = types.ModuleType('fastapi.responses')
+    class JSONResponse(Response):
+        def __init__(self, content=None, status_code=200, headers=None, **kwargs):
+            b = json.dumps(content).encode("utf-8") if isinstance(content, (dict, list)) else (content or b"")
+            super().__init__(content=b, status_code=status_code, headers=headers or {})
+    class HTMLResponse(Response): pass
+    resp_mod.Response = Response
+    resp_mod.JSONResponse = JSONResponse
+    resp_mod.HTMLResponse = HTMLResponse
+    fastapi.responses = resp_mod
+    sys.modules['fastapi.responses'] = resp_mod
 
 import app.config as config
 from app.markets.crypto_registry import (

@@ -55,16 +55,44 @@ except ImportError:
             return lambda fn: fn
         def patch(self, *a, **kw):
             return lambda fn: fn
+        def include_router(self, *a, **kw): pass
 
     class HTTPException(Exception):
-        def __init__(self, status_code=500, detail=""):
+        def __init__(self, status_code=500, detail="", **kw):
+            super().__init__(detail)
             self.status_code = status_code
             self.detail = detail
+
+    class Response:
+        def __init__(self, content=b"", status_code=200, headers=None, media_type=None, **kwargs):
+            self.content = content if isinstance(content, bytes) else str(content).encode("utf-8")
+            self.status_code = status_code
+            self.headers = headers or {}
+
+    class Request: pass
+
     fastapi.APIRouter = APIRouter
     fastapi.HTTPException = HTTPException
+    fastapi.Response = Response
+    fastapi.Request = Request
     fastapi.Header = MagicMock()
     fastapi.Depends = MagicMock()
+    fastapi.Query = lambda default=None, **kw: default
+    fastapi.__path__ = []
     sys.modules['fastapi'] = fastapi
+
+    import types
+    resp_mod = types.ModuleType('fastapi.responses')
+    class JSONResponse(Response):
+        def __init__(self, content=None, status_code=200, headers=None, **kwargs):
+            b = json.dumps(content).encode("utf-8") if isinstance(content, (dict, list)) else (content or b"")
+            super().__init__(content=b, status_code=status_code, headers=headers or {})
+    class HTMLResponse(Response): pass
+    resp_mod.Response = Response
+    resp_mod.JSONResponse = JSONResponse
+    resp_mod.HTMLResponse = HTMLResponse
+    fastapi.responses = resp_mod
+    sys.modules['fastapi.responses'] = resp_mod
 
 try:
     import pydantic
@@ -101,8 +129,16 @@ class TestCryptoCatalogBuilder(unittest.IsolatedAsyncioTestCase):
             if os.path.exists(self.root_catalog_path)
             else None
         )
+        # Silence live telegram alerts during test runs
+        self._notify_patcher = patch(
+            "app.markets.crypto_catalog._safe_notify_admin",
+            new_callable=AsyncMock
+        )
+        self.mock_notify_admin = self._notify_patcher.start()
 
     def tearDown(self):
+        if hasattr(self, "_notify_patcher"):
+            self._notify_patcher.stop()
         if os.path.exists(self.test_dir):
             shutil.rmtree(self.test_dir, ignore_errors=True)
 
