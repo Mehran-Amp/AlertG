@@ -253,6 +253,28 @@
    python -m unittest tests/test_crypto_adapter_kraken.py
    ```
 
+---
+
+### ۱۴. دستورالعمل رول‌بک فاز ۵ (Dynamic Crypto Catalog Builder Rollback)
+طبق قواعد R3، R4، R5 و R6:
+1. **ایزولاسیون ذخیره‌سازی و عدم تداخل**:
+   - فایل‌های کاتالوگ هر صرافی منحصراً در پوشه مجزای `crypto_catalogs/{exchange}.json` ذخیره می‌شوند.
+   - فایل `catalog.json`، نسخه کاتالوگ عمومی، سهام، فارکس، طلا و بازار ایران کاملاً ایزوله بوده و تحت هیچ شرایطی توسط این ماژول لمس یا بازنویسی نمی‌شوند.
+2. **غیرفعال‌سازی یا تغییر زمان‌بندی همگام‌سازی کاتالوگ**:
+   - در صورت نیاز به توقف همگام‌سازی پس‌زمینه کاتالوگ‌ها بدون دستکاری در کد:
+   ```bash
+   export CRYPTO_CATALOG_SYNC_HOURS=999999
+   ```
+   یا حذف فایل‌های کش داخل `crypto_catalogs/`:
+   ```bash
+   rm -f crypto_catalogs/*.json
+   ```
+3. **اعتبارسنجی آفلاین پس از رول‌بک**:
+   ```bash
+   python -m unittest tests/test_crypto_catalog_builder.py
+   ```
+
+
 
 
 

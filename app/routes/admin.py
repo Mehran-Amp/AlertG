@@ -982,6 +982,37 @@ def trigger_admin_catalog_rollback(version: Optional[int] = None):
         raise HTTPException(status_code=400, detail=str(e))
 
 
+# -------------------------------------------------------------------------
+# Dynamic Crypto Exchange Catalogs & Sync (Phase 5 - v3.4.0)
+# -------------------------------------------------------------------------
+@router.get("/api/admin/crypto-catalog/status", dependencies=ADMIN_DEP)
+@router.get("/admin/crypto-catalog/status", dependencies=ADMIN_DEP)
+def get_admin_crypto_catalog_status():
+    from app.markets.crypto_catalog import get_crypto_catalogs_status
+    return get_crypto_catalogs_status()
+
+
+@router.post("/api/admin/crypto-catalog/sync", dependencies=ADMIN_DEP)
+@router.post("/admin/crypto-catalog/sync", dependencies=ADMIN_DEP)
+async def trigger_admin_crypto_catalog_sync(exchange: Optional[str] = None, ignore_safety: bool = False):
+    from app.markets.crypto_catalog import sync_exchange_catalog, sync_all_crypto_catalogs
+    try:
+        if exchange:
+            report = await sync_exchange_catalog(exchange, ignore_safety=ignore_safety)
+            return {
+                "success": report.get("success", False),
+                "report": report
+            }
+        else:
+            report = await sync_all_crypto_catalogs(ignore_safety=ignore_safety)
+            return {
+                "success": True,
+                "report": report
+            }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Crypto catalog sync failed: {str(e)}")
+
+
 @router.get("/api/admin/features", dependencies=ADMIN_DEP)
 @router.get("/admin/features", dependencies=ADMIN_DEP)
 def get_features_status(user_id: Optional[str] = None):
@@ -1088,3 +1119,44 @@ async def admin_test_alert_push(
         "queued_before": before_queued,
         "queued_after": METRICS.get("delivery_queued", 0),
     }
+
+
+# ===================================================================
+# Crypto Dynamic Catalogs Management (Phase 5)
+# ===================================================================
+@router.get("/api/admin/crypto/catalogs/status", dependencies=ADMIN_DEP)
+@router.get("/api/crypto/catalogs/status", dependencies=ADMIN_DEP)
+def get_crypto_catalogs_status_endpoint():
+    """Returns the metadata, pair count, and staleness status of all crypto exchange catalogs."""
+    from app.markets.crypto_catalog import get_all_catalogs_status
+    return get_all_catalogs_status()
+
+
+@router.post("/api/admin/crypto/catalogs/sync", dependencies=ADMIN_DEP)
+@router.post("/api/crypto/catalogs/sync", dependencies=ADMIN_DEP)
+async def sync_crypto_catalogs_endpoint(exchange: Optional[str] = None):
+    """
+    Manually triggers catalog sync for a specific exchange or all supported exchanges.
+    Strictly isolated: does not affect stock/forex catalogs or catalog.json.
+    """
+    from app.markets.crypto_catalog import (
+        sync_single_exchange_catalog,
+        sync_all_crypto_catalogs,
+        SUPPORTED_EXCHANGES
+    )
+    if exchange:
+        ex_clean = exchange.strip().lower()
+        if ex_clean not in SUPPORTED_EXCHANGES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unknown exchange '{exchange}'. Supported: {', '.join(SUPPORTED_EXCHANGES)}"
+            )
+        res = await sync_single_exchange_catalog(ex_clean)
+        return {"sync_mode": "single", "result": res}
+
+    report = await sync_all_crypto_catalogs()
+    return {"sync_mode": "all", "report": report}
+
+
+get_admin_crypto_catalog_status = get_crypto_catalogs_status_endpoint
+trigger_admin_crypto_catalog_sync = sync_crypto_catalogs_endpoint

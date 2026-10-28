@@ -134,6 +134,21 @@ def setup_scheduler_jobs(sched):
         misfire_grace_time=15,
         id='advance_reminders_30s_job'
     )
+    # Crypto Dynamic Catalogs Periodic Job (Phase 5)
+    try:
+        from app.markets.crypto_catalog import crypto_catalog_sync_job, DEFAULT_SYNC_HOURS
+        sync_hours = float(os.getenv("CRYPTO_CATALOG_SYNC_HOURS", str(DEFAULT_SYNC_HOURS)))
+        sched.add_job(
+            crypto_catalog_sync_job,
+            'interval',
+            hours=sync_hours,
+            max_instances=1,
+            coalesce=True,
+            misfire_grace_time=1800,
+            id='crypto_catalog_sync_job'
+        )
+    except Exception as e:
+        logger.warning(f"⚠️ [Scheduler] Could not register crypto_catalog_sync_job: {e}")
 
 _SERVER_BG_TASKS: Set[asyncio.Task] = set()
 
@@ -142,6 +157,14 @@ async def _run_background_market_refresh(client: httpx.AsyncClient):
         await refresh_market_events(client)
     except Exception as e:
         logger.exception(f"⚠️ [Startup Background] refresh_market_events failed: {e}")
+
+async def _run_background_crypto_catalog_sync(client: httpx.AsyncClient):
+    try:
+        from app.markets.crypto_catalog import sync_all_crypto_catalogs
+        await sync_all_crypto_catalogs(client=client)
+    except Exception as e:
+        logger.warning(f"⚠️ [Startup Background] crypto catalog initial sync error: {e}")
+
 
 # -------------------------------------------------------------------
 # FastAPI Lifespan Context Manager (Modern Startup & Shutdown)
@@ -177,7 +200,13 @@ async def lifespan(app: FastAPI):
     _SERVER_BG_TASKS.add(bg_market_task)
     bg_market_task.add_done_callback(_SERVER_BG_TASKS.discard)
 
+    # Initial crypto catalog sync on startup (kept in strong-ref set, exceptions logged)
+    bg_crypto_cat_task = asyncio.create_task(_run_background_crypto_catalog_sync(state.http_client))
+    _SERVER_BG_TASKS.add(bg_crypto_cat_task)
+    bg_crypto_cat_task.add_done_callback(_SERVER_BG_TASKS.discard)
+
     yield
+
 
     # Shutdown: Cleanly close pool and scheduler
     if bg_market_task and not bg_market_task.done():
