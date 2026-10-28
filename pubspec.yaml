@@ -1,7 +1,7 @@
 name: bitcoin_checker
 description: "A production-grade, real-time financial market alert application in Flutter."
 publish_to: 'none'
-version: 3.6.1+34
+version: 3.7.0+35
 
 environment:
   sdk: '>=3.5.0 <4.0.0'

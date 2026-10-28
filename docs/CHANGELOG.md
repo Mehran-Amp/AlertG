@@ -28,6 +28,17 @@
 - **5C** (`ba17f58`): GitHub Actions CI (server + flutter)
 - **5D** (`bf28fb0`): release gate script (PASS/FAIL)
 
+### Phase 6 — Production hardening (2026-10-27)
+
+- **STATE-CASE-1** (`fc56697`): normalize Yahoo `marketState` case in `_extract_yf`
+- **CAL-FIX-1** (`5ae35ce`): forex hours follow New York time (EDT/EST)
+- **FIX-BASELINE-1** (`0f8bf48`): empty merge sync must not write baseline
+- **AUTH-OFF-1** (`5b9ac23`): disable mock Google Sign-In, hide UI entry points
+- **EDGE-FRESH-1** (`3ece94d`): trigger fresh alerts immediately instead of Edge Guard
+- **SYNC-4** (`a126b16`, `5ea6fd5`): restore guest alerts from cloud on startup
+- **HEALTH-ALERTS-DB-1** (`3425ce1`): warn on sudden `ALERTS_DB` drop in `/health/deep`
+- **Incident doc** (`01b75f3`): record empty-sync alert deletion incident
+
 ### Audit fixes
 
 - **REGEX-1** (`efc3b7e`): widen `SYMBOL_RE`/`EXCHANGE_RE` to match catalog
