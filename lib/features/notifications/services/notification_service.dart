@@ -582,6 +582,13 @@ class NotificationService implements NotificationServiceInterface {
           if (flashEnabled) {
             try {
               await mChannel.invokeMethod('startFlashSOS');
+              // FLASH-1: auto-stop SOS flash after 5 seconds
+              Future.delayed(const Duration(seconds: 5), () async {
+                try {
+                  await mChannel.invokeMethod('stopFlashSOS');
+                  await ServiceLogger.log('flash.stop', 'stopFlashSOS OK (timeout)');
+                } catch (_) {}
+              });
               await ServiceLogger.log('flash.start', 'startFlashSOS OK');
             } catch (e) {
               debugPrint('⚠️ [NotificationService] startFlashSOS note: $e');
