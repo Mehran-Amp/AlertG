@@ -433,6 +433,20 @@ def get_deep_health():
             f"checker stalled: no cycle in {int(now - last_check_ts)}s (> 300s)"
         )
 
+    # HEALTH-ALERTS-DB-1: sudden drop in ALERTS_DB (sign of empty-sync or
+    # accidental deletion). Keep a high-water mark in METRICS and warn
+    # when the current count drops below 50% of the peak (minimum peak 4).
+    current_alerts = len(storage.ALERTS_DB)
+    peak_alerts = METRICS.get("alerts_db_peak", 0)
+    if current_alerts > peak_alerts:
+        METRICS["alerts_db_peak"] = current_alerts
+        peak_alerts = current_alerts
+    if peak_alerts >= 4 and current_alerts < (peak_alerts * 0.5):
+        warnings.append(
+            f"ALERTS_DB dropped to {current_alerts} (peak {peak_alerts}, "
+            f"< 50%) — possible empty-sync or accidental deletion"
+        )
+
     payload = {
         "status": "degraded" if warnings else "ok",
         "checks": {
@@ -444,6 +458,8 @@ def get_deep_health():
             "fcm_auth_error": fcm_auth_error_count,
             "fcm_auth_error_15m": fcm_auth_error_15m,
             "delivery_unacked": delivery_unacked,
+            "alerts_db_count": current_alerts,
+            "alerts_db_peak": peak_alerts,
             "ack_latency_avg_ms": latency.get("avg_ms"),
             "ack_latency_p95_ms": latency.get("p95_ms"),
             "ack_latency_count": latency.get("count", 0),
