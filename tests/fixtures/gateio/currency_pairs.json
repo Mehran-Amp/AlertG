@@ -1,0 +1,104 @@
+[
+  {
+    "id": "BTC_USDT",
+    "base": "BTC",
+    "quote": "USDT",
+    "fee": "0.2",
+    "min_base_amount": "0.0001",
+    "min_quote_amount": "1",
+    "trade_status": "tradable"
+  },
+  {
+    "id": "ETH_USDT",
+    "base": "ETH",
+    "quote": "USDT",
+    "fee": "0.2",
+    "min_base_amount": "0.001",
+    "min_quote_amount": "1",
+    "trade_status": "tradable"
+  },
+  {
+    "id": "SOL_USDT",
+    "base": "SOL",
+    "quote": "USDT",
+    "fee": "0.2",
+    "min_base_amount": "0.01",
+    "min_quote_amount": "1",
+    "trade_status": "tradable"
+  },
+  {
+    "id": "GT_USDT",
+    "base": "GT",
+    "quote": "USDT",
+    "fee": "0.2",
+    "min_base_amount": "0.1",
+    "min_quote_amount": "1",
+    "trade_status": "tradable"
+  },
+  {
+    "id": "1INCH_USDT",
+    "base": "1INCH",
+    "quote": "USDT",
+    "fee": "0.2",
+    "min_base_amount": "0.1",
+    "min_quote_amount": "1",
+    "trade_status": "tradable"
+  },
+  {
+    "id": "BTC3L_USDT",
+    "base": "BTC3L",
+    "quote": "USDT",
+    "fee": "0.2",
+    "min_base_amount": "0.1",
+    "min_quote_amount": "1",
+    "trade_status": "tradable",
+    "tags": ["etf", "leveraged"]
+  },
+  {
+    "id": "BTC3S_USDT",
+    "base": "BTC3S",
+    "quote": "USDT",
+    "fee": "0.2",
+    "min_base_amount": "0.1",
+    "min_quote_amount": "1",
+    "trade_status": "tradable",
+    "tags": ["etf", "leveraged"]
+  },
+  {
+    "id": "ETH5L_USDT",
+    "base": "ETH5L",
+    "quote": "USDT",
+    "fee": "0.2",
+    "min_base_amount": "0.1",
+    "min_quote_amount": "1",
+    "trade_status": "tradable",
+    "tags": ["etf"]
+  },
+  {
+    "id": "HALT_USDT",
+    "base": "HALT",
+    "quote": "USDT",
+    "fee": "0.2",
+    "min_base_amount": "1",
+    "min_quote_amount": "1",
+    "trade_status": "untradable"
+  },
+  {
+    "id": "BTC_USDC",
+    "base": "BTC",
+    "quote": "USDC",
+    "fee": "0.2",
+    "min_base_amount": "0.0001",
+    "min_quote_amount": "1",
+    "trade_status": "tradable"
+  },
+  {
+    "id": "ETH_BTC",
+    "base": "ETH",
+    "quote": "BTC",
+    "fee": "0.2",
+    "min_base_amount": "0.001",
+    "min_quote_amount": "0.0001",
+    "trade_status": "tradable"
+  }
+]

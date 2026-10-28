@@ -1,0 +1,72 @@
+[
+  {
+    "currency_pair": "BTC_USDT",
+    "last": "67430.5",
+    "lowest_ask": "67431.0",
+    "highest_bid": "67430.0",
+    "change_percentage": "1.2"
+  },
+  {
+    "currency_pair": "ETH_USDT",
+    "last": "2621.4",
+    "lowest_ask": "2621.5",
+    "highest_bid": "2621.3",
+    "change_percentage": "0.8"
+  },
+  {
+    "currency_pair": "SOL_USDT",
+    "last": "178.6",
+    "lowest_ask": "178.7",
+    "highest_bid": "178.5",
+    "change_percentage": "3.1"
+  },
+  {
+    "currency_pair": "GT_USDT",
+    "last": "9.85",
+    "lowest_ask": "9.86",
+    "highest_bid": "9.84",
+    "change_percentage": "0.5"
+  },
+  {
+    "currency_pair": "1INCH_USDT",
+    "last": "0.3245",
+    "lowest_ask": "0.3246",
+    "highest_bid": "0.3244",
+    "change_percentage": "-0.2"
+  },
+  {
+    "currency_pair": "BTC3L_USDT",
+    "last": "4.12",
+    "lowest_ask": "4.13",
+    "highest_bid": "4.11",
+    "change_percentage": "3.6"
+  },
+  {
+    "currency_pair": "BTC3S_USDT",
+    "last": "0.115",
+    "lowest_ask": "0.116",
+    "highest_bid": "0.114",
+    "change_percentage": "-3.5"
+  },
+  {
+    "currency_pair": "ETH5L_USDT",
+    "last": "1.75",
+    "lowest_ask": "1.76",
+    "highest_bid": "1.74",
+    "change_percentage": "4.0"
+  },
+  {
+    "currency_pair": "BTC_USDC",
+    "last": "67428.0",
+    "lowest_ask": "67429.0",
+    "highest_bid": "67427.0",
+    "change_percentage": "1.1"
+  },
+  {
+    "currency_pair": "ETH_BTC",
+    "last": "0.03886",
+    "lowest_ask": "0.03887",
+    "highest_bid": "0.03885",
+    "change_percentage": "-0.4"
+  }
+]

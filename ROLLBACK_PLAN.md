@@ -189,6 +189,23 @@
    python -m unittest tests/test_crypto_adapter_kucoin.py
    ```
 
+---
+
+### ۱۰. دستورالعمل رول‌بک زیرفاز ۴d کریپتو (Gate.io Adapter Rollback)
+طبق قواعد R3، R4 و R6:
+1. **ایزولاسیون ماژولار**:
+   آداپتور Gate.io در فایل مجزای `app/markets/adapters/gateio.py` پیاده‌سازی شده و از نظر فضا و حافظه کاملاً مستقل است.
+2. **قطع فوری اضطراری با Kill-Switch**:
+   در صورت نیاز به قطع آنی Gate.io بدون اختلال در عملکرد سایر صرافی‌ها:
+   ```bash
+   export KILL_SWITCH_PROVIDERS=crypto_gateio
+   ```
+3. **اعتبارسنجی آفلاین پس از رول‌بک**:
+   ```bash
+   python -m unittest tests/test_crypto_adapter_gateio.py
+   ```
+
+
 
 
 
