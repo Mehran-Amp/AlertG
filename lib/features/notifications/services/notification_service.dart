@@ -378,6 +378,7 @@ class NotificationService implements NotificationServiceInterface {
     double volume = 1.0,
     bool soundEnabled = true,
     bool vibrationEnabled = true,
+    bool flashEnabled = false,
     bool ttsEnabled = false,
     String? speechText,
     bool inAppFeedback = true,
@@ -462,6 +463,7 @@ class NotificationService implements NotificationServiceInterface {
           volume: vol,
           soundEnabled: effSound,
           vibrationEnabled: effVibration,
+          flashEnabled: flashEnabled,
           inAppFeedback: inAppFeedback,
           master: master,
         );
@@ -494,6 +496,7 @@ class NotificationService implements NotificationServiceInterface {
     double volume = 1.0,
     bool soundEnabled = true,
     bool vibrationEnabled = true,
+    bool flashEnabled = false,
     bool inAppFeedback = true,
     Map<String, dynamic>? master,
   }) async {
@@ -511,6 +514,8 @@ class NotificationService implements NotificationServiceInterface {
         .replaceAll('.mp3', '')
         .toLowerCase()
         .trim();
+
+
 
     final androidDetails = AndroidNotificationDetails(
       channelId,
@@ -572,14 +577,19 @@ class NotificationService implements NotificationServiceInterface {
             'volume': volume,
           });
           await ServiceLogger.log('alarm.play', 'playAlarm OK sound=$cleanSound vibrate=$effVibration');
+
+          // FLASH-1: SOS flash pattern (only if user enabled it for this alert)
+          if (flashEnabled) {
+            try {
+              await mChannel.invokeMethod('startFlashSOS');
+              await ServiceLogger.log('flash.start', 'startFlashSOS OK');
+            } catch (e) {
+              debugPrint('⚠️ [NotificationService] startFlashSOS note: $e');
+            }
+          }
                 } catch (e, st) {
           debugPrint('⚠️ [NotificationService] native playAlarm note: $e');
           await ServiceLogger.logError('alarm.play.error', e, st);
-          if (inAppFeedback && effSound) {
-            try {
-              await SoundManager().playPreset(soundName, volume: volume);
-            } catch (_) {}
-          }
           if (inAppFeedback && effVibration) {
             try {
               await HapticFeedback.heavyImpact();
@@ -587,6 +597,16 @@ class NotificationService implements NotificationServiceInterface {
           }
         }
       }());
+    }
+  }
+
+  /// FLASH-1: stop the SOS flash pattern (call when notification is dismissed).
+  static Future<void> stopFlash() async {
+    try {
+      const mChannel = MethodChannel('com.example.bitcoin_checker/app_lifecycle');
+      await mChannel.invokeMethod('stopFlashSOS');
+    } catch (e) {
+      debugPrint('⚠️ [NotificationService] stopFlashSOS note: $e');
     }
   }
 }

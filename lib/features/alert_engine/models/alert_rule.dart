@@ -110,6 +110,9 @@ class AlertRule extends Equatable {
   /// Whether vibration is enabled for this alert
   final bool vibrationEnabled;
 
+  /// Whether SOS flashlight is enabled for this alert (FLASH-1)
+  final bool flashEnabled;
+
   /// Whether to prefer server proxy over direct local fetch (determined during creation)
   final bool preferServerProxy;
 
@@ -233,6 +236,7 @@ class AlertRule extends Equatable {
     this.soundEnabled = true,
     this.ttsEnabled = false,
     this.vibrationEnabled = true,
+    this.flashEnabled = false,
     this.preferServerProxy = false,
     this.isActive = true,
     this.isTriggered = false,
@@ -349,6 +353,7 @@ class AlertRule extends Equatable {
     bool? soundEnabled,
     bool? ttsEnabled,
     bool? vibrationEnabled,
+    bool? flashEnabled,
     bool? preferServerProxy,
     bool? isActive,
     bool? isTriggered,
@@ -386,6 +391,7 @@ class AlertRule extends Equatable {
       soundEnabled: soundEnabled ?? this.soundEnabled,
       ttsEnabled: ttsEnabled ?? this.ttsEnabled,
       vibrationEnabled: vibrationEnabled ?? this.vibrationEnabled,
+      flashEnabled: flashEnabled ?? this.flashEnabled,
       preferServerProxy: preferServerProxy ?? this.preferServerProxy,
       basePrice: basePrice ?? this.basePrice,
       lastCheckedPrice: lastCheckedPrice ?? this.lastCheckedPrice,
@@ -430,6 +436,7 @@ class AlertRule extends Equatable {
         'soundEnabled': soundEnabled,
         'ttsEnabled': ttsEnabled,
         'vibrationEnabled': vibrationEnabled,
+        'flashEnabled': flashEnabled,
         'preferServerProxy': preferServerProxy,
         'isActive': isActive,
         'isTriggered': isTriggered,
@@ -477,6 +484,7 @@ class AlertRule extends Equatable {
         soundEnabled: json['soundEnabled'] as bool? ?? true,
         ttsEnabled: json['ttsEnabled'] as bool? ?? false,
         vibrationEnabled: json['vibrationEnabled'] as bool? ?? true,
+        flashEnabled: json['flashEnabled'] as bool? ?? false,
         preferServerProxy: json['preferServerProxy'] as bool? ?? false,
         isActive: json['isActive'] as bool? ?? true,
         isTriggered: json['isTriggered'] as bool? ?? false,
@@ -525,6 +533,7 @@ class AlertRule extends Equatable {
         soundEnabled,
         ttsEnabled,
         vibrationEnabled,
+        flashEnabled,
         preferServerProxy,
         isActive,
         isTriggered,

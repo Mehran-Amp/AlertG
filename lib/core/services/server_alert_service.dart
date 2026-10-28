@@ -470,6 +470,7 @@ class ServerAlertService {
           'trigger_mode': trigMode,
           'sound_enabled': rule.soundEnabled,
           'vibration_enabled': rule.vibrationEnabled,
+          'flash_enabled': rule.flashEnabled,
           'tts_enabled': rule.ttsEnabled,
           'sound': rule.customSound ?? 'alarm_siren',
           'language': rule.language ?? 'fa',
@@ -674,6 +675,7 @@ class ServerAlertService {
                 final sound = item['sound'] as String? ?? 'alarm_siren';
                 final soundEnabled = item['sound_enabled'] as bool? ?? true;
                 final vibEnabled = item['vibration_enabled'] as bool? ?? true;
+                final flashEnabled = item['flash_enabled'] as bool? ?? false;
                 final ttsEnabled = item['tts_enabled'] as bool? ?? false;
                 final isActive = item['is_active'] as bool? ?? true;
 
@@ -745,6 +747,7 @@ class ServerAlertService {
                   language: item['language'] as String? ?? 'fa',
                   soundEnabled: soundEnabled,
                   vibrationEnabled: vibEnabled,
+                  flashEnabled: flashEnabled,
                   ttsEnabled: ttsEnabled,
                   preferServerProxy: item['prefer_server_proxy'] as bool? ?? false,
                   isActive: isActive,
@@ -853,6 +856,7 @@ class ServerAlertService {
     Map<String, dynamic>? rawRule,
     bool soundEnabled = true,
     bool vibrationEnabled = true,
+    bool flashEnabled = false,
     bool ttsEnabled = false,
     String sound = 'alarm_siren',
   }) async {
@@ -905,6 +909,7 @@ class ServerAlertService {
         'trigger_mode': triggerMode,
         'sound_enabled': soundEnabled,
         'vibration_enabled': vibrationEnabled,
+        'flash_enabled': flashEnabled,
         'tts_enabled': ttsEnabled,
         'sound': sound,
         if (note != null && note.isNotEmpty) 'note': note,

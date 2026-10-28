@@ -118,6 +118,7 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
   bool _soundEnabled = true;
   bool _ttsEnabled = false;
   bool _vibrationEnabled = true;
+  bool _flashEnabled = false;
   bool _preferServerProxy = false;
 
   @override
@@ -134,6 +135,7 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
       _soundEnabled = rule.soundEnabled;
       _ttsEnabled = rule.ttsEnabled;
       _vibrationEnabled = rule.vibrationEnabled;
+      _flashEnabled = rule.flashEnabled;
       _customNoteController = TextEditingController(text: rule.customNote ?? '');
 
       // Determine Interval Unit and Value
@@ -232,6 +234,7 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
       _selectedSound = 'alarm_siren';
       _soundEnabled = true;
       _vibrationEnabled = true;
+      _flashEnabled = false;
     }
 
     _loadIranMarketOverview();
@@ -852,6 +855,7 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
         soundEnabled: _soundEnabled,
         ttsEnabled: _ttsEnabled,
         vibrationEnabled: _vibrationEnabled,
+        flashEnabled: _flashEnabled,
         preferServerProxy: _preferServerProxy,
         basePrice: _currentPrice ?? widget.initialRule!.basePrice,
         lastCheckedPrice: _currentPrice ?? widget.initialRule!.lastCheckedPrice,
@@ -942,6 +946,7 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
         triggerMode: newRule.triggerMode == TriggerMode.recurring ? 'recurring' : 'oneShot',
         soundEnabled: _soundEnabled,
         vibrationEnabled: _vibrationEnabled,
+        flashEnabled: _flashEnabled,
         ttsEnabled: _ttsEnabled,
         sound: _selectedSound,
         rawRule: newRule.toJson(),
@@ -3032,6 +3037,21 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
                       inactiveThumbColor: Colors.grey.shade400,
                       inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
                       onChanged: (val) => setState(() => _soundEnabled = val),
+                    ),
+                  ),
+                  Expanded(
+                    child: SwitchListTile(
+                      dense: true,
+                      title: Text(
+                        AppStrings.get('flash_sos_label', lang),
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+                      ),
+                      value: _flashEnabled,
+                      activeThumbColor: Colors.white,
+                      activeTrackColor: theme.colorScheme.primary,
+                      inactiveThumbColor: Colors.grey.shade400,
+                      inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
+                      onChanged: (val) => setState(() => _flashEnabled = val),
                     ),
                   ),
                   Expanded(

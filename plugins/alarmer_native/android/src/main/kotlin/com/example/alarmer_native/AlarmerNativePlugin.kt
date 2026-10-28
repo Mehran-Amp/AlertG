@@ -14,22 +14,28 @@ class AlarmerNativePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     private var channel: MethodChannel? = null
     private var context: Context? = null
 
+    // FLASH-1: SOS flash pattern state
+    private var flashHandler: android.os.Handler? = null
+    private var flashRunnable: Runnable? = null
+    private var flashCameraId: String? = null
+
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-    context = binding.applicationContext
-    channel = MethodChannel(binding.binaryMessenger, "com.example.bitcoin_checker/app_lifecycle")
-    channel?.setMethodCallHandler(this)
-    context?.let { ctx ->
-        // Delay TTS init slightly so the engine is fully bound in FCM isolates
-        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-            AlarmerTtsEngine.init(ctx)
-        }, 500)
+        context = binding.applicationContext
+        channel = MethodChannel(binding.binaryMessenger, "com.example.bitcoin_checker/app_lifecycle")
+        channel?.setMethodCallHandler(this)
+        context?.let { ctx ->
+            // Delay TTS init slightly so the engine is fully bound in FCM isolates
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                AlarmerTtsEngine.init(ctx)
+            }, 500)
+        }
     }
-}
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         channel?.setMethodCallHandler(null)
         channel = null
         context = null
+        stopFlashSOS()
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
@@ -68,9 +74,74 @@ class AlarmerNativePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 AlarmerTtsEngine.stop()
                 result.success(true)
             }
+            "startFlashSOS" -> {
+                startFlashSOS()
+                result.success(true)
+            }
+            "stopFlashSOS" -> {
+                stopFlashSOS()
+                result.success(true)
+            }
             else -> {
                 result.notImplemented()
             }
         }
+    }
+
+    // FLASH-1: SOS flash pattern (3 short, 3 long, 3 short, repeat)
+    private fun startFlashSOS() {
+        val ctx = context ?: return
+        stopFlashSOS()
+
+        val cameraManager = ctx.getSystemService(android.content.Context.CAMERA_SERVICE)
+                as? android.hardware.camera2.CameraManager ?: return
+        val cameraId = try {
+            cameraManager.cameraIdList.firstOrNull { id ->
+                val chars = cameraManager.getCameraCharacteristics(id)
+                chars.get(android.hardware.camera2.CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
+            }
+        } catch (e: Exception) { null } ?: return
+
+        flashCameraId = cameraId
+        val handler = android.os.Handler(android.os.Looper.getMainLooper())
+        flashHandler = handler
+
+        val pattern = longArrayOf(
+            200, 200, 200, 200, 200, 1000,
+            600, 200, 600, 200, 600, 1000,
+            200, 200, 200, 200, 200, 2000
+        )
+        var index = 0
+        var isOn = false
+        val runnable = object : Runnable {
+            override fun run() {
+                try {
+                    isOn = !isOn
+                    cameraManager.setTorchMode(cameraId, isOn)
+                } catch (e: Exception) {
+                    stopFlashSOS()
+                    return
+                }
+                index = (index + 1) % pattern.size
+                handler.postDelayed(this, pattern[index])
+            }
+        }
+        flashRunnable = runnable
+        handler.post(runnable)
+    }
+
+    private fun stopFlashSOS() {
+        flashRunnable?.let { flashHandler?.removeCallbacks(it) }
+        flashRunnable = null
+        flashHandler = null
+        flashCameraId?.let { id ->
+            try {
+                val ctx = context ?: return@let
+                val cameraManager = ctx.getSystemService(android.content.Context.CAMERA_SERVICE)
+                        as? android.hardware.camera2.CameraManager
+                cameraManager?.setTorchMode(id, false)
+            } catch (_: Exception) {}
+        }
+        flashCameraId = null
     }
 }
