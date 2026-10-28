@@ -205,6 +205,23 @@
    python -m unittest tests/test_crypto_adapter_gateio.py
    ```
 
+---
+
+### ۱۱. دستورالعمل رول‌بک زیرفاز ۴e کریپتو (LBank Adapter Rollback)
+طبق قواعد R3، R4 و R6:
+1. **ایزولاسیون ماژولار**:
+   آداپتور LBank در فایل مجزای `app/markets/adapters/lbank.py` پیاده‌سازی شده و هیچ اثری روی موتورهای موجود یا آداپتورهای بایننس/ام‌ایکس‌سی/کوکوین/گیت ندارد.
+2. **قطع فوری اضطراری با Kill-Switch**:
+   در صورت نیاز به قطع آنی LBank بدون اختلال در عملکرد سایر صرافی‌ها:
+   ```bash
+   export KILL_SWITCH_PROVIDERS=crypto_lbank
+   ```
+3. **اعتبارسنجی آفلاین پس از رول‌بک**:
+   ```bash
+   python -m unittest tests/test_crypto_adapter_lbank.py
+   ```
+
+
 
 
 

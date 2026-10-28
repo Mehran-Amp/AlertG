@@ -1,0 +1,87 @@
+{
+  "result": "true",
+  "data": [
+    {
+      "symbol": "btc_usdt",
+      "timestamp": 1730000000000,
+      "ticker": {
+        "latest": "67415.50",
+        "vol": "12500.5",
+        "turnover": "842600000",
+        "change": "1.3"
+      }
+    },
+    {
+      "symbol": "eth_usdt",
+      "timestamp": 1730000000000,
+      "ticker": {
+        "latest": "2622.10",
+        "vol": "85000.2",
+        "turnover": "222800000",
+        "change": "0.9"
+      }
+    },
+    {
+      "symbol": "sol_usdt",
+      "timestamp": 1730000000000,
+      "ticker": {
+        "latest": "178.50",
+        "vol": "450000.0",
+        "turnover": "80325000",
+        "change": "3.2"
+      }
+    },
+    {
+      "symbol": "lbk_usdt",
+      "timestamp": 1730000000000,
+      "ticker": {
+        "latest": "0.0125",
+        "vol": "9800000.0",
+        "turnover": "122500",
+        "change": "0.1"
+      }
+    },
+    {
+      "symbol": "1inch_usdt",
+      "timestamp": 1730000000000,
+      "ticker": {
+        "latest": "0.3240",
+        "vol": "120000.0",
+        "turnover": "38880",
+        "change": "-0.3"
+      }
+    },
+    {
+      "symbol": "btc3l_usdt",
+      "timestamp": 1730000000000,
+      "ticker": {
+        "latest": "4.20",
+        "vol": "50000.0",
+        "turnover": "210000",
+        "change": "3.9"
+      }
+    },
+    {
+      "symbol": "btc3s_usdt",
+      "timestamp": 1730000000000,
+      "ticker": {
+        "latest": "0.118",
+        "vol": "200000.0",
+        "turnover": "23600",
+        "change": "-3.8"
+      }
+    },
+    {
+      "symbol": "btc_eth",
+      "timestamp": 1730000000000,
+      "ticker": {
+        "latest": "25.71",
+        "vol": "100.0",
+        "turnover": "2571",
+        "change": "0.4"
+      }
+    }
+  ],
+  "error_code": 0,
+  "ts": 1730000000000
+}

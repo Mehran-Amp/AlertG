@@ -1,0 +1,16 @@
+{
+  "result": "true",
+  "data": [
+    "btc_usdt",
+    "eth_usdt",
+    "sol_usdt",
+    "lbk_usdt",
+    "1inch_usdt",
+    "btc3l_usdt",
+    "btc3s_usdt",
+    "unpriced_token_usdt",
+    "btc_eth"
+  ],
+  "error_code": 0,
+  "ts": 1730000000000
+}
