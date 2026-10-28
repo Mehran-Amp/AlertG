@@ -44,6 +44,7 @@ void main() async {
   // local list would wipe the server-side alerts (sync_user_alerts removes
   // absent alerts).
   final _savedEmail = settingsService.settings.userEmail ?? '';
+  debugPrint('🔍 [Main] _savedEmail = "$_savedEmail"');
   if (_savedEmail.isNotEmpty) {
     try {
       final _restored = await ServerAlertService.restoreUserAlertsFromCloud(
@@ -58,6 +59,24 @@ void main() async {
       debugPrint('⚠️ [Main] Restore alerts failed: $e');
     }
   }
+
+  // SYNC-4: for guests (no email), restore guest alerts from server
+  // under the `user_default` bucket (keyed by device fcm_token on the server).
+  if (_savedEmail.isEmpty) {
+    try {
+      final _restoredGuest = await ServerAlertService.restoreUserAlertsFromCloud(
+        repository: alertRuleRepository,
+        userEmail: 'user_default',
+      );
+      if (_restoredGuest > 0) {
+        await alertRuleRepository.load();
+        debugPrint('☁ [Main] Restored $_restoredGuest guest alerts from cloud');
+      }
+    } catch (e) {
+      debugPrint('⚠️ [Main] Restore guest alerts failed: $e');
+    }
+  }
+
   await ServerAlertService.initialize();
   await CatalogSyncService.instance.initialize(); // symbol catalog: disk cache + background delta sync
 
