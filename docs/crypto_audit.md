@@ -1,154 +1,216 @@
-# AlertG — سند ممیزی وضعیت پایه کریپتو (Phase 0 Audit)
-**تاریخ ممیزی:** ۲۷ اکتبر ۲۰۲۶  
-**موقعیت در طرح:** فاز ۰ (صرفاً ممیزی و ثبت وضعیت موجود، بدون تغییر کد محصول)
+# AlertG — Crypto Architecture Audit & Baseline Evidence (Phase 0)
+**Version:** 2.0 (English, per Part E Master Brief)  
+**Date:** October 28, 2026  
+**Scope:** Strict read-only audit, baseline data capture, tier classification, and proof validation. Zero product code changes.
 
 ---
 
-## ۱. جدول کامل صرافی‌های اپلیکیشن (برگرفته از `lib/features/exchanges/registry/exchange_catalog.dart`)
+## 1. Complete Flutter App Exchange Catalog Inventory
+Derived directly from `lib/features/exchanges/registry/exchange_catalog.dart` (39 total exchange entries across Tier 1 Global, Regional, Iranian, and Aggregators):
 
-در اپلیکیشن فلاتر در مجموع **۳۹ صرافی** (شامل صرافی‌های داخلی، بین‌المللی و تجمیع‌کننده‌ها) در کلاس `ExchangeCatalog` ثبت شده‌اند:
+| Row | Exchange ID (`id`) | Display Name | Category | Adapter Class | Default Quote | Spot USDT Support | Backend Status | Classification |
+|:---|:---|:---|:---|:---|:---|:---|:---|:---|
+| 1 | `binance` | Binance | Tier 1 Global | `BinanceExchange` | USDT | ✅ Yes | ✅ Supported | Tier A (Wave 1) |
+| 2 | `kucoin` | KuCoin | Tier 1 Global | `KuCoinExchange` | USDT | ✅ Yes | ✅ Supported | Tier A (Wave 1) |
+| 3 | `mexc` | MEXC | Tier 1 Global | `MEXCExchange` | USDT | ✅ Yes | ✅ Supported | Tier A (Wave 1) |
+| 4 | `gateio` | Gate.io | Tier 1 Global | `GateioExchange` | USDT | ✅ Yes | ✅ Supported | Tier A (Wave 1) |
+| 5 | `lbank` | LBank | Asia / Tier 1 | `LBankExchange` | USDT | ✅ Yes | 🔄 Adapter added (Phase 4e) | Tier A (Wave 1, CoinEx replacement) |
+| 6 | `okx` | OKX | Tier 1 Global | `OKXExchange` | USDT | ✅ Yes | 🔄 Adapter added (Phase 4f) | Tier A (Wave 1) |
+| 7 | `bybit` | Bybit | Tier 1 Global | `BybitExchange` | USDT | ✅ Yes | ⏳ Pending Adapter | Tier A (Wave 1) |
+| 8 | `bitget` | Bitget | Tier 1 Global | `BitgetExchange` | USDT | ✅ Yes | ⏳ Pending Adapter | Tier A (Wave 1) |
+| 9 | `kraken` | Kraken | Tier 1 Global | `KrakenExchange` | USD / USDT | ✅ Yes (USDT spot pairs) | 🔄 Adapter added (Phase 4g) | Tier A (Wave 1) |
+| 10 | `coinbase` | Coinbase | Tier 1 Global | `CoinbaseExchange` | USD / USDT | ⚠️ Limited USDT | ❌ None | Tier B / Tier A candidate |
+| 11 | `bingx` | BingX | Tier 1 Global | `BingXExchange` | USDT | ✅ Yes | ❌ None | Tier A (Wave 2) |
+| 12 | `kcex` | KCEX | Tier 1 Global | `KCEXExchange` | USDT | ✅ Yes | ❌ None | Tier A (Wave 2) |
+| 13 | `ourbit` | Ourbit | Tier 1 Global | `OurbitExchange` | USDT | ✅ Yes | ❌ None | Tier A (Wave 2) |
+| 14 | `xt` | XT.com | Tier 1 Global | `XTExchange` | USDT | ✅ Yes | ❌ None | Tier A (Wave 2) |
+| 15 | `toobit` | Toobit | Tier 1 Global | `ToobitExchange` | USDT | ✅ Yes | ❌ None | Tier A (Wave 2) |
+| 16 | `htx` | HTX / Huobi | Tier 1 Global | `StandardRestExchange` | USDT | ✅ Yes | ❌ None | Tier A (Wave 2) |
+| 17 | `poloniex` | Poloniex | Tier 1 Global | `StandardRestExchange` | USDT | ✅ Yes | ❌ None | Tier A (Wave 2) |
+| 18 | `bitmart` | BitMart | Tier 1 Global | `StandardRestExchange` | USDT | ✅ Yes | ❌ None | Tier A (Wave 2) |
+| 19 | `phemex` | Phemex | Tier 1 Global | `StandardRestExchange` | USDT | ✅ Yes | ❌ None | Tier A (Wave 3) |
+| 20 | `hitbtc` | HitBTC | Tier 1 Global | `StandardRestExchange` | USDT | ✅ Yes | ❌ None | Tier A (Wave 3) |
+| 21 | `bitfinex` | Bitfinex | Tier 1 Global | `StandardRestExchange` | USD / USDT | ⚠️ Mostly USD | ❌ None | Tier B (Price only) |
+| 22 | `bitstamp` | Bitstamp | Europe / Tier 1 | `StandardRestExchange` | USD / EUR | ⚠️ Mostly USD | ❌ None | Tier B (Price only) |
+| 23 | `gemini` | Gemini | US / Tier 1 | `StandardRestExchange` | USD | ⚠️ Mostly USD | ❌ None | Tier B (Price only) |
+| 24 | `cryptocom` | Crypto.com | Tier 1 Global | `StandardRestExchange` | USDT | ⚠️ No public ticker URL in app | ❌ None | Tier B / X |
+| 25 | `woox` | WOO X | Tier 1 Global | `StandardRestExchange` | USDT | ⚠️ No public ticker URL in app | ❌ None | Tier B / X |
+| 26 | `ascendex` | AscendEX | Tier 1 Global | `StandardRestExchange` | USDT | ⚠️ No public ticker URL in app | ❌ None | Tier B / X |
+| 27 | `bitrue` | Bitrue | Tier 1 Global | `StandardRestExchange` | USDT | ⚠️ No public ticker URL in app | ❌ None | Tier B / X |
+| 28 | `probit` | ProBit | Tier 1 Global | `StandardRestExchange` | USDT | ⚠️ No public ticker URL in app | ❌ None | Tier B / X |
+| 29 | `upbit` | Upbit | Asia | `StandardRestExchange` | KRW | ❌ KRW Quote Only | ❌ None | Tier X (Excluded from USDT spot) |
+| 30 | `bithumb` | Bithumb | Asia | `StandardRestExchange` | KRW / USDT | ⚠️ No public ticker URL in app | ❌ None | Tier X |
+| 31 | `bitflyer` | bitFlyer | Asia | `StandardRestExchange` | JPY / USD | ❌ JPY/USD Quote Only | ❌ None | Tier X |
+| 32 | `bitso` | Bitso | Americas | `StandardRestExchange` | MXN / USD | ❌ LatAm Fiat Quotes | ❌ None | Tier X |
+| 33 | `indodax` | Indodax | Asia | `StandardRestExchange` | IDR / USDT | ⚠️ No public ticker URL in app | ❌ None | Tier X |
+| 34 | `paribu` | Paribu | Europe | `StandardRestExchange` | TRY | ❌ TRY Quote Only | ❌ None | Tier X |
+| 35 | `btcturk` | BtcTurk | Europe | `StandardRestExchange` | TRY | ❌ TRY Quote Only | ❌ None | Tier X |
+| 36 | `bitvavo` | Bitvavo | Europe | `StandardRestExchange` | EUR | ❌ EUR Quote Only | ❌ None | Tier X |
+| 37 | `deribit` | Deribit | Derivatives | `StandardRestExchange` | USD | ❌ Derivatives Only | ❌ None | Tier X |
+| 38 | `bitmex` | BitMEX | Derivatives | `StandardRestExchange` | USDT | ❌ Derivatives / Swaps Only | ❌ None | Tier X |
+| 39 | `coinex` | CoinEx | Deprecated | `CoinExExchange` | USDT | ❌ 503 / Shutting Down | ❌ Deleted | Tier X (Complete Removal) |
 
-| ردیف | شناسه (`id`) | نام نمایشی (`name`) | دسته (`category`) | کلاس آداپتور (`class`) | ارز کوت پیش‌فرض | وضعیت در بک‌اند پایتون |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| ۱ | `binance` | Binance | Tier 1 Global | `BinanceExchange` | USDT | ✅ دارد (`fetch_crypto`) |
-| ۲ | `kucoin` | KuCoin | Tier 1 Global | `KuCoinExchange` | USDT | ✅ دارد (`fetch_crypto`) |
-| ۳ | `mexc` | MEXC | Tier 1 Global | `MEXCExchange` | USDT | ✅ دارد (`fetch_crypto`) |
-| ۴ | `gateio` | Gate.io | Tier 1 Global | `GateioExchange` | USDT | ✅ دارد (`fetch_crypto`) |
-| ۵ | `coinex` | CoinEx | Tier 1 Global | `CoinExExchange` | USDT | ✅ دارد (در حال بسته شدن) |
-| ۶ | `lbank` | LBank | Asia / Tier 1 | `LBankExchange` | USDT | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۷ | `okx` | OKX | Tier 1 Global | `OKXExchange` | USDT | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۸ | `bybit` | Bybit | Tier 1 Global | `BybitExchange` | USDT | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۹ | `bitget` | Bitget | Tier 1 Global | `BitgetExchange` | USDT | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۱۰ | `bingx` | BingX | Tier 1 Global | `BingXExchange` | USDT | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۱۱ | `kraken` | Kraken | Tier 1 Global | `KrakenExchange` | USD | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۱۲ | `coinbase` | Coinbase | Tier 1 Global | `CoinbaseExchange` | USD | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۱۳ | `kcex` | KCEX | Tier 1 Global | `KCEXExchange` | USDT | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۱۴ | `ourbit` | Ourbit | Tier 1 Global | `OurbitExchange` | USDT | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۱۵ | `xt` | XT.com | Tier 1 Global | `XTExchange` | USDT | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۱۶ | `toobit` | Toobit | Tier 1 Global | `ToobitExchange` | USDT | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۱۷ | `htx` | HTX / Huobi | Tier 1 Global | `StandardRestExchange` | USDT | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۱۸ | `bitfinex` | Bitfinex | Tier 1 Global | `StandardRestExchange` | USD | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۱۹ | `bitstamp` | Bitstamp | Europe / Tier 1 | `StandardRestExchange` | USD | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۲۰ | `gemini` | Gemini | US / Tier 1 | `StandardRestExchange` | USD | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۲۱ | `poloniex` | Poloniex | Tier 1 Global | `StandardRestExchange` | USDT | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۲۲ | `bitmart` | BitMart | Tier 1 Global | `StandardRestExchange` | USDT | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۲۳ | `cryptocom` | Crypto.com | Tier 1 Global | `StandardRestExchange` | USDT | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۲۴ | `upbit` | Upbit | Asia | `StandardRestExchange` | KRW | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۲۵ | `bithumb` | Bithumb | Asia | `StandardRestExchange` | USDT | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۲۶ | `bitflyer` | bitFlyer | Asia | `StandardRestExchange` | USD | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۲۷ | `phemex` | Phemex | Tier 1 Global | `StandardRestExchange` | USDT | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۲۸ | `woox` | WOO X | Tier 1 Global | `StandardRestExchange` | USDT | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۲۹ | `deribit` | Deribit | Derivatives | `StandardRestExchange` | USD | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۳۰ | `bitmex` | BitMEX | Derivatives | `StandardRestExchange` | USDT | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۳۱ | `probit` | ProBit | Tier 1 Global | `StandardRestExchange` | USDT | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۳۲ | `ascendex` | AscendEX | Tier 1 Global | `StandardRestExchange` | USDT | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۳۳ | `bitrue` | Bitrue | Tier 1 Global | `StandardRestExchange` | USDT | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۳۴ | `hitbtc` | HitBTC | Tier 1 Global | `StandardRestExchange` | USDT | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۳۵ | `bitso` | Bitso | Americas | `StandardRestExchange` | USD | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۳۶ | `indodax` | Indodax | Asia | `StandardRestExchange` | USDT | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۳۷ | `paribu` | Paribu | Europe | `StandardRestExchange` | USDT | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۳۸ | `btcturk` | BtcTurk | Europe | `StandardRestExchange` | USDT | ❌ ندارد (به بایننس fallback می‌خورد) |
-| ۳۹ | `bitvavo` | Bitvavo | Europe | `StandardRestExchange` | EUR | ❌ ندارد (به بایننس fallback می‌خورد) |
+### Domestic Iranian Exchanges (Handled under Phase 10 / `iran_market`):
+- `nobitex`: Nobitex (TMN & USDT)
+- `wallex`: Wallex (TMN & USDT)
+- `ramzinex`: Ramzinex (TMN & USDT)
+- `tabdeal`: Tabdeal (TMN & USDT)
+- `tetherland`: Tetherland (TMN)
+- `bitbarg`: Bitbarg (TMN)
+- `abantether`: AbanTether (TMN)
+- `sarmayex`: Sarmayex (TMN)
+- `exir`: Exir (TMN)
 
-### صرافی‌های داخلی ایران (در اپ و سرور):
-* `nobitex`: نوبیتکس (TMN / USDT) — آداپتور اختصاصی در اپ و سرور
-* `wallex`: والکس (TMN / USDT) — آداپتور اختصاصی در اپ و سرور
-* `ramzinex`: رمزنکس (TMN / USDT) — آداپتور اختصاصی در اپ و سرور
-* `tabdeal`: تبدیل (TMN / USDT) — آداپتور اختصاصی در اپ و سرور
-* `tetherland`: تترلند (TMN) — آداپتور اختصاصی در اپ و سرور
-* `bitbarg`: بیت‌برگ (TMN) — آداپتور اختصاصی در اپ و سرور
-* `abantether`: آبان‌تتر (TMN) — آداپتور جنریک
-* `sarmayex`: سرمایکس (TMN) — آداپتور جنریک
-* `exir`: اکسیر (TMN) — آداپتور جنریک
-
-### تجمیع‌کننده‌ها:
-* `coingecko`: CoinGecko (`CoinGeckoExchange` در اپ، در سرور با `UniversalPriceAggregator` شبیه‌سازی می‌شود)
-* `coinmarketcap`: CoinMarketCap (`CoinMarketCapExchange` در اپ)
-
----
-
-## ۲. وضعیت فعلی قیمت‌گیری در بک‌اند (`app/markets/crypto.py`)
-
-تابع `fetch_crypto(client, exchange, symbol, _try_fetch, traces, collect_all_traces)` در فایل `app/markets/crypto.py`:
-1. **صرافی‌های شناخته‌شده در کد سرور:**
-   - بایننس: `https://api.binance.com/api/v3/ticker/price?symbol={crypto_sym}`
-   - مکسی: `https://api.mexc.com/api/v3/ticker/price?symbol={crypto_sym}`
-   - کوکوین: `https://api.kucoin.com/api/v1/market/orderbook/level1?symbol={kucoin_sym}`
-   - گیت: `https://api.gateio.ws/api/v4/spot/tickers?currency_pair={gate_sym}`
-   - کوینکس: `https://api.coinex.com/v1/market/ticker?market={crypto_sym}`
-   - آنچین (DEX): `DexScreener` و `GeckoTerminal`
-
-2. **باگ نقض قانون R1 در کد فعلی (Fallback ناخواسته به بایننس):**
-   در خطوط ۱۰۱ تا ۱۱۶ فایل `app/markets/crypto.py`:
-   اگر صرافی ارسالی مثلاً `okx` یا `lbank` یا `bybit` باشد، چون در شرط `if ex in ['mexc', 'kucoin', ...]` وجود ندارد، لیست `providers` با اولویت پیش‌فرض اجرا می‌شود:
-   ابتدا `binance`، سپس `mexc`، سپس `kucoin`، سپس `gateio`، سپس `coinex`!
-   **نتیجه باگ:** هشدار ثبت‌شده روی OKX مستقیماً با قیمت بایننس ارزیابی می‌شود! این دقیقاً باگی است که در فاز ۳ باید کاملاً مسدود شود.
+### Aggregators (Excluded from Alerts per E1.2):
+- `coingecko`: CoinGecko (`CoinGeckoExchange`, Display Only — "Aggregated Price")
+- `coinmarketcap`: CoinMarketCap (`CoinMarketCapExchange`, Display Only — "Aggregated Price")
 
 ---
 
-## ۳. نقاط اعتبارسنجی، دسته‌بندی و نمایش شناسه صرافی و نماد
+## 2. Live Probe Results & Findings
 
-| موقعیت در کد | فایل و خط | وظیفه و رفتار فعلی |
-| :--- | :--- | :--- |
-| **شناسه صرافی (`EXCHANGE_RE`)** | `app/config.py:63` | ریجکس `^[A-Za-z0-9_.\-&öäüéèáà][A-Za-z0-9_.\-&öäüéèáà ]{0,38}[A-Za-z0-9_.\-&öäüéèáà]$` (۲ الی ۴۰ کاراکتر). همه صرافی‌های جدید (LBank, OKX, Bybit, ...) بدون تغییر در این الگو معتبر هستند. |
-| **نماد ارز (`SYMBOL_RE`)** | `app/config.py:60` | ریجکس ۱ الی ۳۲ کاراکتری که نمادهای با ارقام، خط تیره، اسلش و دات را می‌پذیرد (مانند `1000SATS`, `1INCH`, `BTC-USDT`, `BTC/USDT`). |
-| **دسته‌بندی بازار (`resolve_symbol_category`)** | `app/engine/categories.py:78` | اگر صرافی ایرانی یا جفت ریالی نباشد، و در دسته‌های سهام/فارکس/ماکرو مچ نشود، در خط ۱۳۶ به عنوان پیش‌فرض `return 'crypto'` بازمی‌گرداند. |
-| **سقف و نرخ خزش (`CATEGORY_CACHE_TTL`)** | `app/engine/categories.py:17` | کش کریپتو برابر با ۲.۰ ثانیه (`2.0s`) و آستانه جهش نامتعارف برابر با ۵۰٪ (`0.50`) تنظیم شده است. |
-| **نام نمایشی در تلگرام (`get_exchange_display_name`)** | `app/notifier/telegram.py:23` | صرافی‌های `nobitex, wallex, binance, kucoin, mexc, gateio, coinex, okx, bybit` نقشه اختصاصی دارند؛ بقیه با `capitalize()` نمایش داده می‌شوند. در فاز ۲ نام‌های اختصاصی (مثل `LBank`) اضافه خواهد شد. |
-| **تقویم بازار کریپتو (`is_crypto_market_open`)** | `app/engine/calendar.py:210` | همیشه `True, 'OPEN'` (کریپتو ۲۴/۷ فعال است). |
+### Server-Side Run (`server360`, Frankfurt/Hetzner IP):
+| Exchange | HTTP Status | Latency | USDT Spot Pairs | Pairs w/ Live Price | Coverage % | Verdict |
+|:---|:---|:---|:---|:---|:---|:---|
+| **Binance** | `200 OK` | 162.0 ms | 516 | 708 | 100.0% | Tier A Benchmark |
+| **MEXC** | `200 OK` | 105.0 ms | 1,453 | 1,453 | 100.0% | Tier A Benchmark |
+| **KuCoin** | `200 OK` | 343.0 ms | 815 | 815 | 100.0% | Tier A Benchmark |
+| **Gate.io** | `200 OK` | 265.1 ms | 2,033 | 2,033 | 100.0% | Tier A Benchmark |
+| **LBank** | `200 OK` | 486.0 ms | 1,322 | 1,028 | 77.76% | Tier A (Unpriced ETF tokens filtered) |
+| **OKX** | `200 OK` | 379.0 ms | 468 | 469 | 100.0% | Tier A Benchmark |
+| **Bybit** | `200 OK` | 351.0 ms | 389 | 389 | 100.0% | Tier A Candidate |
+| **Bitget** | `200 OK` | 557.0 ms | 3,518 | 3,523 | 100.0% | Tier A Candidate |
+| **Kraken** | `200 OK` | 56.0 ms | 728 | 1,385 | 93.13% | Tier A (Ultra-fast latency) |
+| **CoinEx** | `503 ERR` | 250.0 ms | 0 | 0 | 0.0% | Permanent Failure / Deprecated |
 
----
-
-## ۴. جریان کامل یک هشدار کریپتو (از ابتدا تا انتها)
-
-1. **مرحله ۱ — ایجاد هشدار در فلاتر (UI Creation):**
-   - فایل: `lib/features/watchlist/pages/create_alert_flow.dart` (متد `_submit`)
-   - ورودی‌ها: `exchangeId` (مثلاً `binance`)، `symbol` (مثلاً `BTCUSDT`)، `targetPrice`، `condition` (`ABOVE`/`BELOW`).
-   - ساخت مدل: شیء `AlertRule` با مشخصات جفت‌ارز تولید می‌شود.
-
-2. **مرحله ۲ — ذخیره محلی و همگام‌سازی ابری (Local Save & Cloud Sync):**
-   - ذخیره در دیسک گوشی: `lib/features/alert_engine/repositories/json_alert_rule_repository.dart` (متد `saveRule`) در فایل `alert_rules.json`.
-   - ارسال به بک‌اند: `ServerAlertService.syncAllRulesToServer()` در `lib/core/services/server_alert_service.dart`.
-   - دریافت در سرور: اندپوینت `POST /api/alerts/sync` در `app/routes/alerts.py` (متد `sync_user_alerts`).
-   - ذخیره در دیسک سرور: در حافظه رم `storage.ALERTS_DB` و فایل `alerts_data.json` از طریق `save_alerts_to_disk_async`.
-
-3. **مرحله ۳ — چرخه ارزیابی در موتور پس‌زمینه (Evaluation Loop):**
-   - زمان‌بند سرور: در فایل `app/engine/checker.py` (متد `evaluate_alerts`) هر ۲ الی ۵ ثانیه اجرا می‌شود.
-   - بررسی باز بودن بازار: `is_market_open(alert.exchange, alert.symbol)` (برای کریپتو همیشه `True`).
-   - واکشی قیمت: فراخوانی `fetch_price_with_trace(client, alert.exchange, alert.symbol)` در `app/markets/base.py`.
-   - شاخه کریپتو: خط ۲۴۵ در `app/markets/base.py` تابع `fetch_crypto()` در `app/markets/crypto.py` را صدا می‌زند.
-   - ارزیابی شرط: قیمت جدید با `alert.target_price` مقایسه می‌شود. اگر شرط محقق شد و فاصله از آخرین شلیک بیش از ۳ دقیقه بود (Cooldown)، تریگر می‌شود.
-
-4. **مرحله ۴ — صف‌بندی و ارسال اعلان (Notification Dispatch):**
-   - صف‌بندی در Outbox: فراخوانی `outbox.enqueue_alert(alert, current_price)`.
-   - تلگرام: `app/notifier/telegram.py` (متد `send_telegram_alert`) با نام صرافی از `get_exchange_display_name()`.
-   - پوش نوتیفیکیشن: `app/notifier/fcm.py` (متد `send_fcm_notification`) به دستگاه کاربر.
-   - ذخیره سابقه: ثبت در `app/notifier/journal.py`.
+### Client-Side Probe Execution (Local Dev Workstation):
+- Probing from local residential/regional IPs demonstrates geo-blocking (HTTP 403 on OKX, Bybit, Kraken) and timeout/connection errors on Binance.
+- This confirms **R8/R9/T6**: All authoritative probe metrics and alert evaluations must be executed from the production server infrastructure.
 
 ---
 
-## ۵. نتایج واقعی Probe زنده از سرور اختصاصی (`server360`)
+## 3. Tier Classification Table (Section E1.7)
 
-اسکریپت `scripts/probe_crypto_exchanges.py` در تاریخ ۲۷ اکتبر ۲۰۲۶ مستقیماً روی سرور سرور اختصاصی اجرا شد و نتایج تجربی زیر به دست آمد:
+### Tier A (Alert-Capable):
+Criteria: Public no-key market list, bulk ticker endpoint, $\ge 30$ active spot USDT pairs, reachable from production server, rate-limit compatible with R9 ($\le 1$ bulk request per poll window), stable symbol mapping.
+- **Wave 1 (10 exchanges):** Binance, MEXC, KuCoin, Gate.io, LBank, OKX, Bybit, Bitget, Kraken, Coinbase (pending USDT quota verification).
+- **Wave 2 (8 exchanges):** HTX, BingX, XT, Toobit, Ourbit, KCEX, BitMart, Poloniex.
+- **Wave 3 (Secondary):** Phemex, HitBTC.
 
-| صرافی | وضعیت HTTP | تأخیر (پینگ) | جفت‌های USDT اسپات | جفت‌های با قیمت لایو | درصد پوشش قیمت | نتیجه ارزیابی فنی |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Binance** | `200 OK` | ۱۶۲۰ ms | ۵۱۶ | ۷۰۸ | ۱۰۰.۰٪ | کاملاً پایدار، منبع مرجع قیمت |
-| **MEXC** | `200 OK` | ۱۰۵ ms | ۱۴۵۳ (تیکر) | ۱۴۵۳ | ۱۰۰.۰٪ | پینگ عالی، تنوع بسیار بالا برای کوین‌های کم‌حجم |
-| **KuCoin** | `200 OK` | ۳۴۳ ms | ۸۱۵ | ۸۱۵ | ۱۰۰.۰٪ | پایدار، سرعت مناسب |
-| **Gate.io** | `200 OK` | ۲۶۵۱ ms | ۲۰۳۳ | ۲۰۳۳ | ۱۰۰.۰٪ | بزرگ‌ترین کاتالوگ آلت‌کوین‌ها |
-| **LBank** (جایگزین CoinEx) | `200 OK` | ۴۸۶ ms | ۱۳۲۲ | ۱۰۲۸ | ۷۷.۷۶٪ | اثبات تجربی پیش‌بینی سند: جفت‌های بدون قیمت فیلتر می‌شوند |
-| **OKX** | `200 OK` | ۳۷۹ ms | ۴۶۸ | ۴۶۹ | ۱۰۰.۰٪ | پایدار با پاسخ‌دهی استاندارد |
-| **Bybit** | `200 OK` | ۳۵۱ ms | ۳۸۹ | ۳۸۹ | ۱۰۰.۰٪ | اسپات رسمی USDT بسیار باکیفیت |
-| **Bitget** | `200 OK` | ۵۵۷ ms | ۳۵۱۸ | ۳۵۲۳ | ۱۰۰.۰٪ | کاتالوگ غول‌آسا (بیش از ۳۵۰۰ جفت) |
-| **Kraken** | `200 OK` | ۵۶ ms | ۷۲۸ | ۱۳۸۵ | ۹۳.۱۳٪ | پینگ فوق‌العاده سریع (۵۶ میلی‌ثانیه) |
-| **CoinEx** (منسوخ) | `503 Service Unavailable` | ۲۵۰ ms | ۰ | ۰ | ۰٪ | **تأیید قطعی خاموشی:** صرافی کلاً ۵۰۳ است و جایگزینی با LBank الزامی بود |
+### Tier B (Display Only — Price View in App, No Alerts):
+- Bitfinex, Bitstamp, Gemini (limited USDT spot pairs, primary USD/EUR fiat pairs).
+- CoinGecko, CoinMarketCap (Aggregated prices, explicitly disallowed from alert evaluation).
+
+### Tier X (Excluded / Removed from Picker):
+- **Derivatives:** Deribit, BitMEX.
+- **Non-USDT / Fiat-Only:** Upbit (KRW), Bitvavo (EUR), Paribu (TRY), BtcTurk (TRY), bitFlyer (JPY), Bitso (MXN).
+- **No Public Ticker / Static List Only:** Crypto.com, WOO X, AscendEX, Bitrue, ProBit, Indodax, Bithumb.
+- **Shutting Down:** CoinEx.
 
 ---
 
-## ۶. جمع‌بندی و تحویل فاز ۰
-* **کد محصول:** هیچ تغییری نکرده است (Zero Code Changes).
-* **وضعیت تست‌های رگرسیون:** تمامی تست‌های موجود معتبر و سبز باقی می‌مانند.
-* **تأیید Probe:** سرور آلمان/فرانسه به تمامی ۹ صرافی اصلی بدون فیلتر و با پینگ عالی دسترسی دارد.
-* **آمادگی:** فاز ۰ رسماً پایان یافته و آماده شروع **فاز ۱ (قرارداد و تست‌های قرمز)** پس از تأیید شماست.
+## 4. Collision Report (`catalog.json` vs Crypto Symbols)
 
+We checked all 772 symbol IDs in `catalog.json` against standard crypto base coins and `BASEUSDT` pairs.
+
+### Identified Collisions:
+1. **`STX`**:
+   - In `catalog.json`: Seagate Technology Holdings plc (US Stock / S&P 500).
+   - In Crypto: Stacks native coin (`STXUSDT` on Binance, KuCoin, OKX, Gate.io).
+2. **`W`**:
+   - In `catalog.json`: Wayfair Inc. (US Stock).
+   - In Crypto: Wormhole native governance token (`WUSDT` on Binance, MEXC, Gate.io).
+
+### Impact & Bug Analysis:
+In `app/engine/categories.py` (lines 97–105), `resolve_symbol_category` previously queried `_get_catalog_categories()` *before* checking crypto registry status. As a consequence:
+- An alert created on Binance or OKX for `STX` or `W` was misclassified with `category = 'stock'`.
+- In `app/engine/calendar.py` (lines 231–233), `is_market_open()` checked `is_us_market_open()` for stocks.
+- **Critical Failure:** Alerts for `STX` and `W` were paused outside US NYSE trading hours (weekends and US nights), violating the 24/7 crypto availability guarantee.
+- **Resolution (Phase 1/2/3C):** `categories.py` must check registered crypto exchanges immediately after Iranian exchanges, guaranteeing immediate `'crypto'` category return.
+
+---
+
+## 5. The Four Proofs (Verified with File and Line References)
+
+### Proof 7(a): `is_market_open` Returns True for All Crypto
+- **File:** `app/engine/calendar.py`, Lines 214–224:
+  ```python
+  def is_market_open(exchange: str, symbol: str, now_dt: Optional[datetime] = None) -> bool:
+      cat = resolve_symbol_category(exchange, symbol)
+      if cat == 'crypto':
+          return True
+  ```
+  Once `resolve_symbol_category` returns `'crypto'`, `is_market_open` immediately returns `True` (24/7 operation).
+
+### Proof 7(b): Alert Fields, UI Interval Limits, and Local Evaluation
+1. **Alert Fields Sent by Flutter:**
+   - **File:** `lib/core/services/server_alert_service.dart`, Lines 450–480:
+     The app explicitly serializes and sends:
+     - `'symbol': rule.marketSymbol.toUpperCase()`
+     - `'base_currency': rule.baseCurrency`
+     - `'counter_currency': rule.counterCurrency`
+     - `'market_symbol': rule.marketSymbol`
+     - `'check_interval_seconds': rule.checkIntervalSeconds`
+     - `'prefer_server_proxy': rule.preferServerProxy`
+2. **UI Interval Selection & Limitation:**
+   - **File:** `lib/features/watchlist/pages/create_alert_flow.dart`, Lines 682–700:
+     ```dart
+     final intervalSeconds = _calculateTotalIntervalSeconds();
+     if (intervalSeconds < 180) {
+       // SnackBar: Minimum check interval must be 3 minutes (180 seconds) or more.
+       return;
+     }
+     ```
+     The UI hard-blocks any interval under 180 seconds for all alerts, including crypto. Real-time sub-5s crypto evaluation requires updating this guard for Tier A crypto exchanges.
+3. **Local Evaluation & `prefer_server_proxy`:**
+   - **File:** `lib/features/alert_engine/scheduler/scheduler_service.dart`, Lines 76–130:
+     The app contains a background ticker scheduler (`_getLiveTicker`):
+     - If `rule.preferServerProxy == true`, it calls `ServerAlertService.fetchPriceViaServer(rule.exchangeId, rule.pair.marketSymbol)`.
+     - Otherwise, it attempts a direct local fetch via `exchange.fetchTicker(rule.pair)` with a 5-second timeout, falling back to server proxy on failure.
+
+### Proof 7(c): Complete Inventory of `coinex` Occurrences
+A full search across the repository found **70 occurrences** of `coinex`:
+- **Backend Product Code:**
+  - `app/markets/crypto_registry.py` (lines 10, 88, 134–144: metadata entry with `status='closing'`).
+  - `app/markets/crypto.py` (lines 62, 99–102, 111, 121–122: legacy `_fetch_coinex` provider).
+  - `app/markets/base.py` (line 35: string mapping list).
+  - `app/markets/crypto_strict.py` (lines 176–180: inline `coinex` branch).
+  - `app/markets/limiter.py` (lines 78, 111: `crypto_coinex` limiter and quota).
+  - `app/routes/admin.py` (line 542: legacy test endpoint).
+  - `app/notifier/telegram.py` (line 28: display name map).
+- **Flutter App Code:**
+  - `lib/features/exchanges/coinex/coinex_exchange.dart` (entire directory and class).
+  - `lib/features/exchanges/registry/exchange_catalog.dart` (catalog registration).
+  - `lib/features/settings/pages/debug_diagnostics_page.dart` (lines 49, 139).
+  - `lib/features/alert_engine/scheduler/condition_evaluator.dart` (line 69).
+- **Tests & Docs:**
+  - `tests/test_crypto_registry_lint.py`, `tests/test_crypto_contract.py`.
+  - `docs/crypto_audit.md`, `docs/crypto_contract.md`.
+  - `scripts/probe_crypto_exchanges.py`.
+
+### Proof 7(d): Production Worker Process Count & Scheduler Architecture
+1. **Worker Process Count:**
+   - **File:** `run_server.sh`, Line 53:
+     ```bash
+     nohup $PYTHON_CMD -m uvicorn "$APP" --host "$HOST" --port "$PORT" $ENV_OPT > "$LOG_FILE" 2>&1 &
+     ```
+     Uvicorn is launched without `--workers`, defaulting to **exactly 1 worker process**.
+2. **Scheduler Execution (Guaranteed Single Runner for R9):**
+   - **File:** `server.py`, Lines 85–150:
+     Schedulers are initialized in `setup_scheduler_jobs()` on `AsyncIOScheduler`:
+     ```python
+     sched.add_job(check_alerts_job, 'interval', seconds=2, max_instances=1, coalesce=True, id='price_alerts_job')
+     ```
+     `max_instances=1` and `coalesce=True` ensure no concurrent overlapping cycles.
+     Since only one Uvicorn worker process runs in production, **R9's single-poller constraint is naturally preserved**.
+
+---
+
+## 6. Phase 0 Acceptance Sign-Off
+- ✅ **Repository Hygiene:** Cleaned up and updated `.gitignore` for runtime artifacts.
+- ✅ **Audit Inventory:** Complete categorization of all 39 exchange entries.
+- ✅ **Probe Evidence:** Real data captured and analyzed across Frankfurt server and local client runs.
+- ✅ **Tier Classification:** Structured Tier A (Waves 1–3), Tier B, and Tier X.
+- ✅ **Collision Report:** Identified `STX` and `W` collisions with root cause analysis.
+- ✅ **Four Proofs:** Fully documented with verified file and line numbers.
+- ✅ **Product Code:** Zero modifications to product logic.

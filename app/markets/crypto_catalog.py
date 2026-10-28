@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-AlertG — Dynamic Crypto Exchange Catalog Service (Phase 5).
+AlertG — Dynamic Crypto Exchange Catalog Service (Phase 1 Fix / Version 2).
 Manages per-exchange isolated symbol catalogs:
-1. One catalog file per exchange in a dedicated directory ('crypto_catalogs/<exchange>.json'),
+1. One catalog file per exchange in a dedicated directory ('DATA_DIR/crypto_catalog/<exchange>.json'),
    completely separate from catalog.json (zero mutation of catalog.json or general catalog_version).
 2. Safety Engine:
    - Rejects catalogs containing fewer than 20 pairs (MIN_PAIRS_CEILING).
@@ -10,7 +10,9 @@ Manages per-exchange isolated symbol catalogs:
    - Preserves previous valid catalog on disk, marks it 'is_stale=True', and alerts admin.
    - Atomic writes using temp files and os.replace to prevent file corruption on crash.
 3. Isolated execution: failure of one exchange catalog query never halts others.
-4. Scheduled background synchronization & admin triggering.
+4. Single Source of Truth: Reads supported exchanges from crypto_registry.py (Rule R5).
+5. Staleness by age: Catalogs older than 2 sync intervals (12 hours) automatically flag as stale.
+6. Native Symbol & Alias Index Resolver: resolve_pair(exchange, symbol_or_base).
 """
 
 import os
@@ -23,6 +25,11 @@ from typing import Dict, Any, Optional, List, Tuple
 import httpx
 
 import app.config as config
+from app.markets.crypto_registry import (
+    get_crypto_exchange,
+    get_supported_exchange_ids,
+    is_supported_crypto_exchange,
+)
 
 logger = logging.getLogger("signalalert.crypto_catalog")
 
@@ -36,16 +43,13 @@ async def _safe_notify_admin(message: str, client: Optional[httpx.AsyncClient] =
         logger.info(f"ℹ️ [Admin Alert Notice]: {message} (dispatch info: {e})")
 
 
-SUPPORTED_CRYPTO_EXCHANGES = [
-    "binance",
-    "mexc",
-    "kucoin",
-    "gateio",
-    "lbank",
-    "okx",
-    "kraken",
-]
+def get_supported_crypto_exchanges() -> List[str]:
+    """Returns dynamic list of active supported exchange IDs from the registry."""
+    return get_supported_exchange_ids(active_only=True)
 
+
+# Module-level alias for backward compatibility with existing tests and imports
+SUPPORTED_CRYPTO_EXCHANGES = get_supported_exchange_ids(active_only=True)
 DEFAULT_SYNC_HOURS = 6
 
 
@@ -55,11 +59,20 @@ class CryptoCatalogSafetyError(Exception):
 
 
 def get_catalog_dir(override_dir: Optional[str] = None) -> str:
-    """Returns absolute path to the crypto catalogs directory."""
+    """Returns absolute path to the crypto catalogs directory (derived from DATA_DIR)."""
     if override_dir:
         return os.path.abspath(override_dir)
-    cfg_dir = getattr(config, "CRYPTO_CATALOG_DIR", "crypto_catalogs")
-    return os.path.abspath(cfg_dir)
+    data_dir = getattr(config, "DATA_DIR", ".")
+    candidate_1 = os.path.join(data_dir, "crypto_catalog")
+    candidate_2 = os.path.join(data_dir, "crypto_catalogs")
+    cfg_dir = getattr(config, "CRYPTO_CATALOG_DIR", None)
+    if cfg_dir:
+        return os.path.abspath(cfg_dir)
+    if os.path.exists(candidate_1):
+        return os.path.abspath(candidate_1)
+    if os.path.exists(candidate_2):
+        return os.path.abspath(candidate_2)
+    return os.path.abspath(candidate_1)
 
 
 def get_catalog_path(exchange_id: str, override_dir: Optional[str] = None) -> str:
@@ -98,89 +111,125 @@ def get_exchange_adapter(exchange_id: str):
 def load_exchange_catalog(exchange_id: str, override_dir: Optional[str] = None) -> Dict[str, Any]:
     """
     Loads exchange catalog from disk.
-    Returns empty dict if file does not exist or cannot be parsed.
+    If the file does not exist, returns empty structure with empty pairs.
     """
     path = get_catalog_path(exchange_id, override_dir)
     if not os.path.exists(path):
-        return {}
+        return {
+            "exchange": exchange_id,
+            "updated_at": 0,
+            "total_pairs": 0,
+            "is_stale": True,
+            "error": "Catalog file does not exist",
+            "pairs": [],
+        }
+
     try:
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
             if isinstance(data, dict):
                 return data
+            return {
+                "exchange": exchange_id,
+                "updated_at": 0,
+                "total_pairs": 0,
+                "is_stale": True,
+                "error": "Invalid format on disk",
+                "pairs": [],
+            }
     except Exception as e:
-        logger.warning(f"Failed to load catalog from {path}: {e}")
-    return {}
+        logger.error(f"Failed to read crypto catalog for {exchange_id} from {path}: {e}")
+        return {
+            "exchange": exchange_id,
+            "updated_at": 0,
+            "total_pairs": 0,
+            "is_stale": True,
+            "error": f"Read error: {e}",
+            "pairs": [],
+        }
 
 
 def save_exchange_catalog_atomic(
     exchange_id: str,
-    data: Dict[str, Any],
+    catalog_data: Dict[str, Any],
     override_dir: Optional[str] = None
 ) -> str:
     """
-    Atomically writes exchange catalog to disk.
-    Uses tempfile in the target directory and os.replace to guarantee atomic commit.
+    Atomically writes the catalog payload to disk using a temporary file and os.replace.
+    Ensures that power loss or worker kill never leaves a corrupted/empty JSON file.
     """
     c_dir = get_catalog_dir(override_dir)
     os.makedirs(c_dir, exist_ok=True)
     target_path = get_catalog_path(exchange_id, override_dir)
 
     temp_fd, temp_path = tempfile.mkstemp(
-        prefix=f".tmp_{exchange_id}_",
-        suffix=".json",
-        dir=c_dir
+        dir=c_dir,
+        prefix=f"{exchange_id}_catalog_tmp_",
+        suffix=".json"
     )
     try:
         with os.fdopen(temp_fd, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+            json.dump(catalog_data, f, indent=2, ensure_ascii=False)
             f.flush()
             os.fsync(f.fileno())
+
         os.replace(temp_path, target_path)
+        logger.info(
+            f"✅ [Catalog Storage] Atomically persisted {exchange_id} catalog: "
+            f"{catalog_data.get('total_pairs', len(catalog_data.get('pairs', [])))} pairs at {target_path}"
+        )
         return target_path
-    except Exception:
+    except Exception as e:
         if os.path.exists(temp_path):
             try:
                 os.remove(temp_path)
             except OSError:
                 pass
-        raise
+        raise e
+
+
+MIN_PAIRS_CEILING = 20
+MAX_DROP_RATIO = 0.50
 
 
 def validate_catalog_safety(
     exchange_id: str,
-    new_pairs: List[Dict[str, Any]],
-    existing_catalog: Dict[str, Any],
+    incoming_pairs: List[Dict[str, Any]],
+    existing_catalog: Optional[Dict[str, Any]],
     ignore_safety: bool = False
 ) -> Tuple[bool, Optional[str]]:
     """
-    Validates safety rules for incoming catalog data:
-    1. Minimum pair ceiling: new_pairs >= MIN_PAIRS_CEILING (default 20).
-    2. Drop ceiling: if existing catalog has >= MIN_PAIRS_CEILING, new_pairs must not drop
-       below (prev_count * MAX_DROP_RATIO) (default 50% drop ceiling).
+    Validates incoming pairs against safety ceilings:
+    1. Rejects if incoming count < MIN_PAIRS_CEILING (20 pairs).
+    2. Rejects if incoming count drops > 50% from previously recorded valid catalog.
     """
     if ignore_safety:
         return True, None
 
-    min_pairs = int(getattr(config, "CRYPTO_CATALOG_MIN_PAIRS", 20))
-    max_drop_ratio = float(getattr(config, "CRYPTO_CATALOG_MAX_DROP_RATIO", 0.50))
+    new_count = len(incoming_pairs)
 
-    new_count = len(new_pairs)
-    if new_count < min_pairs:
-        msg = f"Catalog rejected for '{exchange_id}': incoming pairs ({new_count}) is below minimum ceiling ({min_pairs})."
-        return False, msg
+    # 1. Minimum ceiling check
+    if new_count < MIN_PAIRS_CEILING:
+        reason = (
+            f"Catalog for '{exchange_id}' contains only {new_count} pairs, "
+            f"which is below minimum ceiling of {MIN_PAIRS_CEILING}."
+        )
+        return False, reason
 
-    prev_pairs = existing_catalog.get("pairs", [])
-    prev_count = len(prev_pairs)
-    if prev_count >= min_pairs:
-        min_allowed = int(prev_count * max_drop_ratio)
-        if new_count < min_allowed:
-            pct_drop = int((1.0 - (new_count / prev_count)) * 100)
-            msg = (
-                f"Catalog rejected for '{exchange_id}': pair count dropped by {pct_drop}% "
-                f"from {prev_count} to {new_count} (exceeds {int((1.0 - max_drop_ratio)*100)}% maximum allowed drop)."
-            )
-            return False, msg
+    # 2. Maximum drop check
+    if existing_catalog:
+        prev_pairs = existing_catalog.get("pairs", [])
+        prev_count = len(prev_pairs)
+        if prev_count >= MIN_PAIRS_CEILING:
+            drop_ratio = (prev_count - new_count) / float(prev_count)
+            if drop_ratio > MAX_DROP_RATIO:
+                drop_pct = round(drop_ratio * 100, 1)
+                drop_int = int(drop_pct)
+                reason = (
+                    f"Catalog for '{exchange_id}' dropped by {drop_int}% "
+                    f"({prev_count} -> {new_count} pairs). Exceeds MAX_DROP_RATIO of 50%."
+                )
+                return False, reason
 
     return True, None
 
@@ -192,28 +241,19 @@ async def sync_exchange_catalog(
     override_dir: Optional[str] = None
 ) -> Dict[str, Any]:
     """
-    Scrapes and synchronizes the symbol catalog for a single exchange.
-    Enforces isolation, safety ceiling, and atomic storage.
+    Queries exchange public API, validates data, and updates catalog atomically.
+    If safety checks fail or network fails, keeps previous valid version on disk with is_stale=True.
     """
-    ex_id = exchange_id.lower().strip()
-    if ex_id not in SUPPORTED_CRYPTO_EXCHANGES:
-        return {
-            "exchange": ex_id,
-            "success": False,
-            "error_code": "UNKNOWN_EXCHANGE",
-            "error": f"Exchange '{ex_id}' is not in supported crypto exchanges list."
-        }
-
+    ex_id = (exchange_id or "").lower().strip()
     adapter = get_exchange_adapter(ex_id)
     if not adapter:
         return {
             "exchange": ex_id,
             "success": False,
-            "error_code": "ADAPTER_NOT_FOUND",
-            "error": f"No adapter found for exchange '{ex_id}'."
+            "error_code": "UNKNOWN_EXCHANGE",
+            "error": f"No adapter registered for exchange '{ex_id}'",
+            "is_stale": True
         }
-
-    existing_catalog = load_exchange_catalog(ex_id, override_dir)
 
     own_client = False
     if client is None:
@@ -221,12 +261,17 @@ async def sync_exchange_catalog(
         own_client = True
 
     try:
+        # Load existing catalog to check for drops
+        existing_catalog = load_exchange_catalog(ex_id, override_dir)
+
+        # Fetch market symbols
         symbols, err_code, err_msg = await adapter.fetch_symbols(client)
-        if err_code:
-            # Mark existing catalog as stale if available
-            if existing_catalog:
+
+        if err_code or not symbols:
+            # Mark existing catalog as stale
+            if existing_catalog and existing_catalog.get("pairs"):
                 existing_catalog["is_stale"] = True
-                existing_catalog["error"] = f"Sync failed: {err_msg}"
+                existing_catalog["error"] = f"Sync failed: {err_code} — {err_msg}"
                 save_exchange_catalog_atomic(ex_id, existing_catalog, override_dir)
 
             admin_msg = (
@@ -245,14 +290,23 @@ async def sync_exchange_catalog(
                 "pairs_count": len(existing_catalog.get("pairs", [])) if existing_catalog else 0
             }
 
-        # Format symbols to catalog pair format
+        # Format symbols to catalog pair format with alias index (Task 6)
         new_pairs = [
             {
+                "symbol": f"{s.base}{s.quote}",
                 "base": s.base,
                 "quote": s.quote,
                 "native_symbol": s.market_symbol,
                 "is_active": s.is_active,
+                "is_leveraged": s.is_etf,
                 "is_etf": s.is_etf,
+                "aliases": [
+                    f"{s.base}{s.quote}",
+                    s.market_symbol,
+                    s.base,
+                    s.market_symbol.upper(),
+                    s.market_symbol.lower(),
+                ],
                 "min_price": s.min_price,
                 "min_qty": s.min_qty,
             }
@@ -274,8 +328,8 @@ async def sync_exchange_catalog(
             admin_alert = (
                 f"🚨 <b>[Crypto Catalog Safety Ceiling Breach]</b>\n"
                 f"Exchange: <b>{adapter.display_name}</b>\n"
-                f"Reason: {safety_reason}\n"
-                f"Action: Existing catalog preserved and flagged STALE."
+                f"Alert: {safety_reason}\n"
+                f"<i>Previous catalog preserved on disk with is_stale=True.</i>"
             )
             await _safe_notify_admin(admin_alert, client=client)
 
@@ -318,6 +372,8 @@ async def sync_exchange_catalog(
                 await res
 
 
+sync_single_exchange_catalog = sync_exchange_catalog
+
 
 async def sync_all_crypto_catalogs(
     client: Optional[httpx.AsyncClient] = None,
@@ -325,11 +381,12 @@ async def sync_all_crypto_catalogs(
     override_dir: Optional[str] = None
 ) -> Dict[str, Any]:
     """
-    Synchronizes symbol catalogs for all supported crypto exchanges.
+    Synchronizes symbol catalogs for all supported active crypto exchanges.
     Strict failure isolation: an exception or error in one exchange NEVER impedes others.
     """
     results: Dict[str, Any] = {}
     success_count = 0
+    supported = get_supported_crypto_exchanges()
 
     own_client = False
     if client is None:
@@ -337,7 +394,7 @@ async def sync_all_crypto_catalogs(
         own_client = True
 
     try:
-        for ex_id in SUPPORTED_CRYPTO_EXCHANGES:
+        for ex_id in supported:
             try:
                 res = await sync_exchange_catalog(
                     ex_id,
@@ -360,7 +417,7 @@ async def sync_all_crypto_catalogs(
 
         return {
             "timestamp": int(time.time()),
-            "total_exchanges": len(SUPPORTED_CRYPTO_EXCHANGES),
+            "total_exchanges": len(supported),
             "success_count": success_count,
             "results": results
         }
@@ -371,15 +428,18 @@ async def sync_all_crypto_catalogs(
                 await res
 
 
-
 def get_crypto_catalogs_status(override_dir: Optional[str] = None) -> Dict[str, Any]:
     """
-    Returns high-level health and status of all exchange catalogs on disk.
+    Returns high-level health and status of all active exchange catalogs on disk.
+    Enforces Staleness by Age: Catalogs older than 2 sync intervals (12 hours) are flagged is_stale=True.
     """
     c_dir = get_catalog_dir(override_dir)
     status_map: Dict[str, Any] = {}
+    supported = get_supported_crypto_exchanges()
+    now_ts = int(time.time())
+    max_age_seconds = getattr(config, "CRYPTO_CATALOG_MAX_AGE_SECONDS", DEFAULT_SYNC_HOURS * 2 * 3600)
 
-    for ex_id in SUPPORTED_CRYPTO_EXCHANGES:
+    for ex_id in supported:
         path = get_catalog_path(ex_id, override_dir)
         if not os.path.exists(path):
             status_map[ex_id] = {
@@ -392,19 +452,118 @@ def get_crypto_catalogs_status(override_dir: Optional[str] = None) -> Dict[str, 
             continue
 
         cat = load_exchange_catalog(ex_id, override_dir)
+        updated_at = cat.get("updated_at")
+        is_stale_flag = cat.get("is_stale", False)
+        is_stale_by_age = False
+        if updated_at:
+            try:
+                age_sec = now_ts - int(updated_at)
+                if age_sec > max_age_seconds:
+                    is_stale_by_age = True
+            except (ValueError, TypeError):
+                is_stale_by_age = True
+
         status_map[ex_id] = {
             "file_exists": True,
             "total_pairs": cat.get("total_pairs", len(cat.get("pairs", []))),
-            "updated_at": cat.get("updated_at"),
-            "is_stale": cat.get("is_stale", False),
-            "error": cat.get("error")
+            "updated_at": updated_at,
+            "is_stale": is_stale_flag or is_stale_by_age,
+            "error": cat.get("error") or ("Catalog data is stale by age (> 12h)" if is_stale_by_age else None)
         }
 
     return {
         "catalogs_dir": c_dir,
-        "total_exchanges": len(SUPPORTED_CRYPTO_EXCHANGES),
+        "total_exchanges": len(supported),
         "exchanges": status_map
     }
+
+
+get_all_catalogs_status = get_crypto_catalogs_status
+
+
+def resolve_pair(
+    exchange_id: str,
+    symbol_or_base: str,
+    override_dir: Optional[str] = None
+) -> Tuple[str, Optional[Dict[str, Any]]]:
+    """
+    Resolves an alert symbol or base currency to its exact exchange catalog pair.
+    Uses the exchange's catalog alias index (Rule R1 / Task 6).
+    Returns: (status, pair_dict)
+    status: 'OK' | 'UNKNOWN_EXCHANGE' | 'SYMBOL_NOT_LISTED'
+    """
+    ex_meta = get_crypto_exchange(exchange_id)
+    if not ex_meta:
+        return "UNKNOWN_EXCHANGE", None
+
+    ex_id = ex_meta.id
+    query = (symbol_or_base or "").strip()
+    if not query:
+        return "SYMBOL_NOT_LISTED", None
+
+    # 1. Lookup in persisted catalog if present
+    cat = load_exchange_catalog(ex_id, override_dir)
+    pairs = cat.get("pairs", [])
+    if pairs:
+        q_upper = query.upper()
+        q_lower = query.lower()
+        q_norm = q_upper.replace("-", "").replace("_", "").replace("/", "")
+
+        for p in pairs:
+            native = str(p.get("native_symbol", ""))
+            base = str(p.get("base", ""))
+            sym = str(p.get("symbol", f"{base}USDT"))
+            aliases = p.get("aliases", [])
+
+            if (
+                query == native or
+                q_upper == sym or
+                q_upper == base or
+                q_lower == native.lower() or
+                q_upper == native.upper() or
+                q_norm == sym or
+                query in aliases or
+                q_upper in aliases or
+                q_lower in aliases
+            ):
+                return "OK", {
+                    "symbol": sym,
+                    "base": base,
+                    "quote": p.get("quote", "USDT"),
+                    "native_symbol": native,
+                    "is_leveraged": bool(p.get("is_leveraged", p.get("is_etf", False))),
+                }
+
+        return "SYMBOL_NOT_LISTED", None
+
+    # 2. Fallback when catalog has not been seeded yet on disk
+    adapter = get_exchange_adapter(ex_id)
+    if adapter:
+        native = adapter.to_native_symbol(query)
+        base = adapter.to_canonical_base(native)
+        sym = f"{base}USDT"
+        from app.markets.adapters.base import is_leveraged_token
+        return "OK", {
+            "symbol": sym,
+            "base": base,
+            "quote": "USDT",
+            "native_symbol": native,
+            "is_leveraged": is_leveraged_token(base),
+        }
+
+    if ex_meta.status == 'pending_adapter':
+        q_clean = query.upper().replace("-", "").replace("_", "").replace("/", "")
+        base = q_clean[:-4] if q_clean.endswith("USDT") and len(q_clean) > 4 else q_clean
+        sym = f"{base}USDT"
+        return "OK", {
+            "symbol": sym,
+            "base": base,
+            "quote": "USDT",
+            "native_symbol": sym,
+            "is_leveraged": False,
+        }
+
+    return "SYMBOL_NOT_LISTED", None
 
 
 async def crypto_catalog_sync_job():

@@ -32,7 +32,7 @@ class MEXCAdapter(BaseExchangeAdapter):
     """MEXC Spot USDT Market Adapter."""
 
     exchange_id = "mexc"
-    display_name = "MEXC"
+    display_name = "MEXC (mexc) Spot API"
     market_list_url = "https://api.mexc.com/api/v3/exchangeInfo"
     batch_price_url = "https://api.mexc.com/api/v3/ticker/price"
     single_price_url = "https://api.mexc.com/api/v3/ticker/price?symbol={symbol}"
@@ -68,21 +68,19 @@ class MEXCAdapter(BaseExchangeAdapter):
 
     def is_leveraged_token(self, base: str, symbol_entry: Optional[Dict[str, Any]] = None) -> bool:
         """
-        Detects MEXC leveraged / ETF tokens (e.g. BTC3L, BTC3S, ETH5L, ETH5S).
+        Detects MEXC leveraged / ETF tokens (matches ^[A-Z0-9]+[0-9][LS]$ or explicit metadata tags).
+        Tokens like JUP and SYRUP are explicitly NOT leveraged.
         """
-        b = base.upper()
-        leveraged_suffixes = ("3L", "3S", "4L", "4S", "5L", "5S", "UP", "DOWN", "BULL", "BEAR")
-        if any(b.endswith(suf) for suf in leveraged_suffixes):
-            return True
+        is_meta = False
         if symbol_entry:
             tags = symbol_entry.get("tags", [])
             if any("etf" in str(t).lower() or "leveraged" in str(t).lower() for t in tags):
-                return True
-            if symbol_entry.get("isMarginTradingAllowed") is False and any(c.isdigit() for c in b):
-                # Leveraged ETF tokens on MEXC often disallow margin
-                if any(b.endswith(x) for x in ("L", "S")):
-                    return True
-        return False
+                is_meta = True
+            elif symbol_entry.get("isMarginTradingAllowed") is False and any(c.isdigit() for c in base):
+                if any(base.endswith(x) for x in ("L", "S")):
+                    is_meta = True
+        from app.markets.adapters.base import is_leveraged_token
+        return is_leveraged_token(base, is_meta)
 
     def parse_symbols_response(self, raw_data: Any) -> List[SymbolInfo]:
         """

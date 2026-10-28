@@ -33,7 +33,7 @@ class KuCoinAdapter(BaseExchangeAdapter):
     """KuCoin Spot USDT Market Adapter."""
 
     exchange_id = "kucoin"
-    display_name = "KuCoin"
+    display_name = "KuCoin (kucoin) Spot API"
     market_list_url = "https://api.kucoin.com/api/v1/symbols"
     batch_price_url = "https://api.kucoin.com/api/v1/market/allTickers"
     single_price_url = "https://api.kucoin.com/api/v1/market/orderbook/level1?symbol={symbol}"
@@ -74,19 +74,17 @@ class KuCoinAdapter(BaseExchangeAdapter):
 
     def is_leveraged_token(self, base: str, symbol_entry: Optional[Dict[str, Any]] = None) -> bool:
         """
-        Detects KuCoin leveraged / ETF tokens (e.g. BTC3L, BTC3S).
+        Detects KuCoin leveraged / ETF tokens (matches ^[A-Z0-9]+[0-9][LS]$ or explicit metadata tags).
+        Tokens like JUP and SYRUP are explicitly NOT leveraged.
         """
-        b = base.upper()
-        leveraged_suffixes = ("3L", "3S", "UP", "DOWN", "BULL", "BEAR")
-        if any(b.endswith(suf) for suf in leveraged_suffixes):
-            return True
+        is_meta = False
         if symbol_entry:
-            # Check market or category fields in KuCoin data
             cat = str(symbol_entry.get("category", "")).lower()
             market = str(symbol_entry.get("market", "")).lower()
             if "etf" in cat or "leveraged" in cat or "etf" in market:
-                return True
-        return False
+                is_meta = True
+        from app.markets.adapters.base import is_leveraged_token
+        return is_leveraged_token(base, is_meta)
 
     def parse_symbols_response(self, raw_data: Any) -> List[SymbolInfo]:
         """

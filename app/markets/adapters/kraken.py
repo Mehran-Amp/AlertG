@@ -33,7 +33,7 @@ class KrakenAdapter(BaseExchangeAdapter):
     """Kraken Spot USDT Market Adapter."""
 
     exchange_id = "kraken"
-    display_name = "Kraken"
+    display_name = "Kraken (kraken) Spot API"
     market_list_url = "https://api.kraken.com/0/public/AssetPairs"
     batch_price_url = "https://api.kraken.com/0/public/Ticker"
     single_price_url = "https://api.kraken.com/0/public/Ticker?pair={pair}"
@@ -116,25 +116,25 @@ class KrakenAdapter(BaseExchangeAdapter):
 
     def is_leveraged_token(self, base: str, symbol_entry: Optional[Any] = None) -> bool:
         """
-        Detects leveraged tokens (Kraken spot generally does not carry leveraged ETF tokens).
+        Detects leveraged tokens (matches ^[A-Z0-9]+[0-9][LS]$).
+        Tokens like JUP and SYRUP are explicitly NOT leveraged.
         """
-        b = base.upper()
-        leveraged_suffixes = ("3L", "3S", "2L", "2S", "4L", "4S", "5L", "5S", "UP", "DOWN", "BULL", "BEAR")
-        return any(b.endswith(suf) for suf in leveraged_suffixes)
+        from app.markets.adapters.base import is_leveraged_token
+        return is_leveraged_token(base)
 
     def _classify_kraken_errors(self, error_list: List[str]) -> Tuple[str, str]:
         """
         Classifies Kraken API error strings.
         e.g. ['EGeneral:Too many requests'] -> RATE_LIMITED
-        ['EGeneral:Permission denied'] -> GEO_BLOCKED
+        ['EGeneral:Permission denied'] -> PROVIDER_BLOCKED
         ['EQuery:Unknown asset pair'] -> SYMBOL_NOT_LISTED
         """
         err_msg = ", ".join(error_list)
         err_lower = err_msg.lower()
         if "rate limit" in err_lower or "too many requests" in err_lower:
             return "RATE_LIMITED", f"Kraken Rate Limit: {err_msg}"
-        if "permission denied" in err_lower or "access denied" in err_lower or "ip" in err_lower:
-            return "GEO_BLOCKED", f"Kraken Access Restriction: {err_msg}"
+        if "permission denied" in err_lower or "access denied" in err_lower or "ip" in err_lower or "cloudflare" in err_lower:
+            return "PROVIDER_BLOCKED", f"Kraken Access Restriction: {err_msg}"
         if "unknown asset pair" in err_lower or "invalid symbol" in err_lower:
             return "SYMBOL_NOT_LISTED", f"Kraken Unknown Symbol: {err_msg}"
         return "PROVIDER_ERROR", f"Kraken Error: {err_msg}"

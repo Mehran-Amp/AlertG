@@ -539,7 +539,9 @@ PROBE_TARGETS = [
     {"id": "mexc", "name": "MEXC Spot (BTC/USDT)", "cat": "crypto", "url": "https://api.mexc.com/api/v3/ticker/price?symbol=BTCUSDT", "extractor": lambda d: float(d.get('price', 0)) if isinstance(d, dict) else None},
     {"id": "kucoin", "name": "KuCoin Spot (BTC/USDT)", "cat": "crypto", "url": "https://api.kucoin.com/api/v1/market/orderbook/level1?symbol=BTC-USDT", "extractor": lambda d: float(d.get('data', {}).get('price', 0)) if isinstance(d, dict) else None},
     {"id": "gateio", "name": "Gate.io Spot (BTC/USDT)", "cat": "crypto", "url": "https://api.gateio.ws/api/v4/spot/tickers?currency_pair=BTC_USDT", "extractor": lambda d: float(d[0].get('last', 0)) if isinstance(d, list) and d else None},
-    {"id": "coinex", "name": "CoinEx Spot (BTC/USDT)", "cat": "crypto", "url": "https://api.coinex.com/v1/market/ticker?market=BTCUSDT", "extractor": lambda d: float(d.get('data', {}).get('ticker', {}).get('last', 0)) if isinstance(d, dict) else None},
+    {"id": "lbank", "name": "LBank Spot (BTC/USDT)", "cat": "crypto", "url": "https://api.lbank.info/v2/ticker/24hr.do?symbol=btc_usdt", "extractor": lambda d: float(d.get('data', [{}])[0].get('ticker', {}).get('latest', 0)) if isinstance(d, dict) else None},
+    {"id": "okx", "name": "OKX Spot (BTC/USDT)", "cat": "crypto", "url": "https://www.okx.com/api/v5/market/ticker?instId=BTC-USDT", "extractor": lambda d: float(d.get('data', [{}])[0].get('last', 0)) if isinstance(d, dict) else None},
+    {"id": "kraken", "name": "Kraken Spot (BTC/USDT)", "cat": "crypto", "url": "https://api.kraken.com/0/public/Ticker?pair=XBTUSDT", "extractor": lambda d: float(list(d.get('result', {}).values())[0].get('c', [0])[0]) if isinstance(d, dict) and d.get('result') else None},
     {"id": "bitstamp", "name": "Bitstamp Spot (BTC/USD)", "cat": "crypto", "url": "https://www.bitstamp.net/api/v2/ticker/btcusd/", "extractor": lambda d: float(d.get('last', 0)) if isinstance(d, dict) else None},
     {"id": "gemini", "name": "Gemini Spot (BTC/USD)", "cat": "crypto", "url": "https://api.gemini.com/v1/pubticker/btcusd", "extractor": lambda d: float(d.get('last', 0)) if isinstance(d, dict) else None},
     {"id": "htx", "name": "HTX / Huobi Spot (BTC/USDT)", "cat": "crypto", "url": "https://api.huobi.pro/market/detail/merged?symbol=btcusdt", "extractor": lambda d: float(d.get('tick', {}).get('close', 0)) if isinstance(d, dict) else None},
@@ -983,34 +985,48 @@ def trigger_admin_catalog_rollback(version: Optional[int] = None):
 
 
 # -------------------------------------------------------------------------
-# Dynamic Crypto Exchange Catalogs & Sync (Phase 5 - v3.4.0)
+# Dynamic Crypto Exchange Catalogs & Sync (Canonical Single Route Set)
 # -------------------------------------------------------------------------
 @router.get("/api/admin/crypto-catalog/status", dependencies=ADMIN_DEP)
 @router.get("/admin/crypto-catalog/status", dependencies=ADMIN_DEP)
 def get_admin_crypto_catalog_status():
+    """Returns the metadata, pair count, and staleness status of all crypto exchange catalogs."""
     from app.markets.crypto_catalog import get_crypto_catalogs_status
     return get_crypto_catalogs_status()
+
+
+get_crypto_catalogs_status_endpoint = get_admin_crypto_catalog_status
 
 
 @router.post("/api/admin/crypto-catalog/sync", dependencies=ADMIN_DEP)
 @router.post("/admin/crypto-catalog/sync", dependencies=ADMIN_DEP)
 async def trigger_admin_crypto_catalog_sync(exchange: Optional[str] = None, ignore_safety: bool = False):
-    from app.markets.crypto_catalog import sync_exchange_catalog, sync_all_crypto_catalogs
-    try:
-        if exchange:
-            report = await sync_exchange_catalog(exchange, ignore_safety=ignore_safety)
-            return {
-                "success": report.get("success", False),
-                "report": report
-            }
-        else:
-            report = await sync_all_crypto_catalogs(ignore_safety=ignore_safety)
-            return {
-                "success": True,
-                "report": report
-            }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Crypto catalog sync failed: {str(e)}")
+    """
+    Manually triggers catalog sync for a specific exchange or all active supported exchanges.
+    Strictly isolated: does not affect stock/forex catalogs or catalog.json.
+    """
+    from app.markets.crypto_catalog import (
+        sync_single_exchange_catalog,
+        sync_all_crypto_catalogs,
+    )
+    from app.markets.crypto_registry import get_supported_exchange_ids, is_supported_crypto_exchange
+
+    active_supported = get_supported_exchange_ids(active_only=True)
+    if exchange:
+        ex_clean = exchange.strip().lower()
+        if not is_supported_crypto_exchange(ex_clean, allow_pending=False):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unknown or unsupported exchange '{exchange}'. Supported active: {', '.join(active_supported)}"
+            )
+        res = await sync_single_exchange_catalog(ex_clean, ignore_safety=ignore_safety)
+        return {"sync_mode": "single", "result": res}
+
+    report = await sync_all_crypto_catalogs(ignore_safety=ignore_safety)
+    return {"sync_mode": "all", "report": report}
+
+
+sync_crypto_catalogs_endpoint = trigger_admin_crypto_catalog_sync
 
 
 @router.get("/api/admin/features", dependencies=ADMIN_DEP)
@@ -1119,44 +1135,3 @@ async def admin_test_alert_push(
         "queued_before": before_queued,
         "queued_after": METRICS.get("delivery_queued", 0),
     }
-
-
-# ===================================================================
-# Crypto Dynamic Catalogs Management (Phase 5)
-# ===================================================================
-@router.get("/api/admin/crypto/catalogs/status", dependencies=ADMIN_DEP)
-@router.get("/api/crypto/catalogs/status", dependencies=ADMIN_DEP)
-def get_crypto_catalogs_status_endpoint():
-    """Returns the metadata, pair count, and staleness status of all crypto exchange catalogs."""
-    from app.markets.crypto_catalog import get_all_catalogs_status
-    return get_all_catalogs_status()
-
-
-@router.post("/api/admin/crypto/catalogs/sync", dependencies=ADMIN_DEP)
-@router.post("/api/crypto/catalogs/sync", dependencies=ADMIN_DEP)
-async def sync_crypto_catalogs_endpoint(exchange: Optional[str] = None):
-    """
-    Manually triggers catalog sync for a specific exchange or all supported exchanges.
-    Strictly isolated: does not affect stock/forex catalogs or catalog.json.
-    """
-    from app.markets.crypto_catalog import (
-        sync_single_exchange_catalog,
-        sync_all_crypto_catalogs,
-        SUPPORTED_EXCHANGES
-    )
-    if exchange:
-        ex_clean = exchange.strip().lower()
-        if ex_clean not in SUPPORTED_EXCHANGES:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Unknown exchange '{exchange}'. Supported: {', '.join(SUPPORTED_EXCHANGES)}"
-            )
-        res = await sync_single_exchange_catalog(ex_clean)
-        return {"sync_mode": "single", "result": res}
-
-    report = await sync_all_crypto_catalogs()
-    return {"sync_mode": "all", "report": report}
-
-
-get_admin_crypto_catalog_status = get_crypto_catalogs_status_endpoint
-trigger_admin_crypto_catalog_sync = sync_crypto_catalogs_endpoint

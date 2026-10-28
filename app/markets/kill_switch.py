@@ -26,10 +26,19 @@ def is_provider_killed(provider_id: str) -> bool:
     if norm_id in killed_list:
         return True
     
+    # Check alternate prefixes (e.g. 'crypto_binance' vs 'binance')
+    if norm_id.startswith('crypto_'):
+        base_id = norm_id[7:]
+        if base_id in killed_list:
+            return True
+    else:
+        if f"crypto_{norm_id}" in killed_list:
+            return True
+
     # Also check if provider aliases match (e.g. 'gate' vs 'gateio')
-    if norm_id == 'gate' and 'gateio' in killed_list:
+    if norm_id in ('gate', 'crypto_gate') and ('gateio' in killed_list or 'crypto_gateio' in killed_list):
         return True
-    if norm_id == 'gateio' and 'gate' in killed_list:
+    if norm_id in ('gateio', 'crypto_gateio') and ('gate' in killed_list or 'crypto_gate' in killed_list):
         return True
 
     # 2. Specific per-provider env variable
@@ -37,6 +46,16 @@ def is_provider_killed(provider_id: str) -> bool:
     val = os.getenv(f"KILL_SWITCH_PROVIDER_{clean_env_key}", "").strip().lower()
     if val in ("1", "true", "yes", "on"):
         return True
+
+    # Check alternate prefix in env var
+    if norm_id.startswith('crypto_'):
+        base_clean = re.sub(r'[^a-zA-Z0-9_]', '_', norm_id[7:]).upper()
+        if os.getenv(f"KILL_SWITCH_PROVIDER_{base_clean}", "").strip().lower() in ("1", "true", "yes", "on"):
+            return True
+    else:
+        crypto_clean = f"CRYPTO_{clean_env_key}"
+        if os.getenv(f"KILL_SWITCH_PROVIDER_{crypto_clean}", "").strip().lower() in ("1", "true", "yes", "on"):
+            return True
 
     return False
 

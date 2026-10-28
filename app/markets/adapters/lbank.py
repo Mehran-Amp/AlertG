@@ -34,7 +34,7 @@ class LBankAdapter(BaseExchangeAdapter):
     """LBank Spot USDT Market Adapter (CoinEx Replacement)."""
 
     exchange_id = "lbank"
-    display_name = "LBank"
+    display_name = "LBank (lbank) Spot API"
     market_list_url = "https://api.lbank.info/v2/currencyPairs.do"
     batch_price_url = "https://api.lbank.info/v2/ticker/24hr.do?symbol=all"
     single_price_url = "https://api.lbank.info/v2/ticker/24hr.do?symbol={symbol}"
@@ -84,11 +84,11 @@ class LBankAdapter(BaseExchangeAdapter):
 
     def is_leveraged_token(self, base: str, symbol_entry: Optional[Any] = None) -> bool:
         """
-        Detects LBank leveraged / ETF tokens (e.g. BTC3L, BTC3S, ETH5L, ETH5S).
+        Detects LBank leveraged / ETF tokens (matches ^[A-Z0-9]+[0-9][LS]$).
+        Tokens like JUP and SYRUP are explicitly NOT leveraged.
         """
-        b = base.upper()
-        leveraged_suffixes = ("3L", "3S", "4L", "4S", "5L", "5S", "UP", "DOWN", "BULL", "BEAR")
-        return any(b.endswith(suf) for suf in leveraged_suffixes)
+        from app.markets.adapters.base import is_leveraged_token
+        return is_leveraged_token(base)
 
     def parse_symbols_response(
         self,
@@ -290,8 +290,9 @@ class LBankAdapter(BaseExchangeAdapter):
         if filter_unpriced:
             # Fetch bulk prices to eliminate unpriced / ETF pairs without live quotes
             bulk = await self.fetch_batch_prices(client, timeout=timeout)
-            if bulk.prices:
-                priced_set = set(bulk.prices.keys())
+            if not bulk.prices:
+                return [], bulk.error_code or "NO_PRICE", f"LBank price verification failed: {bulk.error or 'No prices returned'}"
+            priced_set = set(bulk.prices.keys())
 
         symbols = self.parse_symbols_response(data, priced_symbols=priced_set)
         record_provider_metric(self.provider_key, "success")

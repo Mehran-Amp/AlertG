@@ -22,6 +22,7 @@ import os
 import sys
 import json
 import gzip
+import time
 import shutil
 import tempfile
 import unittest
@@ -215,6 +216,24 @@ class TestCryptoSymbolsAPI(unittest.TestCase):
             override_dir=self.test_dir
         )
 
+        # Gate.io fixture (Fresh - tested for Task 11 staleness by age)
+        gateio_pairs = [
+            {"base": "GT", "quote": "USDT", "native_symbol": "GT_USDT", "is_active": True, "is_etf": False, "min_price": 0.01, "min_qty": 0.1},
+        ]
+        save_exchange_catalog_atomic(
+            "gateio",
+            {
+                "exchange": "gateio",
+                "display_name": "Gate.io",
+                "updated_at": int(time.time()),
+                "total_pairs": len(gateio_pairs),
+                "is_stale": False,
+                "error": None,
+                "pairs": gateio_pairs
+            },
+            override_dir=self.test_dir
+        )
+
     def test_01_exchanges_list_metadata(self):
         """Verifies GET /api/crypto/exchanges returns all 7 exchanges with complete metadata."""
         resp_raw = get_crypto_exchanges(catalog_dir=self.test_dir)
@@ -237,14 +256,18 @@ class TestCryptoSymbolsAPI(unittest.TestCase):
             self.assertIn("last_updated_at", item)
             self.assertIn("is_stale", item)
 
-        # Check seeded data for binance
+        # Check seeded data for binance (stale by age >12h per Task 11 since timestamp is 1729000000)
         self.assertEqual(ex_map["binance"]["total_pairs"], 5)
-        self.assertEqual(ex_map["binance"]["is_stale"], False)
+        self.assertEqual(ex_map["binance"]["is_stale"], True)
         self.assertEqual(ex_map["binance"]["last_updated_at"], 1729000000)
 
-        # Check seeded data for mexc
+        # Check seeded data for mexc (stale by age >12h per Task 11 since timestamp is 1729000100)
         self.assertEqual(ex_map["mexc"]["total_pairs"], 2)
-        self.assertEqual(ex_map["mexc"]["is_stale"], False)
+        self.assertEqual(ex_map["mexc"]["is_stale"], True)
+
+        # Check seeded fresh data for gateio (fresh <12h per Task 11)
+        self.assertEqual(ex_map["gateio"]["total_pairs"], 1)
+        self.assertEqual(ex_map["gateio"]["is_stale"], False)
 
         # Check unseeded exchange has safe defaults
         self.assertEqual(ex_map["kraken"]["total_pairs"], 0)

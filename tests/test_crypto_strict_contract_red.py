@@ -115,8 +115,8 @@ class TestCryptoStrictContractRed(unittest.IsolatedAsyncioTestCase):
         )
 
         self.assertEqual(price, 65120.0, "OKX must return OKX price")
-        self.assertIn('OKX Spot API', queried_sources, "OKX Spot API must be queried")
-        self.assertNotIn('Binance Spot API', queried_sources, "Binance must NEVER be queried for OKX")
+        self.assertTrue(any('okx' in s.lower() for s in queried_sources), "OKX Spot API must be queried")
+        self.assertNotIn('Binance (binance) Spot API', queried_sources, "Binance must NEVER be queried for OKX")
 
     async def test_03_lbank_alert_must_not_fallback_to_other_exchanges(self):
         """
@@ -126,11 +126,11 @@ class TestCryptoStrictContractRed(unittest.IsolatedAsyncioTestCase):
 
         async def mock_try_fetch(source_name: str, url: str, extract_func) -> Optional[float]:
             queried_sources.append(source_name)
-            if 'LBank' in source_name:
+            if 'lbank' in source_name.lower():
                 return 65200.0
-            if 'Binance' in source_name:
+            if 'binance' in source_name.lower():
                 return 65000.0
-            if 'MEXC' in source_name:
+            if 'mexc' in source_name.lower():
                 return 65050.0
             return None
 
@@ -145,9 +145,9 @@ class TestCryptoStrictContractRed(unittest.IsolatedAsyncioTestCase):
         )
 
         self.assertEqual(price, 65200.0, "LBank must return LBank price")
-        self.assertIn('LBank Spot API', queried_sources, "LBank Spot API must be queried")
-        self.assertNotIn('Binance Spot API', queried_sources, "Binance must NEVER be queried for LBank")
-        self.assertNotIn('MEXC Spot API', queried_sources, "MEXC must NEVER be queried for LBank")
+        self.assertTrue(any('lbank' in s.lower() for s in queried_sources), "LBank Spot API must be queried")
+        self.assertNotIn('Binance (binance) Spot API', queried_sources, "Binance must NEVER be queried for LBank")
+        self.assertNotIn('MEXC (mexc) Spot API', queried_sources, "MEXC must NEVER be queried for LBank")
 
     async def test_04_coin_missing_on_selected_exchange_must_not_steal_from_another(self):
         """
@@ -158,11 +158,11 @@ class TestCryptoStrictContractRed(unittest.IsolatedAsyncioTestCase):
 
         async def mock_try_fetch(source_name: str, url: str, extract_func) -> Optional[float]:
             queried_sources.append(source_name)
-            if 'KuCoin' in source_name:
+            if 'kucoin' in source_name.lower():
                 return None
-            if 'Binance' in source_name:
+            if 'binance' in source_name.lower():
                 return 0.05
-            if 'MEXC' in source_name:
+            if 'mexc' in source_name.lower():
                 return 0.051
             return None
 
@@ -183,7 +183,7 @@ class TestCryptoStrictContractRed(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(
             queried_sources,
-            ['KuCoin Spot API'],
+            ['KuCoin (kucoin) Spot API'],
             f"R1 VIOLATION: Additional exchanges were queried after KuCoin: {queried_sources}"
         )
 

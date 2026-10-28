@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-AlertG — Acceptance Test T3: Strict Exchange Isolation Test.
+AlertG — Acceptance Test T3: Strict Exchange Isolation Test (Phase 1 Fix).
 For every registered crypto exchange:
 1. Part A (Distinct Prices): All exchanges are mocked with different prices.
    Querying exchange X MUST return exchange X's exact price and query ONLY exchange X.
 2. Part B (Selected Exchange Fails): Exchange X fails/returns None while all other exchanges are healthy.
    Querying exchange X MUST return None (NO_PRICE) and query ZERO other exchange APIs.
 Zero cross-exchange fallback or leakage under all circumstances.
+Rule R11: All source labels must contain the exchange ID in parentheses.
+Owner Decision E1.2: CoinEx is deleted from registry and returns UNKNOWN_EXCHANGE.
 """
 
 import unittest
@@ -36,21 +38,21 @@ except ImportError:
 
 import app.config as config
 from app.markets.crypto import fetch_crypto
-from app.markets.crypto_registry import list_crypto_exchanges
+from app.markets.crypto_registry import get_crypto_exchange, list_crypto_exchanges
 
 
 # Distinct mock prices for every exchange to detect any cross-exchange leak
+# Labels strictly adhere to Rule R11 (containing exchange ID)
 EXCHANGE_DISTINCT_PRICES = {
-    'binance': (60001.0, 'Binance Spot API'),
-    'mexc': (60002.0, 'MEXC Spot API'),
-    'kucoin': (60003.0, 'KuCoin Spot API'),
-    'gateio': (60004.0, 'Gate.io Spot API'),
-    'lbank': (60005.0, 'LBank Spot API'),
-    'okx': (60006.0, 'OKX Spot API'),
-    'bybit': (60007.0, 'Bybit Spot API'),
-    'bitget': (60008.0, 'Bitget Spot API'),
-    'kraken': (60009.0, 'Kraken Spot API'),
-    'coinex': (60010.0, 'CoinEx Spot API'),
+    'binance': (60001.0, 'Binance (binance) Spot API'),
+    'mexc': (60002.0, 'MEXC (mexc) Spot API'),
+    'kucoin': (60003.0, 'KuCoin (kucoin) Spot API'),
+    'gateio': (60004.0, 'Gate.io (gateio) Spot API'),
+    'lbank': (60005.0, 'LBank (lbank) Spot API'),
+    'okx': (60006.0, 'OKX (okx) Spot API'),
+    'bybit': (60007.0, 'Bybit (bybit) Spot API'),
+    'bitget': (60008.0, 'Bitget (bitget) Spot API'),
+    'kraken': (60009.0, 'Kraken (kraken) Spot API'),
 }
 
 
@@ -98,69 +100,76 @@ class TestCryptoStrictIsolationT3(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(
                 queried_sources,
                 [target_source_name],
-                f"Isolation Failure: {target_ex} queried extra sources: {queried_sources}"
+                f"Isolation Failure: {target_ex} queried unauthorized endpoints: {queried_sources}"
             )
         else:
-            # Part B: Must return None and ZERO other exchange calls
+            # Part B: Must return None and NEVER fall back to another exchange
             self.assertIsNone(
                 result_price,
-                f"Leakage Failure: Failing {target_ex} returned price {result_price} from another exchange!"
+                f"Isolation Failure: {target_ex} failed but returned {result_price} instead of None"
             )
             self.assertEqual(
                 queried_sources,
                 [target_source_name],
-                f"Leakage Failure: Failing {target_ex} triggered queries to other exchanges: {queried_sources}"
+                f"Isolation Failure: Failed {target_ex} leaked requests to other exchanges: {queried_sources}"
             )
 
-    # 1. Binance Isolation
     async def test_01_binance_isolation_success_and_failure(self):
         await self._run_isolation_scenario('binance', fail_target=False)
         await self._run_isolation_scenario('binance', fail_target=True)
 
-    # 2. MEXC Isolation
     async def test_02_mexc_isolation_success_and_failure(self):
         await self._run_isolation_scenario('mexc', fail_target=False)
         await self._run_isolation_scenario('mexc', fail_target=True)
 
-    # 3. KuCoin Isolation
     async def test_03_kucoin_isolation_success_and_failure(self):
         await self._run_isolation_scenario('kucoin', fail_target=False)
         await self._run_isolation_scenario('kucoin', fail_target=True)
 
-    # 4. Gate.io Isolation
     async def test_04_gateio_isolation_success_and_failure(self):
         await self._run_isolation_scenario('gateio', fail_target=False)
         await self._run_isolation_scenario('gateio', fail_target=True)
 
-    # 5. LBank Isolation (CoinEx replacement)
     async def test_05_lbank_isolation_success_and_failure(self):
         await self._run_isolation_scenario('lbank', fail_target=False)
         await self._run_isolation_scenario('lbank', fail_target=True)
 
-    # 6. OKX Isolation
     async def test_06_okx_isolation_success_and_failure(self):
         await self._run_isolation_scenario('okx', fail_target=False)
         await self._run_isolation_scenario('okx', fail_target=True)
 
-    # 7. Bybit Isolation
     async def test_07_bybit_isolation_success_and_failure(self):
         await self._run_isolation_scenario('bybit', fail_target=False)
         await self._run_isolation_scenario('bybit', fail_target=True)
 
-    # 8. Bitget Isolation
     async def test_08_bitget_isolation_success_and_failure(self):
         await self._run_isolation_scenario('bitget', fail_target=False)
         await self._run_isolation_scenario('bitget', fail_target=True)
 
-    # 9. Kraken Isolation
     async def test_09_kraken_isolation_success_and_failure(self):
         await self._run_isolation_scenario('kraken', fail_target=False)
         await self._run_isolation_scenario('kraken', fail_target=True)
 
-    # 10. CoinEx Isolation
-    async def test_10_coinex_isolation_success_and_failure(self):
-        await self._run_isolation_scenario('coinex', fail_target=False)
-        await self._run_isolation_scenario('coinex', fail_target=True)
+    async def test_10_coinex_rejected_as_unknown_exchange(self):
+        """Owner Decision E1.2: CoinEx is deleted from registry and rejected immediately."""
+        traces = []
+        queried_sources = []
+
+        async def mock_try_fetch(source_name: str, url: str, extract_func):
+            queried_sources.append(source_name)
+            return 60010.0
+
+        result_price = await fetch_crypto(
+            client=self.mock_client,
+            exchange='coinex',
+            symbol='BTCUSDT',
+            _try_fetch=mock_try_fetch,
+            traces=traces,
+            collect_all_traces=False
+        )
+        self.assertIsNone(result_price)
+        self.assertEqual(queried_sources, [])
+        self.assertTrue(any('UNKNOWN_EXCHANGE' in str(t.get('error', '')) for t in traces))
 
 
 if __name__ == '__main__':

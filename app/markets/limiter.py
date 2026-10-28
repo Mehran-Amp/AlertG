@@ -75,7 +75,6 @@ PROVIDER_LIMITERS: Dict[str, TokenBucketRateLimiter] = {
     'crypto_bybit': TokenBucketRateLimiter(rate_per_second=20.0, capacity=30.0),
     'crypto_bitget': TokenBucketRateLimiter(rate_per_second=20.0, capacity=30.0),
     'crypto_kraken': TokenBucketRateLimiter(rate_per_second=15.0, capacity=25.0),
-    'crypto_coinex': TokenBucketRateLimiter(rate_per_second=10.0, capacity=20.0),
     'default': TokenBucketRateLimiter(rate_per_second=20.0, capacity=30.0),
 }
 
@@ -108,7 +107,6 @@ PROVIDER_QUOTAS: Dict[str, Dict[str, Any]] = {
     'crypto_bybit': {'limit': 60000, 'window': 'daily', 'name': 'Bybit Spot'},
     'crypto_bitget': {'limit': 60000, 'window': 'daily', 'name': 'Bitget Spot'},
     'crypto_kraken': {'limit': 40000, 'window': 'daily', 'name': 'Kraken Spot'},
-    'crypto_coinex': {'limit': 20000, 'window': 'daily', 'name': 'CoinEx (Closing)'},
     'default': {'limit': 20000, 'window': 'daily', 'name': 'Default Gateway'},
 }
 

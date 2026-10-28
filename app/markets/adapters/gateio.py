@@ -33,7 +33,7 @@ class GateioAdapter(BaseExchangeAdapter):
     """Gate.io Spot USDT Market Adapter."""
 
     exchange_id = "gateio"
-    display_name = "Gate.io"
+    display_name = "Gate.io (gateio) Spot API"
     market_list_url = "https://api.gateio.ws/api/v4/spot/currency_pairs"
     batch_price_url = "https://api.gateio.ws/api/v4/spot/tickers"
     single_price_url = "https://api.gateio.ws/api/v4/spot/tickers?currency_pair={currency_pair}"
@@ -80,18 +80,16 @@ class GateioAdapter(BaseExchangeAdapter):
 
     def is_leveraged_token(self, base: str, symbol_entry: Optional[Dict[str, Any]] = None) -> bool:
         """
-        Detects Gate.io leveraged / ETF tokens (e.g. BTC3L, BTC3S, ETH5L, ETH5S).
+        Detects Gate.io leveraged / ETF tokens (matches ^[A-Z0-9]+[0-9][LS]$ or explicit metadata tags).
+        Tokens like JUP and SYRUP are explicitly NOT leveraged.
         """
-        b = base.upper()
-        leveraged_suffixes = ("3L", "3S", "4L", "4S", "5L", "5S", "UP", "DOWN", "BULL", "BEAR")
-        if any(b.endswith(suf) for suf in leveraged_suffixes):
-            return True
+        is_meta = False
         if symbol_entry:
-            # Check leveraged token tags or margin disabled flags
             tags = symbol_entry.get("tags", [])
             if any("etf" in str(t).lower() or "leveraged" in str(t).lower() for t in tags):
-                return True
-        return False
+                is_meta = True
+        from app.markets.adapters.base import is_leveraged_token
+        return is_leveraged_token(base, is_meta)
 
     def parse_symbols_response(self, raw_data: Any) -> List[SymbolInfo]:
         """

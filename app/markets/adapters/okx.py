@@ -33,7 +33,7 @@ class OKXAdapter(BaseExchangeAdapter):
     """OKX Spot USDT Market Adapter."""
 
     exchange_id = "okx"
-    display_name = "OKX"
+    display_name = "OKX (okx) Spot API"
     market_list_url = "https://www.okx.com/api/v5/public/instruments?instType=SPOT"
     batch_price_url = "https://www.okx.com/api/v5/market/tickers?instType=SPOT"
     single_price_url = "https://www.okx.com/api/v5/market/ticker?instId={instId}"
@@ -81,25 +81,25 @@ class OKXAdapter(BaseExchangeAdapter):
 
     def is_leveraged_token(self, base: str, symbol_entry: Optional[Any] = None) -> bool:
         """
-        Detects OKX leveraged / ETF tokens (e.g. BTC3L, BTC3S, ETH5L, ETH5S).
+        Detects OKX leveraged / ETF tokens (matches ^[A-Z0-9]+[0-9][LS]$).
+        Tokens like JUP and SYRUP are explicitly NOT leveraged.
         """
-        b = base.upper()
-        leveraged_suffixes = ("3L", "3S", "2L", "2S", "4L", "4S", "5L", "5S", "UP", "DOWN", "BULL", "BEAR")
-        return any(b.endswith(suf) for suf in leveraged_suffixes)
+        from app.markets.adapters.base import is_leveraged_token
+        return is_leveraged_token(base)
 
     def _classify_okx_payload_error(self, code: str, msg: str) -> Tuple[str, str]:
         """
         Classifies OKX API v5 error payload codes.
         code == '50011' -> Rate limit exceeded
-        code in ('50005', '50100', '50102') or geo restriction -> GEO_BLOCKED
+        code in ('50005', '50100', '50102') or geo restriction -> PROVIDER_BLOCKED
         code in ('51001', '51002') -> SYMBOL_NOT_LISTED
         """
         code_str = str(code).strip()
         msg_lower = (msg or "").lower()
         if code_str == "50011" or "too many requests" in msg_lower or "rate limit" in msg_lower:
             return "RATE_LIMITED", f"OKX Rate Limit ({code_str}): {msg}"
-        if code_str in ("50005", "50100", "50102") or "access denied" in msg_lower or "ip" in msg_lower or "restricted" in msg_lower:
-            return "GEO_BLOCKED", f"OKX Geo/Access Restriction ({code_str}): {msg}"
+        if code_str in ("50005", "50100", "50102") or "access denied" in msg_lower or "ip" in msg_lower or "restricted" in msg_lower or "region" in msg_lower:
+            return "PROVIDER_BLOCKED", f"OKX Geo/Access Restriction ({code_str}): {msg}"
         if code_str in ("51001", "51002") or "instrument id does not exist" in msg_lower:
             return "SYMBOL_NOT_LISTED", f"OKX Symbol Not Listed ({code_str}): {msg}"
         return "PROVIDER_ERROR", f"OKX API Error ({code_str}): {msg}"

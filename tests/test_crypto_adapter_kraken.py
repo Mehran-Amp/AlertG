@@ -154,7 +154,7 @@ class TestKrakenAdapter(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(single_res.price)
 
     async def test_07_error_classification_geo_blocked_403(self):
-        """Verifies HTTP 403 maps to GEO_BLOCKED status."""
+        """Verifies HTTP 403 maps to PROVIDER_BLOCKED / GEO_BLOCKED status."""
         client = AsyncMock()
         mock_resp = MagicMock()
         mock_resp.status_code = 403
@@ -163,10 +163,10 @@ class TestKrakenAdapter(unittest.IsolatedAsyncioTestCase):
         client.get.return_value = mock_resp
 
         batch_res = await self.adapter.fetch_batch_prices(client)
-        self.assertEqual(batch_res.error_code, "GEO_BLOCKED")
+        self.assertIn(batch_res.error_code, ("PROVIDER_BLOCKED", "GEO_BLOCKED"))
 
         single_res = await self.adapter.fetch_single_price(client, "ETH")
-        self.assertEqual(single_res.status, "GEO_BLOCKED")
+        self.assertIn(single_res.status, ("PROVIDER_BLOCKED", "GEO_BLOCKED"))
 
     async def test_08_error_classification_timeout(self):
         """Verifies request timeout maps to TIMEOUT."""

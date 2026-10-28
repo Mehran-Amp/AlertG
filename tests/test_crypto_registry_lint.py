@@ -125,7 +125,9 @@ class TestCryptoRegistryLint(unittest.TestCase):
             self.assertTrue(meta.provider_key and len(meta.provider_key.strip()) > 0, f"{ex_id}: provider_key missing")
             self.assertTrue(meta.markets_url.startswith("https://"), f"{ex_id}: markets_url must be HTTPS")
             self.assertTrue(meta.bulk_ticker_url.startswith("https://"), f"{ex_id}: bulk_ticker_url must be HTTPS")
-            self.assertIn(meta.status, ('active', 'closing', 'inactive'), f"{ex_id}: invalid status {meta.status}")
+            self.assertIn(meta.status, ('active', 'pending_adapter', 'closing', 'inactive'), f"{ex_id}: invalid status {meta.status}")
+            # Rule R11 lint: source_label must contain exchange id as substring
+            self.assertIn(ex_id, meta.source_label.lower(), f"{ex_id}: source_label '{meta.source_label}' must contain id '{ex_id}'")
 
     def test_04_lbank_registered_as_active_in_asia_category(self):
         """LBank must be registered with category='asia' and status='active'."""
@@ -138,12 +140,11 @@ class TestCryptoRegistryLint(unittest.TestCase):
         self.assertEqual(lbank.provider_key, 'crypto_lbank')
         self.assertIn('lbank.info', lbank.markets_url)
 
-    def test_05_coinex_registered_as_closing(self):
-        """CoinEx must be registered with status='closing' for migration handling."""
+    def test_05_coinex_deleted_completely_from_registry(self):
+        """Owner Decision E1.2: CoinEx must be completely deleted from registry."""
         coinex = get_crypto_exchange('coinex')
-        self.assertIsNotNone(coinex, "CoinEx must be in registry with closing status")
-        self.assertEqual(coinex.status, 'closing')
-        self.assertEqual(coinex.provider_key, 'crypto_coinex')
+        self.assertIsNone(coinex, "CoinEx must NOT be in crypto_registry (Owner Decision E1.2)")
+        self.assertNotIn('coinex', _CRYPTO_EXCHANGES)
 
     def test_06_provider_keys_registered_in_limiters_and_quotas(self):
         """Every provider_key must have an isolated TokenBucket limiter and quota entry."""

@@ -30,9 +30,26 @@ def _map_source_to_provider_key(source_name: str, url: str) -> str:
         return 'bonbast'
     if 'aegkala' in s or 'bridge' in s or 'market-bridge' in u:
         return 'iran_bridge'
+    # Dedicated crypto exchange provider keys (Phase 1 Fix / Task 8)
     if 'binance' in s or 'binance' in u:
-        return 'binance'
-    if any(c in u for c in ['mexc', 'kucoin', 'gateio', 'coinex', 'bitstamp', 'dexscreener', 'geckoterminal']):
+        return 'crypto_binance'
+    if 'mexc' in s or 'mexc' in u:
+        return 'crypto_mexc'
+    if 'kucoin' in s or 'kucoin' in u:
+        return 'crypto_kucoin'
+    if 'gate' in s or 'gateio' in u or 'gate.io' in u:
+        return 'crypto_gateio'
+    if 'lbank' in s or 'lbank' in u or 'lbkex' in u:
+        return 'crypto_lbank'
+    if 'okx' in s or 'okx' in u:
+        return 'crypto_okx'
+    if 'bybit' in s or 'bybit' in u:
+        return 'crypto_bybit'
+    if 'bitget' in s or 'bitget' in u:
+        return 'crypto_bitget'
+    if 'kraken' in s or 'kraken' in u:
+        return 'crypto_kraken'
+    if any(c in u for c in ['bitstamp', 'dexscreener', 'geckoterminal']):
         return 'crypto_global'
     return 'default'
 

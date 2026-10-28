@@ -1,54 +1,61 @@
 # -*- coding: utf-8 -*-
 """
-AlertG — Crypto Symbols API Router (Phase 6).
-Provides isolated endpoints for cryptocurrency exchanges and dynamic symbol catalogs:
+AlertG — Crypto Symbols API Router (Phase 1 Fix / Version 2).
+Provides endpoints for cryptocurrency exchanges and dynamic symbol catalogs:
 1. GET /api/crypto/exchanges:
-   Lists supported exchanges with identifier, display name, total pairs count, last update timestamp, and stale flag.
-2. GET /api/crypto/symbols/{exchange} and GET /api/crypto/symbols:
+   Lists supported exchanges reading from crypto_registry.py (Rule R5):
+   id, name, display_name, category, market='spot', quote='USDT', total_pairs,
+   last_updated_at, is_stale (flag + age > 12h), alert_capable.
+2. GET /api/crypto/exchanges/{exchange}/symbols and GET /api/crypto/symbols/{exchange}:
    Retrieves symbols for a given exchange with:
    - Multi-tier search ranking: Exact match -> Prefix match (starts-with) -> Substring match (contains).
-   - Pagination: limit and offset / cursor, strictly capped at MAX_PAGE_LIMIT.
+   - Filter leveraged tokens: include_leveraged=False by default (E1.2).
+   - Pagination: limit and offset / cursor, strictly capped at MAX_PAGE_LIMIT (500).
    - Caching: deterministic ETag with 304 Not Modified support.
    - Gzip compression on demand (gzip=true).
    - Quote currency filtering (e.g. quote=USDT).
 3. 404 with informative detail on unknown/unsupported exchange.
 4. Standard API key authentication via API_DEP.
-
-Strict Rules (R3, R4, R5):
-- Purely additive: Zero mutation to existing /api/symbols endpoints or catalog.json.
-- Full backward compatibility for all legacy endpoints.
 """
 
 import gzip
 import hashlib
 import json
 import re
+import time
 from typing import Optional, List, Dict, Any
 
 from fastapi import APIRouter, Query, HTTPException, Header, Response
 from fastapi.responses import JSONResponse
 
 from app.security import API_DEP
+from app.markets.crypto_registry import (
+    get_crypto_exchange,
+    list_crypto_exchanges,
+    get_supported_exchange_ids,
+    is_supported_crypto_exchange,
+)
 from app.markets.crypto_catalog import (
-    SUPPORTED_CRYPTO_EXCHANGES,
     load_exchange_catalog,
     get_crypto_catalogs_status,
+    DEFAULT_SYNC_HOURS,
 )
 
 router = APIRouter()
 
-EXCHANGE_METADATA = {
-    "binance": {"name": "Binance", "display_name": "Binance", "website": "https://www.binance.com"},
-    "mexc": {"name": "MEXC", "display_name": "MEXC", "website": "https://www.mexc.com"},
-    "kucoin": {"name": "KuCoin", "display_name": "KuCoin", "website": "https://www.kucoin.com"},
-    "gateio": {"name": "Gate.io", "display_name": "Gate.io", "website": "https://www.gate.io"},
-    "lbank": {"name": "LBank", "display_name": "LBank", "website": "https://www.lbank.com"},
-    "okx": {"name": "OKX", "display_name": "OKX", "website": "https://www.okx.com"},
-    "kraken": {"name": "Kraken", "display_name": "Kraken", "website": "https://www.kraken.com"},
-}
-
 DEFAULT_PAGE_LIMIT = 50
-MAX_PAGE_LIMIT = 200
+MAX_PAGE_LIMIT = 500
+
+# Backward compatibility mapping for callers/tests importing EXCHANGE_METADATA
+EXCHANGE_METADATA = {
+    meta.id: {
+        "name": meta.name,
+        "display_name": meta.name,
+        "notes": meta.notes or "",
+        "doc_url": meta.markets_url,
+    }
+    for meta in list_crypto_exchanges()
+}
 
 
 def normalize_search_query(text: Optional[str]) -> str:
@@ -68,40 +75,60 @@ def build_crypto_symbols_response(
     offset: Optional[int] = 0,
     cursor: Optional[int] = None,
     quote: Optional[str] = None,
+    include_leveraged: Optional[bool] = False,
     gzip_flag: Optional[bool] = False,
     if_none_match: Optional[str] = None,
     catalog_dir: Optional[str] = None,
 ) -> Response:
     """
-    Core implementation of the Phase 6 symbols retrieval endpoint.
-    Handles exchange validation, filtering, 3-tier search ranking, pagination, and ETag/gzip generation.
+    Core implementation of the symbols retrieval endpoint.
+    Handles exchange validation from registry, leveraged token filtering,
+    3-tier search ranking, pagination, and ETag/gzip generation.
     """
     ex_clean = (exchange_param or "").strip().lower()
-    if not ex_clean or ex_clean not in SUPPORTED_CRYPTO_EXCHANGES:
-        supported_str = ", ".join(SUPPORTED_CRYPTO_EXCHANGES)
+    meta = get_crypto_exchange(ex_clean)
+    active_ids = get_supported_exchange_ids(active_only=True)
+
+    if not meta or meta.status != 'active':
+        supported_str = ", ".join(active_ids)
         raise HTTPException(
             status_code=404,
             detail=f"Unknown or unsupported exchange '{exchange_param}'. Supported exchanges: {supported_str}"
         )
 
-    catalog_data = load_exchange_catalog(ex_clean, override_dir=catalog_dir)
-    if not catalog_data:
-        raw_pairs = []
-        last_updated = None
-        is_stale = True
-        error_msg = "Catalog not found or not synchronized yet"
-    else:
-        raw_pairs = catalog_data.get("pairs", [])
-        last_updated = catalog_data.get("updated_at")
-        is_stale = catalog_data.get("is_stale", False)
-        error_msg = catalog_data.get("error")
+    canonical_id = meta.id
+    catalog_data = load_exchange_catalog(canonical_id, override_dir=catalog_dir)
 
-    # 1. Quote currency filtering if requested
+    raw_pairs = catalog_data.get("pairs", [])
+    last_updated = catalog_data.get("updated_at")
+    is_stale_flag = catalog_data.get("is_stale", False)
+    error_msg = catalog_data.get("error")
+
+    # Staleness by age check (Rule Task 11)
+    is_stale_by_age = False
+    now_ts = int(time.time())
+    max_age_seconds = DEFAULT_SYNC_HOURS * 2 * 3600  # 12 hours
+    if last_updated:
+        try:
+            if (now_ts - int(last_updated)) > max_age_seconds:
+                is_stale_by_age = True
+        except (ValueError, TypeError):
+            is_stale_by_age = True
+
+    is_stale = is_stale_flag or is_stale_by_age
+    if is_stale_by_age and not error_msg:
+        error_msg = "Catalog data is stale by age (> 12h)"
+
+    # 1. Leveraged / ETF tokens filtering (Default: False per Owner Decision E1.2)
+    if not include_leveraged:
+        raw_pairs = [p for p in raw_pairs if not (p.get("is_leveraged") or p.get("is_etf"))]
+
+    # 2. Quote currency filtering if requested
     if quote:
         clean_quote = quote.strip().upper()
         raw_pairs = [p for p in raw_pairs if (p.get("quote") or "").upper() == clean_quote]
 
-    # 2. Search & 3-tier ranking (Exact -> Starts-with -> Contains)
+    # 3. Search & 3-tier ranking (Exact -> Starts-with -> Contains)
     clean_q = normalize_search_query(q)
     if not clean_q:
         matched_pairs = list(raw_pairs)
@@ -131,7 +158,7 @@ def build_crypto_symbols_response(
 
         matched_pairs = exact_matches + prefix_matches + substring_matches
 
-    # 3. Pagination & limit enforcement
+    # 4. Pagination & limit enforcement (Max limit 500)
     total_count = len(matched_pairs)
     effective_limit = min(max(1, limit or DEFAULT_PAGE_LIMIT), MAX_PAGE_LIMIT)
     cur_offset = cursor if cursor is not None else (offset or 0)
@@ -141,13 +168,13 @@ def build_crypto_symbols_response(
     next_cursor = (cur_offset + effective_limit) if (cur_offset + effective_limit) < total_count else None
     has_more = next_cursor is not None
 
-    meta = EXCHANGE_METADATA.get(ex_clean, {"name": ex_clean.title(), "display_name": ex_clean.title()})
-
     payload = {
         "status": "success",
-        "exchange": ex_clean,
-        "exchange_id": ex_clean,
-        "display_name": meta["display_name"],
+        "exchange": canonical_id,
+        "exchange_id": canonical_id,
+        "display_name": meta.name,
+        "market": "spot",
+        "quote": "USDT",
         "last_updated_at": last_updated,
         "is_stale": is_stale,
         "error": error_msg,
@@ -160,7 +187,7 @@ def build_crypto_symbols_response(
         "symbols": page_items,
     }
 
-    # 4. Deterministic ETag calculation
+    # 5. Deterministic ETag calculation
     content_str = json.dumps(payload, sort_keys=True, ensure_ascii=False)
     content_bytes = content_str.encode("utf-8")
     etag = f'"{hashlib.md5(content_bytes).hexdigest()}"'
@@ -176,7 +203,7 @@ def build_crypto_symbols_response(
         if req_etag == cur_etag:
             return Response(status_code=304, headers=headers)
 
-    # 5. Gzip compression handling
+    # 6. Gzip compression handling
     if gzip_flag:
         compressed = gzip.compress(content_bytes)
         headers["Content-Encoding"] = "gzip"
@@ -186,25 +213,35 @@ def build_crypto_symbols_response(
 
 
 @router.get("/api/crypto/exchanges", dependencies=API_DEP)
-def get_crypto_exchanges(catalog_dir: Optional[str] = None):
+def get_crypto_exchanges(
+    catalog_dir: Optional[str] = None,
+    include_pending: Optional[bool] = Query(False, alias="include_pending")
+):
     """
-    Phase 6: Returns list of supported crypto exchanges with catalog health and pair counts.
+    Returns list of crypto exchanges from crypto_registry.py with health and pair counts.
+    By default returns active exchanges capable of live alerts.
     """
     statuses = get_crypto_catalogs_status(override_dir=catalog_dir)
     exchanges_status = statuses.get("exchanges", {})
 
     items = []
-    for ex_id in SUPPORTED_CRYPTO_EXCHANGES:
-        meta = EXCHANGE_METADATA.get(ex_id, {"name": ex_id.title(), "display_name": ex_id.title()})
+    exchanges_to_list = list_crypto_exchanges() if include_pending else list_crypto_exchanges(status="active")
+    for meta in exchanges_to_list:
+        ex_id = meta.id
         stat = exchanges_status.get(ex_id, {})
         items.append({
             "id": ex_id,
             "exchange_id": ex_id,
-            "name": meta["name"],
-            "display_name": meta["display_name"],
+            "name": meta.name,
+            "display_name": meta.name,
+            "category": meta.category,
+            "market": "spot",
+            "quote": "USDT",
             "total_pairs": stat.get("total_pairs", 0),
             "last_updated_at": stat.get("updated_at"),
             "is_stale": stat.get("is_stale", False),
+            "alert_capable": (meta.status == "active"),
+            "status": meta.status,
             "error": stat.get("error"),
         })
 
@@ -224,6 +261,7 @@ def get_crypto_exchanges(catalog_dir: Optional[str] = None):
     return JSONResponse(content=payload, status_code=200, headers=headers)
 
 
+@router.get("/api/crypto/exchanges/{exchange}/symbols", dependencies=API_DEP)
 @router.get("/api/crypto/symbols/{exchange}", dependencies=API_DEP)
 def get_crypto_symbols_by_path(
     exchange: str,
@@ -232,11 +270,12 @@ def get_crypto_symbols_by_path(
     offset: Optional[int] = Query(0, ge=0),
     cursor: Optional[int] = Query(None, ge=0),
     quote: Optional[str] = Query(None),
+    include_leveraged: Optional[bool] = Query(False, alias="include_leveraged"),
     gzip_flag: Optional[bool] = Query(False, alias="gzip"),
     if_none_match: Optional[str] = Header(None, alias="If-None-Match"),
 ):
     """
-    Phase 6: Returns symbol catalog for a specific crypto exchange via path parameter.
+    Returns symbol catalog for a specific crypto exchange via path parameter.
     """
     return build_crypto_symbols_response(
         exchange_param=exchange,
@@ -245,6 +284,7 @@ def get_crypto_symbols_by_path(
         offset=offset,
         cursor=cursor,
         quote=quote,
+        include_leveraged=include_leveraged,
         gzip_flag=gzip_flag,
         if_none_match=if_none_match,
     )
@@ -258,11 +298,12 @@ def get_crypto_symbols_by_query(
     offset: Optional[int] = Query(0, ge=0),
     cursor: Optional[int] = Query(None, ge=0),
     quote: Optional[str] = Query(None),
+    include_leveraged: Optional[bool] = Query(False, alias="include_leveraged"),
     gzip_flag: Optional[bool] = Query(False, alias="gzip"),
     if_none_match: Optional[str] = Header(None, alias="If-None-Match"),
 ):
     """
-    Phase 6: Returns symbol catalog for a specific crypto exchange via query parameter.
+    Returns symbol catalog for a specific crypto exchange via query parameter.
     """
     return build_crypto_symbols_response(
         exchange_param=exchange,
@@ -271,6 +312,7 @@ def get_crypto_symbols_by_query(
         offset=offset,
         cursor=cursor,
         quote=quote,
+        include_leveraged=include_leveraged,
         gzip_flag=gzip_flag,
         if_none_match=if_none_match,
     )

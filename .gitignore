@@ -77,3 +77,14 @@ health_check.log
 watchdog.log
 
 alerts_backup/
+
+# Crypto runtime and generated data (Phase 0 Hygiene)
+crypto_catalogs/
+crypto_catalog/
+reports/probe_*.json
+device_health.json
+*.bak
+*.bak.*
+server.pid
+alerts_data.json.empty
+catalog_snapshots/snapshot_*
