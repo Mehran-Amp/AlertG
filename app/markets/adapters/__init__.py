@@ -15,6 +15,7 @@ from app.markets.adapters.mexc import MEXCAdapter
 from app.markets.adapters.kucoin import KuCoinAdapter
 from app.markets.adapters.gateio import GateioAdapter
 from app.markets.adapters.lbank import LBankAdapter
+from app.markets.adapters.okx import OKXAdapter
 
 __all__ = [
     "BaseExchangeAdapter",
@@ -27,4 +28,5 @@ __all__ = [
     "KuCoinAdapter",
     "GateioAdapter",
     "LBankAdapter",
+    "OKXAdapter",
 ]

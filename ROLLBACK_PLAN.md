@@ -221,6 +221,23 @@
    python -m unittest tests/test_crypto_adapter_lbank.py
    ```
 
+---
+
+### ۱۲. دستورالعمل رول‌بک زیرفاز ۴f کریپتو (OKX Adapter Rollback)
+طبق قواعد R3، R4 و R6:
+1. **ایزولاسیون ماژولار**:
+   آداپتور OKX در فایل مجزای `app/markets/adapters/okx.py` پیاده‌سازی شده و از نظر فضا و حافظه کاملاً مستقل از سایر ارائه‌دهندگان است.
+2. **قطع فوری اضطراری با Kill-Switch**:
+   در صورت نیاز به قطع آنی OKX بدون اختلال در عملکرد سایر بخش‌های کریپتو یا فارکس/طلا/بورس:
+   ```bash
+   export KILL_SWITCH_PROVIDERS=crypto_okx
+   ```
+3. **اعتبارسنجی آفلاین پس از رول‌بک**:
+   ```bash
+   python -m unittest tests/test_crypto_adapter_okx.py
+   ```
+
+
 
 
 
