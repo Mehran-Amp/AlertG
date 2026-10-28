@@ -180,6 +180,7 @@ class SchedulerService {
         final effectiveSound = (settings?.soundEnabled ?? true) && rule.soundEnabled;
         final effectiveVibration = (settings?.vibrationEnabled ?? true) && rule.vibrationEnabled;
         final effectiveTts = (settings?.ttsEnabled ?? true) && rule.ttsEnabled;
+        final effectiveFlash = rule.flashEnabled;
 
         final speechText = effectiveTts
             ? TtsService.buildAlertSpeech(
@@ -204,6 +205,7 @@ class SchedulerService {
           volume: settings?.alarmVolume ?? 1.0,
           soundEnabled: effectiveSound,
           vibrationEnabled: effectiveVibration,
+          flashEnabled: effectiveFlash,
           ttsEnabled: effectiveTts,
           speechText: speechText,
         );

@@ -27,6 +27,7 @@ class _FakeNotificationService implements NotificationServiceInterface {
     double volume = 1.0,
     bool soundEnabled = true,
     bool vibrationEnabled = true,
+    bool flashEnabled = false,
     bool ttsEnabled = false,
     String? speechText,
     bool inAppFeedback = true,

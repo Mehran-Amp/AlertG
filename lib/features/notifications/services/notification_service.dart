@@ -467,7 +467,8 @@ class NotificationService implements NotificationServiceInterface {
           inAppFeedback: inAppFeedback,
           master: master,
         );
-      }
+        debugPrint('🔍 [Enqueue] flashEnabled = $flashEnabled');
+    }
     } catch (e) {
       debugPrint('❌ [NotificationService] banner failed: $e');
       await releaseAllClaims(); // let a retry/redelivery through

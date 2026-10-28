@@ -75,6 +75,7 @@ Future<void> handleAlertDataMap(
   }
 
   final ns = NotificationService();
+  debugPrint('🔍 [FCM] flash_enabled = ${d['flash_enabled']}');
   final dispatch = await ns.enqueueCriticalAlert(
     // Use alert_id (stable per rule) for the notification id so repeated
     // pushes for the same alert REPLACE the banner instead of stacking.
@@ -96,6 +97,7 @@ Future<void> handleAlertDataMap(
     waitForSpeech: !inApp, // keep the background isolate alive while speaking
   );
 
+  debugPrint('🔍 [FCM] flash_enabled = ${d['flash_enabled']}');
   await ServiceLogger.log(
     'alert.handle',
     'enqueueCriticalAlert done source=$source alert_id=$alertId delivery_id=$deliveryId result=$dispatch speechText="${speechText.length > 60 ? '${speechText.substring(0, 60)}...' : speechText}"',

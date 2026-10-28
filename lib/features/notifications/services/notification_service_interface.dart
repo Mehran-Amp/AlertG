@@ -15,6 +15,7 @@ abstract class NotificationServiceInterface {
     double volume,
     bool soundEnabled,
     bool vibrationEnabled,
+    bool flashEnabled,
     bool ttsEnabled,
     String? speechText,
     bool inAppFeedback,

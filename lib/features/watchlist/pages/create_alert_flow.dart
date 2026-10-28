@@ -896,6 +896,7 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
         rawRule: updatedRule.toJson(),
       );
     } else {
+      debugPrint('🔍 [Create] _flashEnabled = $_flashEnabled');
       final newRule = AlertRule.create(
         pair: pair,
         exchangeId: exchangeId,
@@ -915,11 +916,12 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
         soundEnabled: _soundEnabled,
         ttsEnabled: _ttsEnabled,
         vibrationEnabled: _vibrationEnabled,
+        flashEnabled: _flashEnabled,
         preferServerProxy: _preferServerProxy,
         currentPrice: _currentPrice,
       );
-      await widget.repository.saveRule(newRule);
-      // Sync to Python Alert Engine
+      debugPrint('🔍 [Create] newRule.flashEnabled = ${newRule.flashEnabled}');
+      await widget.repository.saveRule(newRule);      // Sync to Python Alert Engine
       ServerAlertService.createAlertOnServer(
         ruleId: newRule.uuid,
         userId: realUserId,
