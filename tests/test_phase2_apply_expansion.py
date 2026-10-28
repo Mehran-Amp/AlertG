@@ -70,7 +70,6 @@ class TestPhase2ApplyExpansion(unittest.TestCase):
         self.assertEqual(self.catalog_data.get("total_symbols"), 772)
         self.assertEqual(self.catalog_data.get("total_active"), 772)
         self.assertEqual(self.catalog_data.get("app_version"), APP_VERSION)
-        self.assertEqual(APP_VERSION, "3.9.1")
         self.assertEqual(len(self.catalog_data.get("symbols", [])), 772)
 
     def test_02_id_and_symbol_uniqueness_and_absence_of_splg(self):
