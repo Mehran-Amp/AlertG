@@ -104,6 +104,8 @@ from app.engine.features import (
 class TestPhase10TestingAndRelease(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self):
+        self._orig_alerts = list(ALERTS_DB)
+        ALERTS_DB.clear()
         _QUOTA_ALERTED_PROVIDERS.clear()
         _OUTAGE_ALERTED_PROVIDERS.clear()
         FAILED_SYMBOLS.clear()
@@ -114,6 +116,9 @@ class TestPhase10TestingAndRelease(unittest.IsolatedAsyncioTestCase):
         set_feature_override("v3_mobile_delta_sync", None)
 
     def tearDown(self):
+        ALERTS_DB.clear()
+        if hasattr(self, "_orig_alerts"):
+            ALERTS_DB.extend(self._orig_alerts)
         for k in list(os.environ.keys()):
             if k.startswith("FEATURE_FLAG_") or k.startswith("KILL_SWITCH_") or k == "BETA_USER_IDS":
                 del os.environ[k]
