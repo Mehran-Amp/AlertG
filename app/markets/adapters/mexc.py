@@ -20,6 +20,7 @@ if not isinstance(_TimeoutBase, type) or not issubclass(_TimeoutBase, BaseExcept
 
 from app.markets.adapters.base import (
     BaseExchangeAdapter,
+    AdapterSpecification,
     SymbolInfo,
     BatchPriceResult,
     SinglePriceResult,
@@ -37,6 +38,21 @@ class MEXCAdapter(BaseExchangeAdapter):
     batch_price_url = "https://api.mexc.com/api/v3/ticker/price"
     single_price_url = "https://api.mexc.com/api/v3/ticker/price?symbol={symbol}"
     provider_key = "crypto_mexc"
+
+    specification = AdapterSpecification(
+        exchange_id="mexc",
+        display_name="MEXC (mexc) Spot API",
+        provider_key="crypto_mexc",
+        market_list_url="https://api.mexc.com/api/v3/exchangeInfo",
+        batch_price_url="https://api.mexc.com/api/v3/ticker/price",
+        single_price_url="https://api.mexc.com/api/v3/ticker/price?symbol={symbol}",
+        rate_limit_rps=20.0,
+        quote_currency="USDT",
+        status="active",
+        has_leveraged_tokens=False,
+        aliases=("mexc_global",),
+        notes="Wide altcoin catalog"
+    )
 
     def to_native_symbol(self, base_or_symbol: str) -> str:
         """

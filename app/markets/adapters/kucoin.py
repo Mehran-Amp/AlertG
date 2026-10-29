@@ -21,6 +21,7 @@ if not isinstance(_TimeoutBase, type) or not issubclass(_TimeoutBase, BaseExcept
 
 from app.markets.adapters.base import (
     BaseExchangeAdapter,
+    AdapterSpecification,
     SymbolInfo,
     BatchPriceResult,
     SinglePriceResult,
@@ -38,6 +39,21 @@ class KuCoinAdapter(BaseExchangeAdapter):
     batch_price_url = "https://api.kucoin.com/api/v1/market/allTickers"
     single_price_url = "https://api.kucoin.com/api/v1/market/orderbook/level1?symbol={symbol}"
     provider_key = "crypto_kucoin"
+
+    specification = AdapterSpecification(
+        exchange_id="kucoin",
+        display_name="KuCoin (kucoin) Spot API",
+        provider_key="crypto_kucoin",
+        market_list_url="https://api.kucoin.com/api/v1/symbols",
+        batch_price_url="https://api.kucoin.com/api/v1/market/allTickers",
+        single_price_url="https://api.kucoin.com/api/v1/market/orderbook/level1?symbol={symbol}",
+        rate_limit_rps=10.0,
+        quote_currency="USDT",
+        status="active",
+        has_leveraged_tokens=False,
+        aliases=(),
+        notes="Global altcoin marketplace with allTickers endpoint"
+    )
 
     def to_native_symbol(self, base_or_symbol: str) -> str:
         """

@@ -21,6 +21,7 @@ if not isinstance(_TimeoutBase, type) or not issubclass(_TimeoutBase, BaseExcept
 
 from app.markets.adapters.base import (
     BaseExchangeAdapter,
+    AdapterSpecification,
     SymbolInfo,
     BatchPriceResult,
     SinglePriceResult,
@@ -38,6 +39,21 @@ class GateioAdapter(BaseExchangeAdapter):
     batch_price_url = "https://api.gateio.ws/api/v4/spot/tickers"
     single_price_url = "https://api.gateio.ws/api/v4/spot/tickers?currency_pair={currency_pair}"
     provider_key = "crypto_gateio"
+
+    specification = AdapterSpecification(
+        exchange_id="gateio",
+        display_name="Gate.io (gateio) Spot API",
+        provider_key="crypto_gateio",
+        market_list_url="https://api.gateio.ws/api/v4/spot/currency_pairs",
+        batch_price_url="https://api.gateio.ws/api/v4/spot/tickers",
+        single_price_url="https://api.gateio.ws/api/v4/spot/tickers?currency_pair={currency_pair}",
+        rate_limit_rps=20.0,
+        quote_currency="USDT",
+        status="active",
+        has_leveraged_tokens=False,
+        aliases=("gate",),
+        notes="High pair count spot exchange"
+    )
 
     def to_native_symbol(self, base_or_symbol: str) -> str:
         """

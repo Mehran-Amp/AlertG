@@ -107,16 +107,74 @@ def classify_http_error(
         return "INVALID_RESPONSE", f"HTTP {status_code}{suffix}"
 
 
+@dataclass(frozen=True)
+class AdapterSpecification:
+    """
+    Declarative specification defining an exchange's endpoints, rate limits, and metadata.
+    Enforces Rule R11 (source label with ID) and Section E2.2 fields.
+    """
+    exchange_id: str
+    display_name: str
+    provider_key: str
+    market_list_url: str
+    batch_price_url: str
+    single_price_url: Optional[str] = None
+    rate_limit_rps: float = 10.0
+    quote_currency: str = "USDT"
+    status: str = "active"  # 'active' | 'pending_adapter' | 'inactive'
+    has_leveraged_tokens: bool = False
+    aliases: Tuple[str, ...] = ()
+    notes: Optional[str] = None
+
+
+def validate_adapter_specification(spec: AdapterSpecification) -> List[str]:
+    """
+    Validates that an AdapterSpecification satisfies all Phase 2 architectural constraints.
+    Returns a list of error strings (empty list if completely valid).
+    """
+    errors: List[str] = []
+    if not spec.exchange_id or spec.exchange_id != spec.exchange_id.lower().strip():
+        errors.append(f"exchange_id '{spec.exchange_id}' must be non-empty and strictly lowercase")
+
+    expected_id_tag = f"({spec.exchange_id})"
+    if expected_id_tag not in spec.display_name:
+        errors.append(f"display_name '{spec.display_name}' must contain lowercase ID in parentheses: '{expected_id_tag}' (Rule R11)")
+
+    if not spec.provider_key.startswith("crypto_"):
+        errors.append(f"provider_key '{spec.provider_key}' must begin with 'crypto_'")
+
+    if not spec.market_list_url.startswith("https://"):
+        errors.append(f"market_list_url '{spec.market_list_url}' must be a secure https URL")
+
+    if not spec.batch_price_url.startswith("https://"):
+        errors.append(f"batch_price_url '{spec.batch_price_url}' must be a secure https URL")
+
+    if spec.quote_currency != "USDT":
+        errors.append(f"quote_currency '{spec.quote_currency}' must be 'USDT'")
+
+    if spec.rate_limit_rps <= 0:
+        errors.append(f"rate_limit_rps '{spec.rate_limit_rps}' must be strictly positive")
+
+    if spec.status not in ('active', 'pending_adapter', 'inactive'):
+        errors.append(f"status '{spec.status}' must be 'active', 'pending_adapter', or 'inactive'")
+
+    return errors
+
+
 class BaseExchangeAdapter(ABC):
     """
     Abstract Base Class for all cryptocurrency exchange adapters.
     Each exchange adapter must be self-contained and isolated.
+    Concrete fetch methods acquire rate-limiter slots, manage HTTP requests,
+    classify errors, record metrics, and invoke declarative parsers.
     """
     exchange_id: str
     display_name: str
     market_list_url: str
     batch_price_url: str
+    single_price_url: Optional[str] = None
     provider_key: str
+    specification: Optional[AdapterSpecification] = None
 
     def is_leveraged_token(self, base: str, metadata_flag: bool = False) -> bool:
         """Standard leveraged token check across all adapters."""
@@ -151,3 +209,221 @@ class BaseExchangeAdapter(ABC):
         Returns mapping: market_symbol -> live price (float > 0).
         """
         pass
+
+    async def fetch_symbols(
+        self,
+        client: Any,
+        timeout: float = 12.0
+    ) -> Tuple[List[SymbolInfo], Optional[str], Optional[str]]:
+        """
+        Generic request engine: acquires slot, issues GET to market_list_url,
+        classifies HTTP errors, handles malformed JSON, and parses symbols.
+        Returns: (symbols_list, error_code, error_message)
+        """
+        from app.markets.limiter import acquire_provider_slot, record_provider_metric
+        acquired = await acquire_provider_slot(self.provider_key)
+        if not acquired:
+            record_provider_metric(self.provider_key, "rate_limits_429", status_code=429)
+            return [], "RATE_LIMITED", "Provider local rate limiter reached"
+
+        headers = {"User-Agent": "AlertG-Adapter/1.0", "Accept": "application/json"}
+        try:
+            resp = await client.get(self.market_list_url, headers=headers, timeout=timeout)
+            status_code = getattr(resp, "status_code", 200)
+            if status_code != 200:
+                resp_headers = getattr(resp, "headers", {})
+                resp_text = getattr(resp, "text", "")
+                err_code, err_msg = classify_http_error(status_code, resp_text, resp_headers)
+                record_provider_metric(self.provider_key, "errors", status_code=status_code)
+                return [], err_code, err_msg
+
+            try:
+                data = resp.json()
+            except Exception as e:
+                record_provider_metric(self.provider_key, "errors", status_code=200)
+                return [], "INVALID_RESPONSE", f"Malformed JSON from {self.display_name}: {e}"
+
+            symbols = self.parse_symbols_response(data)
+            record_provider_metric(self.provider_key, "success", status_code=200)
+            return symbols, None, None
+
+        except Exception as e:
+            err_type = type(e).__name__
+            if "Timeout" in err_type or isinstance(e, TimeoutError):
+                record_provider_metric(self.provider_key, "timeouts", status_code=408)
+                return [], "TIMEOUT", f"Connection timeout fetching symbols from {self.display_name}: {e}"
+            record_provider_metric(self.provider_key, "errors", status_code=500)
+            return [], "PROVIDER_ERROR", f"Network error fetching symbols from {self.display_name}: {e}"
+
+    async def fetch_batch_prices(
+        self,
+        client: Any,
+        timeout: float = 12.0
+    ) -> BatchPriceResult:
+        """
+        Generic bulk ticker engine: acquires slot, issues GET to batch_price_url,
+        classifies errors, and parses live prices into BatchPriceResult.
+        """
+        from app.markets.limiter import acquire_provider_slot, record_provider_metric
+        acquired = await acquire_provider_slot(self.provider_key)
+        if not acquired:
+            record_provider_metric(self.provider_key, "rate_limits_429", status_code=429)
+            return BatchPriceResult(
+                prices={},
+                source=self.display_name,
+                error="Provider local rate limiter reached",
+                error_code="RATE_LIMITED"
+            )
+
+        headers = {"User-Agent": "AlertG-Adapter/1.0", "Accept": "application/json"}
+        try:
+            resp = await client.get(self.batch_price_url, headers=headers, timeout=timeout)
+            status_code = getattr(resp, "status_code", 200)
+            if status_code != 200:
+                resp_headers = getattr(resp, "headers", {})
+                resp_text = getattr(resp, "text", "")
+                err_code, err_msg = classify_http_error(status_code, resp_text, resp_headers)
+                record_provider_metric(self.provider_key, "errors", status_code=status_code)
+                return BatchPriceResult(
+                    prices={},
+                    source=self.display_name,
+                    error=err_msg,
+                    error_code=err_code
+                )
+
+            try:
+                data = resp.json()
+            except Exception as e:
+                record_provider_metric(self.provider_key, "errors", status_code=200)
+                return BatchPriceResult(
+                    prices={},
+                    source=self.display_name,
+                    error=f"Malformed JSON from {self.display_name}: {e}",
+                    error_code="INVALID_RESPONSE"
+                )
+
+            prices = self.parse_batch_prices_response(data)
+            record_provider_metric(self.provider_key, "success", status_code=200)
+            return BatchPriceResult(
+                prices=prices,
+                source=self.display_name,
+                as_of=int(time.time()),
+                error=None,
+                error_code="OK"
+            )
+
+        except Exception as e:
+            err_type = type(e).__name__
+            if "Timeout" in err_type or isinstance(e, TimeoutError):
+                record_provider_metric(self.provider_key, "timeouts", status_code=408)
+                return BatchPriceResult(
+                    prices={},
+                    source=self.display_name,
+                    error=f"Timeout fetching batch prices from {self.display_name}: {e}",
+                    error_code="TIMEOUT"
+                )
+            record_provider_metric(self.provider_key, "errors", status_code=500)
+            return BatchPriceResult(
+                prices={},
+                source=self.display_name,
+                error=f"Network error fetching batch prices from {self.display_name}: {e}",
+                error_code="PROVIDER_ERROR"
+            )
+
+    async def fetch_single_price(
+        self,
+        client: Any,
+        symbol: str,
+        timeout: float = 8.0
+    ) -> SinglePriceResult:
+        """
+        Generic single pair price fetcher: fallback / single-symbol query path.
+        """
+        from app.markets.limiter import acquire_provider_slot, record_provider_metric
+        native_sym = self.to_native_symbol(symbol)
+        if not self.single_price_url:
+            # Fallback to bulk prices if single URL not defined
+            batch_res = await self.fetch_batch_prices(client, timeout=timeout)
+            p = batch_res.prices.get(native_sym)
+            return SinglePriceResult(
+                price=p,
+                as_of=batch_res.as_of,
+                source=self.display_name,
+                status=batch_res.error_code or ("OK" if p else "NO_PRICE"),
+                market_symbol=native_sym,
+                currency="USDT"
+            )
+
+        acquired = await acquire_provider_slot(self.provider_key)
+        if not acquired:
+            record_provider_metric(self.provider_key, "rate_limits_429", status_code=429)
+            return SinglePriceResult(
+                price=None,
+                source=self.display_name,
+                status="RATE_LIMITED",
+                market_symbol=native_sym,
+                currency="USDT"
+            )
+
+        url = self.single_price_url.format(symbol=native_sym)
+        headers = {"User-Agent": "AlertG-Adapter/1.0", "Accept": "application/json"}
+        try:
+            resp = await client.get(url, headers=headers, timeout=timeout)
+            status_code = getattr(resp, "status_code", 200)
+            if status_code != 200:
+                resp_headers = getattr(resp, "headers", {})
+                resp_text = getattr(resp, "text", "")
+                err_code, _ = classify_http_error(status_code, resp_text, resp_headers)
+                record_provider_metric(self.provider_key, "errors", status_code=status_code)
+                return SinglePriceResult(
+                    price=None,
+                    source=self.display_name,
+                    status=err_code,
+                    market_symbol=native_sym,
+                    currency="USDT"
+                )
+
+            try:
+                data = resp.json()
+            except Exception:
+                record_provider_metric(self.provider_key, "errors", status_code=200)
+                return SinglePriceResult(
+                    price=None,
+                    source=self.display_name,
+                    status="INVALID_RESPONSE",
+                    market_symbol=native_sym,
+                    currency="USDT"
+                )
+
+            # If response is single ticker dict, try to extract price
+            prices = self.parse_batch_prices_response([data] if isinstance(data, dict) else data)
+            p = prices.get(native_sym)
+            record_provider_metric(self.provider_key, "success", status_code=200)
+            return SinglePriceResult(
+                price=p,
+                as_of=int(time.time()),
+                source=self.display_name,
+                status="OK" if p else "NO_PRICE",
+                market_symbol=native_sym,
+                currency="USDT"
+            )
+
+        except Exception as e:
+            err_type = type(e).__name__
+            if "Timeout" in err_type or isinstance(e, TimeoutError):
+                record_provider_metric(self.provider_key, "timeouts", status_code=408)
+                return SinglePriceResult(
+                    price=None,
+                    source=self.display_name,
+                    status="TIMEOUT",
+                    market_symbol=native_sym,
+                    currency="USDT"
+                )
+            record_provider_metric(self.provider_key, "errors", status_code=500)
+            return SinglePriceResult(
+                price=None,
+                source=self.display_name,
+                status="PROVIDER_ERROR",
+                market_symbol=native_sym,
+                currency="USDT"
+            )

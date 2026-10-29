@@ -20,6 +20,7 @@ if not isinstance(_TimeoutBase, type) or not issubclass(_TimeoutBase, BaseExcept
 
 from app.markets.adapters.base import (
     BaseExchangeAdapter,
+    AdapterSpecification,
     SymbolInfo,
     BatchPriceResult,
     SinglePriceResult,
@@ -35,8 +36,22 @@ class BinanceAdapter(BaseExchangeAdapter):
     display_name = "Binance (binance) Spot API"
     market_list_url = "https://api.binance.com/api/v3/exchangeInfo"
     batch_price_url = "https://api.binance.com/api/v3/ticker/price"
-    single_price_url = "https://api.binance.com/api/v3/ticker/price?symbol={symbol}"
     provider_key = "crypto_binance"
+
+    specification = AdapterSpecification(
+        exchange_id="binance",
+        display_name="Binance (binance) Spot API",
+        provider_key="crypto_binance",
+        market_list_url="https://api.binance.com/api/v3/exchangeInfo",
+        batch_price_url="https://api.binance.com/api/v3/ticker/price",
+        single_price_url="https://api.binance.com/api/v3/ticker/price?symbol={symbol}",
+        rate_limit_rps=20.0,
+        quote_currency="USDT",
+        status="active",
+        has_leveraged_tokens=False,
+        aliases=("binance_spot",),
+        notes="Tier 1 global liquidity benchmark"
+    )
 
     def to_native_symbol(self, base_or_symbol: str) -> str:
         """

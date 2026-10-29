@@ -5,6 +5,8 @@ Contains isolated exchange adapters enforcing Rule R1 and single-bulk price quer
 """
 from app.markets.adapters.base import (
     BaseExchangeAdapter,
+    AdapterSpecification,
+    validate_adapter_specification,
     SymbolInfo,
     BatchPriceResult,
     SinglePriceResult,
@@ -17,9 +19,13 @@ from app.markets.adapters.gateio import GateioAdapter
 from app.markets.adapters.lbank import LBankAdapter
 from app.markets.adapters.okx import OKXAdapter
 from app.markets.adapters.kraken import KrakenAdapter
+from app.markets.adapters.bybit import BybitAdapter
+from app.markets.adapters.bitget import BitgetAdapter
 
 __all__ = [
     "BaseExchangeAdapter",
+    "AdapterSpecification",
+    "validate_adapter_specification",
     "SymbolInfo",
     "BatchPriceResult",
     "SinglePriceResult",
@@ -31,4 +37,6 @@ __all__ = [
     "LBankAdapter",
     "OKXAdapter",
     "KrakenAdapter",
+    "BybitAdapter",
+    "BitgetAdapter",
 ]
