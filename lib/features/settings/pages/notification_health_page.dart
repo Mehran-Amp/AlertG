@@ -31,6 +31,7 @@ class NotificationHealthPage extends StatefulWidget {
 class _NotificationHealthPageState extends State<NotificationHealthPage> {
   bool _isLoading = true;
   bool _isSendingTestPush = false;
+  bool _isTestingFlash = false;
   bool _isSendingHeartbeat = false;
 
   bool _notificationGranted = false;
@@ -218,6 +219,25 @@ class _NotificationHealthPageState extends State<NotificationHealthPage> {
         ),
       );
       await _loadHealthStatus();
+    }
+  }
+
+  Future<void> _testFlash() async {
+    setState(() => _isTestingFlash = true);
+    final isFa = widget.lang == 'fa' || widget.lang == 'ar' || widget.lang == 'ckb';
+    String result = '';
+    try {
+      const mChannel = MethodChannel('com.example.bitcoin_checker/app_lifecycle');
+      await mChannel.invokeMethod('startFlashSOS');
+      result = isFa ? '✅ فلش SOS روشن شد (۵ ثانیه)' : '✅ SOS flash started (5s)';
+      await Future.delayed(const Duration(seconds: 5));
+      await mChannel.invokeMethod('stopFlashSOS');
+    } catch (e) {
+      result = isFa ? '❌ خطا: $e' : '❌ Error: $e';
+    }
+    if (mounted) {
+      setState(() => _isTestingFlash = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
     }
   }
 
@@ -504,22 +524,28 @@ class _NotificationHealthPageState extends State<NotificationHealthPage> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium)),
                         ),
                       ),
-                    ),
 
+                    ),
                     const SizedBox(height: 12),
 
-                    // Action 2: Copy Service Log
+                    // Action 3: Test SOS Flash
                     SizedBox(
                       width: double.infinity,
                       height: 46,
-                      child: OutlinedButton.icon(
-                        onPressed: _copyServiceLog,
-                        icon: const Icon(Icons.copy_rounded, size: 18),
+                      child: ElevatedButton.icon(
+                        onPressed: _isTestingFlash ? null : _testFlash,
+                        icon: _isTestingFlash
+                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                            : const Icon(Icons.flashlight_on_rounded, size: 18),
                         label: Text(
-                          isFa ? '📋 کپی لاگ سرویس' : '📋 Copy Service Log',
+                          _isTestingFlash
+                              ? (isFa ? 'در حال تست فلش...' : 'Testing Flash...')
+                              : (isFa ? '🔦 تست فلش SOS' : '🔦 Test SOS Flash'),
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                         ),
-                        style: OutlinedButton.styleFrom(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTokens.warning,
+                          foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium)),
                         ),
                       ),
