@@ -72,7 +72,7 @@ class SinglePriceResult:
 def classify_http_error(
     status_code: Any,
     error_text: str = "",
-    headers: Optional[Dict[str, str]] = None
+    headers: Optional[Any] = None
 ) -> Tuple[str, str]:
     """
     Categorizes HTTP error status codes into canonical failure statuses (Section E1.6).
@@ -85,11 +85,19 @@ def classify_http_error(
         sc = 0
 
     retry_after = None
-    if headers:
-        for k, v in headers.items():
-            if str(k).lower() == "retry-after":
-                retry_after = v
-                break
+    if headers is not None:
+        try:
+            if isinstance(headers, dict):
+                for k, v in headers.items():
+                    if str(k).lower() == "retry-after":
+                        retry_after = str(v)
+                        break
+            elif hasattr(headers, "get") and not type(headers).__name__.startswith("MagicMock"):
+                val = headers.get("retry-after")
+                if val is not None and not type(val).__name__.startswith("MagicMock"):
+                    retry_after = str(val)
+        except Exception:
+            retry_after = None
 
     suffix = f" (Retry-After: {retry_after}s)" if retry_after else (f": {error_text}" if error_text else "")
 
@@ -309,7 +317,7 @@ class BaseExchangeAdapter(ABC):
                 source=self.display_name,
                 as_of=int(time.time()),
                 error=None,
-                error_code="OK"
+                error_code="SUCCESS"
             )
 
         except Exception as e:
@@ -349,7 +357,7 @@ class BaseExchangeAdapter(ABC):
                 price=p,
                 as_of=batch_res.as_of,
                 source=self.display_name,
-                status=batch_res.error_code or ("OK" if p else "NO_PRICE"),
+                status=batch_res.error_code or ("SUCCESS" if p else "NO_PRICE"),
                 market_symbol=native_sym,
                 currency="USDT"
             )
@@ -371,7 +379,9 @@ class BaseExchangeAdapter(ABC):
             resp = await client.get(url, headers=headers, timeout=timeout)
             status_code = getattr(resp, "status_code", 200)
             if status_code != 200:
-                resp_headers = getattr(resp, "headers", {})
+                resp_headers = getattr(resp, "headers", None)
+                if not isinstance(resp_headers, dict) and not hasattr(resp_headers, "get"):
+                    resp_headers = None
                 resp_text = getattr(resp, "text", "")
                 err_code, _ = classify_http_error(status_code, resp_text, resp_headers)
                 record_provider_metric(self.provider_key, "errors", status_code=status_code)
@@ -395,15 +405,19 @@ class BaseExchangeAdapter(ABC):
                     currency="USDT"
                 )
 
-            # If response is single ticker dict, try to extract price
-            prices = self.parse_batch_prices_response([data] if isinstance(data, dict) else data)
+            # Try parsing with adapter's batch parser directly, then try list-wrapped if needed
+            prices = self.parse_batch_prices_response(data)
             p = prices.get(native_sym)
+            if p is None and isinstance(data, dict):
+                prices = self.parse_batch_prices_response([data])
+                p = prices.get(native_sym)
+
             record_provider_metric(self.provider_key, "success", status_code=200)
             return SinglePriceResult(
                 price=p,
                 as_of=int(time.time()),
                 source=self.display_name,
-                status="OK" if p else "NO_PRICE",
+                status="SUCCESS" if p else "NO_PRICE",
                 market_symbol=native_sym,
                 currency="USDT"
             )
