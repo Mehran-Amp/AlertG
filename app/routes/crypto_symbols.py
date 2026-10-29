@@ -215,7 +215,7 @@ def build_crypto_symbols_response(
 @router.get("/api/crypto/exchanges", dependencies=API_DEP)
 def get_crypto_exchanges(
     catalog_dir: Optional[str] = None,
-    include_pending: Optional[bool] = Query(False, alias="include_pending")
+    include_pending: bool = False,
 ):
     """
     Returns list of crypto exchanges from crypto_registry.py with health and pair counts.
@@ -224,8 +224,16 @@ def get_crypto_exchanges(
     statuses = get_crypto_catalogs_status(override_dir=catalog_dir)
     exchanges_status = statuses.get("exchanges", {})
 
+    should_include_pending = False
+    if isinstance(include_pending, bool):
+        should_include_pending = include_pending
+    elif hasattr(include_pending, "default"):
+        should_include_pending = bool(getattr(include_pending, "default", False))
+    elif include_pending:
+        should_include_pending = str(include_pending).lower() in ("true", "1", "yes")
+
     items = []
-    exchanges_to_list = list_crypto_exchanges() if include_pending else list_crypto_exchanges(status="active")
+    exchanges_to_list = list_crypto_exchanges() if should_include_pending else list_crypto_exchanges(status="active")
     for meta in exchanges_to_list:
         ex_id = meta.id
         stat = exchanges_status.get(ex_id, {})
