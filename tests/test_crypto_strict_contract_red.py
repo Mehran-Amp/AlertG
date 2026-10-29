@@ -35,6 +35,9 @@ except ImportError:
     sys.modules['apscheduler.schedulers'] = apscheduler
     sys.modules['apscheduler.schedulers.asyncio'] = apscheduler
 
+import tempfile
+import shutil
+
 import app.config as config
 from app.markets.crypto import fetch_crypto
 
@@ -47,6 +50,9 @@ class TestCryptoStrictContractRed(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self):
         self.mock_client = AsyncMock()
+        self.temp_dir = tempfile.mkdtemp(prefix="test_strict_")
+        self._orig_catalog_dir = getattr(config, "CRYPTO_CATALOG_DIR", None)
+        config.CRYPTO_CATALOG_DIR = self.temp_dir
         # Enable strict mode for tests
         os.environ['CRYPTO_STRICT_V2'] = 'true'
         config.CRYPTO_STRICT_V2 = True
@@ -55,6 +61,9 @@ class TestCryptoStrictContractRed(unittest.IsolatedAsyncioTestCase):
         # Reset flag
         os.environ['CRYPTO_STRICT_V2'] = 'false'
         config.CRYPTO_STRICT_V2 = False
+        config.CRYPTO_CATALOG_DIR = self._orig_catalog_dir
+        if hasattr(self, "temp_dir") and os.path.exists(self.temp_dir):
+            shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     async def test_01_unknown_exchange_must_not_fallback_to_binance(self):
         """
