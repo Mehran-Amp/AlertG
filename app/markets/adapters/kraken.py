@@ -21,6 +21,7 @@ if not isinstance(_TimeoutBase, type) or not issubclass(_TimeoutBase, BaseExcept
 
 from app.markets.adapters.base import (
     BaseExchangeAdapter,
+    AdapterSpecification,
     SymbolInfo,
     BatchPriceResult,
     SinglePriceResult,
@@ -38,6 +39,21 @@ class KrakenAdapter(BaseExchangeAdapter):
     batch_price_url = "https://api.kraken.com/0/public/Ticker"
     single_price_url = "https://api.kraken.com/0/public/Ticker?pair={pair}"
     provider_key = "crypto_kraken"
+
+    specification = AdapterSpecification(
+        exchange_id="kraken",
+        display_name="Kraken (kraken) Spot API",
+        provider_key="crypto_kraken",
+        market_list_url="https://api.kraken.com/0/public/AssetPairs",
+        batch_price_url="https://api.kraken.com/0/public/Ticker",
+        single_price_url="https://api.kraken.com/0/public/Ticker?pair={pair}",
+        rate_limit_rps=5.0,
+        quote_currency="USDT",
+        status="active",
+        has_leveraged_tokens=False,
+        aliases=(),
+        notes="US/EU compliant exchange with asset pairing normalization"
+    )
 
     def to_native_symbol(self, base_or_symbol: str) -> str:
         """

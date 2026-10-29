@@ -21,6 +21,7 @@ if not isinstance(_TimeoutBase, type) or not issubclass(_TimeoutBase, BaseExcept
 
 from app.markets.adapters.base import (
     BaseExchangeAdapter,
+    AdapterSpecification,
     SymbolInfo,
     BatchPriceResult,
     SinglePriceResult,
@@ -38,6 +39,21 @@ class OKXAdapter(BaseExchangeAdapter):
     batch_price_url = "https://www.okx.com/api/v5/market/tickers?instType=SPOT"
     single_price_url = "https://www.okx.com/api/v5/market/ticker?instId={instId}"
     provider_key = "crypto_okx"
+
+    specification = AdapterSpecification(
+        exchange_id="okx",
+        display_name="OKX (okx) Spot API",
+        provider_key="crypto_okx",
+        market_list_url="https://www.okx.com/api/v5/public/instruments?instType=SPOT",
+        batch_price_url="https://www.okx.com/api/v5/market/tickers?instType=SPOT",
+        single_price_url="https://www.okx.com/api/v5/market/ticker?instId={instId}",
+        rate_limit_rps=20.0,
+        quote_currency="USDT",
+        status="active",
+        has_leveraged_tokens=False,
+        aliases=("okex",),
+        notes="High liquidity global exchange with REST and WebSocket APIs"
+    )
 
     def to_native_symbol(self, base_or_symbol: str) -> str:
         """

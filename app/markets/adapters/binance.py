@@ -36,6 +36,7 @@ class BinanceAdapter(BaseExchangeAdapter):
     display_name = "Binance (binance) Spot API"
     market_list_url = "https://api.binance.com/api/v3/exchangeInfo"
     batch_price_url = "https://api.binance.com/api/v3/ticker/price"
+    single_price_url = "https://api.binance.com/api/v3/ticker/price?symbol={symbol}"
     provider_key = "crypto_binance"
 
     specification = AdapterSpecification(

@@ -22,6 +22,7 @@ if not isinstance(_TimeoutBase, type) or not issubclass(_TimeoutBase, BaseExcept
 
 from app.markets.adapters.base import (
     BaseExchangeAdapter,
+    AdapterSpecification,
     SymbolInfo,
     BatchPriceResult,
     SinglePriceResult,
@@ -41,6 +42,21 @@ class LBankAdapter(BaseExchangeAdapter):
     fallback_market_list_url = "https://api.lbkex.com/v2/currencyPairs.do"
     fallback_batch_price_url = "https://api.lbkex.com/v2/ticker/24hr.do?symbol=all"
     provider_key = "crypto_lbank"
+
+    specification = AdapterSpecification(
+        exchange_id="lbank",
+        display_name="LBank (lbank) Spot API",
+        provider_key="crypto_lbank",
+        market_list_url="https://api.lbank.info/v2/currencyPairs.do",
+        batch_price_url="https://api.lbank.info/v2/ticker/24hr.do?symbol=all",
+        single_price_url="https://api.lbank.info/v2/ticker/24hr.do?symbol={symbol}",
+        rate_limit_rps=20.0,
+        quote_currency="USDT",
+        status="active",
+        has_leveraged_tokens=False,
+        aliases=("lbank_info", "lbkex"),
+        notes="Official CoinEx replacement for Asia category"
+    )
 
     def to_native_symbol(self, base_or_symbol: str) -> str:
         """

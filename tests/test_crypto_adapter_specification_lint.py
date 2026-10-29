@@ -65,8 +65,8 @@ class TestCryptoAdapterSpecificationLint(unittest.TestCase):
                 f"{cls.__name__}.specification is not an AdapterSpecification instance"
             )
             # Must pass validator
-            is_valid, reason = validate_adapter_specification(spec)
-            self.assertTrue(is_valid, f"Specification validation failed for {cls.__name__}: {reason}")
+            errors = validate_adapter_specification(spec)
+            self.assertEqual(errors, [], f"Specification validation failed for {cls.__name__}: {errors}")
 
     def test_02_specification_matches_class_attributes(self):
         """Verifies specification metadata matches adapter class-level attributes."""
