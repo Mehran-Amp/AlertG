@@ -87,4 +87,4 @@ device_health.json
 *.bak.*
 server.pid
 alerts_data.json.empty
-catalog_snapshots/snapshot_*
+catalog_snapshots/staging/
