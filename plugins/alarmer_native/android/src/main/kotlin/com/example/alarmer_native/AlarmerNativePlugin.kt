@@ -14,10 +14,14 @@ class AlarmerNativePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     private var channel: MethodChannel? = null
     private var context: Context? = null
 
-    // FLASH-1: SOS flash pattern state
+    // FLASH-3: SOS flash pattern state (native, survives FCM isolate teardown)
     private var flashHandler: android.os.Handler? = null
     private var flashRunnable: Runnable? = null
+    private var flashStopRunnable: Runnable? = null
     private var flashCameraId: String? = null
+
+    // FLASH-3: hard ceiling — never flash longer than 10s, even if Dart dies.
+    private val FLASH_HARD_CEILING_MS = 10_000L
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         context = binding.applicationContext
@@ -35,6 +39,7 @@ class AlarmerNativePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         channel?.setMethodCallHandler(null)
         channel = null
         context = null
+        // FLASH-3: never leave the torch on when the engine goes away.
         stopFlashSOS()
     }
 
@@ -88,9 +93,13 @@ class AlarmerNativePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         }
     }
 
-    // FLASH-1: SOS flash pattern (3 short, 3 long, 3 short, repeat)
+    // FLASH-3: SOS flash pattern (3 short, 3 long, 3 short, repeat),
+    // self-terminating after FLASH_HARD_CEILING_MS. This runs entirely on the
+    // native side, so it survives the Dart isolate being torn down (FCM
+    // background handler, app swiped from recents).
     private fun startFlashSOS() {
         val ctx = context ?: return
+        // Restart cleanly: cancel any in-flight pattern and torch state.
         stopFlashSOS()
 
         val cameraManager = ctx.getSystemService(android.content.Context.CAMERA_SERVICE)
@@ -106,33 +115,47 @@ class AlarmerNativePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         val handler = android.os.Handler(android.os.Looper.getMainLooper())
         flashHandler = handler
 
+        // SOS pattern: 3 short (200ms), 3 long (600ms), 3 short (200ms).
+        // Values alternate ON/OFF; the first entry is the first ON duration.
         val pattern = longArrayOf(
             200, 200, 200, 200, 200, 1000,
             600, 200, 600, 200, 600, 1000,
             200, 200, 200, 200, 200, 2000
         )
         var index = 0
-        var isOn = false
+        var isOn = true
+        // First ON is immediate, so the torch lights up right away.
+        try { cameraManager.setTorchMode(cameraId, true) } catch (_: Exception) { stopFlashSOS(); return }
+
         val runnable = object : Runnable {
             override fun run() {
                 try {
+                    index = (index + 1) % pattern.size
                     isOn = !isOn
                     cameraManager.setTorchMode(cameraId, isOn)
+                    handler.postDelayed(this, pattern[index])
                 } catch (e: Exception) {
                     stopFlashSOS()
-                    return
                 }
-                index = (index + 1) % pattern.size
-                handler.postDelayed(this, pattern[index])
             }
         }
         flashRunnable = runnable
-        handler.post(runnable)
+        // We already turned the torch on; schedule the first OFF transition.
+        handler.postDelayed(runnable, pattern[0])
+
+        // FLASH-3: hard ceiling — force stop after 10s no matter what.
+        val stopRunnable = Runnable {
+            stopFlashSOS()
+        }
+        flashStopRunnable = stopRunnable
+        handler.postDelayed(stopRunnable, FLASH_HARD_CEILING_MS)
     }
 
     private fun stopFlashSOS() {
         flashRunnable?.let { flashHandler?.removeCallbacks(it) }
         flashRunnable = null
+        flashStopRunnable?.let { flashHandler?.removeCallbacks(it) }
+        flashStopRunnable = null
         flashHandler = null
         flashCameraId?.let { id ->
             try {

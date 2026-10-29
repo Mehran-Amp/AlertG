@@ -196,6 +196,7 @@ class SchedulerService {
         // The result determines whether we are allowed to commit the triggered
         // state: if the banner could not be shown, the alert must stay active
         // so the next interval retries it.
+        debugPrint('🔍 [Scheduler] rule.flashEnabled = ${rule.flashEnabled}, effectiveFlash = $effectiveFlash');
         final dispatch = await _notificationService.enqueueCriticalAlert(
           id: rule.uuid.hashCode,
           title: result.title,

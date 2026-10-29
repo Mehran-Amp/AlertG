@@ -566,6 +566,26 @@ class NotificationService implements NotificationServiceInterface {
       await _plugin.show(id, title, body, details, payload: payload);
     }
 
+    // FLASH-1: independent of sound/vibration/TTS. Runs even if all audio is off.
+    if (flashEnabled) {
+      unawaited(() async {
+        try {
+          const mChannel = MethodChannel('com.example.bitcoin_checker/app_lifecycle');
+          await mChannel.invokeMethod('startFlashSOS');
+          await ServiceLogger.log('flash.start', 'startFlashSOS OK');
+          // FLASH-1: auto-stop SOS flash after 5 seconds
+          Future.delayed(const Duration(seconds: 5), () async {
+            try {
+              await mChannel.invokeMethod('stopFlashSOS');
+              await ServiceLogger.log('flash.stop', 'stopFlashSOS OK (timeout)');
+            } catch (_) {}
+          });
+        } catch (e) {
+          debugPrint('⚠️ [NotificationService] startFlashSOS note: $e');
+        }
+      }());
+    }
+
     // 2. Audible alarm & physical vibration via native engine (works in both foreground & background)
     if (effSound || effVibration) {
       unawaited(() async {
@@ -578,24 +598,7 @@ class NotificationService implements NotificationServiceInterface {
             'volume': volume,
           });
           await ServiceLogger.log('alarm.play', 'playAlarm OK sound=$cleanSound vibrate=$effVibration');
-
-          // FLASH-1: SOS flash pattern (only if user enabled it for this alert)
-          if (flashEnabled) {
-            try {
-              await mChannel.invokeMethod('startFlashSOS');
-              // FLASH-1: auto-stop SOS flash after 5 seconds
-              Future.delayed(const Duration(seconds: 5), () async {
-                try {
-                  await mChannel.invokeMethod('stopFlashSOS');
-                  await ServiceLogger.log('flash.stop', 'stopFlashSOS OK (timeout)');
-                } catch (_) {}
-              });
-              await ServiceLogger.log('flash.start', 'startFlashSOS OK');
-            } catch (e) {
-              debugPrint('⚠️ [NotificationService] startFlashSOS note: $e');
-            }
-          }
-                } catch (e, st) {
+        } catch (e, st) {
           debugPrint('⚠️ [NotificationService] native playAlarm note: $e');
           await ServiceLogger.logError('alarm.play.error', e, st);
           if (inAppFeedback && effVibration) {
