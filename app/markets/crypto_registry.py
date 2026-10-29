@@ -131,10 +131,10 @@ _CRYPTO_EXCHANGES: Dict[str, CryptoExchangeMetadata] = {
         source_label='Bybit (bybit) Spot API',
         markets_url='https://api.bybit.com/v5/market/instruments-info?category=spot',
         bulk_ticker_url='https://api.bybit.com/v5/market/tickers?category=spot',
-        status='pending_adapter',
+        status='active',
         has_leveraged_tokens=False,
         aliases=(),
-        notes='Pending Phase 2 adapter connection'
+        notes='Tier 1 spot market via V5 API'
     ),
     'bitget': CryptoExchangeMetadata(
         id='bitget',
@@ -144,10 +144,10 @@ _CRYPTO_EXCHANGES: Dict[str, CryptoExchangeMetadata] = {
         source_label='Bitget (bitget) Spot API',
         markets_url='https://api.bitget.com/api/v2/spot/public/symbols',
         bulk_ticker_url='https://api.bitget.com/api/v2/spot/market/tickers',
-        status='pending_adapter',
+        status='active',
         has_leveraged_tokens=False,
         aliases=(),
-        notes='Pending Phase 2 adapter connection'
+        notes='Tier 1 spot market via V2 API'
     ),
 }
 

@@ -143,9 +143,9 @@ class TestCryptoCatalogBuilder(unittest.IsolatedAsyncioTestCase):
             shutil.rmtree(self.test_dir, ignore_errors=True)
 
     def test_01_supported_exchanges_and_adapters(self):
-        """Verifies all 7 supported exchanges instantiate their isolated adapters."""
-        self.assertEqual(len(SUPPORTED_CRYPTO_EXCHANGES), 7)
-        for ex_id in ["binance", "mexc", "kucoin", "gateio", "lbank", "okx", "kraken"]:
+        """Verifies all 9 supported exchanges instantiate their isolated adapters."""
+        self.assertEqual(len(SUPPORTED_CRYPTO_EXCHANGES), 9)
+        for ex_id in ["binance", "mexc", "kucoin", "gateio", "lbank", "okx", "kraken", "bybit", "bitget"]:
             self.assertIn(ex_id, SUPPORTED_CRYPTO_EXCHANGES)
             adapter = get_exchange_adapter(ex_id)
             self.assertIsNotNone(adapter, f"Adapter for {ex_id} should not be None")
@@ -315,15 +315,15 @@ class TestCryptoCatalogBuilder(unittest.IsolatedAsyncioTestCase):
         with patch("app.markets.crypto_catalog.get_exchange_adapter", side_effect=fake_get_adapter):
             report = await sync_all_crypto_catalogs(override_dir=self.test_dir)
 
-        self.assertEqual(report["total_exchanges"], 7)
-        self.assertEqual(report["success_count"], 6)
+        self.assertEqual(report["total_exchanges"], 9)
+        self.assertEqual(report["success_count"], 8)
 
         # LBank failed gracefully
         self.assertFalse(report["results"]["lbank"]["success"])
         self.assertEqual(report["results"]["lbank"]["error_code"], "RATE_LIMITED")
 
-        # Other 6 exchanges succeeded
-        for ex in ["binance", "mexc", "kucoin", "gateio", "okx", "kraken"]:
+        # Other 8 exchanges succeeded
+        for ex in ["binance", "mexc", "kucoin", "gateio", "okx", "kraken", "bybit", "bitget"]:
             self.assertTrue(report["results"][ex]["success"])
             self.assertEqual(report["results"][ex]["total_pairs"], 25)
 
@@ -387,7 +387,7 @@ class TestCryptoCatalogBuilder(unittest.IsolatedAsyncioTestCase):
         )
 
         status = get_crypto_catalogs_status(override_dir=self.test_dir)
-        self.assertEqual(status["total_exchanges"], 7)
+        self.assertEqual(status["total_exchanges"], 9)
         self.assertTrue(status["exchanges"]["binance"]["file_exists"])
         self.assertEqual(status["exchanges"]["binance"]["total_pairs"], 150)
         self.assertFalse(status["exchanges"]["binance"]["is_stale"])
@@ -402,7 +402,7 @@ class TestCryptoCatalogBuilder(unittest.IsolatedAsyncioTestCase):
             from app.routes.admin import get_admin_crypto_catalog_status, trigger_admin_crypto_catalog_sync
             status_res = get_admin_crypto_catalog_status()
             self.assertIn("total_exchanges", status_res)
-            self.assertEqual(status_res["total_exchanges"], 7)
+            self.assertEqual(status_res["total_exchanges"], 9)
             self.assertIn("exchanges", status_res)
 
             mock_sync_result = {
@@ -420,7 +420,7 @@ class TestCryptoCatalogBuilder(unittest.IsolatedAsyncioTestCase):
             from app.markets.crypto_catalog import get_crypto_catalogs_status
             status_res = get_crypto_catalogs_status()
             self.assertIn("total_exchanges", status_res)
-            self.assertEqual(status_res["total_exchanges"], 7)
+            self.assertEqual(status_res["total_exchanges"], 9)
 
 
 if __name__ == '__main__':

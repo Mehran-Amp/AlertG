@@ -105,6 +105,12 @@ def get_exchange_adapter(exchange_id: str):
     elif ex == "kraken":
         from app.markets.adapters.kraken import KrakenAdapter
         return KrakenAdapter()
+    elif ex == "bybit":
+        from app.markets.adapters.bybit import BybitAdapter
+        return BybitAdapter()
+    elif ex == "bitget":
+        from app.markets.adapters.bitget import BitgetAdapter
+        return BitgetAdapter()
     return None
 
 

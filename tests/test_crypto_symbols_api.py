@@ -235,18 +235,18 @@ class TestCryptoSymbolsAPI(unittest.TestCase):
         )
 
     def test_01_exchanges_list_metadata(self):
-        """Verifies GET /api/crypto/exchanges returns all 7 exchanges with complete metadata."""
+        """Verifies GET /api/crypto/exchanges returns all 9 exchanges with complete metadata."""
         resp_raw = get_crypto_exchanges(catalog_dir=self.test_dir)
         resp = _OfflineMockResponse(resp_raw)
 
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
         self.assertEqual(data["status"], "success")
-        self.assertEqual(data["total"], 7)
-        self.assertEqual(len(data["exchanges"]), 7)
+        self.assertEqual(data["total"], 9)
+        self.assertEqual(len(data["exchanges"]), 9)
 
         ex_map = {e["id"]: e for e in data["exchanges"]}
-        for ex_id in ["binance", "mexc", "kucoin", "gateio", "lbank", "okx", "kraken"]:
+        for ex_id in ["binance", "mexc", "kucoin", "gateio", "lbank", "okx", "kraken", "bybit", "bitget"]:
             self.assertIn(ex_id, ex_map)
             item = ex_map[ex_id]
             self.assertEqual(item["exchange_id"], ex_id)
@@ -272,6 +272,10 @@ class TestCryptoSymbolsAPI(unittest.TestCase):
         # Check unseeded exchange has safe defaults
         self.assertEqual(ex_map["kraken"]["total_pairs"], 0)
         self.assertEqual(ex_map["kraken"]["is_stale"], True)
+        self.assertEqual(ex_map["bybit"]["total_pairs"], 0)
+        self.assertEqual(ex_map["bybit"]["is_stale"], True)
+        self.assertEqual(ex_map["bitget"]["total_pairs"], 0)
+        self.assertEqual(ex_map["bitget"]["is_stale"], True)
 
     def test_02_unknown_exchange_returns_404(self):
         """Verifies unknown exchange returns 404 with clear informative error message."""
