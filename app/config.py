@@ -104,6 +104,10 @@ WEEKLY_CATALOG_SYNC_ENABLED = os.getenv("WEEKLY_CATALOG_SYNC_ENABLED", "").strip
 
 # Phase 3: Strict Crypto Price Core (Rule R1: exchange isolation, zero cross-exchange fallback)
 CRYPTO_STRICT_V2 = os.getenv("CRYPTO_STRICT_V2", "false").strip().lower() in ("1", "true", "yes", "on")
+# Phase 3: Real-Time Price Engine Stage A (In-memory snapshot store, zero HTTP in evaluation)
+CRYPTO_ENGINE_V2 = os.getenv("CRYPTO_ENGINE_V2", "false").strip().lower() in ("1", "true", "yes", "on")
+CRYPTO_SNAPSHOT_MAX_AGE_SECONDS = float(os.getenv("CRYPTO_SNAPSHOT_MAX_AGE_SECONDS", "10.0"))
+CRYPTO_MIN_CHECK_INTERVAL_SECONDS = int(os.getenv("CRYPTO_MIN_CHECK_INTERVAL_SECONDS", "1"))
 
 # Phase 5: Dynamic Crypto Exchange Catalogs & Safety Settings
 CRYPTO_CATALOG_DIR = os.getenv("CRYPTO_CATALOG_DIR") or (os.path.join(DATA_DIR, "crypto_catalogs") if DATA_DIR != "." else "crypto_catalogs")
@@ -111,5 +115,6 @@ CRYPTO_CATALOG_SYNC_ENABLED = os.getenv("CRYPTO_CATALOG_SYNC_ENABLED", "true").s
 CRYPTO_CATALOG_SYNC_INTERVAL_HOURS = int(os.getenv("CRYPTO_CATALOG_SYNC_INTERVAL_HOURS", "6"))
 CRYPTO_CATALOG_MIN_PAIRS = int(os.getenv("CRYPTO_CATALOG_MIN_PAIRS", "20"))
 CRYPTO_CATALOG_MAX_DROP_RATIO = float(os.getenv("CRYPTO_CATALOG_MAX_DROP_RATIO", "0.50"))
+
 
 

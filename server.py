@@ -206,10 +206,23 @@ async def lifespan(app: FastAPI):
     _SERVER_BG_TASKS.add(bg_crypto_cat_task)
     bg_crypto_cat_task.add_done_callback(_SERVER_BG_TASKS.discard)
 
+    # Phase 3: Start REST crypto poller supervisor if CRYPTO_ENGINE_V2 is enabled
+    if getattr(config, "CRYPTO_ENGINE_V2", False):
+        try:
+            from app.markets.crypto_poller import start_crypto_poller
+            start_crypto_poller()
+        except Exception as e:
+            print(f"⚠️ [Crypto Poller] Failed to start poller: {e}")
+
     yield
 
-
     # Shutdown: Cleanly close pool and scheduler
+    if getattr(config, "CRYPTO_ENGINE_V2", False):
+        try:
+            from app.markets.crypto_poller import stop_crypto_poller
+            stop_crypto_poller()
+        except Exception:
+            pass
     if bg_market_task and not bg_market_task.done():
         bg_market_task.cancel()
     if tg_task:

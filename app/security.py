@@ -88,12 +88,20 @@ class AccessLogMaskFilter(logging.Filter):
         )
         return text
 
-def _clamp_interval(value: Any) -> int:
+def _clamp_interval(value: Any, exchange: Optional[str] = None) -> int:
     try:
         v = int(value)
     except (TypeError, ValueError):
         v = 180
-    return max(180, min(86400, v))
+    min_interval = 180
+    if exchange:
+        try:
+            from app.markets.crypto_registry import is_supported_crypto_exchange
+            if is_supported_crypto_exchange(exchange):
+                min_interval = getattr(config, "CRYPTO_MIN_CHECK_INTERVAL_SECONDS", 1)
+        except Exception:
+            pass
+    return max(min_interval, min(86400, v))
 
 def _validate_market_args(exchange: str, symbol: str) -> None:
     if not EXCHANGE_RE.match((exchange or '').lower()) or not SYMBOL_RE.match(symbol or ''):
@@ -132,7 +140,7 @@ def _normalize_sync_item(item: Any) -> Dict[str, Any]:
         nv = item.get(note_k)
         out[note_k] = str(nv)[:MAX_NOTE_LEN] if nv is not None else None
 
-    out['check_interval_seconds'] = _clamp_interval(item.get('check_interval_seconds', 180))
+    out['check_interval_seconds'] = _clamp_interval(item.get('check_interval_seconds', 180), exchange=out['exchange'])
     note = item.get('note')
     out['note'] = str(note)[:MAX_NOTE_LEN] if note is not None else None
     

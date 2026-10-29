@@ -92,6 +92,14 @@ def resolve_symbol_category(exchange: str, symbol: Optional[str] = None) -> str:
     if sym.endswith('TMN') or sym.endswith('IRT') or sym.endswith('RLS') or sym.startswith('USDT_') or sym.startswith('GOLD_'):
         return 'iran_market'
 
+    # Registered crypto exchanges immediately classify as 'crypto' (Rule R1: prevents stock/ETF id collisions in catalog.json)
+    try:
+        from app.markets.crypto_registry import is_supported_crypto_exchange
+        if is_supported_crypto_exchange(ex, allow_pending=True):
+            return 'crypto'
+    except Exception:
+        pass
+
     # 1. First read catalog.json (id -> category):
     # UNRATE, CPIAUCSL, FEDFUNDS, WALCL, M2SL and all macro series in catalog must return 'macro', not 'stock'.
     cat_map = _get_catalog_categories()
@@ -139,4 +147,6 @@ def get_category_cache_ttl(category: str) -> float:
     return CATEGORY_CACHE_TTL.get(category, CATEGORY_CACHE_TTL['default'])
 
 def get_category_outlier_threshold(category: str) -> float:
+    if category == 'crypto' and getattr(config, 'CRYPTO_ENGINE_V2', False):
+        return 1.00
     return CATEGORY_OUTLIER_THRESHOLDS.get(category, CATEGORY_OUTLIER_THRESHOLDS['default'])

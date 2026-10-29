@@ -100,7 +100,7 @@ async def create_alert(alert_in: AlertCreate):
             raise HTTPException(status_code=400, detail="Invalid telegram_chat_id.")
     if alert_in.webhook_url and not await is_safe_webhook_url_async(alert_in.webhook_url):
         raise HTTPException(status_code=400, detail="Unsafe or unresolvable webhook_url (https + public host required).")
-    alert_in.check_interval_seconds = _clamp_interval(alert_in.check_interval_seconds)
+    alert_in.check_interval_seconds = _clamp_interval(alert_in.check_interval_seconds, exchange=alert_in.exchange)
     if alert_in.note:
         alert_in.note = alert_in.note[:MAX_NOTE_LEN]
     rule_id = (alert_in.id or str(uuid.uuid4()))[:128]

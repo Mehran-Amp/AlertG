@@ -120,7 +120,46 @@ async def fetch_crypto_strict(
     source_label = meta.source_label
     now_ts = int(time.time())
 
-    # 3. Single-target isolated fetch per exchange (R1 / R11)
+    # Phase 3: Stage A Price Engine (Read O(1) in-memory snapshot with ZERO outbound HTTP calls)
+    if getattr(config, "CRYPTO_ENGINE_V2", False):
+        from app.markets.crypto_snapshot import get_snapshot_price
+        max_age = getattr(config, "CRYPTO_SNAPSHOT_MAX_AGE_SECONDS", 10.0)
+        snap_price, snap_as_of, snap_status, latency_ms = get_snapshot_price(ex, native_sym, max_age_seconds=max_age)
+
+        if snap_status == "OK" and snap_price is not None and snap_price > 0:
+            traces.append({
+                'source': source_label,
+                'url': f"snapshot:{ex}",
+                'status_code': 200,
+                'duration_ms': latency_ms,
+                'parsed_price': snap_price,
+                'asOf': snap_as_of,
+                'state': 'LIVE',
+                'currency': 'USDT',
+                'success': True
+            })
+            return CryptoPriceResult(
+                price=snap_price,
+                asOf=int(snap_as_of) if snap_as_of else None,
+                source=meta.name,
+                status='OK'
+            )
+        else:
+            traces.append({
+                'source': source_label,
+                'url': f"snapshot:{ex}",
+                'status_code': 503 if snap_status in ('STALE_PRICE', 'RATE_LIMITED', 'PROVIDER_BLOCKED') else 404,
+                'error': f"{snap_status}: price not available in snapshot for {ex}:{native_sym}",
+                'duration_ms': latency_ms,
+            })
+            return CryptoPriceResult(
+                price=None,
+                asOf=int(snap_as_of) if snap_as_of else None,
+                source=meta.name,
+                status=snap_status
+            )
+
+    # 3. Single-target isolated fetch per exchange (R1 / R11 fallback when engine flag is OFF)
     if ex == 'binance':
         url = f"https://api.binance.com/api/v3/ticker/price?symbol={native_sym}"
         p = await _try_fetch(

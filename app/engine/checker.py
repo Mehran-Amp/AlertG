@@ -124,7 +124,8 @@ async def get_cached_price(client: httpx.AsyncClient, exchange: str, symbol: str
         if cached and cached[0] > 0 and (now - cached[1]) < 300:
             last_p = cached[0]
             dev = abs(price - last_p) / last_p
-            if dev > outlier_threshold and last_p > 0.0001:
+            floor = 1e-12 if category == 'crypto' and getattr(config, 'CRYPTO_ENGINE_V2', False) else 0.0001
+            if dev > outlier_threshold and last_p > floor:
                 streak = OUTLIER_STREAK.get(cache_key, 0) + 1
                 if streak < 3:
                     OUTLIER_STREAK[cache_key] = streak
