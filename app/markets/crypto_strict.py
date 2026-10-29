@@ -16,6 +16,7 @@ from dataclasses import dataclass
 from typing import Dict, Any, Optional, List
 import httpx
 
+import app.config as config
 from app.markets.common import normalize_symbol
 from app.markets.crypto_registry import get_crypto_exchange, is_supported_crypto_exchange
 from app.markets.crypto_catalog import resolve_pair
