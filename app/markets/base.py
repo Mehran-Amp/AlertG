@@ -57,7 +57,10 @@ async def fetch_price_with_trace(
     client: httpx.AsyncClient,
     exchange: str,
     symbol: str,
-    collect_all_traces: bool = False
+    collect_all_traces: bool = False,
+    base_currency: Optional[str] = None,
+    counter_currency: Optional[str] = None,
+    market_symbol: Optional[str] = None,
 ) -> Tuple[Optional[float], List[Dict[str, Any]]]:
     """
     Unified multi-source price engine with Bulk Ticker Cache & Fast Parallel Fallback.
@@ -259,7 +262,12 @@ async def fetch_price_with_trace(
 
     # 3. GLOBAL CRYPTO / DEX
     else:
-        p = await fetch_crypto(client, exchange, symbol, _try_fetch, traces, collect_all_traces)
+        p = await fetch_crypto(
+            client, exchange, symbol, _try_fetch, traces, collect_all_traces,
+            base_currency=base_currency,
+            counter_currency=counter_currency,
+            market_symbol=market_symbol,
+        )
         if p and not collect_all_traces:
             return p, traces
 

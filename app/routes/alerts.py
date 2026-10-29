@@ -100,6 +100,22 @@ async def create_alert(alert_in: AlertCreate):
             raise HTTPException(status_code=400, detail="Invalid telegram_chat_id.")
     if alert_in.webhook_url and not await is_safe_webhook_url_async(alert_in.webhook_url):
         raise HTTPException(status_code=400, detail="Unsafe or unresolvable webhook_url (https + public host required).")
+
+    # Phase 4: Crypto Alert Validation ('enforce' / 'warn')
+    val_mode = str(getattr(config, "CRYPTO_VALIDATE_ALERTS", "false")).strip().lower()
+    if val_mode in ("true", "1", "yes", "on", "enforce", "warn"):
+        from app.markets.crypto_validation import validate_crypto_alert
+        is_val, err_code, err_msg = validate_crypto_alert(
+            exchange=alert_in.exchange,
+            symbol=alert_in.symbol,
+            base_currency=alert_in.base_currency,
+            counter_currency=alert_in.counter_currency,
+            market_symbol=alert_in.market_symbol,
+        )
+        if not is_val:
+            if val_mode in ("true", "1", "yes", "on", "enforce"):
+                raise HTTPException(status_code=400, detail=f"{err_code}: {err_msg}")
+
     alert_in.check_interval_seconds = _clamp_interval(alert_in.check_interval_seconds, exchange=alert_in.exchange)
     if alert_in.note:
         alert_in.note = alert_in.note[:MAX_NOTE_LEN]
@@ -265,6 +281,23 @@ async def sync_user_alerts(payload: dict):
                 print(f"⚠️ [API] Dropped unsafe webhook_url from synced alert {item.get('id')}")
                 item['webhook_url'] = None
 
+    # Phase 4: Crypto Alert Validation during sync ('enforce')
+    val_mode = str(getattr(config, "CRYPTO_VALIDATE_ALERTS", "false")).strip().lower()
+    if val_mode in ("true", "1", "yes", "on", "enforce"):
+        from app.markets.crypto_validation import validate_crypto_alert
+        for item in alerts_data:
+            ex = str(item.get('exchange') or 'nobitex').strip().lower()
+            sym = str(item.get('symbol') or 'USDTIRT').strip()
+            is_val, err_code, err_msg = validate_crypto_alert(
+                exchange=ex,
+                symbol=sym,
+                base_currency=item.get('base_currency'),
+                counter_currency=item.get('counter_currency'),
+                market_symbol=item.get('market_symbol'),
+            )
+            if not is_val:
+                raise HTTPException(status_code=400, detail=f"{err_code}: {err_msg}")
+
     backup_snapshot = None
     should_backup = sync_mode == 'mirror'  # SYNC-1b: only mirror can shrink
 
@@ -329,7 +362,7 @@ async def sync_user_alerts(payload: dict):
                 prefer_server_proxy=bool(item.get('prefer_server_proxy', False)),
                 raw_rule=item.get('raw_rule'),
                 fcm_token=item.get('fcm_token') or fcm_token,
-                check_interval_seconds=_clamp_interval(item.get('check_interval_seconds', 180)),
+                check_interval_seconds=_clamp_interval(item.get('check_interval_seconds', 180), exchange=item.get('exchange', 'nobitex').lower()),
                 note=item.get('note'),
                 trigger_mode=item.get('trigger_mode', 'oneShot'),
                 alert_nature=item.get('alert_nature') or 'price',

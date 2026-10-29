@@ -490,11 +490,15 @@ get_all_catalogs_status = get_crypto_catalogs_status
 def resolve_pair(
     exchange_id: str,
     symbol_or_base: str,
-    override_dir: Optional[str] = None
+    override_dir: Optional[str] = None,
+    base_currency: Optional[str] = None,
+    counter_currency: Optional[str] = None,
+    market_symbol: Optional[str] = None,
 ) -> Tuple[str, Optional[Dict[str, Any]]]:
     """
     Resolves an alert symbol or base currency to its exact exchange catalog pair.
     Uses the exchange's catalog alias index (Rule R1 / Task 6).
+    Prioritizes market_symbol and base_currency with symbol_or_base as fallback (Phase 4 / F4).
     Returns: (status, pair_dict)
     status: 'OK' | 'UNKNOWN_EXCHANGE' | 'SYMBOL_NOT_LISTED'
     """
@@ -503,8 +507,16 @@ def resolve_pair(
         return "UNKNOWN_EXCHANGE", None
 
     ex_id = ex_meta.id
+
+    # If quote currency is specified and is non-USDT, reject for spot crypto
+    if counter_currency and str(counter_currency).strip().upper() != "USDT":
+        return "SYMBOL_NOT_LISTED", None
+
     query = (symbol_or_base or "").strip()
-    if not query:
+    m_sym = (market_symbol or "").strip()
+    b_curr = (base_currency or "").strip()
+
+    if not query and not m_sym and not b_curr:
         return "SYMBOL_NOT_LISTED", None
 
     # 1. Lookup in persisted catalog if present
@@ -515,13 +527,23 @@ def resolve_pair(
         q_lower = query.lower()
         q_norm = q_upper.replace("-", "").replace("_", "").replace("/", "")
 
+        m_upper = m_sym.upper() if m_sym else ""
+        m_lower = m_sym.lower() if m_sym else ""
+        b_upper = b_curr.upper() if b_curr else ""
+
         for p in pairs:
             native = str(p.get("native_symbol", ""))
             base = str(p.get("base", ""))
             sym = str(p.get("symbol", f"{base}USDT"))
             aliases = p.get("aliases", [])
 
-            if (
+            # Match priority: market_symbol -> base_currency -> query
+            matched = False
+            if m_sym and (m_sym == native or m_upper == native.upper() or m_lower == native.lower()):
+                matched = True
+            elif b_curr and (b_upper == base.upper() or b_curr == base):
+                matched = True
+            elif query and (
                 query == native or
                 q_upper == sym or
                 q_upper == base or
@@ -532,6 +554,9 @@ def resolve_pair(
                 q_upper in aliases or
                 q_lower in aliases
             ):
+                matched = True
+
+            if matched:
                 return "OK", {
                     "symbol": sym,
                     "base": base,
@@ -545,8 +570,16 @@ def resolve_pair(
     # 2. Fallback when catalog has not been seeded yet on disk
     adapter = get_exchange_adapter(ex_id)
     if adapter:
-        native = adapter.to_native_symbol(query)
-        base = adapter.to_canonical_base(native)
+        if m_sym:
+            native = m_sym
+            base = adapter.to_canonical_base(native)
+        elif b_curr:
+            base = b_curr.upper()
+            native = adapter.to_native_symbol(base)
+        else:
+            native = adapter.to_native_symbol(query)
+            base = adapter.to_canonical_base(native)
+
         sym = f"{base}USDT"
         from app.markets.adapters.base import is_leveraged_token
         return "OK", {

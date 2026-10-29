@@ -71,12 +71,15 @@ async def fetch_crypto_strict(
     exchange: str,
     symbol: str,
     _try_fetch,
-    traces: List[Dict[str, Any]]
+    traces: List[Dict[str, Any]],
+    base_currency: Optional[str] = None,
+    counter_currency: Optional[str] = None,
+    market_symbol: Optional[str] = None,
 ) -> CryptoPriceResult:
     """
     Executes Rule R1 Strict Price Fetch:
     - Verifies exchange registration in crypto_registry.
-    - Resolves pair using catalog alias index.
+    - Resolves pair using catalog alias index (prioritizing market_symbol & base_currency).
     - Queries ONLY the target exchange endpoint.
     - Zero cross-exchange fallbacks.
     """
@@ -101,7 +104,13 @@ async def fetch_crypto_strict(
         )
 
     # 2. Resolve pair from catalog
-    resolve_status, pair_data = resolve_pair(ex, symbol)
+    resolve_status, pair_data = resolve_pair(
+        exchange_id=ex,
+        symbol_or_base=symbol,
+        base_currency=base_currency,
+        counter_currency=counter_currency,
+        market_symbol=market_symbol,
+    )
     if resolve_status == "SYMBOL_NOT_LISTED":
         err_msg = f"SYMBOL_NOT_LISTED: Symbol '{symbol}' is not listed on {meta.name}"
         traces.append({

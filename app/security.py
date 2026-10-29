@@ -111,8 +111,27 @@ def _normalize_sync_item(item: Any) -> Dict[str, Any]:
     if not isinstance(item, dict):
         raise ValueError("alert item must be an object")
     out = dict(item)
-    out['exchange'] = str(item.get('exchange') or 'nobitex').strip().lower()
-    out['symbol'] = str(item.get('symbol') or 'USDTIRT').strip().upper()
+    raw_ex = item.get('exchange')
+    raw_sym = item.get('symbol')
+    if not raw_ex:
+        logger.debug("ℹ️ [Sync Normalize] Missing exchange defaulted to 'nobitex'")
+    if not raw_sym:
+        logger.debug("ℹ️ [Sync Normalize] Missing symbol defaulted to 'USDTIRT'")
+    out['exchange'] = str(raw_ex or 'nobitex').strip().lower()
+
+    # Same symbol normalization as POST /api/alerts for crypto (Phase 4 / Item 4)
+    from app.markets.common import normalize_symbol
+    try:
+        from app.markets.crypto_registry import is_supported_crypto_exchange
+        is_crypto = is_supported_crypto_exchange(out['exchange'])
+    except Exception:
+        is_crypto = False
+
+    if is_crypto and raw_sym:
+        out['symbol'] = normalize_symbol(str(raw_sym).strip())
+    else:
+        out['symbol'] = str(raw_sym or 'USDTIRT').strip().upper()
+
     if not EXCHANGE_RE.match(out['exchange']) or not SYMBOL_RE.match(out['symbol']):
         raise ValueError("invalid exchange or symbol")
     tp = float(item.get('target_price', 0.0))

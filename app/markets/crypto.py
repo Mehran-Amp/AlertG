@@ -14,7 +14,10 @@ async def fetch_crypto(
     symbol: str,
     _try_fetch,
     traces: List[Dict[str, Any]],
-    collect_all_traces: bool
+    collect_all_traces: bool,
+    base_currency: Optional[str] = None,
+    counter_currency: Optional[str] = None,
+    market_symbol: Optional[str] = None,
 ) -> Optional[float]:
     ex = (exchange or '').lower()
     sym_clean = normalize_symbol(symbol)
@@ -52,9 +55,14 @@ async def fetch_crypto(
             if p and not collect_all_traces: return p
         return None
 
-    # Phase 3: Strict Crypto Core (Rule R1: Exchange isolation, zero fallback)
+    # Phase 3 & 4: Strict Crypto Core (Rule R1: Exchange isolation, zero fallback, alias index)
     if is_crypto_strict_enabled():
-        strict_res = await fetch_crypto_strict(client, exchange, symbol, _try_fetch, traces)
+        strict_res = await fetch_crypto_strict(
+            client, exchange, symbol, _try_fetch, traces,
+            base_currency=base_currency,
+            counter_currency=counter_currency,
+            market_symbol=market_symbol,
+        )
         if strict_res.price is not None and strict_res.price > 0:
             return strict_res.price
         return None
