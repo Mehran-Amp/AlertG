@@ -1,0 +1,128 @@
+{
+  "retCode": 0,
+  "retMsg": "OK",
+  "result": {
+    "category": "spot",
+    "list": [
+      {
+        "symbol": "BTCUSDT",
+        "baseCoin": "BTC",
+        "quoteCoin": "USDT",
+        "status": "Trading",
+        "priceFilter": {
+          "minPrice": "0.01",
+          "maxPrice": "1999999.00",
+          "tickSize": "0.01"
+        },
+        "lotSizeFilter": {
+          "basePrecision": "0.000001",
+          "quotePrecision": "0.00000001",
+          "minOrderQty": "0.00001",
+          "maxOrderQty": "71.000000"
+        }
+      },
+      {
+        "symbol": "ETHUSDT",
+        "baseCoin": "ETH",
+        "quoteCoin": "USDT",
+        "status": "Trading",
+        "priceFilter": {
+          "minPrice": "0.01",
+          "maxPrice": "199999.00",
+          "tickSize": "0.01"
+        },
+        "lotSizeFilter": {
+          "basePrecision": "0.00001",
+          "quotePrecision": "0.00000001",
+          "minOrderQty": "0.0001",
+          "maxOrderQty": "1000.000000"
+        }
+      },
+      {
+        "symbol": "SOLUSDT",
+        "baseCoin": "SOL",
+        "quoteCoin": "USDT",
+        "status": "Trading",
+        "priceFilter": {
+          "minPrice": "0.01",
+          "maxPrice": "19999.00",
+          "tickSize": "0.01"
+        },
+        "lotSizeFilter": {
+          "basePrecision": "0.001",
+          "quotePrecision": "0.00000001",
+          "minOrderQty": "0.01",
+          "maxOrderQty": "10000.000"
+        }
+      },
+      {
+        "symbol": "1INCHUSDT",
+        "baseCoin": "1INCH",
+        "quoteCoin": "USDT",
+        "status": "Trading",
+        "priceFilter": {
+          "minPrice": "0.0001",
+          "maxPrice": "1999.00",
+          "tickSize": "0.0001"
+        },
+        "lotSizeFilter": {
+          "basePrecision": "0.01",
+          "quotePrecision": "0.00000001",
+          "minOrderQty": "0.1",
+          "maxOrderQty": "50000.00"
+        }
+      },
+      {
+        "symbol": "BTC3LUSDT",
+        "baseCoin": "BTC3L",
+        "quoteCoin": "USDT",
+        "status": "Trading",
+        "priceFilter": {
+          "minPrice": "0.0001",
+          "maxPrice": "1000.00",
+          "tickSize": "0.0001"
+        },
+        "lotSizeFilter": {
+          "basePrecision": "0.01",
+          "quotePrecision": "0.00000001",
+          "minOrderQty": "0.1",
+          "maxOrderQty": "10000.00"
+        }
+      },
+      {
+        "symbol": "LUNAUSDT",
+        "baseCoin": "LUNA",
+        "quoteCoin": "USDT",
+        "status": "Delivering",
+        "priceFilter": {
+          "minPrice": "0.0001",
+          "maxPrice": "100.00",
+          "tickSize": "0.0001"
+        },
+        "lotSizeFilter": {
+          "basePrecision": "0.01",
+          "quotePrecision": "0.00000001",
+          "minOrderQty": "1.0",
+          "maxOrderQty": "10000.00"
+        }
+      },
+      {
+        "symbol": "BTCUSDC",
+        "baseCoin": "BTC",
+        "quoteCoin": "USDC",
+        "status": "Trading",
+        "priceFilter": {
+          "minPrice": "0.01",
+          "maxPrice": "1999999.00",
+          "tickSize": "0.01"
+        },
+        "lotSizeFilter": {
+          "basePrecision": "0.000001",
+          "quotePrecision": "0.00000001",
+          "minOrderQty": "0.00001",
+          "maxOrderQty": "71.000000"
+        }
+      }
+    ]
+  }
+}

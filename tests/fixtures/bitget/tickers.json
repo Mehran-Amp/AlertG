@@ -1,0 +1,73 @@
+{
+  "code": "00000",
+  "msg": "success",
+  "requestTime": 1729000000000,
+  "data": [
+    {
+      "symbol": "BTCUSDT",
+      "high24h": "69200.00",
+      "open": "67500.00",
+      "low24h": "67100.00",
+      "lastPr": "68520.40",
+      "baseVolume": "14250.0",
+      "quoteVolume": "976500000.0",
+      "usdtVolume": "976500000.0",
+      "ts": "1729000000000"
+    },
+    {
+      "symbol": "ETHUSDT",
+      "high24h": "2700.00",
+      "open": "2610.00",
+      "low24h": "2580.00",
+      "lastPr": "2645.80",
+      "baseVolume": "50200.0",
+      "quoteVolume": "132800000.0",
+      "usdtVolume": "132800000.0",
+      "ts": "1729000000000"
+    },
+    {
+      "symbol": "SOLUSDT",
+      "high24h": "182.00",
+      "open": "172.00",
+      "low24h": "170.00",
+      "lastPr": "178.25",
+      "baseVolume": "135000.0",
+      "quoteVolume": "24063750.0",
+      "usdtVolume": "24063750.0",
+      "ts": "1729000000000"
+    },
+    {
+      "symbol": "1INCHUSDT",
+      "high24h": "0.3600",
+      "open": "0.3350",
+      "low24h": "0.3300",
+      "lastPr": "0.3450",
+      "baseVolume": "600000.0",
+      "quoteVolume": "207000.0",
+      "usdtVolume": "207000.0",
+      "ts": "1729000000000"
+    },
+    {
+      "symbol": "BTC3LUSDT",
+      "high24h": "4.50",
+      "open": "4.10",
+      "low24h": "4.00",
+      "lastPr": "4.25",
+      "baseVolume": "10000.0",
+      "quoteVolume": "42500.0",
+      "usdtVolume": "42500.0",
+      "ts": "1729000000000"
+    },
+    {
+      "symbol": "BTCUSDC",
+      "high24h": "69200.00",
+      "open": "67500.00",
+      "low24h": "67100.00",
+      "lastPr": "68510.00",
+      "baseVolume": "1200.0",
+      "quoteVolume": "82212000.0",
+      "usdtVolume": "82212000.0",
+      "ts": "1729000000000"
+    }
+  ]
+}

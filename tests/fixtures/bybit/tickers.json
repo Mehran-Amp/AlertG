@@ -1,0 +1,51 @@
+{
+  "retCode": 0,
+  "retMsg": "OK",
+  "result": {
+    "category": "spot",
+    "list": [
+      {
+        "symbol": "BTCUSDT",
+        "lastPrice": "68520.40",
+        "highPrice24h": "69200.00",
+        "lowPrice24h": "67100.00",
+        "volume24h": "12450.5"
+      },
+      {
+        "symbol": "ETHUSDT",
+        "lastPrice": "2645.80",
+        "highPrice24h": "2700.00",
+        "lowPrice24h": "2580.00",
+        "volume24h": "45200.1"
+      },
+      {
+        "symbol": "SOLUSDT",
+        "lastPrice": "178.25",
+        "highPrice24h": "182.00",
+        "lowPrice24h": "170.00",
+        "volume24h": "120000.0"
+      },
+      {
+        "symbol": "1INCHUSDT",
+        "lastPrice": "0.3450",
+        "highPrice24h": "0.3600",
+        "lowPrice24h": "0.3300",
+        "volume24h": "500000.0"
+      },
+      {
+        "symbol": "BTC3LUSDT",
+        "lastPrice": "4.25",
+        "highPrice24h": "4.50",
+        "lowPrice24h": "4.00",
+        "volume24h": "8000.0"
+      },
+      {
+        "symbol": "BTCUSDC",
+        "lastPrice": "68510.00",
+        "highPrice24h": "69200.00",
+        "lowPrice24h": "67100.00",
+        "volume24h": "1000.0"
+      }
+    ]
+  }
+}
