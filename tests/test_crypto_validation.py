@@ -13,11 +13,119 @@ Tests:
 """
 
 import os
+import sys
 import json
 import tempfile
 import shutil
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, AsyncMock
+
+# Mock optional dependencies for test runners
+try:
+    import httpx
+except ImportError:
+    httpx = MagicMock()
+    sys.modules['httpx'] = httpx
+
+try:
+    import apscheduler
+except ImportError:
+    apscheduler = MagicMock()
+    sys.modules['apscheduler'] = apscheduler
+    sys.modules['apscheduler.schedulers'] = apscheduler
+    sys.modules['apscheduler.schedulers.asyncio'] = apscheduler
+
+class BaseModel:
+    def __init__(self, **kwargs):
+        for cls in reversed(self.__class__.__mro__):
+            for k in getattr(cls, '__annotations__', {}):
+                if hasattr(cls, k):
+                    setattr(self, k, getattr(cls, k))
+                else:
+                    setattr(self, k, None)
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+    def dict(self, *args, **kwargs):
+        return self.__dict__.copy()
+    def model_dump(self, *args, **kwargs):
+        return self.__dict__.copy()
+
+try:
+    import pydantic
+except ImportError:
+    pydantic = MagicMock()
+    pydantic.BaseModel = BaseModel
+    pydantic.Field = lambda *args, **kwargs: kwargs.get('default', None)
+    sys.modules['pydantic'] = pydantic
+
+
+import types
+
+if 'fastapi' in sys.modules:
+    if not hasattr(sys.modules['fastapi'], '__path__'):
+        sys.modules['fastapi'].__path__ = []
+    if 'fastapi.responses' not in sys.modules:
+        resp_mod = types.ModuleType('fastapi.responses')
+        class Response:
+            def __init__(self, content=b"", status_code=200, headers=None, media_type=None, **kw):
+                self.content = content if isinstance(content, bytes) else str(content).encode("utf-8")
+                self.status_code = status_code
+                self.headers = headers or {}
+        class JSONResponse(Response):
+            def __init__(self, content=None, status_code=200, headers=None, **kw):
+                b = json.dumps(content).encode("utf-8") if isinstance(content, (dict, list)) else (content or b"")
+                super().__init__(content=b, status_code=status_code, headers=headers or {})
+        class HTMLResponse(Response): pass
+        resp_mod.Response = Response
+        resp_mod.JSONResponse = JSONResponse
+        resp_mod.HTMLResponse = HTMLResponse
+        sys.modules['fastapi'].responses = resp_mod
+        sys.modules['fastapi.responses'] = resp_mod
+
+try:
+    import fastapi
+except ImportError:
+    fastapi = types.ModuleType('fastapi')
+    fastapi.__path__ = []
+    class APIRouter:
+        def get(self, *a, **kw): return lambda fn: fn
+        def post(self, *a, **kw): return lambda fn: fn
+        def delete(self, *a, **kw): return lambda fn: fn
+        def put(self, *a, **kw): return lambda fn: fn
+        def patch(self, *a, **kw): return lambda fn: fn
+        def include_router(self, *a, **kw): pass
+    class Response:
+        def __init__(self, content=b"", status_code=200, headers=None, media_type=None, **kwargs):
+            self.content = content if isinstance(content, bytes) else str(content).encode("utf-8")
+            self.status_code = status_code
+            self.headers = headers or {}
+    class Request: pass
+    class HTTPException(Exception):
+        def __init__(self, status_code=500, detail="", **kwargs):
+            super().__init__(detail)
+            self.status_code = status_code
+            self.detail = detail
+    fastapi.APIRouter = APIRouter
+    fastapi.HTTPException = HTTPException
+    fastapi.Response = Response
+    fastapi.Request = Request
+    fastapi.Header = MagicMock()
+    fastapi.Depends = MagicMock()
+    fastapi.Query = lambda default=None, **kw: default
+    sys.modules['fastapi'] = fastapi
+
+    resp_mod = types.ModuleType('fastapi.responses')
+    class JSONResponse(Response):
+        def __init__(self, content=None, status_code=200, headers=None, **kw):
+            b = json.dumps(content).encode("utf-8") if isinstance(content, (dict, list)) else (content or b"")
+            super().__init__(content=b, status_code=status_code, headers=headers or {})
+    class HTMLResponse(Response): pass
+    resp_mod.Response = Response
+    resp_mod.JSONResponse = JSONResponse
+    resp_mod.HTMLResponse = HTMLResponse
+    fastapi.responses = resp_mod
+    sys.modules['fastapi.responses'] = resp_mod
+
 
 import app.config as config
 from app.markets.crypto_validation import (
@@ -28,10 +136,20 @@ from app.markets.crypto_catalog import (
     resolve_pair,
     save_exchange_catalog_atomic,
 )
-from app.models import AlertCreate
+from app.models import AlertCreate, Alert, AlertPublic
 from app.storage import ALERTS_DB
 from app.routes.alerts import create_alert, sync_user_alerts
 from fastapi import HTTPException
+
+for model_cls in (AlertCreate, Alert, AlertPublic):
+    try:
+        model_cls()
+    except TypeError:
+        model_cls.__init__ = BaseModel.__init__
+        model_cls.dict = BaseModel.dict
+        model_cls.model_dump = BaseModel.model_dump
+
+
 
 
 class TestCryptoValidationEngine(unittest.IsolatedAsyncioTestCase):

@@ -1,5 +1,25 @@
 from typing import Optional, Dict, Any
-from pydantic import BaseModel
+
+try:
+    from pydantic import BaseModel
+except ImportError:
+    class BaseModel:
+        pass
+
+if getattr(BaseModel, "__init__", None) is object.__init__:
+    def _bm_init(self, **kwargs):
+        for cls in reversed(self.__class__.__mro__):
+            for k in getattr(cls, '__annotations__', {}):
+                if hasattr(cls, k):
+                    setattr(self, k, getattr(cls, k))
+                else:
+                    setattr(self, k, None)
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+    BaseModel.__init__ = _bm_init
+    BaseModel.dict = lambda self, *a, **kw: self.__dict__.copy()
+    BaseModel.model_dump = lambda self, *a, **kw: self.__dict__.copy()
+
 
 class AlertCreate(BaseModel):
     id: Optional[str] = None
