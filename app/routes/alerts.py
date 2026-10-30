@@ -1,6 +1,7 @@
 import os
 import json
 import time
+import app.config as config
 from app.config import DATA_DIR
 import uuid
 import math
