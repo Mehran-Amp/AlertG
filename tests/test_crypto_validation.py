@@ -156,8 +156,10 @@ class TestCryptoValidationEngine(unittest.IsolatedAsyncioTestCase):
         config.CRYPTO_CATALOG_DIR = self.temp_dir
 
         self._orig_val_flag = getattr(config, "CRYPTO_VALIDATE_ALERTS", "false")
+        self._orig_crypto_engine_v2 = getattr(config, "CRYPTO_ENGINE_V2", False)
         self._orig_alerts = list(ALERTS_DB)
         ALERTS_DB.clear()
+
 
         # Seed sample catalog for binance and kraken
         binance_catalog = {
@@ -219,8 +221,10 @@ class TestCryptoValidationEngine(unittest.IsolatedAsyncioTestCase):
         ALERTS_DB.extend(self._orig_alerts)
         config.CRYPTO_CATALOG_DIR = self._orig_catalog_dir
         config.CRYPTO_VALIDATE_ALERTS = self._orig_val_flag
+        config.CRYPTO_ENGINE_V2 = self._orig_crypto_engine_v2
         if os.path.exists(self.temp_dir):
             shutil.rmtree(self.temp_dir, ignore_errors=True)
+
 
     def test_01_coinex_discontinued_rejection(self):
         """Owner Decision E1.2: CoinEx is permanently discontinued and rejected with EXCHANGE_NOT_SUPPORTED."""
@@ -480,15 +484,20 @@ class TestCryptoValidationEngine(unittest.IsolatedAsyncioTestCase):
         """When CRYPTO_ENGINE_V2=False, crypto interval cannot be clamped below 180s."""
         from app.security import _clamp_interval
 
-        config.CRYPTO_ENGINE_V2 = False
-        self.assertEqual(_clamp_interval(1, exchange="binance"), 180)
-        self.assertEqual(_clamp_interval(10, exchange="binance"), 180)
+        orig_flag = getattr(config, "CRYPTO_ENGINE_V2", False)
+        try:
+            config.CRYPTO_ENGINE_V2 = False
+            self.assertEqual(_clamp_interval(1, exchange="binance"), 180)
+            self.assertEqual(_clamp_interval(10, exchange="binance"), 180)
 
-        config.CRYPTO_ENGINE_V2 = True
-        self.assertEqual(_clamp_interval(1, exchange="binance"), 1)
-        self.assertEqual(_clamp_interval(5, exchange="binance"), 5)
-        # Non-crypto always clamped to 180
-        self.assertEqual(_clamp_interval(1, exchange="nobitex"), 180)
+            config.CRYPTO_ENGINE_V2 = True
+            self.assertEqual(_clamp_interval(1, exchange="binance"), 1)
+            self.assertEqual(_clamp_interval(5, exchange="binance"), 5)
+            # Non-crypto always clamped to 180
+            self.assertEqual(_clamp_interval(1, exchange="nobitex"), 180)
+        finally:
+            config.CRYPTO_ENGINE_V2 = orig_flag
+
 
 
 if __name__ == "__main__":

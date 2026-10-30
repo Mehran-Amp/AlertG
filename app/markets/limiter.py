@@ -139,7 +139,8 @@ def record_provider_metric(provider_key: str, event_type: str, status_code: Opti
     })
 
     # 1. Daily Quota Rollover: Reset daily counts when UTC day rolls over
-    if p_data.get("window_day") != current_day:
+    existing_day = p_data.get("window_day")
+    if existing_day is not None and existing_day != current_day:
         p_data["window_day"] = current_day
         p_data["requests"] = 0
         p_data["success"] = 0
@@ -150,6 +151,9 @@ def record_provider_metric(provider_key: str, event_type: str, status_code: Opti
         p_data["consecutive_success"] = 0
         _QUOTA_ALERTED_PROVIDERS.discard(provider_key)
         _OUTAGE_ALERTED_PROVIDERS.discard(provider_key)
+    elif existing_day is None:
+        p_data["window_day"] = current_day
+
 
     p_data["last_event_at"] = now
     if status_code is not None:

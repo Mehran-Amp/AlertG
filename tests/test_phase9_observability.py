@@ -9,9 +9,62 @@ Verifies:
 """
 
 import os
+import sys
+import json
 import unittest
 import asyncio
-from unittest.mock import patch, AsyncMock
+from unittest.mock import patch, AsyncMock, MagicMock
+
+
+# Mock server dependencies for offline test execution
+for mod_name in [
+    'fastapi', 'fastapi.middleware.cors', 'fastapi.responses',
+    'httpx', 'pydantic',
+    'apscheduler', 'apscheduler.schedulers', 'apscheduler.schedulers.asyncio',
+]:
+    if mod_name not in sys.modules:
+        try:
+            __import__(mod_name)
+        except ImportError:
+            m = MagicMock()
+            if mod_name == 'pydantic':
+                class BaseModel:
+                    def __init__(self, **kwargs):
+                        for k, v in kwargs.items():
+                            setattr(self, k, v)
+                    def dict(self): return self.__dict__
+                    def model_dump(self): return self.__dict__
+                m.BaseModel = BaseModel
+                m.Field = lambda *args, **kwargs: kwargs.get('default', None)
+            elif mod_name == 'fastapi':
+                class HTTPException(Exception):
+                    def __init__(self, status_code=400, detail=""):
+                        super().__init__(detail)
+                        self.status_code = status_code
+                        self.detail = detail
+                m.HTTPException = HTTPException
+                class APIRouter:
+                    def __init__(self, *args, **kwargs): pass
+                    def get(self, *args, **kwargs): return lambda f: f
+                    def post(self, *args, **kwargs): return lambda f: f
+                    def put(self, *args, **kwargs): return lambda f: f
+                    def delete(self, *args, **kwargs): return lambda f: f
+                m.APIRouter = APIRouter
+            elif mod_name == 'fastapi.responses':
+                class JSONResponse:
+                    def __init__(self, content, status_code=200, **kwargs):
+                        self.body = json.dumps(content).encode('utf-8')
+                        self.status_code = status_code
+                class HTMLResponse:
+                    def __init__(self, content, status_code=200, **kwargs):
+                        self.body = (content if isinstance(content, bytes) else str(content).encode('utf-8'))
+                        self.status_code = status_code
+                m.JSONResponse = JSONResponse
+                m.HTMLResponse = HTMLResponse
+            sys.modules[mod_name] = m
+
+
+
 
 from app.state import METRICS, FAILED_SYMBOLS
 from app.markets.limiter import (
