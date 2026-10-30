@@ -30,7 +30,7 @@ from app.markets.crypto_catalog import (
 )
 from app.models import AlertCreate
 from app.storage import ALERTS_DB
-from app.routes.alerts import create_alert, sync_alerts_mirror
+from app.routes.alerts import create_alert, sync_user_alerts
 from fastapi import HTTPException
 
 
@@ -185,7 +185,7 @@ class TestCryptoValidationEngine(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(status2, "OK")
         self.assertEqual(pair2["native_symbol"], "XBTUSDT")
 
-    def test_08_api_create_alert_enforce_mode(self):
+    async def test_08_api_create_alert_enforce_mode(self):
         """create_alert route rejects invalid crypto requests when CRYPTO_VALIDATE_ALERTS=enforce."""
         config.CRYPTO_VALIDATE_ALERTS = "enforce"
 
@@ -197,8 +197,7 @@ class TestCryptoValidationEngine(unittest.IsolatedAsyncioTestCase):
             target_price=65000.0,
         )
         with self.assertRaises(HTTPException) as ctx:
-            import asyncio
-            asyncio.run(create_alert(bad_alert))
+            await create_alert(bad_alert)
         self.assertEqual(ctx.exception.status_code, 400)
         self.assertIn("EXCHANGE_NOT_SUPPORTED", ctx.exception.detail)
 
@@ -211,8 +210,7 @@ class TestCryptoValidationEngine(unittest.IsolatedAsyncioTestCase):
             target_price=65000.0,
         )
         with self.assertRaises(HTTPException) as ctx:
-            import asyncio
-            asyncio.run(create_alert(bad_quote_alert))
+            await create_alert(bad_quote_alert)
         self.assertEqual(ctx.exception.status_code, 400)
         self.assertIn("INVALID_QUOTE_CURRENCY", ctx.exception.detail)
 
@@ -223,11 +221,11 @@ class TestCryptoValidationEngine(unittest.IsolatedAsyncioTestCase):
             symbol="USDTIRT",
             target_price=90000.0,
         )
-        res = asyncio.run(create_alert(nobitex_alert))
+        res = await create_alert(nobitex_alert)
         self.assertEqual(res.exchange, "nobitex")
         self.assertEqual(res.symbol, "USDTIRT")
 
-    def test_09_api_create_alert_disabled_mode(self):
+    async def test_09_api_create_alert_disabled_mode(self):
         """When CRYPTO_VALIDATE_ALERTS=false, existing behavior is completely preserved."""
         config.CRYPTO_VALIDATE_ALERTS = "false"
 
@@ -238,8 +236,29 @@ class TestCryptoValidationEngine(unittest.IsolatedAsyncioTestCase):
             target_price=65000.0,
         )
         # Should NOT raise HTTPException with EXCHANGE_NOT_SUPPORTED
-        res = asyncio.run(create_alert(alert))
+        res = await create_alert(alert)
         self.assertEqual(res.exchange, "coinex")
+
+    async def test_10_api_sync_alerts_enforce_mode(self):
+        """sync_user_alerts route rejects invalid crypto alerts during bulk sync when CRYPTO_VALIDATE_ALERTS=enforce."""
+        config.CRYPTO_VALIDATE_ALERTS = "enforce"
+
+        payload = {
+            "user_id": "user_sync_test",
+            "fcm_token": "token_12345678901",
+            "sync_mode": "mirror",
+            "alerts": [
+                {
+                    "exchange": "coinex",
+                    "symbol": "BTCUSDT",
+                    "target_price": 60000.0,
+                }
+            ],
+        }
+        with self.assertRaises(HTTPException) as ctx:
+            await sync_user_alerts(payload)
+        self.assertEqual(ctx.exception.status_code, 400)
+        self.assertIn("EXCHANGE_NOT_SUPPORTED", ctx.exception.detail)
 
 
 if __name__ == "__main__":
