@@ -106,6 +106,14 @@ def get_snapshot_price(
         price = snap.prices.get(sym_clean.upper())
     if price is None:
         price = snap.prices.get(sym_clean.lower())
+    if price is None:
+        clean_upper = sym_clean.upper()
+        if clean_upper.endswith("USDT") and "-" not in clean_upper and "/" not in clean_upper:
+            price = snap.prices.get(f"{clean_upper[:-4]}-USDT")
+        elif "-" in clean_upper:
+            price = snap.prices.get(clean_upper.replace("-", ""))
+        elif "/" in clean_upper:
+            price = snap.prices.get(clean_upper.replace("/", "")) or snap.prices.get(clean_upper.replace("/", "-"))
 
     if price is not None and price > 0:
         return float(price), snap.as_of, "OK", snap.latency_ms
