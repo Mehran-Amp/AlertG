@@ -2,6 +2,7 @@ import time
 import asyncio
 import html
 import sys
+import app.config as config
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any, List, Tuple
 import httpx

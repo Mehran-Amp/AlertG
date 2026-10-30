@@ -15,6 +15,7 @@ Verifies:
 
 import unittest
 import sys
+import json
 from unittest.mock import MagicMock
 
 # Mock optional dependencies for test runners

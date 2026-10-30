@@ -1,5 +1,6 @@
 import hmac
 import math
+import logging
 from typing import Optional, Any, Dict
 from fastapi import Header, HTTPException, Depends
 from app.config import (
@@ -9,6 +10,8 @@ from app.config import (
 )
 
 import app.config as config
+
+logger = logging.getLogger("signalalert.security")
 
 def _key_matches(provided: Optional[str], expected: str) -> bool:
     return bool(provided) and bool(expected) and hmac.compare_digest(provided.encode("utf-8"), expected.encode("utf-8"))
@@ -94,7 +97,7 @@ def _clamp_interval(value: Any, exchange: Optional[str] = None) -> int:
     except (TypeError, ValueError):
         v = 180
     min_interval = 180
-    if exchange:
+    if exchange and getattr(config, "CRYPTO_ENGINE_V2", False):
         try:
             from app.markets.crypto_registry import is_supported_crypto_exchange
             if is_supported_crypto_exchange(exchange):

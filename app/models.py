@@ -39,6 +39,7 @@ class AlertCreate(BaseModel):
     sound: Optional[str] = "alarm_siren"
     telegram_chat_id: Optional[str] = None
     webhook_url: Optional[str] = None
+    warning: Optional[str] = None
 
 class Alert(AlertCreate):
     id: str
@@ -99,6 +100,7 @@ class AlertPublic(BaseModel):
     waiting_for_cross: bool = False
     last_macro_release_date: Optional[str] = None
     last_macro_value: Optional[float] = None
+    warning: Optional[str] = None
 
 class UserTelegramUpdateRequest(BaseModel):
     chat_id: Optional[str] = None

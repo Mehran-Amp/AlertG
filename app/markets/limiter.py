@@ -1,5 +1,6 @@
 import time
 import asyncio
+from datetime import datetime, timezone
 from typing import Dict, Optional, Any
 from app.state import METRICS
 
@@ -120,32 +121,70 @@ def record_provider_metric(provider_key: str, event_type: str, status_code: Opti
     event_type: 'requests', 'errors', 'rate_limits_429', 'success'
     """
     prov_metrics = METRICS.setdefault("providers", {})
+    now = time.time()
+    current_day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
     p_data = prov_metrics.setdefault(provider_key, {
         "requests": 0,
         "success": 0,
         "errors": 0,
         "rate_limits_429": 0,
+        "consecutive_errors": 0,
+        "consecutive_429": 0,
+        "consecutive_success": 0,
         "last_status_code": 200,
-        "last_event_at": time.time(),
+        "last_event_at": now,
+        "window_day": current_day,
         "health": "HEALTHY"
     })
 
-    p_data["last_event_at"] = time.time()
+    # 1. Daily Quota Rollover: Reset daily counts when UTC day rolls over
+    if p_data.get("window_day") != current_day:
+        p_data["window_day"] = current_day
+        p_data["requests"] = 0
+        p_data["success"] = 0
+        p_data["errors"] = 0
+        p_data["rate_limits_429"] = 0
+        p_data["consecutive_errors"] = 0
+        p_data["consecutive_429"] = 0
+        p_data["consecutive_success"] = 0
+        _QUOTA_ALERTED_PROVIDERS.discard(provider_key)
+        _OUTAGE_ALERTED_PROVIDERS.discard(provider_key)
+
+    p_data["last_event_at"] = now
     if status_code is not None:
         p_data["last_status_code"] = status_code
 
     if event_type in p_data:
         p_data[event_type] += 1
 
-    # Check health status
+    # 2. Dynamic Health Tracking with Recovery
+    if event_type == "success":
+        p_data["consecutive_success"] = p_data.get("consecutive_success", 0) + 1
+        p_data["consecutive_errors"] = 0
+        p_data["consecutive_429"] = 0
+        # If successfully processing, health recovers back to HEALTHY
+        if p_data.get("consecutive_success", 0) >= 3 or (now - p_data.get("last_error_at", 0) > 60):
+            p_data["health"] = "HEALTHY"
+            _OUTAGE_ALERTED_PROVIDERS.discard(provider_key)
+    elif event_type in ("errors", "rate_limits_429"):
+        p_data["consecutive_success"] = 0
+        p_data["consecutive_errors"] = p_data.get("consecutive_errors", 0) + 1
+        p_data["last_error_at"] = now
+        if event_type == "rate_limits_429":
+            p_data["consecutive_429"] = p_data.get("consecutive_429", 0) + 1
+
     total_reqs = p_data.get("requests", 0)
     errors = p_data.get("errors", 0)
     rate_limits = p_data.get("rate_limits_429", 0)
+    recent_errors = p_data.get("consecutive_errors", errors if total_reqs <= 10 else 0)
+    recent_429 = p_data.get("consecutive_429", rate_limits if total_reqs <= 10 else 0)
 
     quota_info = PROVIDER_QUOTAS.get(provider_key)
     prov_display_name = quota_info.get("name", provider_key) if quota_info else provider_key
 
-    if rate_limits > 5 or (errors > 5 and errors / max(1, total_reqs) > 0.4):
+    # Check health status
+    if recent_429 > 5 or rate_limits > 5 or (recent_errors > 5 and recent_errors / max(1, total_reqs) > 0.4):
         p_data["health"] = "OUTAGE_OR_BLOCKED"
         if provider_key not in _OUTAGE_ALERTED_PROVIDERS:
             _OUTAGE_ALERTED_PROVIDERS.add(provider_key)
@@ -159,9 +198,9 @@ def record_provider_metric(provider_key: str, event_type: str, status_code: Opti
             from app.notifier.telegram import notify_admin_telegram
             from app.notifier.outbox import _spawn
             _spawn(notify_admin_telegram(msg))
-    elif errors > 2 or rate_limits > 0:
+    elif recent_errors > 2 or recent_429 > 0:
         p_data["health"] = "DEGRADED"
-    else:
+    elif event_type == "success" or (now - p_data.get("last_error_at", 0) > 60):
         p_data["health"] = "HEALTHY"
         _OUTAGE_ALERTED_PROVIDERS.discard(provider_key)
 
@@ -184,6 +223,30 @@ def record_provider_metric(provider_key: str, event_type: str, status_code: Opti
             from app.notifier.telegram import notify_admin_telegram
             from app.notifier.outbox import _spawn
             _spawn(notify_admin_telegram(msg))
+
+
+def reset_provider_metrics(provider_key: Optional[str] = None):
+    """Resets provider metrics, consecutive counters, and quota alert trackers."""
+    prov_metrics = METRICS.setdefault("providers", {})
+    now = time.time()
+    current_day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    keys = [provider_key] if provider_key else list(prov_metrics.keys())
+    for k in keys:
+        if k in prov_metrics:
+            prov_metrics[k].update({
+                "requests": 0,
+                "success": 0,
+                "errors": 0,
+                "rate_limits_429": 0,
+                "consecutive_errors": 0,
+                "consecutive_429": 0,
+                "consecutive_success": 0,
+                "health": "HEALTHY",
+                "last_event_at": now,
+                "window_day": current_day,
+            })
+        _QUOTA_ALERTED_PROVIDERS.discard(k)
+        _OUTAGE_ALERTED_PROVIDERS.discard(k)
 
 def get_all_providers_status() -> Dict[str, Any]:
     """Returns aggregated health and quota usage for all configured providers."""

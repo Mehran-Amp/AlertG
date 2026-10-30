@@ -7,7 +7,7 @@ import uuid
 import math
 from datetime import datetime, timezone
 from typing import Optional, List
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 from app.markets.common import normalize_symbol
 from app.config import (
     SYMBOL_RE, EXCHANGE_RE, CHAT_ID_RE,
@@ -85,7 +85,7 @@ trigger_signature = _trigger_signature
 
 @router.post("/api/alerts", response_model=AlertPublic, dependencies=API_DEP)
 @router.post("/alerts", response_model=AlertPublic, dependencies=API_DEP)
-async def create_alert(alert_in: AlertCreate):
+async def create_alert(alert_in: AlertCreate, response: Optional[Response] = None):
     alert_in.condition = (alert_in.condition or 'ABOVE').strip().upper()
     alert_in.exchange = (alert_in.exchange or '').strip().lower()
     alert_in.symbol = normalize_symbol(alert_in.symbol or '')
@@ -104,6 +104,7 @@ async def create_alert(alert_in: AlertCreate):
 
     # Phase 4: Crypto Alert Validation ('enforce' / 'warn')
     val_mode = str(getattr(config, "CRYPTO_VALIDATE_ALERTS", "false")).strip().lower()
+    validation_warning = None
     if val_mode in ("true", "1", "yes", "on", "enforce", "warn"):
         from app.markets.crypto_validation import validate_crypto_alert
         is_val, err_code, err_msg = validate_crypto_alert(
@@ -116,6 +117,12 @@ async def create_alert(alert_in: AlertCreate):
         if not is_val:
             if val_mode in ("true", "1", "yes", "on", "enforce"):
                 raise HTTPException(status_code=400, detail=f"{err_code}: {err_msg}")
+            else:
+                validation_warning = f"{err_code}: {err_msg}"
+                if response:
+                    response.headers["X-Alert-Warning"] = validation_warning
+                alert_in.warning = validation_warning
+                print(f"⚠️ [Alert Create Warn] {alert_in.exchange}:{alert_in.symbol} - {validation_warning}")
 
     alert_in.check_interval_seconds = _clamp_interval(alert_in.check_interval_seconds, exchange=alert_in.exchange)
     if alert_in.note:
@@ -215,7 +222,8 @@ async def create_alert(alert_in: AlertCreate):
                 last_triggered_at=0.0,
                 last_eval_asof=None,
                 last_eval_price=None,
-                waiting_for_cross=False
+                waiting_for_cross=False,
+                warning=validation_warning
             )
             storage.ALERTS_DB.append(new_alert)
 
@@ -282,23 +290,7 @@ async def sync_user_alerts(payload: dict):
                 print(f"⚠️ [API] Dropped unsafe webhook_url from synced alert {item.get('id')}")
                 item['webhook_url'] = None
 
-    # Phase 4: Crypto Alert Validation during sync ('enforce')
     val_mode = str(getattr(config, "CRYPTO_VALIDATE_ALERTS", "false")).strip().lower()
-    if val_mode in ("true", "1", "yes", "on", "enforce"):
-        from app.markets.crypto_validation import validate_crypto_alert
-        for item in alerts_data:
-            ex = str(item.get('exchange') or 'nobitex').strip().lower()
-            sym = str(item.get('symbol') or 'USDTIRT').strip()
-            is_val, err_code, err_msg = validate_crypto_alert(
-                exchange=ex,
-                symbol=sym,
-                base_currency=item.get('base_currency'),
-                counter_currency=item.get('counter_currency'),
-                market_symbol=item.get('market_symbol'),
-            )
-            if not is_val:
-                raise HTTPException(status_code=400, detail=f"{err_code}: {err_msg}")
-
     backup_snapshot = None
     should_backup = sync_mode == 'mirror'  # SYNC-1b: only mirror can shrink
 
@@ -306,11 +298,42 @@ async def sync_user_alerts(payload: dict):
         existing_map = {a.id: a for a in storage.ALERTS_DB if (a.user_id == user_id or a.fcm_token == fcm_token)}
         new_alerts = []
         added_count = 0
+        sync_warnings = []
         for item in alerts_data:
             rule_id = item.get('id') or str(uuid.uuid4())
             existing = existing_map.get(rule_id)
 
             sig_matches = existing is not None and (_trigger_signature(existing) == _trigger_signature(item))
+
+            # Phase 4: Per-item Crypto Alert Validation (applies ONLY to new or changed items)
+            # Alerts already on the server pass through untouched
+            item_warning = None
+            if not sig_matches and val_mode in ("true", "1", "yes", "on", "enforce", "warn"):
+                from app.markets.crypto_validation import validate_crypto_alert
+                ex = str(item.get('exchange') or 'nobitex').strip().lower()
+                sym = str(item.get('symbol') or 'USDTIRT').strip()
+                is_val, err_code, err_msg = validate_crypto_alert(
+                    exchange=ex,
+                    symbol=sym,
+                    base_currency=item.get('base_currency'),
+                    counter_currency=item.get('counter_currency'),
+                    market_symbol=item.get('market_symbol'),
+                )
+                if not is_val:
+                    warning_detail = f"{err_code}: {err_msg}"
+                    sync_warnings.append({
+                        "id": rule_id,
+                        "exchange": ex,
+                        "symbol": sym,
+                        "error_code": err_code,
+                        "error": err_msg,
+                    })
+                    if val_mode in ("true", "1", "yes", "on", "enforce"):
+                        print(f"⚠️ [Sync Validation] Rejected invalid crypto alert {rule_id} ({ex}:{sym}): {warning_detail}")
+                        continue  # Skip this single invalid item; all other alerts sync cleanly
+                    else:
+                        item_warning = warning_detail
+                        print(f"⚠️ [Sync Validation Warn] Allowed with warning {rule_id} ({ex}:{sym}): {warning_detail}")
             if sig_matches:
                 last_eval_asof = existing.last_eval_asof
                 last_eval_price = existing.last_eval_price
@@ -380,7 +403,8 @@ async def sync_user_alerts(payload: dict):
                 last_triggered_at=last_trig,
                 last_eval_asof=last_eval_asof,
                 last_eval_price=last_eval_price,
-                waiting_for_cross=waiting_for_cross
+                waiting_for_cross=waiting_for_cross,
+                warning=item_warning
             )
             new_alerts.append(alert_obj)
             added_count += 1
@@ -469,10 +493,10 @@ async def sync_user_alerts(payload: dict):
             except Exception:
                 pass
 
-    return {"status": "synced", "count": added_count, "total_active": active_remaining, "mode": sync_mode}
-
-
-sync_alerts_mirror = sync_user_alerts
+    res = {"status": "synced", "count": added_count, "total_active": active_remaining, "mode": sync_mode}
+    if sync_warnings:
+        res["warnings"] = sync_warnings
+    return res
 
 
 @router.delete("/api/alerts", dependencies=API_DEP)

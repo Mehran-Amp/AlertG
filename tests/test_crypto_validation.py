@@ -239,8 +239,8 @@ class TestCryptoValidationEngine(unittest.IsolatedAsyncioTestCase):
         res = await create_alert(alert)
         self.assertEqual(res.exchange, "coinex")
 
-    async def test_10_api_sync_alerts_enforce_mode(self):
-        """sync_user_alerts route rejects invalid crypto alerts during bulk sync when CRYPTO_VALIDATE_ALERTS=enforce."""
+    async def test_10_api_sync_alerts_enforce_mode_per_item(self):
+        """Under enforce mode, one bad item is rejected while valid items sync successfully."""
         config.CRYPTO_VALIDATE_ALERTS = "enforce"
 
         payload = {
@@ -249,16 +249,119 @@ class TestCryptoValidationEngine(unittest.IsolatedAsyncioTestCase):
             "sync_mode": "mirror",
             "alerts": [
                 {
+                    "id": "valid_binance_1",
+                    "exchange": "binance",
+                    "symbol": "BTCUSDT",
+                    "target_price": 60000.0,
+                },
+                {
+                    "id": "invalid_coinex_1",
+                    "exchange": "coinex",
+                    "symbol": "BTCUSDT",
+                    "target_price": 60000.0,
+                },
+            ],
+        }
+        res = await sync_user_alerts(payload)
+        self.assertEqual(res["status"], "synced")
+        self.assertEqual(res["count"], 1)
+        self.assertIn("warnings", res)
+        self.assertEqual(len(res["warnings"]), 1)
+        self.assertEqual(res["warnings"][0]["id"], "invalid_coinex_1")
+        self.assertEqual(res["warnings"][0]["error_code"], "EXCHANGE_NOT_SUPPORTED")
+
+        # Verify only the valid alert is in ALERTS_DB
+        active_ids = [a.id for a in ALERTS_DB]
+        self.assertIn("valid_binance_1", active_ids)
+        self.assertNotIn("invalid_coinex_1", active_ids)
+
+    async def test_11_existing_server_alerts_pass_untouched(self):
+        """Alerts already on the server pass through sync untouched even under enforce mode."""
+        config.CRYPTO_VALIDATE_ALERTS = "enforce"
+
+        # Seed an alert directly in DB as if created previously
+        existing_alert = AlertCreate(
+            id="legacy_coinex_alert",
+            user_id="user_sync_test",
+            exchange="coinex",
+            symbol="BTCUSDT",
+            target_price=50000.0,
+        )
+        from app.models import Alert
+        ALERTS_DB.append(Alert(
+            id="legacy_coinex_alert",
+            user_id="user_sync_test",
+            exchange="coinex",
+            symbol="BTCUSDT",
+            target_price=50000.0,
+            condition="ABOVE",
+            created_at="2026-01-01T00:00:00Z",
+        ))
+
+        # Client syncs back the exact same alert
+        payload = {
+            "user_id": "user_sync_test",
+            "fcm_token": "token_12345678901",
+            "sync_mode": "mirror",
+            "alerts": [
+                {
+                    "id": "legacy_coinex_alert",
+                    "exchange": "coinex",
+                    "symbol": "BTCUSDT",
+                    "target_price": 50000.0,
+                    "condition": "ABOVE",
+                }
+            ],
+        }
+        res = await sync_user_alerts(payload)
+        self.assertEqual(res["status"], "synced")
+        self.assertEqual(res["count"], 1)
+        # Passed untouched, no warnings
+        self.assertNotIn("warnings", res)
+        self.assertEqual(ALERTS_DB[0].id, "legacy_coinex_alert")
+
+    async def test_12_warn_mode_returns_warning(self):
+        """Under warn mode, invalid alerts are allowed but warning is returned."""
+        config.CRYPTO_VALIDATE_ALERTS = "warn"
+
+        payload = {
+            "user_id": "user_sync_test",
+            "fcm_token": "token_12345678901",
+            "sync_mode": "mirror",
+            "alerts": [
+                {
+                    "id": "warn_coinex_1",
                     "exchange": "coinex",
                     "symbol": "BTCUSDT",
                     "target_price": 60000.0,
                 }
             ],
         }
-        with self.assertRaises(HTTPException) as ctx:
-            await sync_user_alerts(payload)
-        self.assertEqual(ctx.exception.status_code, 400)
-        self.assertIn("EXCHANGE_NOT_SUPPORTED", ctx.exception.detail)
+        res = await sync_user_alerts(payload)
+        self.assertEqual(res["status"], "synced")
+        self.assertEqual(res["count"], 1)
+        self.assertIn("warnings", res)
+        self.assertEqual(res["warnings"][0]["id"], "warn_coinex_1")
+        self.assertEqual(res["warnings"][0]["error_code"], "EXCHANGE_NOT_SUPPORTED")
+
+        # Verify alert was saved and has warning attached
+        self.assertEqual(len(ALERTS_DB), 1)
+        self.assertEqual(ALERTS_DB[0].id, "warn_coinex_1")
+        self.assertIsNotNone(ALERTS_DB[0].warning)
+
+    def test_13_interval_clamping_guarded_by_engine_flag(self):
+        """When CRYPTO_ENGINE_V2=False, crypto interval cannot be clamped below 180s."""
+        from app.security import _clamp_interval
+
+        config.CRYPTO_ENGINE_V2 = False
+        self.assertEqual(_clamp_interval(1, exchange="binance"), 180)
+        self.assertEqual(_clamp_interval(10, exchange="binance"), 180)
+
+        config.CRYPTO_ENGINE_V2 = True
+        self.assertEqual(_clamp_interval(1, exchange="binance"), 1)
+        self.assertEqual(_clamp_interval(5, exchange="binance"), 5)
+        # Non-crypto always clamped to 180
+        self.assertEqual(_clamp_interval(1, exchange="nobitex"), 180)
 
 
 if __name__ == "__main__":
