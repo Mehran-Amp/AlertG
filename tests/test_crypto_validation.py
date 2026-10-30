@@ -139,7 +139,9 @@ from app.markets.crypto_catalog import (
 from app.models import AlertCreate, Alert, AlertPublic
 from app.storage import ALERTS_DB
 from app.routes.alerts import create_alert, sync_user_alerts
-from fastapi import HTTPException
+from fastapi import HTTPException, Response
+
+
 
 for model_cls in (AlertCreate, Alert, AlertPublic):
     try:
@@ -466,6 +468,19 @@ class TestCryptoValidationEngine(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(ALERTS_DB), 1)
         self.assertEqual(ALERTS_DB[0].id, "warn_coinex_1")
         self.assertIsNotNone(ALERTS_DB[0].warning)
+
+        # Also test create_alert route in warn mode populates X-Alert-Warning header
+        resp = Response()
+        warn_create = AlertCreate(
+            user_id="user_sync_test",
+            exchange="coinex",
+            symbol="BTCUSDT",
+            target_price=60000.0,
+        )
+        created = await create_alert(warn_create, response=resp)
+        self.assertEqual(created.exchange, "coinex")
+        self.assertIn("EXCHANGE_NOT_SUPPORTED", resp.headers.get("X-Alert-Warning", ""))
+
 
     def test_13_interval_clamping_guarded_by_engine_flag(self):
         """When CRYPTO_ENGINE_V2=False, crypto interval cannot be clamped below 180s."""

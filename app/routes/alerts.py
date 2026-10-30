@@ -85,7 +85,7 @@ trigger_signature = _trigger_signature
 
 @router.post("/api/alerts", response_model=AlertPublic, dependencies=API_DEP)
 @router.post("/alerts", response_model=AlertPublic, dependencies=API_DEP)
-async def create_alert(alert_in: AlertCreate, response: Optional[Response] = None):
+async def create_alert(alert_in: AlertCreate, response: Response = None):
     alert_in.condition = (alert_in.condition or 'ABOVE').strip().upper()
     alert_in.exchange = (alert_in.exchange or '').strip().lower()
     alert_in.symbol = normalize_symbol(alert_in.symbol or '')
