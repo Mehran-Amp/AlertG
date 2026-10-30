@@ -259,7 +259,8 @@ async def _deliver_outbox_entry(eid: str) -> None:
 
                 # Phase 2: one-shot Telegram fallback (never blocks the worker).
                 if fallback_chat and not journal.was_telegram_fallback_sent(eid):
-                    _spawn(_send_telegram_fallback(eid, fallback_chat, title_text, body_text))
+                    aid = entry.get("alert_id") or ""
+                    _spawn(_send_telegram_fallback(eid, fallback_chat, title_text, body_text, alert_id=aid))
                 return
 
         current_token = _outbox_current_token(entry)
@@ -287,7 +288,8 @@ async def _deliver_outbox_entry(eid: str) -> None:
                     body_text = entry.get("body") or ""
                     await _save_outbox()
                     if fallback_chat and not journal.was_telegram_fallback_sent(eid):
-                        _spawn(_send_telegram_fallback(eid, fallback_chat, title_text, body_text))
+                        aid = entry.get("alert_id") or ""
+                        _spawn(_send_telegram_fallback(eid, fallback_chat, title_text, body_text, alert_id=aid))
                 entry["next_attempt_at"] = now + 60.0
                 entry["next_retry_at"] = now + 60.0
                 _update_outbox_metrics()
@@ -462,10 +464,23 @@ async def _send_ws_with_timeout(ws_manager, user_id: str, message: dict) -> None
     except Exception as e:
         print(f"⚠️ [Outbox] WS send failed for user {user_id}: {e}")
 
-async def _send_telegram_fallback(eid: str, chat_id: str, title: str, body: str) -> None:
+# Rate-limit cooldown for Telegram fallback notifications (per alert_id or chat_id)
+_TELEGRAM_FALLBACK_COOLDOWN_SECONDS: float = float(os.getenv("TELEGRAM_FALLBACK_COOLDOWN_SECONDS", "900"))  # 15 minutes default
+_LAST_ALERT_FALLBACK_TS: Dict[str, float] = {}
+
+async def _send_telegram_fallback(eid: str, chat_id: str, title: str, body: str, alert_id: str = "") -> None:
     """Phase 2: send a short diagnostic via Telegram when the push is never acked."""
     if journal.was_telegram_fallback_sent(eid):
         return
+
+    now = time.time()
+    rate_key = f"{alert_id}:{chat_id}" if alert_id else str(chat_id)
+    last_sent = _LAST_ALERT_FALLBACK_TS.get(rate_key, 0.0)
+    if (now - last_sent) < _TELEGRAM_FALLBACK_COOLDOWN_SECONDS:
+        rem = int(_TELEGRAM_FALLBACK_COOLDOWN_SECONDS - (now - last_sent))
+        print(f"ℹ️ [Outbox] Telegram fallback throttled for alert '{alert_id}' (cooldown: {rem}s remaining)")
+        return
+
     client = getattr(state, "http_client", None)
     if client is None:
         METRICS["telegram_fallback_failed"] = METRICS.get("telegram_fallback_failed", 0) + 1
@@ -473,6 +488,7 @@ async def _send_telegram_fallback(eid: str, chat_id: str, title: str, body: str)
         return
     try:
         journal.record_telegram_fallback_sent(eid)
+        _LAST_ALERT_FALLBACK_TS[rate_key] = now
         short_title = (title or "").strip()[:80]
         text = (
             f"⚠️ پوش آلارم «{short_title}» روی گوشی تأیید نشد. "
@@ -484,8 +500,10 @@ async def _send_telegram_fallback(eid: str, chat_id: str, title: str, body: str)
     except Exception as e:
         # Make the flag retriable: a later retry (e.g. 2C-1) can try again.
         journal.clear_telegram_fallback_sent(eid)
+        _LAST_ALERT_FALLBACK_TS.pop(rate_key, None)
         METRICS["telegram_fallback_failed"] = METRICS.get("telegram_fallback_failed", 0) + 1
         print(f"⚠️ [Outbox] Telegram fallback failed for {eid[:8]}: {e}")
+
 
 
 async def outbox_worker_loop():
