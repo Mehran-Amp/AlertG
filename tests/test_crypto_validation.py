@@ -143,13 +143,7 @@ from fastapi import HTTPException, Response
 
 
 
-for model_cls in (AlertCreate, Alert, AlertPublic):
-    try:
-        model_cls()
-    except TypeError:
-        model_cls.__init__ = BaseModel.__init__
-        model_cls.dict = BaseModel.dict
-        model_cls.model_dump = BaseModel.model_dump
+
 
 
 
