@@ -324,3 +324,17 @@ def get_crypto_symbols_by_query(
         gzip_flag=gzip_flag,
         if_none_match=if_none_match,
     )
+
+
+@router.get("/api/crypto/snapshots", dependencies=API_DEP)
+@router.get("/api/admin/crypto/snapshots", dependencies=API_DEP)
+def get_crypto_snapshots_endpoint():
+    """
+    Returns in-memory snapshot status for all active crypto exchanges managed by the poller supervisor.
+    """
+    from app.markets.crypto_snapshot import get_all_snapshots_status
+    return {
+        "status": "success",
+        "snapshots": get_all_snapshots_status(),
+    }
+
