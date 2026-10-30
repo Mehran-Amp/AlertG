@@ -328,13 +328,53 @@ def get_crypto_symbols_by_query(
 
 @router.get("/api/crypto/snapshots", dependencies=API_DEP)
 @router.get("/api/admin/crypto/snapshots", dependencies=API_DEP)
-def get_crypto_snapshots_endpoint():
+def get_crypto_snapshots_endpoint(
+    exchange: Optional[str] = Query(None, description="Optional exchange filter (e.g. binance, mexc, kucoin, okx)"),
+    symbol: Optional[str] = Query(None, description="Optional symbol lookup (e.g. BTCUSDT, BTC-USDT)"),
+):
     """
-    Returns in-memory snapshot status for all active crypto exchanges managed by the poller supervisor.
+    Returns in-memory snapshot status for all active crypto exchanges managed by the poller supervisor,
+    or details/prices for a specific exchange/symbol.
     """
-    from app.markets.crypto_snapshot import get_all_snapshots_status
+    from app.markets.crypto_snapshot import get_all_snapshots_status, get_exchange_snapshot_detail, get_snapshot_price
+
+    if exchange:
+        ex_clean = exchange.lower().strip()
+        if symbol:
+            price, as_of, status, latency_ms = get_snapshot_price(ex_clean, symbol)
+            return {
+                "status": "success",
+                "exchange": ex_clean,
+                "symbol": symbol,
+                "price": price,
+                "as_of": as_of,
+                "snapshot_status": status,
+                "latency_ms": latency_ms,
+            }
+        detail = get_exchange_snapshot_detail(ex_clean)
+        if not detail:
+            return {
+                "status": "not_active",
+                "exchange": ex_clean,
+                "detail": f"No active in-memory snapshot for exchange '{exchange}'. Exchange will begin polling automatically when an active alert demands it.",
+            }
+        return {
+            "status": "success",
+            "snapshot": detail,
+        }
+
     return {
         "status": "success",
         "snapshots": get_all_snapshots_status(),
     }
+
+
+@router.get("/api/crypto/snapshots/{exchange}", dependencies=API_DEP)
+def get_crypto_snapshot_by_exchange(
+    exchange: str,
+    symbol: Optional[str] = Query(None, description="Optional symbol lookup"),
+):
+    """Path parameter alias for single-exchange snapshot query."""
+    return get_crypto_snapshots_endpoint(exchange=exchange, symbol=symbol)
+
 

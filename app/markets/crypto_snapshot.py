@@ -137,3 +137,36 @@ def get_all_snapshots_status() -> Dict[str, Any]:
             "error": snap.error_detail,
         }
     return out
+
+
+def get_exchange_snapshot_detail(exchange_id: str, sample_limit: int = 20) -> Optional[Dict[str, Any]]:
+    """Returns detailed information for a specific exchange's in-memory snapshot."""
+    ex_clean = (exchange_id or "").lower().strip()
+    snap = _SNAPSHOT_STORE.get(ex_clean)
+    if not snap:
+        return None
+    now_ts = time.time()
+    max_age = getattr(config, "CRYPTO_SNAPSHOT_MAX_AGE_SECONDS", 10.0)
+    age = now_ts - snap.as_of if snap.as_of > 0 else None
+    is_stale = (age is None) or (age > max_age)
+
+    # Sample pairs
+    sample_pairs = {}
+    for i, (sym, p) in enumerate(snap.prices.items()):
+        if i >= sample_limit:
+            break
+        sample_pairs[sym] = p
+
+    return {
+        "exchange": ex_clean,
+        "status": "STALE_PRICE" if is_stale and snap.status == "OK" else snap.status,
+        "raw_status": snap.status,
+        "as_of": snap.as_of,
+        "age_seconds": round(age, 2) if age is not None else None,
+        "latency_ms": round(snap.latency_ms, 2),
+        "total_pairs": len(snap.prices),
+        "is_stale": is_stale,
+        "error": snap.error_detail,
+        "sample_prices": sample_pairs,
+    }
+
