@@ -471,6 +471,9 @@ async def sync_user_alerts(payload: dict):
     return {"status": "synced", "count": added_count, "total_active": active_remaining, "mode": sync_mode}
 
 
+sync_alerts_mirror = sync_user_alerts
+
+
 @router.delete("/api/alerts", dependencies=API_DEP)
 @router.delete("/alerts", dependencies=API_DEP)
 async def clear_all_alerts(user_id: Optional[str] = None, fcm_token: Optional[str] = None):
