@@ -338,14 +338,20 @@ def get_crypto_snapshots_endpoint(
     """
     from app.markets.crypto_snapshot import get_all_snapshots_status, get_exchange_snapshot_detail, get_snapshot_price
 
+    if hasattr(exchange, 'default'):
+        exchange = exchange.default
+    if hasattr(symbol, 'default'):
+        symbol = symbol.default
+
     if exchange:
-        ex_clean = exchange.lower().strip()
+        ex_clean = str(exchange).lower().strip()
         if symbol:
-            price, as_of, status, latency_ms = get_snapshot_price(ex_clean, symbol)
+            sym_clean = str(symbol).strip()
+            price, as_of, status, latency_ms = get_snapshot_price(ex_clean, sym_clean)
             return {
                 "status": "success",
                 "exchange": ex_clean,
-                "symbol": symbol,
+                "symbol": sym_clean,
                 "price": price,
                 "as_of": as_of,
                 "snapshot_status": status,

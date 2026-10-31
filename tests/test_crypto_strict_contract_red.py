@@ -53,6 +53,8 @@ class TestCryptoStrictContractRed(unittest.IsolatedAsyncioTestCase):
         self.temp_dir = tempfile.mkdtemp(prefix="test_strict_")
         self._orig_catalog_dir = getattr(config, "CRYPTO_CATALOG_DIR", None)
         config.CRYPTO_CATALOG_DIR = self.temp_dir
+        self._orig_engine_v2 = getattr(config, "CRYPTO_ENGINE_V2", False)
+        config.CRYPTO_ENGINE_V2 = False
         # Enable strict mode for tests
         os.environ['CRYPTO_STRICT_V2'] = 'true'
         config.CRYPTO_STRICT_V2 = True
@@ -61,6 +63,7 @@ class TestCryptoStrictContractRed(unittest.IsolatedAsyncioTestCase):
         # Reset flag
         os.environ['CRYPTO_STRICT_V2'] = 'false'
         config.CRYPTO_STRICT_V2 = False
+        config.CRYPTO_ENGINE_V2 = self._orig_engine_v2
         config.CRYPTO_CATALOG_DIR = self._orig_catalog_dir
         if hasattr(self, "temp_dir") and os.path.exists(self.temp_dir):
             shutil.rmtree(self.temp_dir, ignore_errors=True)

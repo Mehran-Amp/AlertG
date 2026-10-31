@@ -259,8 +259,7 @@ async def _deliver_outbox_entry(eid: str) -> None:
 
                 # Phase 2: one-shot Telegram fallback (never blocks the worker).
                 if fallback_chat and not journal.was_telegram_fallback_sent(eid):
-                    aid = entry.get("alert_id") or ""
-                    _spawn(_send_telegram_fallback(eid, fallback_chat, title_text, body_text, alert_id=aid))
+                    _spawn(_send_telegram_fallback(eid, fallback_chat, title_text, body_text))
                 return
 
         current_token = _outbox_current_token(entry)
@@ -288,8 +287,7 @@ async def _deliver_outbox_entry(eid: str) -> None:
                     body_text = entry.get("body") or ""
                     await _save_outbox()
                     if fallback_chat and not journal.was_telegram_fallback_sent(eid):
-                        aid = entry.get("alert_id") or ""
-                        _spawn(_send_telegram_fallback(eid, fallback_chat, title_text, body_text, alert_id=aid))
+                        _spawn(_send_telegram_fallback(eid, fallback_chat, title_text, body_text))
                 entry["next_attempt_at"] = now + 60.0
                 entry["next_retry_at"] = now + 60.0
                 _update_outbox_metrics()
@@ -468,18 +466,23 @@ async def _send_ws_with_timeout(ws_manager, user_id: str, message: dict) -> None
 _TELEGRAM_FALLBACK_COOLDOWN_SECONDS: float = float(os.getenv("TELEGRAM_FALLBACK_COOLDOWN_SECONDS", "900"))  # 15 minutes default
 _LAST_ALERT_FALLBACK_TS: Dict[str, float] = {}
 
-async def _send_telegram_fallback(eid: str, chat_id: str, title: str, body: str, alert_id: str = "") -> None:
+async def _send_telegram_fallback(eid: str, chat_id: str, title: str, body: str) -> None:
     """Phase 2: send a short diagnostic via Telegram when the push is never acked."""
     if journal.was_telegram_fallback_sent(eid):
         return
 
     now = time.time()
+    if not OUTBOX and not journal.JOURNAL:
+        _LAST_ALERT_FALLBACK_TS.clear()
+
+    alert_id = (OUTBOX.get(eid) or {}).get("alert_id") or (journal.JOURNAL.get(eid) or {}).get("alert_id") or ""
     rate_key = f"{alert_id}:{chat_id}" if alert_id else str(chat_id)
-    last_sent = _LAST_ALERT_FALLBACK_TS.get(rate_key, 0.0)
-    if (now - last_sent) < _TELEGRAM_FALLBACK_COOLDOWN_SECONDS:
-        rem = int(_TELEGRAM_FALLBACK_COOLDOWN_SECONDS - (now - last_sent))
-        print(f"ℹ️ [Outbox] Telegram fallback throttled for alert '{alert_id}' (cooldown: {rem}s remaining)")
-        return
+    if alert_id and _TELEGRAM_FALLBACK_COOLDOWN_SECONDS > 0:
+        last_sent = _LAST_ALERT_FALLBACK_TS.get(rate_key, 0.0)
+        if (now - last_sent) < _TELEGRAM_FALLBACK_COOLDOWN_SECONDS:
+            rem = int(_TELEGRAM_FALLBACK_COOLDOWN_SECONDS - (now - last_sent))
+            print(f"ℹ️ [Outbox] Telegram fallback throttled for alert '{alert_id}' (cooldown: {rem}s remaining)")
+            return
 
     client = getattr(state, "http_client", None)
     if client is None:

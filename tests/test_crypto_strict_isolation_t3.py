@@ -60,10 +60,13 @@ class TestCryptoStrictIsolationT3(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self):
         self.mock_client = AsyncMock()
+        self._orig_engine_v2 = getattr(config, "CRYPTO_ENGINE_V2", False)
+        config.CRYPTO_ENGINE_V2 = False
         os.environ['CRYPTO_STRICT_V2'] = 'true'
         config.CRYPTO_STRICT_V2 = True
 
     def tearDown(self):
+        config.CRYPTO_ENGINE_V2 = self._orig_engine_v2
         os.environ['CRYPTO_STRICT_V2'] = 'false'
         config.CRYPTO_STRICT_V2 = False
 

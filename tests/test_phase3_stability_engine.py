@@ -50,6 +50,13 @@ from app.state import METRICS, PRICE_CACHE, OUTLIER_STREAK
 
 class TestPhase3StabilityEngine(unittest.IsolatedAsyncioTestCase):
 
+    def setUp(self):
+        self._orig_engine_v2 = getattr(config, "CRYPTO_ENGINE_V2", False)
+        config.CRYPTO_ENGINE_V2 = False
+
+    def tearDown(self):
+        config.CRYPTO_ENGINE_V2 = self._orig_engine_v2
+
     def test_01_category_cache_ttl_and_outliers(self):
         """Verify Category-based TTL and Outlier Threshold assignments"""
         # 1. Forex
