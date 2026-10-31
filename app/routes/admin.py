@@ -83,6 +83,12 @@ def get_status_dashboard(format: Optional[str] = None, accept: Optional[str] = H
             "ws_acked": 0,
         }
 
+    try:
+        from app.markets.crypto_catalog import get_crypto_catalogs_status
+        crypto_catalogs_data = get_crypto_catalogs_status()
+    except Exception:
+        crypto_catalogs_data = {}
+
     wants_json = (format == "json") or (isinstance(accept, str) and "application/json" in accept and format != "html")
     if wants_json:
         return JSONResponse({
@@ -92,6 +98,7 @@ def get_status_dashboard(format: Optional[str] = None, accept: Optional[str] = H
             "metrics": METRICS,
             "providers": providers_status,
             "last_catalog_sync": last_sync,
+            "crypto_catalogs": crypto_catalogs_data,
             "failing_symbols": {
                 "count": len(failing_list),
                 "items": failing_list

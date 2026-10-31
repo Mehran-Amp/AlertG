@@ -613,5 +613,11 @@ async def crypto_catalog_sync_job():
         logger.info(
             f"✅ [Scheduler] Crypto catalog sync finished: {report['success_count']}/{report['total_exchanges']} succeeded."
         )
+        # Phase 9: Delisted coin check & notification dispatch
+        try:
+            from app.markets.crypto_lifecycle import check_and_process_delisted_crypto_alerts
+            await check_and_process_delisted_crypto_alerts()
+        except Exception as le:
+            logger.warning(f"⚠️ [Lifecycle] Warning running delisted crypto alerts check: {le}")
     except Exception as e:
         logger.exception(f"❌ [Scheduler] Crypto catalog sync job failed: {e}")

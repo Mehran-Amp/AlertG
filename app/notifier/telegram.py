@@ -7,6 +7,7 @@ from app.security import _scrub
 from app.state import METRICS
 import app.state as state
 import app.storage as storage
+from app.engine.formatter import format_exact_decimal, format_display_price
 
 # Two-button persistent menu keyboard for Telegram Bot
 TELEGRAM_BOT_KEYBOARD = {
@@ -176,12 +177,7 @@ def format_alert_registered_telegram_msg(alert: Any) -> str:
         target_repr = f"{percent_val:g}%"
     else:
         is_tmn = getattr(alert, 'exchange', '').lower() == 'nobitex' or getattr(alert, 'symbol', '').endswith(('TMN', 'IRT'))
-        if is_tmn:
-            target_repr = f"{int(target_price):,} تومان"
-        elif target_price < 1:
-            target_repr = f"${target_price:,.4f}".rstrip('0').rstrip('.')
-        else:
-            target_repr = f"${target_price:,.2f}"
+        target_repr = format_display_price(target_price, currency_prefix="$", is_tmn=is_tmn, tmn_label="تومان")
 
     features = []
     interval_sec = getattr(alert, 'check_interval_seconds', 180)
@@ -265,13 +261,7 @@ def format_telegram_history_card(
     # Price Formatter
     is_tmn = raw_exchange.lower() in ('nobitex', 'tse', 'iran_market') or display_symbol.endswith(('TMN', 'IRT'))
     def _fmt(val: Optional[float]) -> str:
-        if val is None:
-            return "-"
-        if is_tmn:
-            return f"{int(val):,} Tomans"
-        if val < 1:
-            return f"${val:,.4f}".rstrip('0').rstrip('.')
-        return f"${val:,.2f}"
+        return format_display_price(val, currency_prefix="$", is_tmn=is_tmn, tmn_label="Tomans")
 
     curr_fmt = _fmt(current_price)
 
@@ -285,7 +275,12 @@ def format_telegram_history_card(
         is_upward = diff >= 0
         move_pct = (diff / ref_price) * 100.0
         sign = "+" if is_upward else ""
-        pct_str = f"{sign}{move_pct:.2f}%"
+        if abs(move_pct) >= 0.01:
+            pct_str = f"{sign}{move_pct:.2f}%"
+        elif abs(move_pct) > 0:
+            pct_str = f"{sign}{format_exact_decimal(abs(move_pct))}%"
+        else:
+            pct_str = f"{sign}0.00%"
         arrow_icon = "🟢 ▲" if is_upward else "🔴 ▼"
     else:
         arrow_icon = "🟢" if direction_raw in ('above', 'up') else "🔴"
@@ -531,3 +526,29 @@ async def telegram_bot_polling_loop():
         except Exception as e:
             print(f"⚠️ [Telegram Polling Error] {_scrub(e)}")
             await asyncio.sleep(4)
+
+
+def format_coin_delisted_telegram_msg(
+    alert: Any,
+    exchange_name: Optional[str] = None,
+    reason: Optional[str] = None
+) -> str:
+    """
+    Phase 9 template: notifies the user that an alert's coin has disappeared
+    or was delisted from the selected exchange catalog.
+    Preserves 100% backward compatibility - existing templates are untouched.
+    """
+    ex_id = str(getattr(alert, 'exchange', '') or '')
+    ex_label = exchange_name or get_exchange_display_name(ex_id)
+    sym = str(getattr(alert, 'symbol', '') or 'N/A')
+    desc = reason or getattr(alert, 'needs_attention_reason', None) or f"Symbol {sym} is no longer listed on {ex_label} spot market."
+
+    lines = [
+        "⚠️ <b>Market Alert: Coin Unavailable</b>",
+        f"🏛️ <b>Exchange:</b> {html.escape(ex_label)}",
+        f"🪙 <b>Pair:</b> <code>{html.escape(sym)}</code>",
+        f"ℹ️ <i>{html.escape(str(desc))}</i>",
+        "📌 <i>Your alert remains saved on the server but is marked as needing attention.</i>"
+    ]
+    body = "\n".join(lines)
+    return f"<blockquote>{body}</blockquote>"

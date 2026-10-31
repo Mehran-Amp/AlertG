@@ -27,6 +27,7 @@ from app.engine.categories import (
     get_category_outlier_threshold
 )
 from app.engine.calendar import is_market_open
+from app.engine.formatter import format_exact_decimal, format_display_price
 from app.notifier import (
     get_exchange_display_name, enqueue_alert_push,
     send_telegram_alert, send_webhook_alert,
@@ -372,10 +373,19 @@ async def check_alerts_job():
             sign = '+' if is_above else '-'
 
             display_symbol = alert.symbol
-            pct_str = f"{sign}{abs(((current_price - triggered_target) / triggered_target) * 100.0):.2f}%" if (triggered_target and triggered_target > 0) else ""
-            price_formatted = f"${current_price:,.4f}".rstrip('0').rstrip('.') if current_price < 1 else f"${current_price:,.2f}"
-            if alert.symbol.endswith('TMN') or alert.symbol.endswith('IRT') or getattr(alert, 'exchange', '').lower() == 'nobitex':
-                price_formatted = f"{int(current_price):,} تومان"
+            if triggered_target and triggered_target > 0:
+                diff_pct = abs(((current_price - triggered_target) / triggered_target) * 100.0)
+                if diff_pct >= 0.01:
+                    pct_str = f"{sign}{diff_pct:.2f}%"
+                elif diff_pct > 0:
+                    pct_str = f"{sign}{format_exact_decimal(diff_pct)}%"
+                else:
+                    pct_str = f"{sign}0.00%"
+            else:
+                pct_str = ""
+
+            is_tmn_market = alert.symbol.endswith('TMN') or alert.symbol.endswith('IRT') or getattr(alert, 'exchange', '').lower() == 'nobitex'
+            price_formatted = format_display_price(current_price, currency_prefix="$", is_tmn=is_tmn_market, tmn_label="تومان")
             if '/' not in display_symbol:
                 for quote in ['USDT', 'USDC', 'BUSD', 'FDUSD', 'EUR', 'USD', 'TMN', 'IRT', 'BTC', 'ETH']:
                     if display_symbol.endswith(quote):
@@ -410,7 +420,7 @@ async def check_alerts_job():
                 {
                     "alert_id": alert.id,
                     "symbol": display_symbol,
-                    "price": str(current_price),
+                    "price": format_exact_decimal(current_price),
                     "note": alert.note or "",
                     "sound_enabled": "true" if alert.sound_enabled else "false",
                     "vibration_enabled": "true" if alert.vibration_enabled else "false",
@@ -620,7 +630,7 @@ async def check_macro_alerts_job():
                 {
                     "alert_id": alert.id,
                     "symbol": alert.symbol,
-                    "price": str(price),
+                    "price": format_exact_decimal(price),
                     "note": alert.note or "",
                     "sound_enabled": "true" if alert.sound_enabled else "false",
                     "vibration_enabled": "true" if alert.vibration_enabled else "false",
