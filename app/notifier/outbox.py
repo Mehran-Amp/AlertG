@@ -74,7 +74,16 @@ def _load_outbox_from_disk() -> Dict[str, Dict[str, Any]]:
                 pass
     return {}
 
-OUTBOX: Dict[str, Dict[str, Any]] = _load_outbox_from_disk()
+# Rate-limit cooldown for Telegram fallback notifications (per alert_id or chat_id)
+_TELEGRAM_FALLBACK_COOLDOWN_SECONDS: float = float(os.getenv("TELEGRAM_FALLBACK_COOLDOWN_SECONDS", "900"))  # 15 minutes default
+_LAST_ALERT_FALLBACK_TS: Dict[str, float] = {}
+
+class OutboxDict(dict):
+    def clear(self):
+        super().clear()
+        _LAST_ALERT_FALLBACK_TS.clear()
+
+OUTBOX: Dict[str, Dict[str, Any]] = OutboxDict(_load_outbox_from_disk())
 _OUTBOX_INFLIGHT: set = set()
 _outbox_lock: Optional[asyncio.Lock] = None
 
@@ -461,10 +470,6 @@ async def _send_ws_with_timeout(ws_manager, user_id: str, message: dict) -> None
         print(f"⚠️ [Outbox] WS send timed out after 3s for user {user_id}")
     except Exception as e:
         print(f"⚠️ [Outbox] WS send failed for user {user_id}: {e}")
-
-# Rate-limit cooldown for Telegram fallback notifications (per alert_id or chat_id)
-_TELEGRAM_FALLBACK_COOLDOWN_SECONDS: float = float(os.getenv("TELEGRAM_FALLBACK_COOLDOWN_SECONDS", "900"))  # 15 minutes default
-_LAST_ALERT_FALLBACK_TS: Dict[str, float] = {}
 
 async def _send_telegram_fallback(eid: str, chat_id: str, title: str, body: str) -> None:
     """Phase 2: send a short diagnostic via Telegram when the push is never acked."""

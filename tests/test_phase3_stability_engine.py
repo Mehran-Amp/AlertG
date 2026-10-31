@@ -37,6 +37,7 @@ for mod_name in [
             sys.modules[mod_name] = m
 
 import asyncio
+import app.config as config
 from app.engine.limiter import TokenBucketRateLimiter, acquire_provider_slot, record_provider_metric
 from app.engine.categories import (
     resolve_symbol_category, get_category_cache_ttl,

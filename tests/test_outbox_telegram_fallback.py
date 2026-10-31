@@ -15,6 +15,7 @@ class TestOutboxTelegramFallback(unittest.IsolatedAsyncioTestCase):
         self._orig_http_client = getattr(state, "http_client", None)
         outbox.OUTBOX.clear()
         journal.JOURNAL.clear()
+        outbox._LAST_ALERT_FALLBACK_TS.clear()
         state.http_client = object()  # any non-None object
 
     async def asyncTearDown(self):
@@ -22,6 +23,7 @@ class TestOutboxTelegramFallback(unittest.IsolatedAsyncioTestCase):
         outbox.OUTBOX.update(self._orig_outbox)
         journal.JOURNAL.clear()
         journal.JOURNAL.update(self._orig_journal)
+        outbox._LAST_ALERT_FALLBACK_TS.clear()
         METRICS.clear()
         METRICS.update(self._orig_metrics)
         state.http_client = self._orig_http_client
