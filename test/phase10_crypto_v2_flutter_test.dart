@@ -167,7 +167,7 @@ void main() {
       expect(FormatUtils.formatExactDecimal(0.0), equals('0'));
     });
 
-    test('formatPrice never outputs $0 for small non-zero crypto prices', () {
+    test(r'formatPrice never outputs $0 for small non-zero crypto prices', () {
       // SHIB / PEPE sub-cent prices
       final pepePrice = FormatUtils.formatPrice(0.00000845, currencySymbol: 'USDT');
       final pepeClean = pepePrice.replaceAll(RegExp(r'[\u202A\u202C]'), '');
