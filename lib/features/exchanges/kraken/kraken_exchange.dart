@@ -30,7 +30,7 @@ class KrakenExchange implements Exchange {
   String get countryBadge => '🇺🇸 USA / EU (700+ Pairs)';
 
   @override
-  String get defaultCounterCurrency => 'USD';
+  String get defaultCounterCurrency => 'USDT';
 
   @override
   Future<List<CurrencyPair>> fetchCurrencyPairs() async {

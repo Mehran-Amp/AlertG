@@ -167,16 +167,19 @@ void main() {
       expect(FormatUtils.formatExactDecimal(0.0), equals('0'));
     });
 
-    test('formatPrice never outputs \$0 for small non-zero crypto prices', () {
+    test('formatPrice never outputs $0 for small non-zero crypto prices', () {
       // SHIB / PEPE sub-cent prices
       final pepePrice = FormatUtils.formatPrice(0.00000845, currencySymbol: 'USDT');
-      expect(pepePrice, contains('0.00000845'));
-      expect(pepePrice, isNot(contains('\$0.00')));
-      expect(pepePrice, isNot(contains('\$0')));
+      final pepeClean = pepePrice.replaceAll(RegExp(r'[\u202A\u202C]'), '');
+      expect(pepeClean, equals(r'$0.00000845'));
+      expect(pepeClean, isNot(equals(r'$0.00')));
+      expect(pepeClean, isNot(equals(r'$0')));
 
       final nanoPrice = FormatUtils.formatPrice(0.0000000045, currencySymbol: 'USDT');
-      expect(nanoPrice, contains('0.0000000045'));
-      expect(nanoPrice, isNot(contains('\$0.00')));
+      final nanoClean = nanoPrice.replaceAll(RegExp(r'[\u202A\u202C]'), '');
+      expect(nanoClean, equals(r'$0.0000000045'));
+      expect(nanoClean, isNot(equals(r'$0.00')));
+      expect(nanoClean, isNot(equals(r'$0')));
 
       // Standard and large prices remain unchanged
       final btcPrice = FormatUtils.formatPrice(67000.5, currencySymbol: 'USDT');
@@ -218,11 +221,18 @@ void main() {
       expect(rule.checkIntervalSeconds, equals(5));
 
       final jsonMap = rule.toJson();
-      expect(jsonMap['exchange_id'], equals('lbank'));
-      expect(jsonMap['base_currency'], equals('PEPE'));
-      expect(jsonMap['counter_currency'], equals('USDT'));
-      expect(jsonMap['market_symbol'], equals('PEPE_USDT'));
-      expect(jsonMap['target_price'], equals(0.0000095));
+      expect(jsonMap['exchangeId'], equals('lbank'));
+      expect(jsonMap['baseCurrency'], equals('PEPE'));
+      expect(jsonMap['counterCurrency'], equals('USDT'));
+      expect(jsonMap['marketSymbol'], equals('PEPE_USDT'));
+      expect(jsonMap['targetPrice'], equals(0.0000095));
+
+      final deserialized = AlertRule.fromJson(jsonMap);
+      expect(deserialized.exchangeId, equals('lbank'));
+      expect(deserialized.baseCurrency, equals('PEPE'));
+      expect(deserialized.counterCurrency, equals('USDT'));
+      expect(deserialized.marketSymbol, equals('PEPE_USDT'));
+      expect(deserialized.targetPrice, equals(0.0000095));
     });
   });
 }
