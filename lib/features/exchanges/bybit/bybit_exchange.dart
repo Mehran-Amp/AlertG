@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import '../base/crypto_catalog_data.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
@@ -46,7 +45,7 @@ class BybitExchange implements Exchange {
           final symbol = item['symbol']?.toString().toUpperCase() ?? '$base$quote';
           final status = item['status']?.toString() ?? 'Trading';
 
-          if (status == 'Trading' && (quote == 'USDT' || quote == 'USDC')) {
+          if (status == 'Trading' && quote == 'USDT') {
             pairs.add(CurrencyPair(
               baseCurrency: base,
               counterCurrency: quote,
@@ -58,7 +57,7 @@ class BybitExchange implements Exchange {
       }
     } catch (_) {}
 
-    return CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT', 'USDC']);
+    return <CurrencyPair>[];
   }
 
   @override

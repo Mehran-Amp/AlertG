@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import '../base/crypto_catalog_data.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
@@ -38,20 +37,21 @@ class KuCoinExchange implements Exchange {
     try {
       final response = await _dio.get('/api/v1/symbols');
       final data = response.data['data'] as List;
-      final pairs = data
-          .map((item) => CurrencyPair(
-                baseCurrency: (item['baseCurrency'] as String).toUpperCase(),
-                counterCurrency: (item['quoteCurrency'] as String).toUpperCase(),
-                marketSymbol: (item['symbol'] as String).toUpperCase(),
-              ))
-          .toList();
+      final pairs = <CurrencyPair>[];
+      for (final item in data) {
+        final quote = (item['quoteCurrency'] as String).toUpperCase();
+        if (quote == 'USDT') {
+          pairs.add(CurrencyPair(
+            baseCurrency: (item['baseCurrency'] as String).toUpperCase(),
+            counterCurrency: quote,
+            marketSymbol: (item['symbol'] as String).toUpperCase(),
+          ));
+        }
+      }
       if (pairs.isNotEmpty) return pairs;
     } catch (_) {}
 
-    return CryptoCatalogData.buildPairs(
-      quoteCurrencies: ['USDT', 'BTC', 'USDC'],
-      symbolFormatter: (b, q) => '$b-$q',
-    );
+    return <CurrencyPair>[];
   }
 
   @override

@@ -46,7 +46,7 @@ class _DebugDiagnosticsPageState extends State<DebugDiagnosticsPage> with Single
     {'id': 'kucoin', 'name': 'کوکوین (KuCoin)'},
     {'id': 'mexc', 'name': 'مکسی (MEXC)'},
     {'id': 'gateio', 'name': 'گیت (Gate.io)'},
-    {'id': 'coinex', 'name': 'کوین‌اکس (CoinEx)'},
+    {'id': 'lbank', 'name': 'ال‌بانک (LBank)'},
     {'id': 'global_stocks', 'name': 'سهام، جفت‌ارزها و طلا (Yahoo Finance)'},
   ];
 
@@ -136,7 +136,7 @@ class _DebugDiagnosticsPageState extends State<DebugDiagnosticsPage> with Single
       {'ex': 'mexc', 'sym': 'BTCUSDT', 'label': 'MEXC Spot'},
       {'ex': 'kucoin', 'sym': 'BTCUSDT', 'label': 'KuCoin Spot'},
       {'ex': 'gateio', 'sym': 'BTCUSDT', 'label': 'Gate.io Spot'},
-      {'ex': 'coinex', 'sym': 'BTCUSDT', 'label': 'CoinEx Spot'},
+      {'ex': 'lbank', 'sym': 'btc_usdt', 'label': 'LBank Spot'},
       {'ex': 'global_stocks', 'sym': 'GOLD', 'label': 'انس طلا جهانی (XAU/USD)'},
       {'ex': 'global_stocks', 'sym': 'EURUSD', 'label': 'یورو / دلار (Forex)'},
       {'ex': 'global_stocks', 'sym': 'DX-Y', 'label': 'شاخص دلار (DXY)'},

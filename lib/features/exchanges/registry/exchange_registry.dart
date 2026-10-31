@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
+import '../base/crypto_catalog_service.dart';
 import '../base/currency_pair.dart';
 import '../base/currency_pairs_helper.dart';
 import '../base/exchange.dart';
+import '../base/exchange_category.dart';
 import '../base/models/price_snapshot.dart';
 import '../base/standard_rest_exchange.dart';
 import '../../../core/utils/symbol_filter_helper.dart';
@@ -95,7 +97,23 @@ class ExchangeRegistry {
 
     final future = () async {
       try {
-        final pairs = await exchange.fetchCurrencyPairs();
+        List<CurrencyPair> pairs;
+        final isCrypto = exchangeId != globalStocksId &&
+            exchangeId != iranMarketId &&
+            exchange.category != ExchangeCategory.iran;
+
+        if (isCrypto) {
+          pairs = await CryptoCatalogService.instance.fetchPairsForExchange(
+            exchangeId,
+            fallbackExchange: exchange,
+          );
+          if (pairs.isEmpty) {
+            pairs = await exchange.fetchCurrencyPairs();
+          }
+        } else {
+          pairs = await exchange.fetchCurrencyPairs();
+        }
+
         _cachedPairsByExchange[exchangeId] = pairs;
         _pairCacheTimestamps[exchangeId] = DateTime.now();
         _cachedHelpersByExchange[exchangeId] = CurrencyPairsHelper(pairs: pairs);

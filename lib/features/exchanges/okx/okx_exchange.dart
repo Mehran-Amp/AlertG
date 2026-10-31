@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import '../base/crypto_catalog_data.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
@@ -46,7 +45,7 @@ class OKXExchange implements Exchange {
           final instId = item['instId']?.toString() ?? '$base-$quote';
           final state = item['state']?.toString() ?? 'live';
 
-          if (state == 'live' && (quote == 'USDT' || quote == 'USDC' || quote == 'BTC')) {
+          if (state == 'live' && quote == 'USDT') {
             pairs.add(CurrencyPair(
               baseCurrency: base,
               counterCurrency: quote,
@@ -58,10 +57,7 @@ class OKXExchange implements Exchange {
       }
     } catch (_) {}
 
-    return CryptoCatalogData.buildPairs(
-      quoteCurrencies: ['USDT', 'USDC'],
-      symbolFormatter: (b, q) => '$b-$q',
-    );
+    return <CurrencyPair>[];
   }
 
   @override

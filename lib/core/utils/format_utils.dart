@@ -170,19 +170,65 @@ class FormatUtils {
       return price.toStringAsFixed(2);
     } else if (price >= 1) {
       return price.toStringAsFixed(4);
-    } else if (price >= 0.0001) {
-      return price.toStringAsFixed(6);
     } else {
-      return price.toStringAsFixed(8);
+      return formatExactDecimal(price);
     }
+  }
+
+  /// Formats exact decimal without scientific notation or truncation (R3 / Phase 8b).
+  /// Strips only trailing zeros after the decimal point.
+  /// Never rounds small prices to "0.00" or "$0".
+  static String formatExactDecimal(double price) {
+    if (price.isNaN || price.isInfinite) return '0';
+    if (price == 0.0) return '0';
+
+    final isNegative = price < 0;
+    final absVal = price.abs();
+
+    String raw = absVal.toString();
+    // Expand scientific notation (e.g. 8.45e-6, 1.2e-8)
+    if (raw.toLowerCase().contains('e')) {
+      final parts = raw.toLowerCase().split('e');
+      final mantissa = parts[0];
+      final exp = int.tryParse(parts[1]) ?? 0;
+
+      if (exp < 0) {
+        final mParts = mantissa.split('.');
+        final integerPart = mParts[0];
+        final fractionPart = mParts.length > 1 ? mParts[1] : '';
+        final leadingZeros = (-exp) - 1;
+        raw = '0.${'0' * leadingZeros}$integerPart$fractionPart';
+      } else if (exp > 0) {
+        final mParts = mantissa.split('.');
+        final integerPart = mParts[0];
+        final fractionPart = mParts.length > 1 ? mParts[1] : '';
+        if (fractionPart.length <= exp) {
+          raw = '$integerPart$fractionPart${'0' * (exp - fractionPart.length)}';
+        } else {
+          raw = '$integerPart${fractionPart.substring(0, exp)}.${fractionPart.substring(exp)}';
+        }
+      }
+    }
+
+    if (absVal < 1.0) {
+      final fixed = absVal.toStringAsFixed(12);
+      if (!fixed.toLowerCase().contains('e')) {
+        raw = fixed;
+      }
+    }
+
+    if (raw.contains('.')) {
+      raw = raw.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
+    }
+
+    final result = raw.isEmpty ? '0' : raw;
+    return isNegative ? '-$result' : result;
   }
 
   /// Formats any double price with intelligent precision based on its scale:
   /// - Large assets (BTC, Gold, Indices >= $1,000): 2 decimals with thousand separators ($94,520.50)
   /// - Standard assets ($1 to $1,000): 2 decimals ($18.45)
-  /// - Penny assets ($0.01 to $1): 4 decimals ($0.0452)
-  /// - Micro assets ($0.0001 to $0.01): 6 decimals ($0.004210)
-  /// - Nano assets (< $0.0001, e.g. PEPE, SHIB): up to 8 decimals ($0.00000845)
+  /// - Micro/Nano assets (< $1, e.g. PEPE, SHIB): exact decimal representation ($0.00000845, $0.0000000045)
   static String formatPrice(
     double price, {
     String? currencySymbol,
@@ -228,17 +274,11 @@ class FormatUtils {
       } else {
         formattedNumber = price.toStringAsFixed(2);
       }
-    } else if (absPrice >= 0.01) {
-      formattedNumber = price.toStringAsFixed(4);
-    } else if (absPrice >= 0.0001) {
-      formattedNumber = price.toStringAsFixed(6);
-    } else if (absPrice >= 0.00000001) {
-      // Strip trailing zeros for micro assets
-      formattedNumber = price.toStringAsFixed(8).replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
     } else if (absPrice == 0) {
       formattedNumber = '0.00';
     } else {
-      formattedNumber = price.toStringAsFixed(8);
+      // Exact decimal formatting for all sub-cent assets (Rule R3 / Phase 8b)
+      formattedNumber = formatExactDecimal(absPrice);
     }
 
     if (!showSymbol || currencySymbol == null || currencySymbol.isEmpty) {

@@ -1,11 +1,9 @@
 import 'package:dio/dio.dart';
-import '../base/crypto_catalog_data.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
 import '../base/models/market_ticker.dart';
 import '../base/models/price_snapshot.dart';
-import '../base/universal_price_aggregator.dart';
 
 /// LBank Exchange Adapter (Top Global Crypto Spot & Memecoin Exchange)
 class LBankExchange implements Exchange {
@@ -49,21 +47,22 @@ class LBankExchange implements Exchange {
           final sym = item.toString();
           final parts = sym.split('_');
           if (parts.length == 2) {
-            pairs.add(CurrencyPair(
-              baseCurrency: parts[0].toUpperCase(),
-              counterCurrency: parts[1].toUpperCase(),
-              marketSymbol: sym,
-            ));
+            final base = parts[0].toUpperCase();
+            final quote = parts[1].toUpperCase();
+            if (quote == 'USDT') {
+              pairs.add(CurrencyPair(
+                baseCurrency: base,
+                counterCurrency: quote,
+                marketSymbol: sym,
+              ));
+            }
           }
         }
         if (pairs.isNotEmpty) return pairs;
       }
     } catch (_) {}
 
-    return CryptoCatalogData.buildPairs(
-      quoteCurrencies: ['USDT', 'BTC', 'ETH'],
-      symbolFormatter: (b, q) => '${b.toLowerCase()}_${q.toLowerCase()}',
-    );
+    return <CurrencyPair>[];
   }
 
   @override
@@ -80,7 +79,7 @@ class LBankExchange implements Exchange {
   Future<MarketTicker> fetchTicker(CurrencyPair pair) async {
     final symbol = '${pair.baseCurrency.toLowerCase()}_${pair.counterCurrency.toLowerCase()}';
 
-    // 1. Direct LBank API
+    // Direct LBank API (Strict R1: No fallback to other exchanges or aggregators)
     try {
       final response = await _dio.get('/v2/ticker/24hr.do', queryParameters: {'symbol': symbol});
       if (response.data is Map && response.data['data'] is List) {
@@ -101,22 +100,8 @@ class LBankExchange implements Exchange {
           }
         }
       }
-    } catch (_) {}
-
-    // 2. Multi-gateway fallback
-    final result = await UniversalPriceAggregator.fetchPriceAndVolume(
-      baseCoin: pair.baseCurrency,
-      quoteCurrency: pair.counterCurrency,
-    );
-
-    if (result != null && result['price'] != null && result['price']! > 0) {
-      return MarketTicker(
-        exchangeId: id,
-        pair: pair,
-        lastPrice: result['price']!,
-        volume24h: result['volume'] ?? 0.0,
-        timestamp: DateTime.now(),
-      );
+    } catch (e) {
+      throw Exception('LBank Live Connection Error for ${pair.displayName}: $e');
     }
 
     throw Exception('Connection error: Unable to fetch live price for ${pair.displayName} on LBank');

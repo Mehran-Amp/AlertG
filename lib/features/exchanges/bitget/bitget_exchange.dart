@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import '../base/crypto_catalog_data.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
@@ -51,7 +50,7 @@ class BitgetExchange implements Exchange {
             final base = (item['baseCoin'] ?? '').toString().toUpperCase();
             final quote = (item['quoteCoin'] ?? '').toString().toUpperCase();
             final symbol = (item['symbol'] ?? '$base$quote').toString().toUpperCase();
-            if (base.isNotEmpty && quote.isNotEmpty) {
+            if (base.isNotEmpty && quote == 'USDT') {
               pairs.add(CurrencyPair(
                 baseCurrency: base,
                 counterCurrency: quote,
@@ -64,10 +63,7 @@ class BitgetExchange implements Exchange {
       }
     } catch (_) {}
 
-    return CryptoCatalogData.buildPairs(
-      quoteCurrencies: ['USDT', 'USDC', 'BTC', 'ETH'],
-      symbolFormatter: (b, q) => '$b$q',
-    );
+    return <CurrencyPair>[];
   }
 
   @override
@@ -104,23 +100,9 @@ class BitgetExchange implements Exchange {
           );
         }
       }
-    } catch (_) {}
-
-    // Fallback: Query Binance
-    try {
-      final binRes = await Dio().get('https://api.binance.com/api/v3/ticker/24hr?symbol=$symbol');
-      final p = double.tryParse(binRes.data['lastPrice']?.toString() ?? '0') ?? 0.0;
-      final v = double.tryParse(binRes.data['quoteVolume']?.toString() ?? '0') ?? 0.0;
-      if (p > 0) {
-        return MarketTicker(
-          exchangeId: id,
-          pair: pair,
-          lastPrice: p,
-          volume24h: v,
-          timestamp: DateTime.now(),
-        );
-      }
-    } catch (_) {}
+    } catch (e) {
+      throw Exception('Bitget Live Connection Error for ${pair.displayName}: $e');
+    }
 
     throw Exception('Connection error: Unable to fetch live price for ${pair.displayName} on Bitget');
   }

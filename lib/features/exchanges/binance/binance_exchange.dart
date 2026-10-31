@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import '../base/crypto_catalog_data.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
@@ -48,7 +47,7 @@ class BinanceExchange implements Exchange {
         final isSpot = (symbolMap['isSpotTradingAllowed'] as bool?) ?? true;
         final quote = symbolMap['quoteAsset'] as String? ?? '';
 
-        if (status == 'TRADING' && isSpot && (quote == 'USDT' || quote == 'USDC' || quote == 'BTC')) {
+        if (status == 'TRADING' && isSpot && quote == 'USDT') {
           pairs.add(CurrencyPair(
             baseCurrency: symbolMap['baseAsset'] as String,
             counterCurrency: quote,
@@ -59,8 +58,7 @@ class BinanceExchange implements Exchange {
       if (pairs.isNotEmpty) return pairs;
     } catch (_) {}
 
-    // Instant complete fallback list for uninterrupted access
-    return CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT', 'BTC', 'USDC']);
+    return <CurrencyPair>[];
   }
 
   @override

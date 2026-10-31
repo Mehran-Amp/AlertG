@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import '../base/crypto_catalog_data.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
@@ -49,7 +48,7 @@ class MEXCExchange implements Exchange {
 
           if ((status == '1' || status == 'ENABLED' || status == null) &&
               isSpot &&
-              (quote == 'USDT' || quote == 'USDC' || quote == 'BTC')) {
+              quote == 'USDT') {
             pairs.add(CurrencyPair(
               baseCurrency: base,
               counterCurrency: quote,
@@ -61,7 +60,7 @@ class MEXCExchange implements Exchange {
       }
     } catch (_) {}
 
-    return CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT', 'USDC']);
+    return <CurrencyPair>[];
   }
 
   @override

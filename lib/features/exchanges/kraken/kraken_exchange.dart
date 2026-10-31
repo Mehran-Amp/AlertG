@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import '../base/crypto_catalog_data.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
@@ -46,23 +45,22 @@ class KrakenExchange implements Exchange {
           final status = val?['status']?.toString();
 
           if (status != 'cancel_only' && status != 'delisted') {
+            String base = '';
+            String quote = '';
             if (wsname != null && wsname.contains('/')) {
               final parts = wsname.split('/');
+              base = parts[0].replaceAll('XBT', 'BTC').toUpperCase();
+              quote = parts[1].toUpperCase();
+            } else {
+              base = (val?['base']?.toString() ?? '').replaceAll('XXBT', 'BTC').replaceAll('XETH', 'ETH').replaceAll('ZUSD', 'USD').toUpperCase();
+              quote = (val?['quote']?.toString() ?? '').replaceAll('ZUSD', 'USD').replaceAll('ZEUR', 'EUR').toUpperCase();
+            }
+            if (base.isNotEmpty && quote == 'USDT') {
               pairs.add(CurrencyPair(
-                baseCurrency: parts[0].replaceAll('XBT', 'BTC'),
-                counterCurrency: parts[1],
+                baseCurrency: base,
+                counterCurrency: quote,
                 marketSymbol: entry.key,
               ));
-            } else {
-              final base = (val?['base']?.toString() ?? '').replaceAll('XXBT', 'BTC').replaceAll('XETH', 'ETH').replaceAll('ZUSD', 'USD');
-              final quote = (val?['quote']?.toString() ?? '').replaceAll('ZUSD', 'USD').replaceAll('ZEUR', 'EUR');
-              if (base.isNotEmpty && quote.isNotEmpty) {
-                pairs.add(CurrencyPair(
-                  baseCurrency: base,
-                  counterCurrency: quote,
-                  marketSymbol: entry.key,
-                ));
-              }
             }
           }
         }
@@ -70,9 +68,7 @@ class KrakenExchange implements Exchange {
       }
     } catch (_) {}
 
-    return CryptoCatalogData.buildPairs(
-      quoteCurrencies: ['USD', 'EUR', 'USDT'],
-    );
+    return <CurrencyPair>[];
   }
 
   @override
