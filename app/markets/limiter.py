@@ -108,6 +108,7 @@ PROVIDER_QUOTAS: Dict[str, Dict[str, Any]] = {
     'crypto_bybit': {'limit': 60000, 'window': 'daily', 'name': 'Bybit Spot'},
     'crypto_bitget': {'limit': 60000, 'window': 'daily', 'name': 'Bitget Spot'},
     'crypto_kraken': {'limit': 40000, 'window': 'daily', 'name': 'Kraken Spot'},
+    'crypto_tabdeal': {'limit': 50000, 'window': 'daily', 'name': 'Tabdeal Spot'},
     'default': {'limit': 20000, 'window': 'daily', 'name': 'Default Gateway'},
 }
 

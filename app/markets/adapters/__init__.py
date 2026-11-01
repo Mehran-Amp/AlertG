@@ -21,6 +21,7 @@ from app.markets.adapters.okx import OKXAdapter
 from app.markets.adapters.kraken import KrakenAdapter
 from app.markets.adapters.bybit import BybitAdapter
 from app.markets.adapters.bitget import BitgetAdapter
+from app.markets.adapters.tabdeal import TabdealAdapter
 
 __all__ = [
     "BaseExchangeAdapter",
@@ -39,4 +40,5 @@ __all__ = [
     "KrakenAdapter",
     "BybitAdapter",
     "BitgetAdapter",
+    "TabdealAdapter",
 ]

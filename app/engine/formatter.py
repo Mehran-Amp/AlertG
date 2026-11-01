@@ -55,7 +55,13 @@ def format_display_price(
         return str(val)
 
     if is_tmn:
-        return f"{int(fval):,} {tmn_label}"
+        if fval >= 100.0:
+            return f"{int(fval):,} {tmn_label}"
+        elif fval > 0.0:
+            dec_str = format_exact_decimal(fval)
+            return f"{dec_str} {tmn_label}"
+        else:
+            return f"0 {tmn_label}"
 
     if fval == 0.0:
         return f"{currency_prefix}0"

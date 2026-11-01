@@ -244,12 +244,22 @@ async def fetch_price_with_trace(
             traces.append({'source': source_name, 'url': url, 'status_code': 0, 'latency_ms': round((time.time() - t0) * 1000, 2), 'error': str(e), 'success': False})
         return None
 
-    # 1. IRANIAN EXCHANGES & TOMAN MARKETS
-    is_iranian = ex in ['tabdeal', 'nobitex', 'wallex', 'bitpin', 'tetherland', 'abantether', 'ramzinex', 'bitbarg', 'sarmayex', 'exir', 'iran_market', 'bonbast'] or \
-                 sym_clean.endswith('TMN') or sym_clean.endswith('IRT') or sym_clean.endswith('RLS') or \
-                 sym_clean.startswith('USDT_') or sym_clean.startswith('GOLD_')
+    # 0. REGISTERED CRYPTO EXCHANGES (Strict Isolation - Rule R1)
+    from app.markets.crypto_registry import is_supported_crypto_exchange
+    if is_supported_crypto_exchange(ex):
+        p = await fetch_crypto(
+            client, exchange, symbol, _try_fetch, traces, collect_all_traces,
+            base_currency=base_currency,
+            counter_currency=counter_currency,
+            market_symbol=market_symbol,
+        )
+        if p and not collect_all_traces:
+            return p, traces
 
-    if is_iranian:
+    # 1. IRANIAN EXCHANGES & TOMAN MARKETS
+    elif ex in ['nobitex', 'wallex', 'bitpin', 'tetherland', 'abantether', 'ramzinex', 'bitbarg', 'sarmayex', 'exir', 'iran_market', 'bonbast'] or \
+         sym_clean.endswith('TMN') or sym_clean.endswith('IRT') or sym_clean.endswith('RLS') or \
+         sym_clean.startswith('USDT_') or sym_clean.startswith('GOLD_'):
         p = await fetch_iran(client, exchange, symbol, _try_fetch, traces, collect_all_traces)
         if p and not collect_all_traces:
             return p, traces

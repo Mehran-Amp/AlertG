@@ -56,7 +56,7 @@ async def fetch_crypto(
         return None
 
     # Phase 3 & 4: Strict Crypto Core (Rule R1: Exchange isolation, zero fallback, alias index)
-    if is_crypto_strict_enabled():
+    if is_crypto_strict_enabled() or ex in ('binance', 'mexc', 'kucoin', 'gateio', 'gate', 'lbank', 'okx', 'kraken', 'bybit', 'bitget', 'tabdeal'):
         strict_res = await fetch_crypto_strict(
             client, exchange, symbol, _try_fetch, traces,
             base_currency=base_currency,

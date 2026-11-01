@@ -256,17 +256,34 @@ async def fetch_crypto_strict(
                         return {'price': float(c[0]), 'state': 'LIVE', 'currency': 'USDT'}
             return None
         p = await _try_fetch(source_label, url, _extract_kraken)
+    elif ex == 'tabdeal':
+        tab_sym = native_sym.replace("_", "").upper()
+        if tab_sym.endswith("TMN"):
+            tab_sym = tab_sym[:-3] + "IRT"
+        is_tmn = tab_sym.endswith("IRT")
+        url = f"https://api1.tabdeal.org/r/api/v1/trades?symbol={tab_sym}"
+        def _extract_tabdeal(d):
+            if isinstance(d, list) and len(d) > 0:
+                first = d[0]
+                if isinstance(first, dict) and first.get('price'):
+                    val = float(first['price'])
+                    if val > 0:
+                        final_val = val / 10.0 if is_tmn else val
+                        return {'price': final_val, 'state': 'LIVE', 'currency': 'TMN' if is_tmn else 'USDT'}
+            return None
+        p = await _try_fetch(source_label, url, _extract_tabdeal)
     else:
         p = None
 
     # 4. Check result: price must be valid positive float, otherwise NO_PRICE
     if p is not None and float(p) > 0:
+        curr = 'TMN' if (native_sym.endswith('IRT') or native_sym.endswith('TMN')) else 'USDT'
         return CryptoPriceResult(
             price=float(p),
             asOf=now_ts,
             source=meta.name,
             status='OK',
-            currency='USDT'
+            currency=curr
         )
 
     # 5. Failed: Strictly terminate with NO_PRICE. ZERO cross-exchange fallback!

@@ -14,6 +14,7 @@ CATEGORY_CACHE_TTL: Dict[str, float] = {
     'macro': 60.0,
     'bond': 60.0,
     'iran_market': 60.0,
+    'iran_crypto': 5.0,
     'crypto': 2.0,
     'default': 2.0
 }
@@ -25,6 +26,7 @@ CATEGORY_CACHE_TTL: Dict[str, float] = {
 # 3. Commodity: 15%
 # 4. Stock: 25%
 # 5. Crypto & Iran Market: 50% (Default)
+# 6. Iranian Crypto: 100% (1.00)
 CATEGORY_OUTLIER_THRESHOLDS: Dict[str, float] = {
     'forex': 0.05,
     'index': 0.10,
@@ -33,6 +35,7 @@ CATEGORY_OUTLIER_THRESHOLDS: Dict[str, float] = {
     'macro': 0.20,
     'bond': 0.15,
     'crypto': 0.50,
+    'iran_crypto': 1.00,
     'iran_market': 0.50,
     'default': 0.50
 }
@@ -87,18 +90,19 @@ def resolve_symbol_category(exchange: str, symbol: Optional[str] = None) -> str:
     ex = (exchange or '').lower().strip()
     sym = (symbol or '').upper().strip()
 
-    if ex in ['tabdeal', 'nobitex', 'wallex', 'bitpin', 'tetherland', 'abantether', 'ramzinex', 'bitbarg', 'sarmayex', 'exir', 'iran_market', 'bonbast', 'bridge', 'tse']:
+    # 0. Registered crypto exchanges immediately classify by their registered category (e.g. 'crypto' or 'iran_crypto')
+    try:
+        from app.markets.crypto_registry import get_crypto_exchange
+        meta = get_crypto_exchange(ex)
+        if meta and meta.status == 'active':
+            return meta.category or 'crypto'
+    except Exception:
+        pass
+
+    if ex in ['nobitex', 'wallex', 'bitpin', 'tetherland', 'abantether', 'ramzinex', 'bitbarg', 'sarmayex', 'exir', 'iran_market', 'bonbast', 'bridge', 'tse']:
         return 'iran_market'
     if sym.endswith('TMN') or sym.endswith('IRT') or sym.endswith('RLS') or sym.startswith('USDT_') or sym.startswith('GOLD_'):
         return 'iran_market'
-
-    # Registered crypto exchanges immediately classify as 'crypto' (Rule R1: prevents stock/ETF id collisions in catalog.json)
-    try:
-        from app.markets.crypto_registry import is_supported_crypto_exchange
-        if is_supported_crypto_exchange(ex, allow_pending=True):
-            return 'crypto'
-    except Exception:
-        pass
 
     # 1. First read catalog.json (id -> category):
     # UNRATE, CPIAUCSL, FEDFUNDS, WALCL, M2SL and all macro series in catalog must return 'macro', not 'stock'.

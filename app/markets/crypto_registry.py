@@ -149,6 +149,19 @@ _CRYPTO_EXCHANGES: Dict[str, CryptoExchangeMetadata] = {
         aliases=(),
         notes='Tier 1 spot market via V2 API'
     ),
+    'tabdeal': CryptoExchangeMetadata(
+        id='tabdeal',
+        name='Tabdeal',
+        category='iran_crypto',
+        provider_key='crypto_tabdeal',
+        source_label='Tabdeal (tabdeal) Spot API',
+        markets_url='https://api1.tabdeal.org/r/api/v1/exchangeInfo',
+        bulk_ticker_url='https://api1.tabdeal.org/r/plots/market_information/',
+        status='active',
+        has_leveraged_tokens=False,
+        aliases=('tabdeal_spot', 'tabdeal_iran'),
+        notes='Approved Iranian exchange (Wave 1) with dual USDT & TMN quote support'
+    ),
 }
 
 # Fast alias lookup index
