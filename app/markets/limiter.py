@@ -111,9 +111,11 @@ PROVIDER_QUOTAS: Dict[str, Dict[str, Any]] = {
     'default': {'limit': 20000, 'window': 'daily', 'name': 'Default Gateway'},
 }
 
-# Track whether >80% quota alert was already dispatched to admin to avoid spam
+# Track whether >80% quota or outage alert was already dispatched to admin to avoid spam
 _QUOTA_ALERTED_PROVIDERS = set()
 _OUTAGE_ALERTED_PROVIDERS = set()
+_OUTAGE_ALERT_TIMESTAMPS: Dict[str, float] = {}
+_OUTAGE_COOLDOWN_SECONDS = 300.0  # Minimum 5 minutes between outage alerts for the same provider
 
 def record_provider_metric(provider_key: str, event_type: str, status_code: Optional[int] = None):
     """
@@ -151,9 +153,9 @@ def record_provider_metric(provider_key: str, event_type: str, status_code: Opti
         p_data["consecutive_success"] = 0
         _QUOTA_ALERTED_PROVIDERS.discard(provider_key)
         _OUTAGE_ALERTED_PROVIDERS.discard(provider_key)
+        _OUTAGE_ALERT_TIMESTAMPS.pop(provider_key, None)
     elif existing_day is None:
         p_data["window_day"] = current_day
-
 
     p_data["last_event_at"] = now
     if status_code is not None:
@@ -161,6 +163,10 @@ def record_provider_metric(provider_key: str, event_type: str, status_code: Opti
 
     if event_type in p_data:
         p_data[event_type] += 1
+
+    total_reqs = p_data.get("requests", 0)
+    errors = p_data.get("errors", 0)
+    rate_limits = p_data.get("rate_limits_429", 0)
 
     # 2. Dynamic Health Tracking with Recovery
     if event_type == "success":
@@ -178,38 +184,36 @@ def record_provider_metric(provider_key: str, event_type: str, status_code: Opti
         if event_type == "rate_limits_429":
             p_data["consecutive_429"] = p_data.get("consecutive_429", 0) + 1
 
-    total_reqs = p_data.get("requests", 0)
-    errors = p_data.get("errors", 0)
-    rate_limits = p_data.get("rate_limits_429", 0)
-    recent_errors = p_data.get("consecutive_errors", errors if total_reqs <= 10 else 0)
-    recent_429 = p_data.get("consecutive_429", rate_limits if total_reqs <= 10 else 0)
+        recent_errors = p_data.get("consecutive_errors", 0)
+        recent_429 = p_data.get("consecutive_429", 0)
+        quota_info = PROVIDER_QUOTAS.get(provider_key)
+        prov_display_name = quota_info.get("name", provider_key) if quota_info else provider_key
 
-    quota_info = PROVIDER_QUOTAS.get(provider_key)
-    prov_display_name = quota_info.get("name", provider_key) if quota_info else provider_key
-
-    # Check health status
-    if recent_429 > 5 or rate_limits > 5 or (recent_errors > 5 and recent_errors / max(1, total_reqs) > 0.4):
-        p_data["health"] = "OUTAGE_OR_BLOCKED"
-        if provider_key not in _OUTAGE_ALERTED_PROVIDERS:
-            _OUTAGE_ALERTED_PROVIDERS.add(provider_key)
-            msg = (
-                f"🚨 <b>[هشدار ادمین - قطعی سرویس‌دهنده]</b>\n"
-                f"📡 سرویس‌دهنده: <b>{prov_display_name}</b>\n"
-                f"⚠️ وضعیت: <b>OUTAGE_OR_BLOCKED (قطع / مسدود)</b>\n"
-                f"📊 خطاها: {errors} خطا از {total_reqs} درخواست ({rate_limits} بار ۴۲۹)\n"
-                f"⏱️ لطفاً اتصالات شبکه یا کلیدهای دسترسی این سرویس را بررسی فرمایید."
-            )
-            from app.notifier.telegram import notify_admin_telegram
-            from app.notifier.outbox import _spawn
-            _spawn(notify_admin_telegram(msg))
-    elif recent_errors > 2 or recent_429 > 0:
-        p_data["health"] = "DEGRADED"
-    elif event_type == "success" or (now - p_data.get("last_error_at", 0) > 60):
-        p_data["health"] = "HEALTHY"
-        _OUTAGE_ALERTED_PROVIDERS.discard(provider_key)
+        # Check health status on error events
+        is_outage = recent_429 > 5 or (total_reqs <= 10 and rate_limits > 5) or (recent_errors > 5 and recent_errors / max(1, total_reqs) > 0.4)
+        if is_outage:
+            p_data["health"] = "OUTAGE_OR_BLOCKED"
+            last_alerted = _OUTAGE_ALERT_TIMESTAMPS.get(provider_key, 0.0)
+            if provider_key not in _OUTAGE_ALERTED_PROVIDERS and (now - last_alerted >= _OUTAGE_COOLDOWN_SECONDS):
+                _OUTAGE_ALERTED_PROVIDERS.add(provider_key)
+                _OUTAGE_ALERT_TIMESTAMPS[provider_key] = now
+                msg = (
+                    f"🚨 <b>[هشدار ادمین - قطعی سرویس‌دهنده]</b>\n"
+                    f"📡 سرویس‌دهنده: <b>{prov_display_name}</b>\n"
+                    f"⚠️ وضعیت: <b>OUTAGE_OR_BLOCKED (قطع / مسدود)</b>\n"
+                    f"📊 خطاها: {errors} خطا از {total_reqs} درخواست ({rate_limits} بار ۴۲۹)\n"
+                    f"⏱️ لطفاً اتصالات شبکه یا کلیدهای دسترسی این سرویس را بررسی فرمایید."
+                )
+                from app.notifier.telegram import notify_admin_telegram
+                from app.notifier.outbox import _spawn
+                _spawn(notify_admin_telegram(msg))
+        elif recent_errors > 2 or recent_429 > 0:
+            p_data["health"] = "DEGRADED"
 
     # Check 80% quota ceiling
+    quota_info = PROVIDER_QUOTAS.get(provider_key)
     if quota_info:
+        prov_display_name = quota_info.get("name", provider_key)
         limit = quota_info.get("limit", 1000)
         usage_ratio = total_reqs / max(1, limit)
         p_data["quota_limit"] = limit
@@ -251,6 +255,7 @@ def reset_provider_metrics(provider_key: Optional[str] = None):
             })
         _QUOTA_ALERTED_PROVIDERS.discard(k)
         _OUTAGE_ALERTED_PROVIDERS.discard(k)
+        _OUTAGE_ALERT_TIMESTAMPS.pop(k, None)
 
 def get_all_providers_status() -> Dict[str, Any]:
     """Returns aggregated health and quota usage for all configured providers."""

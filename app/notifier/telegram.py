@@ -1,6 +1,7 @@
 import html
+import time
 import asyncio
-from typing import Optional, Any
+from typing import Optional, Any, Dict
 import httpx
 from app.config import TELEGRAM_BOT_TOKEN, TELEGRAM_BOT_METADATA
 from app.security import _scrub
@@ -135,9 +136,11 @@ async def send_telegram_alert(
             print(f"⚠️ [Telegram Dispatch Error] {_scrub(e)}")
             return False
 
+_RECENT_ADMIN_ALERTS: Dict[str, float] = {}
+
 async def notify_admin_telegram(message: str, client: Optional[httpx.AsyncClient] = None):
     """
-    Sends critical operational notification to admin Telegram chat:
+    Sends critical operational notification to admin Telegram chat with flood suppression:
     - Provider outages / errors
     - Provider quota usage > 80%
     - Failed or halted catalog syncs
@@ -147,6 +150,19 @@ async def notify_admin_telegram(message: str, client: Optional[httpx.AsyncClient
     if not target_chat:
         print(f"ℹ️ [Admin Telegram Alert] (No TELEGRAM_ADMIN_CHAT_ID set): {message}")
         return
+
+    # Deduplication & Flood Guard: Suppress identical alert within 120 seconds
+    now = time.time()
+    last_sent = _RECENT_ADMIN_ALERTS.get(message, 0.0)
+    if (now - last_sent) < 120.0:
+        return
+    _RECENT_ADMIN_ALERTS[message] = now
+    if len(_RECENT_ADMIN_ALERTS) > 100:
+        cutoff = now - 3600.0
+        for k in list(_RECENT_ADMIN_ALERTS.keys()):
+            if _RECENT_ADMIN_ALERTS[k] < cutoff:
+                _RECENT_ADMIN_ALERTS.pop(k, None)
+
     c = client or getattr(state, 'http_client', None)
     if c is None:
         class _FallbackClient:
