@@ -95,7 +95,9 @@ def resolve_symbol_category(exchange: str, symbol: Optional[str] = None) -> str:
         from app.markets.crypto_registry import get_crypto_exchange
         meta = get_crypto_exchange(ex)
         if meta and meta.status == 'active':
-            return meta.category or 'crypto'
+            if meta.category == 'iran_crypto':
+                return 'iran_crypto'
+            return 'crypto'
     except Exception:
         pass
 

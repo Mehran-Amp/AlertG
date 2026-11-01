@@ -233,7 +233,8 @@ def get_crypto_exchanges(
         should_include_pending = str(include_pending).lower() in ("true", "1", "yes")
 
     items = []
-    exchanges_to_list = list_crypto_exchanges() if should_include_pending else list_crypto_exchanges(status="active")
+    base_list = list_crypto_exchanges() if should_include_pending else list_crypto_exchanges(status="active")
+    exchanges_to_list = [e for e in base_list if e.category != "iran_crypto"]
     for meta in exchanges_to_list:
         ex_id = meta.id
         stat = exchanges_status.get(ex_id, {})

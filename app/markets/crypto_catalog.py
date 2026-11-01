@@ -44,12 +44,13 @@ async def _safe_notify_admin(message: str, client: Optional[httpx.AsyncClient] =
 
 
 def get_supported_crypto_exchanges() -> List[str]:
-    """Returns dynamic list of active supported exchange IDs from the registry."""
-    return get_supported_exchange_ids(active_only=True)
+    """Returns dynamic list of active global supported crypto exchange IDs from the registry."""
+    from app.markets.crypto_registry import _CRYPTO_EXCHANGES
+    return [e.id for e in _CRYPTO_EXCHANGES.values() if e.status == 'active' and e.category != 'iran_crypto']
 
 
 # Module-level alias for backward compatibility with existing tests and imports
-SUPPORTED_CRYPTO_EXCHANGES = get_supported_exchange_ids(active_only=True)
+SUPPORTED_CRYPTO_EXCHANGES = get_supported_crypto_exchanges()
 DEFAULT_SYNC_HOURS = 6
 
 

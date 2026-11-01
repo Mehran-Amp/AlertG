@@ -28,6 +28,7 @@ import time
 import asyncio
 from datetime import datetime, timezone
 import zoneinfo
+import app.config as config
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -114,11 +115,15 @@ class TestPhase10TestingAndRelease(unittest.IsolatedAsyncioTestCase):
         METRICS.setdefault("providers", {}).clear()
         set_feature_override("beta_experiments", None)
         set_feature_override("v3_mobile_delta_sync", None)
+        self._orig_crypto_engine_v2 = getattr(config, "CRYPTO_ENGINE_V2", False)
+        config.CRYPTO_ENGINE_V2 = False
 
     def tearDown(self):
         ALERTS_DB.clear()
         if hasattr(self, "_orig_alerts"):
             ALERTS_DB.extend(self._orig_alerts)
+        if hasattr(self, "_orig_crypto_engine_v2"):
+            config.CRYPTO_ENGINE_V2 = self._orig_crypto_engine_v2
         for k in list(os.environ.keys()):
             if k.startswith("FEATURE_FLAG_") or k.startswith("KILL_SWITCH_") or k == "BETA_USER_IDS":
                 del os.environ[k]

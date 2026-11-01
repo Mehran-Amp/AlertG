@@ -76,6 +76,7 @@ PROVIDER_LIMITERS: Dict[str, TokenBucketRateLimiter] = {
     'crypto_bybit': TokenBucketRateLimiter(rate_per_second=20.0, capacity=30.0),
     'crypto_bitget': TokenBucketRateLimiter(rate_per_second=20.0, capacity=30.0),
     'crypto_kraken': TokenBucketRateLimiter(rate_per_second=15.0, capacity=25.0),
+    'crypto_tabdeal': TokenBucketRateLimiter(rate_per_second=20.0, capacity=30.0),
     'default': TokenBucketRateLimiter(rate_per_second=20.0, capacity=30.0),
 }
 
