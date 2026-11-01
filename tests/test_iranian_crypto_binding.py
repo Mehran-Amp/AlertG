@@ -9,10 +9,18 @@ import unittest
 from unittest.mock import patch
 import httpx
 
+import app.config as config
 from app.markets.base import fetch_price_with_trace
 
 
 class TestIranianCryptoBinding(unittest.IsolatedAsyncioTestCase):
+
+    async def asyncSetUp(self):
+        self._orig_v2 = getattr(config, "CRYPTO_ENGINE_V2", False)
+        config.CRYPTO_ENGINE_V2 = False
+
+    async def asyncTearDown(self):
+        config.CRYPTO_ENGINE_V2 = self._orig_v2
 
     async def test_01_tabdeal_alert_queries_only_tabdeal(self):
         """1. Verify that requesting Tabdeal price contacts ONLY Tabdeal, never Nobitex or Binance."""
