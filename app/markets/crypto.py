@@ -67,7 +67,7 @@ async def fetch_crypto(
             return strict_res.price
         return None
 
-    # 3. GLOBAL CRYPTO (Binance, MEXC, KuCoin, Gate.io, CoinEx)
+    # 3. GLOBAL CRYPTO (Binance, MEXC, KuCoin, Gate.io)
     crypto_sym = sym_clean
     if not any(crypto_sym.endswith(q) for q in ['USDT', 'BUSD', 'USDC', 'BTC', 'ETH', 'EUR', 'USD']):
         crypto_sym = crypto_sym + 'USDT'
@@ -104,19 +104,11 @@ async def fetch_crypto(
             lambda d: {'price': float(d[0].get('last')), 'state': 'LIVE', 'currency': 'USDT'} if isinstance(d, list) and len(d) > 0 and d[0].get('last') else None
         )
 
-    async def _fetch_coinex():
-        return await _try_fetch(
-            'CoinEx Spot API',
-            f'https://api.coinex.com/v1/market/ticker?market={crypto_sym}',
-            lambda d: {'price': float(d.get('data', {}).get('ticker', {}).get('last')), 'state': 'LIVE', 'currency': 'USDT'} if isinstance(d, dict) and d.get('data', {}).get('ticker', {}).get('last') else None
-        )
-
     providers = [
         ('binance', _fetch_binance),
         ('mexc', _fetch_mexc),
         ('kucoin', _fetch_kucoin),
         ('gateio', _fetch_gateio),
-        ('coinex', _fetch_coinex),
     ]
 
     # Prioritize selected exchange if specified
@@ -126,8 +118,6 @@ async def fetch_crypto(
         providers.sort(key=lambda x: 0 if x[0] == 'kucoin' else 1)
     elif ex in ['gateio', 'gate']:
         providers.sort(key=lambda x: 0 if x[0] == 'gateio' else 1)
-    elif ex in ['coinex']:
-        providers.sort(key=lambda x: 0 if x[0] == 'coinex' else 1)
     elif ex in ['binance']:
         providers.sort(key=lambda x: 0 if x[0] == 'binance' else 1)
 
