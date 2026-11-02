@@ -94,7 +94,7 @@ def get_snapshot_price(
     if snap.as_of <= 0 or (now_ts - snap.as_of) > max_age:
         return None, snap.as_of, "STALE_PRICE", snap.latency_ms
 
-    if snap.status not in ("OK", "SUCCESS"):
+    if snap.status != "OK":
         return None, snap.as_of, snap.status, snap.latency_ms
 
     if not snap.prices:

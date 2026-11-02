@@ -207,10 +207,10 @@ class TestBitgetAdapter(unittest.IsolatedAsyncioTestCase):
         self.assertGreater(len(symbols), 0)
 
         batch_res = await self.adapter.fetch_batch_prices(client)
-        self.assertEqual(batch_res.error_code, "SUCCESS")
+        self.assertEqual(batch_res.error_code, "OK")
 
         single_res = await self.adapter.fetch_single_price(client, "BTC")
-        self.assertEqual(single_res.status, "SUCCESS")
+        self.assertEqual(single_res.status, "OK")
         self.assertAlmostEqual(single_res.price, 68520.40)
 
         self.assertGreater(len(called_urls), 0)

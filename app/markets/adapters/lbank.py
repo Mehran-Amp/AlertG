@@ -236,7 +236,7 @@ class LBankAdapter(BaseExchangeAdapter):
                     as_of=now_ts,
                     source=self.display_name,
                     error=None,
-                    error_code="SUCCESS"
+                    error_code="OK"
                 )
 
             except _TimeoutBase as e:
@@ -368,7 +368,7 @@ class LBankAdapter(BaseExchangeAdapter):
                                 price=p_val,
                                 as_of=now_ts,
                                 source=self.display_name,
-                                status="SUCCESS",
+                                status="OK",
                                 market_symbol=native_sym
                             )
 

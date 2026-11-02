@@ -192,7 +192,9 @@ def format_alert_registered_telegram_msg(alert: Any) -> str:
     if cond_type == "percentChange" and percent_val:
         target_repr = f"{percent_val:g}%"
     else:
-        is_tmn = getattr(alert, 'exchange', '').lower() == 'nobitex' or getattr(alert, 'symbol', '').endswith(('TMN', 'IRT'))
+        counter = (getattr(alert, 'counter_currency', '') or '').strip().upper()
+        sym_raw = (getattr(alert, 'symbol', '') or '').strip().upper()
+        is_tmn = counter in ('TMN', 'IRT', 'RLS') or sym_raw.endswith(('TMN', 'IRT', 'RLS')) or getattr(alert, 'exchange', '').lower() in ('tse', 'iran_market')
         target_repr = format_display_price(target_price, currency_prefix="$", is_tmn=is_tmn, tmn_label="تومان")
 
     features = []
@@ -275,7 +277,8 @@ def format_telegram_history_card(
         dir_label = "Dual Range (OCO) ⇅"
 
     # Price Formatter
-    is_tmn = raw_exchange.lower() in ('nobitex', 'tse', 'iran_market') or display_symbol.endswith(('TMN', 'IRT'))
+    counter = (getattr(alert, 'counter_currency', '') or '').strip().upper()
+    is_tmn = counter in ('TMN', 'IRT', 'RLS') or display_symbol.endswith(('TMN', 'IRT', 'RLS')) or raw_exchange.lower() in ('tse', 'iran_market')
     def _fmt(val: Optional[float]) -> str:
         return format_display_price(val, currency_prefix="$", is_tmn=is_tmn, tmn_label="Tomans")
 

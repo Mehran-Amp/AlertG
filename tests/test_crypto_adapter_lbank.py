@@ -312,11 +312,11 @@ class TestLBankAdapter(unittest.IsolatedAsyncioTestCase):
 
         # Fetch batch prices
         batch_res = await self.adapter.fetch_batch_prices(client)
-        self.assertEqual(batch_res.error_code, "SUCCESS")
+        self.assertEqual(batch_res.error_code, "OK")
 
         # Fetch single price
         single_res = await self.adapter.fetch_single_price(client, "BTC")
-        self.assertEqual(single_res.status, "SUCCESS")
+        self.assertEqual(single_res.status, "OK")
         self.assertAlmostEqual(single_res.price, 67415.50)
 
         # Assert every called URL is strictly from LBank official domains

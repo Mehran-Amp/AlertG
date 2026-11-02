@@ -292,12 +292,39 @@
    python -m unittest tests/test_crypto_symbols_api.py
    ```
 
+---
 
+### ۱۶. دستورالعمل رول‌بک موتور قیمت بلادرنگ اسنپ‌شات (CRYPTO_ENGINE_V2 & CRYPTO_STRICT_V2 Rollback)
+طبق قواعد R1، R6 و R8:
+1. **غیرفعال‌سازی فوری موتور اسنپ‌شات**:
+   - برای بازگشت از موتور اسنپ‌شات رم به حالت فراخوانی استاندارد:
+   ```bash
+   export CRYPTO_ENGINE_V2=false
+   ```
+2. **غیرفعال‌سازی حالت ایزولاسیون کامل Strict**:
+   - برای بازگشت به حالت فال‌بک لگاسی:
+   ```bash
+   export CRYPTO_STRICT_V2=false
+   ```
+3. **غیرفعال‌سازی اعتبارسنجی ساخت هشدار**:
+   ```bash
+   export CRYPTO_VALIDATE_ALERTS=false
+   ```
+4. **اعتبارسنجی آفلاین پس از رول‌بک**:
+   ```bash
+   pytest tests/test_crypto_engine_v2.py tests/test_crypto_strict_contract_red.py -q
+   ```
 
+---
 
-
-
-
-
-
-
+### ۱۷. دستورالعمل رول‌بک مهاجرت داده‌های CoinEx (CoinEx Migration Rollback)
+طبق قواعد R6 و R7:
+1. **بازیابی دیتابیس از فایل پشتیبان اتمیک**:
+   در صورت نیاز به بازگرداندن هشدارهای حذف‌شدهٔ CoinEx:
+   ```bash
+   python3 scripts/remove_coinex_alerts.py --restore alerts_backup/coinex_removal_<TIMESTAMP>.json
+   ```
+2. **اعتبارسنجی صحت دیتابیس بازیابی‌شده**:
+   ```bash
+   pytest tests/test_coinex_removal.py -v
+   ```

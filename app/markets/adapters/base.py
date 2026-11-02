@@ -317,7 +317,7 @@ class BaseExchangeAdapter(ABC):
                 source=self.display_name,
                 as_of=int(time.time()),
                 error=None,
-                error_code="SUCCESS"
+                error_code="OK"
             )
 
         except Exception as e:
@@ -357,7 +357,7 @@ class BaseExchangeAdapter(ABC):
                 price=p,
                 as_of=batch_res.as_of,
                 source=self.display_name,
-                status=batch_res.error_code or ("SUCCESS" if p else "NO_PRICE"),
+                status=batch_res.error_code or ("OK" if p else "NO_PRICE"),
                 market_symbol=native_sym,
                 currency="USDT"
             )
@@ -417,7 +417,7 @@ class BaseExchangeAdapter(ABC):
                 price=p,
                 as_of=int(time.time()),
                 source=self.display_name,
-                status="SUCCESS" if p else "NO_PRICE",
+                status="OK" if p else "NO_PRICE",
                 market_symbol=native_sym,
                 currency="USDT"
             )

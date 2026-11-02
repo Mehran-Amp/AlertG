@@ -104,7 +104,7 @@ class CryptoPollerSupervisor:
             batch_res = await adapter.fetch_batch_prices(self._client)
             latency_ms = (time.perf_counter() - t_start) * 1000.0
 
-            if batch_res.prices and batch_res.error_code in ("OK", "SUCCESS", None):
+            if batch_res.prices and batch_res.error_code in ("OK", None):
                 # Reset backoff on success
                 self._backoff[ex] = 0.0
                 update_exchange_snapshot(

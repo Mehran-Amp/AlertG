@@ -384,7 +384,9 @@ async def check_alerts_job():
             else:
                 pct_str = ""
 
-            is_tmn_market = alert.symbol.endswith('TMN') or alert.symbol.endswith('IRT') or getattr(alert, 'exchange', '').lower() == 'nobitex'
+            counter = (getattr(alert, 'counter_currency', '') or '').strip().upper()
+            sym_clean = (alert.symbol or '').strip().upper()
+            is_tmn_market = counter in ('TMN', 'IRT', 'RLS') or sym_clean.endswith(('TMN', 'IRT', 'RLS')) or getattr(alert, 'exchange', '').lower() in ('tse', 'iran_market')
             price_formatted = format_display_price(current_price, currency_prefix="$", is_tmn=is_tmn_market, tmn_label="تومان")
             if '/' not in display_symbol:
                 for quote in ['USDT', 'USDC', 'BUSD', 'FDUSD', 'EUR', 'USD', 'TMN', 'IRT', 'BTC', 'ETH']:
