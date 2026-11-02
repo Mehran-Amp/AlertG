@@ -1,14 +1,23 @@
+import 'package:dio/dio.dart';
 import '../base/crypto_catalog_data.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
 import '../base/models/market_ticker.dart';
 import '../base/models/price_snapshot.dart';
-import '../base/universal_price_aggregator.dart';
 
 /// CoinMarketCap Global Crypto Benchmark & Aggregator
-/// Provides volume-weighted average global cryptocurrency prices with 100% price availability.
+/// Queries official CoinMarketCap data API directly.
 class CoinMarketCapExchange implements Exchange {
+  final Dio _dio = Dio(BaseOptions(
+    connectTimeout: const Duration(seconds: 8),
+    receiveTimeout: const Duration(seconds: 8),
+    headers: {
+      'Accept': 'application/json',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Alarmer/1.0',
+    },
+  ));
+
   @override
   String get id => 'coinmarketcap';
 
@@ -44,19 +53,29 @@ class CoinMarketCapExchange implements Exchange {
 
   @override
   Future<MarketTicker> fetchTicker(CurrencyPair pair) async {
-    final result = await UniversalPriceAggregator.fetchPriceAndVolume(
-      baseCoin: pair.baseCurrency,
-      quoteCurrency: pair.counterCurrency,
-    );
-
-    if (result != null && result['price'] != null && result['price']! > 0) {
-      return MarketTicker(
-        exchangeId: id,
-        pair: pair,
-        lastPrice: result['price']!,
-        volume24h: result['volume'] ?? 0.0,
-        timestamp: DateTime.now(),
+    final base = pair.baseCurrency.toUpperCase();
+    try {
+      final res = await _dio.get(
+        'https://api.coinmarketcap.com/data-api/v3/cryptocurrency/detail',
+        queryParameters: {'symbol': base},
       );
+      if (res.data is Map && res.data['data'] != null) {
+        final priceVal = res.data['data']['statistics']?['price'];
+        if (priceVal != null) {
+          final p = double.tryParse(priceVal.toString()) ?? 0.0;
+          if (p > 0) {
+            return MarketTicker(
+              exchangeId: id,
+              pair: pair,
+              lastPrice: p,
+              volume24h: 0.0,
+              timestamp: DateTime.now(),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      throw Exception('Connection error: Unable to fetch live price for ${pair.displayName} on CoinMarketCap: $e');
     }
 
     throw Exception('Connection error: Unable to fetch live price for ${pair.displayName} on CoinMarketCap');

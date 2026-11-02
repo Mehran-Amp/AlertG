@@ -5,7 +5,6 @@ import '../base/exchange.dart';
 import '../base/exchange_category.dart';
 import '../base/models/market_ticker.dart';
 import '../base/models/price_snapshot.dart';
-import '../base/universal_price_aggregator.dart';
 
 /// CoinGecko Global Crypto Index & DeFi Aggregator
 class CoinGeckoExchange implements Exchange {
@@ -105,21 +104,57 @@ class CoinGeckoExchange implements Exchange {
     );
   }
 
+  static const Map<String, String> _knownCoinGeckoIds = {
+    'BTC': 'bitcoin',
+    'ETH': 'ethereum',
+    'USDT': 'tether',
+    'SOL': 'solana',
+    'BNB': 'binancecoin',
+    'XRP': 'ripple',
+    'DOGE': 'dogecoin',
+    'ADA': 'cardano',
+    'TRX': 'tron',
+    'AVAX': 'avalanche-2',
+    'SHIB': 'shiba-inu',
+    'TON': 'the-open-network',
+    'DOT': 'polkadot',
+    'LINK': 'chainlink',
+    'NEAR': 'near',
+    'SUI': 'sui',
+    'PEPE': 'pepe',
+    'LTC': 'litecoin',
+    'APT': 'aptos',
+  };
+
   @override
   Future<MarketTicker> fetchTicker(CurrencyPair pair) async {
-    final result = await UniversalPriceAggregator.fetchPriceAndVolume(
-      baseCoin: pair.baseCurrency,
-      quoteCurrency: pair.counterCurrency,
-    );
+    final base = pair.baseCurrency.toUpperCase();
+    final quote = pair.counterCurrency.toLowerCase();
+    final coinId = _knownCoinGeckoIds[base] ?? base.toLowerCase();
 
-    if (result != null && result['price'] != null && result['price']! > 0) {
-      return MarketTicker(
-        exchangeId: id,
-        pair: pair,
-        lastPrice: result['price']!,
-        volume24h: result['volume'] ?? 0.0,
-        timestamp: DateTime.now(),
-      );
+    try {
+      final res = await _dio.get('/simple/price', queryParameters: {
+        'ids': coinId,
+        'vs_currencies': quote,
+        'include_24hr_vol': 'true',
+      });
+
+      if (res.data is Map && res.data[coinId] != null) {
+        final d = res.data[coinId] as Map<String, dynamic>;
+        final p = double.tryParse(d[quote]?.toString() ?? '0') ?? 0.0;
+        final v = double.tryParse(d['${quote}_24h_vol']?.toString() ?? '0') ?? 0.0;
+        if (p > 0) {
+          return MarketTicker(
+            exchangeId: id,
+            pair: pair,
+            lastPrice: p,
+            volume24h: v,
+            timestamp: DateTime.now(),
+          );
+        }
+      }
+    } catch (e) {
+      throw Exception('Connection error: Unable to fetch live price for ${pair.displayName} on CoinGecko: $e');
     }
 
     throw Exception('Connection error: Unable to fetch live price for ${pair.displayName} on CoinGecko');

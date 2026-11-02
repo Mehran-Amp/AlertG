@@ -135,23 +135,4 @@ class IranMarketGateway {
     // Return last verified live price if offline, or 0.0 to prevent bad overrides
     return _cachedGlobalPrices[cleanCoin] ?? 0.0;
   }
-
-  /// Estimates the price of any coin in Tomans or USDT with zero failure
-  static Future<double> getEstimatedPrice({
-    required String baseCoin,
-    required String quoteCurrency,
-  }) async {
-    final usdPrice = await getGlobalCoinUsdPrice(baseCoin);
-    if (usdPrice <= 0) return 0.0;
-
-    if (quoteCurrency.toUpperCase() == 'TMN' || quoteCurrency.toUpperCase() == 'IRT') {
-      final usdtTmnRate = await getLiveUsdtTomanRate();
-      return usdPrice * usdtTmnRate;
-    } else if (quoteCurrency.toUpperCase() == 'IRR' || quoteCurrency.toUpperCase() == 'RLS') {
-      final usdtTmnRate = await getLiveUsdtTomanRate();
-      return usdPrice * usdtTmnRate * 10.0;
-    } else {
-      return usdPrice;
-    }
-  }
 }

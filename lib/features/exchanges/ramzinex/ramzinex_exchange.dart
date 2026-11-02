@@ -152,26 +152,7 @@ class RamzinexExchange implements Exchange {
       }
     } catch (_) {}
 
-    // 2. Multi-Gateway Resilient Fallback
-    try {
-      final estimatedPrice = await IranMarketGateway.getEstimatedPrice(
-        baseCoin: pair.baseCurrency,
-        quoteCurrency: pair.counterCurrency,
-      );
-      if (estimatedPrice > 0) {
-        final ticker = MarketTicker(
-          exchangeId: id,
-          pair: pair,
-          lastPrice: estimatedPrice,
-          volume24h: 0.0,
-          timestamp: DateTime.now(),
-        );
-        _lastKnownLiveTickers[cacheKey] = ticker;
-        return ticker;
-      }
-    } catch (_) {}
-
-    // 3. Persistent Last Known Live Ticker (Preserves authentic online price when offline)
+    // 2. Persistent Last Known Live Ticker (Preserves authentic online price when offline)
     if (_lastKnownLiveTickers.containsKey(cacheKey)) {
       return _lastKnownLiveTickers[cacheKey]!;
     }

@@ -5,7 +5,6 @@ import '../base/exchange.dart';
 import '../base/exchange_category.dart';
 import '../base/models/market_ticker.dart';
 import '../base/models/price_snapshot.dart';
-import '../base/universal_price_aggregator.dart';
 
 /// XT.COM Exchange Adapter (Global Crypto Spot & Web3 Trading Platform)
 class XTExchange implements Exchange {
@@ -101,22 +100,8 @@ class XTExchange implements Exchange {
           }
         }
       }
-    } catch (_) {}
-
-    // 2. High-speed multi-gateway fallback
-    final result = await UniversalPriceAggregator.fetchPriceAndVolume(
-      baseCoin: pair.baseCurrency,
-      quoteCurrency: pair.counterCurrency,
-    );
-
-    if (result != null && result['price'] != null && result['price']! > 0) {
-      return MarketTicker(
-        exchangeId: id,
-        pair: pair,
-        lastPrice: result['price']!,
-        volume24h: result['volume'] ?? 0.0,
-        timestamp: DateTime.now(),
-      );
+    } catch (e) {
+      throw Exception('Connection error: Unable to fetch live price for ${pair.displayName} on XT.COM: $e');
     }
 
     throw Exception('Connection error: Unable to fetch live price for ${pair.displayName} on XT.COM');

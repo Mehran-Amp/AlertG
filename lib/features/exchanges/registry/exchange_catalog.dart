@@ -292,9 +292,6 @@ class ExchangeCatalog {
         fallbackPairs: CryptoCatalogData.buildPairs(quoteCurrencies: ['EUR', 'USDT']),
       ),
 
-      // --- GLOBAL AGGREGATORS & BENCHMARKS ---
-      CoinMarketCapExchange(),
-      CoinGeckoExchange(),
     ];
   }
 

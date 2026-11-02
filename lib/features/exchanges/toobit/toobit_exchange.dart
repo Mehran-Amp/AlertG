@@ -5,7 +5,6 @@ import '../base/exchange.dart';
 import '../base/exchange_category.dart';
 import '../base/models/market_ticker.dart';
 import '../base/models/price_snapshot.dart';
-import '../base/universal_price_aggregator.dart';
 
 /// Toobit Exchange Adapter (Leading Global Crypto Derivatives & Spot Exchange)
 class ToobitExchange implements Exchange {
@@ -97,22 +96,8 @@ class ToobitExchange implements Exchange {
           );
         }
       }
-    } catch (_) {}
-
-    // 2. High-speed multi-gateway fallback
-    final result = await UniversalPriceAggregator.fetchPriceAndVolume(
-      baseCoin: pair.baseCurrency,
-      quoteCurrency: pair.counterCurrency,
-    );
-
-    if (result != null && result['price'] != null && result['price']! > 0) {
-      return MarketTicker(
-        exchangeId: id,
-        pair: pair,
-        lastPrice: result['price']!,
-        volume24h: result['volume'] ?? 0.0,
-        timestamp: DateTime.now(),
-      );
+    } catch (e) {
+      throw Exception('Connection error: Unable to fetch live price for ${pair.displayName} on Toobit: $e');
     }
 
     throw Exception('Connection error: Unable to fetch live price for ${pair.displayName} on Toobit');
