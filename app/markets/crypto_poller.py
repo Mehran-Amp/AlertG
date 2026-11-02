@@ -11,9 +11,12 @@ Executes Stage A background bulk price polling for active crypto exchanges:
 4. Feeds the in-memory Price Snapshot Store with zero latency overhead.
 """
 
+import os
+import fcntl
 import asyncio
 import logging
 import time
+from collections import deque
 from typing import Dict, Set, Optional, Any
 
 import httpx
@@ -42,15 +45,50 @@ DEFAULT_POLL_CADENCES: Dict[str, float] = {
 GRACE_PERIOD_SECONDS = 60.0
 MAX_BACKOFF_SECONDS = 30.0
 
+# Rolling window of last 200 poll latencies for percentiles calculation (p50 / p95)
+_POLL_LATENCY_HISTORY = deque(maxlen=200)
+
+
+def record_poll_latency(latency_ms: float) -> None:
+    """Records a single poll latency in milliseconds."""
+    if latency_ms and latency_ms > 0:
+        _POLL_LATENCY_HISTORY.append(float(latency_ms))
+
+
+def get_crypto_latency_percentiles() -> Dict[str, Any]:
+    """Calculates p50 and p95 latency percentiles from rolling window."""
+    if not _POLL_LATENCY_HISTORY:
+        return {
+            "p50_ms": 0.0,
+            "p95_ms": 0.0,
+            "samples": 0,
+            "active_pollers": len(CRYPTO_POLLER._tasks) if hasattr(CRYPTO_POLLER, "_tasks") else 0,
+            "is_leader": getattr(CRYPTO_POLLER, "_is_leader", False)
+        }
+    sorted_samples = sorted(_POLL_LATENCY_HISTORY)
+    n = len(sorted_samples)
+    p50_idx = int(0.50 * n)
+    p95_idx = min(int(0.95 * n), n - 1)
+    return {
+        "p50_ms": round(sorted_samples[p50_idx], 2),
+        "p95_ms": round(sorted_samples[p95_idx], 2),
+        "samples": n,
+        "active_pollers": len(CRYPTO_POLLER._tasks) if hasattr(CRYPTO_POLLER, "_tasks") else 0,
+        "is_leader": getattr(CRYPTO_POLLER, "_is_leader", False)
+    }
+
 
 class CryptoPollerSupervisor:
     """
     Supervises background polling tasks for all active crypto exchanges.
     Ensures demand-driven execution, rate-limiting, and error isolation.
+    Enforces Singleton Poller Guard across worker processes (Rule R9).
     """
 
     def __init__(self):
         self._running = False
+        self._is_leader = False
+        self._lock_file = None
         self._tasks: Dict[str, asyncio.Task] = {}
         self._in_flight: Set[str] = set()
         self._last_needed_at: Dict[str, float] = {}
@@ -107,6 +145,7 @@ class CryptoPollerSupervisor:
             if batch_res.prices and batch_res.error_code in ("OK", None):
                 # Reset backoff on success
                 self._backoff[ex] = 0.0
+                record_poll_latency(latency_ms)
                 update_exchange_snapshot(
                     exchange_id=ex,
                     prices=batch_res.prices,
@@ -116,11 +155,14 @@ class CryptoPollerSupervisor:
                     error=None,
                 )
             else:
-                # Handle error and apply backoff
+                # Handle error and apply backoff (honoring Retry-After if provided)
                 err_code = batch_res.error_code or "NO_PRICE"
                 status = "PROVIDER_BLOCKED" if "BLOCK" in err_code else err_code
-                cur_backoff = self._backoff.get(ex, 0.0)
-                next_backoff = min(MAX_BACKOFF_SECONDS, max(1.0, cur_backoff * 2.0))
+                if getattr(batch_res, "retry_after", None) and batch_res.retry_after > 0:
+                    next_backoff = min(MAX_BACKOFF_SECONDS, max(1.0, float(batch_res.retry_after)))
+                else:
+                    cur_backoff = self._backoff.get(ex, 0.0)
+                    next_backoff = min(MAX_BACKOFF_SECONDS, max(1.0, cur_backoff * 2.0))
                 self._backoff[ex] = next_backoff
 
                 update_exchange_snapshot(
@@ -189,16 +231,51 @@ class CryptoPollerSupervisor:
 
             await asyncio.sleep(2.0)
 
+    def _acquire_leader_lock(self) -> bool:
+        """Acquires exclusive non-blocking file lock to enforce Singleton Poller (Rule R9)."""
+        data_dir = getattr(config, "DATA_DIR", ".")
+        lock_path = os.path.join(data_dir, "crypto_poller.lock")
+        try:
+            self._lock_file = open(lock_path, "w")
+            fcntl.flock(self._lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            self._lock_file.write(f"{os.getpid()}\n")
+            self._lock_file.flush()
+            self._is_leader = True
+            return True
+        except (BlockingIOError, OSError):
+            self._is_leader = False
+            if self._lock_file:
+                try:
+                    self._lock_file.close()
+                except Exception:
+                    pass
+                self._lock_file = None
+            return False
+
+    def _release_leader_lock(self) -> None:
+        """Releases the leader lock and closes lock file."""
+        if self._lock_file:
+            try:
+                fcntl.flock(self._lock_file, fcntl.LOCK_UN)
+                self._lock_file.close()
+            except Exception:
+                pass
+            self._lock_file = None
+        self._is_leader = False
+
     def start(self) -> None:
-        """Starts the background poller supervisor."""
+        """Starts the background poller supervisor if this worker is leader."""
         if self._running:
+            return
+        if not self._acquire_leader_lock():
+            logger.info("🟡 [Crypto Poller] Standby worker: lock held by another process (Singleton R9).")
             return
         self._running = True
         self._supervisor_task = asyncio.create_task(self._supervisor_loop())
-        logger.info("🟢 [Crypto Poller Supervisor] Started.")
+        logger.info("🟢 [Crypto Poller Supervisor] Started (Leader).")
 
     def stop(self) -> None:
-        """Gracefully stops all background polling tasks."""
+        """Gracefully stops all background polling tasks and releases leader lock."""
         self._running = False
         if self._supervisor_task and not self._supervisor_task.done():
             self._supervisor_task.cancel()
@@ -207,6 +284,7 @@ class CryptoPollerSupervisor:
                 task.cancel()
         self._tasks.clear()
         self._in_flight.clear()
+        self._release_leader_lock()
         logger.info("🔴 [Crypto Poller Supervisor] Stopped.")
 
 

@@ -56,6 +56,8 @@ class BatchPriceResult:
     source: str = ""
     error: Optional[str] = None
     error_code: Optional[str] = None  # 'OK' | 'RATE_LIMITED' | 'PROVIDER_BLOCKED' | 'TIMEOUT' | 'PROVIDER_ERROR' | 'INVALID_RESPONSE'
+    http_status: Optional[int] = None
+    retry_after: Optional[float] = None
 
 
 @dataclass
@@ -291,12 +293,22 @@ class BaseExchangeAdapter(ABC):
                 resp_headers = getattr(resp, "headers", {})
                 resp_text = getattr(resp, "text", "")
                 err_code, err_msg = classify_http_error(status_code, resp_text, resp_headers)
+                retry_after_val = None
+                if resp_headers:
+                    ra = resp_headers.get("retry-after") or (resp_headers.get("Retry-After") if hasattr(resp_headers, "get") else None)
+                    if ra is not None:
+                        try:
+                            retry_after_val = float(ra)
+                        except (ValueError, TypeError):
+                            retry_after_val = None
                 record_provider_metric(self.provider_key, "errors", status_code=status_code)
                 return BatchPriceResult(
                     prices={},
                     source=self.display_name,
                     error=err_msg,
-                    error_code=err_code
+                    error_code=err_code,
+                    http_status=status_code,
+                    retry_after=retry_after_val
                 )
 
             try:

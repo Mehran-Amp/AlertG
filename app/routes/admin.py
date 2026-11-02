@@ -89,6 +89,14 @@ def get_status_dashboard(format: Optional[str] = None, accept: Optional[str] = H
     except Exception:
         crypto_catalogs_data = {}
 
+    try:
+        from app.markets.crypto_poller import get_crypto_latency_percentiles
+        crypto_latency_stats = get_crypto_latency_percentiles()
+        METRICS["crypto_poll_p50_ms"] = crypto_latency_stats.get("p50_ms", 0.0)
+        METRICS["crypto_poll_p95_ms"] = crypto_latency_stats.get("p95_ms", 0.0)
+    except Exception:
+        crypto_latency_stats = {"p50_ms": 0.0, "p95_ms": 0.0, "samples": 0}
+
     wants_json = (format == "json") or (isinstance(accept, str) and "application/json" in accept and format != "html")
     if wants_json:
         return JSONResponse({
@@ -99,6 +107,9 @@ def get_status_dashboard(format: Optional[str] = None, accept: Optional[str] = H
             "providers": providers_status,
             "last_catalog_sync": last_sync,
             "crypto_catalogs": crypto_catalogs_data,
+            "crypto_latency": crypto_latency_stats,
+            "crypto_poll_p50_ms": crypto_latency_stats.get("p50_ms", 0.0),
+            "crypto_poll_p95_ms": crypto_latency_stats.get("p95_ms", 0.0),
             "failing_symbols": {
                 "count": len(failing_list),
                 "items": failing_list
