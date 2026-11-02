@@ -151,6 +151,31 @@ def setup_scheduler_jobs(sched):
     except Exception as e:
         logger.warning(f"⚠️ [Scheduler] Could not register crypto_catalog_sync_job: {e}")
 
+    # Daily Automated Crypto Exchange Self-Test Job (Phase 8 / Micro-phase F-4)
+    try:
+        from app.markets.crypto_selftest import run_daily_crypto_selftest
+        def _crypto_selftest_job():
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    loop.create_task(run_daily_crypto_selftest(notify_admin=True))
+                else:
+                    loop.run_until_complete(run_daily_crypto_selftest(notify_admin=True))
+            except Exception as ex:
+                logger.warning(f"⚠️ [Scheduler] crypto_selftest_daily_job failed: {ex}")
+
+        sched.add_job(
+            _crypto_selftest_job,
+            'interval',
+            hours=24,
+            max_instances=1,
+            coalesce=True,
+            misfire_grace_time=3600,
+            id='crypto_selftest_daily_job'
+        )
+    except Exception as e:
+        logger.warning(f"⚠️ [Scheduler] Could not register crypto_selftest_daily_job: {e}")
+
 _SERVER_BG_TASKS: Set[asyncio.Task] = set()
 
 async def _run_background_market_refresh(client: httpx.AsyncClient):

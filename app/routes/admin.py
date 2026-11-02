@@ -1069,6 +1069,23 @@ def toggle_feature_flag(flag: str, enabled: Optional[bool] = None):
 
 
 
+@router.get("/api/admin/crypto/selftest", dependencies=ADMIN_DEP)
+@router.get("/admin/crypto/selftest", dependencies=ADMIN_DEP)
+def get_crypto_selftest_status():
+    """Returns the latest automated crypto self-test audit report."""
+    from app.markets.crypto_selftest import get_latest_crypto_selftest
+    return get_latest_crypto_selftest()
+
+
+@router.post("/api/admin/crypto/selftest", dependencies=ADMIN_DEP)
+@router.post("/admin/crypto/selftest", dependencies=ADMIN_DEP)
+async def trigger_crypto_selftest(notify_admin: bool = True):
+    """Triggers an on-demand full crypto exchange self-test audit and alerting."""
+    from app.markets.crypto_selftest import run_daily_crypto_selftest
+    res = await run_daily_crypto_selftest(notify_admin=notify_admin)
+    return res
+
+
 @router.post("/api/admin/test/alert-push", dependencies=ADMIN_DEP)
 async def admin_test_alert_push(
     user_id: str = "test_user",
