@@ -57,11 +57,31 @@ def isolate_test_environment(tmp_path, monkeypatch, request):
                 return f.read()
         return None
 
-    root_sentinels = {
-        "catalog.json": _read_bytes("catalog.json"),
-        "sync_runs.json": _read_bytes("sync_runs.json"),
-        "alerts_data.json": _read_bytes("alerts_data.json"),
-    }
+    # Detect if a live server instance is actively running in background (port 8000 or PID)
+    def _is_live_server_running():
+        if os.path.exists("server.pid"):
+            try:
+                with open("server.pid", "r") as pf:
+                    pid = int(pf.read().strip())
+                os.kill(pid, 0)
+                return True
+            except Exception:
+                pass
+        try:
+            import socket
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(0.05)
+                if s.connect_ex(('127.0.0.1', 8000)) == 0:
+                    return True
+        except Exception:
+            pass
+        return False
+
+    sentinel_files = ["catalog.json", "sync_runs.json"]
+    if not _is_live_server_running():
+        sentinel_files.append("alerts_data.json")
+
+    root_sentinels = {fn: _read_bytes(fn) for fn in sentinel_files}
 
     yield
 
