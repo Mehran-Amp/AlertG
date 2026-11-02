@@ -171,7 +171,7 @@ class CryptoPollerSupervisor:
                     status=status,
                     latency_ms=latency_ms,
                     as_of=now_ts,
-                    error=batch_res.error_message or f"HTTP error {batch_res.http_status}",
+                    error=batch_res.error or f"HTTP error {batch_res.http_status}",
                 )
 
         except Exception as e:
