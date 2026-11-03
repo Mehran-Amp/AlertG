@@ -7,6 +7,7 @@ import '../../../core/utils/format_utils.dart';
 import '../../alert_engine/models/alert_rule.dart';
 import '../../alert_engine/repositories/json_alert_rule_repository.dart';
 import '../../exchanges/base/crypto_catalog_data.dart';
+import '../../exchanges/base/crypto_catalog_service.dart';
 import '../../exchanges/base/currency_pair.dart';
 import '../../exchanges/base/exchange.dart';
 import '../../exchanges/base/exchange_category.dart';
@@ -289,26 +290,29 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
     if (_selectedExchange == null) return;
     setState(() => _isLoadingPairs = true);
     try {
-      final pairs = forceRefresh
+      var pairs = forceRefresh
           ? await widget.registry.refreshCurrencyPairs(_selectedExchange!.id)
           : await widget.registry.getCurrencyPairs(_selectedExchange!.id);
+      if (pairs.isEmpty) {
+        pairs = await CryptoCatalogService.instance.fetchPairsForExchange(
+          _selectedExchange!.id,
+          forceRefresh: forceRefresh,
+        );
+      }
       if (mounted) {
         setState(() {
-          _exchangePairs = pairs.isNotEmpty
-              ? pairs
-              : CryptoCatalogData.buildPairs(
-                  quoteCurrencies: [_selectedExchange!.defaultCounterCurrency],
-                );
+          _exchangePairs = pairs;
           _isLoadingPairs = false;
         });
       }
     } catch (_) {
       if (mounted) {
-        final fallback = CryptoCatalogData.buildPairs(
-          quoteCurrencies: [_selectedExchange?.defaultCounterCurrency ?? 'USDT'],
+        final cached = await CryptoCatalogService.instance.fetchPairsForExchange(
+          _selectedExchange!.id,
+          forceRefresh: false,
         );
         setState(() {
-          _exchangePairs = fallback;
+          _exchangePairs = cached;
           _isLoadingPairs = false;
         });
       }
@@ -583,11 +587,7 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
       }
     } catch (_) {
       if (mounted) {
-        final fallback = CryptoCatalogData.buildPairs(
-          quoteCurrencies: [_selectedIranExchange?.defaultCounterCurrency ?? 'TMN', 'USDT'],
-        );
         setState(() {
-          _iranExchangePairs = fallback;
           _isLoadingIranPairs = false;
         });
       }

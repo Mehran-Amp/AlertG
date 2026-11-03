@@ -62,7 +62,7 @@ class OurbitExchange implements Exchange {
       }
     } catch (_) {}
 
-    return CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT', 'BTC']);
+    return CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']);
   }
 
   @override

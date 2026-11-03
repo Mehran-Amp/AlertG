@@ -62,7 +62,7 @@ class ToobitExchange implements Exchange {
       }
     } catch (_) {}
 
-    return CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT', 'USDC', 'BTC']);
+    return CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']);
   }
 
   @override

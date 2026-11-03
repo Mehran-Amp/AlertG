@@ -62,7 +62,7 @@ class KCEXExchange implements Exchange {
       }
     } catch (_) {}
 
-    return CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT', 'USDC']);
+    return CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']);
   }
 
   @override
