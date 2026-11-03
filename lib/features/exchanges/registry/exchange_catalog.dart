@@ -1,4 +1,3 @@
-import '../base/crypto_catalog_data.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
 import '../base/iranian_exchange_adapter.dart';
@@ -100,7 +99,6 @@ class ExchangeCatalog {
         defaultCounterCurrency: 'USDT',
         pairsUrl: 'https://api.huobi.pro/v1/common/symbols',
         tickerUrlTemplate: 'https://api.huobi.pro/market/detail/merged?symbol={BASE}{QUOTE}',
-        fallbackPairs: CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']),
       ),
       StandardRestExchange(
         id: 'bitfinex',
@@ -109,7 +107,6 @@ class ExchangeCatalog {
         countryBadge: '🌐 Global',
         defaultCounterCurrency: 'USD',
         tickerUrlTemplate: 'https://api-pub.bitfinex.com/v2/ticker/t{BASE_UPPER}{QUOTE_UPPER}',
-        fallbackPairs: CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']),
       ),
       StandardRestExchange(
         id: 'bitstamp',
@@ -119,7 +116,6 @@ class ExchangeCatalog {
         defaultCounterCurrency: 'USD',
         pairsUrl: 'https://www.bitstamp.net/api/v2/trading-pairs-info/',
         tickerUrlTemplate: 'https://www.bitstamp.net/api/v2/ticker/{BASE}{QUOTE}/',
-        fallbackPairs: CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']),
       ),
       StandardRestExchange(
         id: 'gemini',
@@ -129,7 +125,6 @@ class ExchangeCatalog {
         defaultCounterCurrency: 'USD',
         pairsUrl: 'https://api.gemini.com/v1/symbols',
         tickerUrlTemplate: 'https://api.gemini.com/v1/pubticker/{BASE}{QUOTE}',
-        fallbackPairs: CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']),
       ),
       StandardRestExchange(
         id: 'poloniex',
@@ -138,7 +133,6 @@ class ExchangeCatalog {
         countryBadge: '🌐 Global',
         defaultCounterCurrency: 'USDT',
         tickerUrlTemplate: 'https://api.poloniex.com/markets/{BASE_UPPER}_{QUOTE_UPPER}/ticker24h',
-        fallbackPairs: CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']),
       ),
       StandardRestExchange(
         id: 'bitmart',
@@ -147,7 +141,6 @@ class ExchangeCatalog {
         countryBadge: '🌐 Global',
         defaultCounterCurrency: 'USDT',
         tickerUrlTemplate: 'https://api-cloud.bitmart.com/spot/quotation/v3/ticker?symbol={BASE_UPPER}_{QUOTE_UPPER}',
-        fallbackPairs: CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']),
       ),
       StandardRestExchange(
         id: 'cryptocom',
@@ -155,7 +148,6 @@ class ExchangeCatalog {
         category: ExchangeCategory.tier1,
         countryBadge: '🌐 Global',
         defaultCounterCurrency: 'USDT',
-        fallbackPairs: CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']),
       ),
       StandardRestExchange(
         id: 'upbit',
@@ -164,7 +156,6 @@ class ExchangeCatalog {
         countryBadge: '🇰🇷 South Korea',
         defaultCounterCurrency: 'KRW',
         tickerUrlTemplate: 'https://api.upbit.com/v1/ticker?markets={QUOTE_UPPER}-{BASE_UPPER}',
-        fallbackPairs: CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']),
       ),
       StandardRestExchange(
         id: 'bithumb',
@@ -172,7 +163,6 @@ class ExchangeCatalog {
         category: ExchangeCategory.asia,
         countryBadge: '🇰🇷 South Korea',
         defaultCounterCurrency: 'USDT',
-        fallbackPairs: CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']),
       ),
       StandardRestExchange(
         id: 'bitflyer',
@@ -180,7 +170,6 @@ class ExchangeCatalog {
         category: ExchangeCategory.asia,
         countryBadge: '🇯🇵 Japan',
         defaultCounterCurrency: 'USD',
-        fallbackPairs: CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']),
       ),
       StandardRestExchange(
         id: 'phemex',
@@ -189,7 +178,6 @@ class ExchangeCatalog {
         countryBadge: '🌐 Global',
         defaultCounterCurrency: 'USDT',
         tickerUrlTemplate: 'https://api.phemex.com/spot/ticker/24hr?symbol=s{BASE_UPPER}{QUOTE_UPPER}',
-        fallbackPairs: CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']),
       ),
       StandardRestExchange(
         id: 'woox',
@@ -197,7 +185,6 @@ class ExchangeCatalog {
         category: ExchangeCategory.tier1,
         countryBadge: '🌐 Global',
         defaultCounterCurrency: 'USDT',
-        fallbackPairs: CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']),
       ),
       StandardRestExchange(
         id: 'deribit',
@@ -205,7 +192,6 @@ class ExchangeCatalog {
         category: ExchangeCategory.tier1,
         countryBadge: '🌐 Global',
         defaultCounterCurrency: 'USD',
-        fallbackPairs: CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']),
       ),
       StandardRestExchange(
         id: 'bitmex',
@@ -215,7 +201,6 @@ class ExchangeCatalog {
         defaultCounterCurrency: 'USDT',
         pairsUrl: 'https://www.bitmex.com/api/v1/instrument?filter=%7B%22typ%22%3A%22FFWCSX%22%7D',
         tickerUrlTemplate: 'https://www.bitmex.com/api/v1/instrument?symbol={BITMEX_SYMBOL}',
-        fallbackPairs: CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']),
       ),
       StandardRestExchange(
         id: 'probit',
@@ -223,7 +208,6 @@ class ExchangeCatalog {
         category: ExchangeCategory.tier1,
         countryBadge: '🌐 Global',
         defaultCounterCurrency: 'USDT',
-        fallbackPairs: CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']),
       ),
       StandardRestExchange(
         id: 'ascendex',
@@ -231,7 +215,6 @@ class ExchangeCatalog {
         category: ExchangeCategory.tier1,
         countryBadge: '🌐 Global',
         defaultCounterCurrency: 'USDT',
-        fallbackPairs: CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']),
       ),
       StandardRestExchange(
         id: 'bitrue',
@@ -239,7 +222,6 @@ class ExchangeCatalog {
         category: ExchangeCategory.tier1,
         countryBadge: '🌐 Global',
         defaultCounterCurrency: 'USDT',
-        fallbackPairs: CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']),
       ),
       StandardRestExchange(
         id: 'hitbtc',
@@ -248,7 +230,6 @@ class ExchangeCatalog {
         countryBadge: '🌐 Global',
         defaultCounterCurrency: 'USDT',
         tickerUrlTemplate: 'https://api.hitbtc.com/api/3/public/ticker/{BASE_UPPER}{QUOTE_UPPER}',
-        fallbackPairs: CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']),
       ),
       StandardRestExchange(
         id: 'bitso',
@@ -256,7 +237,6 @@ class ExchangeCatalog {
         category: ExchangeCategory.americas,
         countryBadge: '🇲🇽 LatAm',
         defaultCounterCurrency: 'USD',
-        fallbackPairs: CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']),
       ),
       StandardRestExchange(
         id: 'indodax',
@@ -264,7 +244,6 @@ class ExchangeCatalog {
         category: ExchangeCategory.asia,
         countryBadge: '🇮🇩 Indonesia',
         defaultCounterCurrency: 'USDT',
-        fallbackPairs: CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']),
       ),
       StandardRestExchange(
         id: 'paribu',
@@ -272,7 +251,6 @@ class ExchangeCatalog {
         category: ExchangeCategory.europe,
         countryBadge: '🇹🇷 Turkey',
         defaultCounterCurrency: 'USDT',
-        fallbackPairs: CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']),
       ),
       StandardRestExchange(
         id: 'btcturk',
@@ -280,7 +258,6 @@ class ExchangeCatalog {
         category: ExchangeCategory.europe,
         countryBadge: '🇹🇷 Turkey',
         defaultCounterCurrency: 'USDT',
-        fallbackPairs: CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']),
       ),
       StandardRestExchange(
         id: 'bitvavo',
@@ -289,7 +266,6 @@ class ExchangeCatalog {
         countryBadge: '🇳🇱 Europe',
         defaultCounterCurrency: 'EUR',
         tickerUrlTemplate: 'https://api.bitvavo.com/v2/ticker/price?market={BASE_UPPER}-{QUOTE_UPPER}',
-        fallbackPairs: CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']),
       ),
 
     ];

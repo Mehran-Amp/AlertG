@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import '../base/crypto_catalog_data.dart';
+import '../base/crypto_catalog_service.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
@@ -51,11 +51,15 @@ class BingXExchange implements Exchange {
             final symbol = (item['symbol'] ?? '').toString();
             final parts = symbol.split('-');
             if (parts.length == 2) {
-              pairs.add(CurrencyPair(
-                baseCurrency: parts[0].toUpperCase(),
-                counterCurrency: parts[1].toUpperCase(),
-                marketSymbol: symbol,
-              ));
+              final base = parts[0].toUpperCase();
+              final quote = parts[1].toUpperCase();
+              if (quote == 'USDT' && base.isNotEmpty) {
+                pairs.add(CurrencyPair(
+                  baseCurrency: base,
+                  counterCurrency: quote,
+                  marketSymbol: symbol,
+                ));
+              }
             }
           }
         }
@@ -63,10 +67,16 @@ class BingXExchange implements Exchange {
       }
     } catch (_) {}
 
-    return CryptoCatalogData.buildPairs(
-      quoteCurrencies: ['USDT', 'USDC', 'BTC'],
-      symbolFormatter: (b, q) => '$b-$q',
-    );
+    // Rule R4: Last successfully cached catalog of BingX on device disk
+    try {
+      final diskCached = await CryptoCatalogService.instance.fetchPairsForExchange(
+        id,
+        forceRefresh: false,
+      );
+      if (diskCached.isNotEmpty) return diskCached;
+    } catch (_) {}
+
+    return [];
   }
 
   @override

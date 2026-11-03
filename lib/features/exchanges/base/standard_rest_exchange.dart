@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import '../base/crypto_catalog_data.dart';
+import '../base/crypto_catalog_service.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
@@ -33,7 +33,7 @@ class StandardRestExchange implements Exchange {
     required this.defaultCounterCurrency,
     this.tickerUrlTemplate,
     this.pairsUrl,
-    required this.fallbackPairs,
+    this.fallbackPairs = const [],
     Dio? dio,
   }) : _dio = dio ??
             Dio(BaseOptions(
@@ -130,11 +130,19 @@ class StandardRestExchange implements Exchange {
       } catch (_) {}
     }
 
-    if (fallbackPairs.isNotEmpty) {
-      return fallbackPairs;
-    }
+    // Rule R4: The ONLY permitted fallback is the last successfully cached
+    // catalog of THIS EXACT EXCHANGE stored on device disk, never a static list.
+    try {
+      final diskCached = await CryptoCatalogService.instance.fetchPairsForExchange(
+        id,
+        forceRefresh: false,
+      );
+      if (diskCached.isNotEmpty) {
+        return diskCached;
+      }
+    } catch (_) {}
 
-    return CryptoCatalogData.buildPairs(quoteCurrencies: [defaultCounterCurrency]);
+    return [];
   }
 
   @override
