@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import '../base/crypto_catalog_data.dart';
+import '../base/crypto_catalog_service.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
@@ -49,7 +49,7 @@ class ToobitExchange implements Exchange {
             final base = (item['baseAsset'] ?? '').toString().toUpperCase();
             final quote = (item['quoteAsset'] ?? '').toString().toUpperCase();
             final symbol = (item['symbol'] ?? '$base$quote').toString().toUpperCase();
-            if (base.isNotEmpty && quote.isNotEmpty) {
+            if (base.isNotEmpty && quote == 'USDT') {
               pairs.add(CurrencyPair(
                 baseCurrency: base,
                 counterCurrency: quote,
@@ -62,7 +62,16 @@ class ToobitExchange implements Exchange {
       }
     } catch (_) {}
 
-    return CryptoCatalogData.buildPairs(quoteCurrencies: ['USDT']);
+    // Rule R4: Last successfully cached catalog of Toobit on device disk
+    try {
+      final diskCached = await CryptoCatalogService.instance.fetchPairsForExchange(
+        id,
+        forceRefresh: false,
+      );
+      if (diskCached.isNotEmpty) return diskCached;
+    } catch (_) {}
+
+    return [];
   }
 
   @override

@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import '../base/crypto_catalog_data.dart';
+import '../base/crypto_catalog_service.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
@@ -39,20 +39,26 @@ class CoinbaseExchange implements Exchange {
       final response = await _dio.get('/products');
       final data = response.data as List;
       final pairs = data
-          .where((item) => item['status'] == 'online')
+          .where((item) => item['status'] == 'online' && (item['quote_currency']?.toString().toUpperCase() == 'USDT'))
           .map((item) => CurrencyPair(
                 baseCurrency: (item['base_currency'] as String).toUpperCase(),
-                counterCurrency: (item['quote_currency'] as String).toUpperCase(),
+                counterCurrency: 'USDT',
                 marketSymbol: (item['id'] as String).toUpperCase(),
               ))
           .toList();
       if (pairs.isNotEmpty) return pairs;
     } catch (_) {}
 
-    return CryptoCatalogData.buildPairs(
-      quoteCurrencies: ['USD', 'USDT', 'EUR'],
-      symbolFormatter: (b, q) => '$b-$q',
-    );
+    // Rule R4: Last successfully cached catalog of Coinbase on device disk
+    try {
+      final diskCached = await CryptoCatalogService.instance.fetchPairsForExchange(
+        id,
+        forceRefresh: false,
+      );
+      if (diskCached.isNotEmpty) return diskCached;
+    } catch (_) {}
+
+    return [];
   }
 
   @override
