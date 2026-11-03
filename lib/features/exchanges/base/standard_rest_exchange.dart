@@ -20,8 +20,10 @@ class StandardRestExchange implements Exchange {
   @override
   final String defaultCounterCurrency;
 
+  final bool? _isAlertCapableOverride;
+
   @override
-  bool get isAlertCapable => tickerUrlTemplate != null && tickerUrlTemplate!.isNotEmpty;
+  bool get isAlertCapable => _isAlertCapableOverride ?? (tickerUrlTemplate != null && tickerUrlTemplate!.isNotEmpty);
 
   final String? tickerUrlTemplate;
   final String? pairsUrl;
@@ -37,8 +39,10 @@ class StandardRestExchange implements Exchange {
     this.tickerUrlTemplate,
     this.pairsUrl,
     this.fallbackPairs = const [],
+    bool? isAlertCapable,
     Dio? dio,
-  }) : _dio = dio ??
+  })  : _isAlertCapableOverride = isAlertCapable,
+        _dio = dio ??
             Dio(BaseOptions(
               connectTimeout: const Duration(seconds: 8),
               receiveTimeout: const Duration(seconds: 8),

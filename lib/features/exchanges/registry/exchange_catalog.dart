@@ -186,7 +186,24 @@ class ExchangeCatalog {
         countryBadge: '🌐 Global',
         defaultCounterCurrency: 'USDT',
       ),
-
+      StandardRestExchange(
+        id: 'deribit',
+        name: 'Deribit',
+        category: ExchangeCategory.tier1,
+        countryBadge: '🌐 Global',
+        defaultCounterCurrency: 'USD',
+        isAlertCapable: false,
+      ),
+      StandardRestExchange(
+        id: 'bitmex',
+        name: 'BitMEX',
+        category: ExchangeCategory.tier1,
+        countryBadge: '🌐 Global',
+        defaultCounterCurrency: 'USDT',
+        pairsUrl: 'https://www.bitmex.com/api/v1/instrument?filter=%7B%22typ%22%3A%22FFWCSX%22%7D',
+        tickerUrlTemplate: 'https://www.bitmex.com/api/v1/instrument?symbol={BITMEX_SYMBOL}',
+        isAlertCapable: false,
+      ),
       StandardRestExchange(
         id: 'probit',
         name: 'ProBit',
