@@ -20,6 +20,9 @@ class StandardRestExchange implements Exchange {
   @override
   final String defaultCounterCurrency;
 
+  @override
+  bool get isAlertCapable => tickerUrlTemplate != null && tickerUrlTemplate!.isNotEmpty;
+
   final String? tickerUrlTemplate;
   final String? pairsUrl;
   final List<CurrencyPair> fallbackPairs;

@@ -21,6 +21,9 @@ abstract class Exchange {
   /// Default counter currency typically paired on this exchange (e.g. "USDT", "USD")
   String get defaultCounterCurrency;
 
+  /// Whether this exchange supports live automated price alerts (Tier A)
+  bool get isAlertCapable => true;
+
   /// Dynamically discovers and fetches all active trading currency pairs from the exchange API
   Future<List<CurrencyPair>> fetchCurrencyPairs();
 

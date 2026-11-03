@@ -1349,8 +1349,24 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
             separatorBuilder: (_, __) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
               final ex = filtered[index];
+              final isCapable = ex.isAlertCapable;
               return InkWell(
-                onTap: () => _onExchangeChosen(ex),
+                onTap: () {
+                  if (!isCapable) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          lang == 'fa'
+                              ? 'صرافی ${ex.name} در حال حاضر فقط جهت نمایش قیمت فعال است و امکان ساخت هشدار ندارد.'
+                              : '${ex.name} is currently display-only (price tracking only, alerts not available).',
+                        ),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                    return;
+                  }
+                  _onExchangeChosen(ex);
+                },
                 borderRadius: BorderRadius.circular(14),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -1365,13 +1381,18 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
                         width: 36,
                         height: 36,
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                          color: isCapable
+                              ? theme.colorScheme.primary.withValues(alpha: 0.12)
+                              : Colors.amber.withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                         ),
                         alignment: Alignment.center,
                         child: Text(
                           ex.name.substring(0, 1).toUpperCase(),
-                          style: TextStyle(fontWeight: FontWeight.bold, color: theme.colorScheme.primary),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: isCapable ? theme.colorScheme.primary : Colors.amber[800],
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -1379,7 +1400,36 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(ex.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: theme.colorScheme.onSurface)),
+                            Row(
+                              children: [
+                                Text(
+                                  ex.name,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: theme.colorScheme.onSurface,
+                                  ),
+                                ),
+                                if (!isCapable) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.amber.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      lang == 'fa' ? 'فقط قیمت' : 'Price Only',
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.amber[900],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
                             const SizedBox(height: 2),
                             Text(
                               '${ex.countryBadge} · ${ex.defaultCounterCurrency}',
@@ -1388,7 +1438,13 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
                           ],
                         ),
                       ),
-                      Icon(Icons.arrow_forward_ios_rounded, size: 14, color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
+                      Icon(
+                        isCapable ? Icons.arrow_forward_ios_rounded : Icons.info_outline_rounded,
+                        size: 14,
+                        color: isCapable
+                            ? theme.colorScheme.onSurface.withValues(alpha: 0.4)
+                            : Colors.amber[700],
+                      ),
                     ],
                   ),
                 ),
