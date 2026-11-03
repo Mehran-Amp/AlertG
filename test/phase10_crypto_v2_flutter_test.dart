@@ -18,6 +18,10 @@ import 'package:bitcoin_checker/features/exchanges/kucoin/kucoin_exchange.dart';
 import 'package:bitcoin_checker/features/exchanges/lbank/lbank_exchange.dart';
 import 'package:bitcoin_checker/features/exchanges/mexc/mexc_exchange.dart';
 import 'package:bitcoin_checker/features/exchanges/okx/okx_exchange.dart';
+import 'package:bitcoin_checker/features/exchanges/kcex/kcex_exchange.dart';
+import 'package:bitcoin_checker/features/exchanges/toobit/toobit_exchange.dart';
+import 'package:bitcoin_checker/features/exchanges/xt/xt_exchange.dart';
+import 'package:bitcoin_checker/features/exchanges/ourbit/ourbit_exchange.dart';
 import 'package:bitcoin_checker/features/exchanges/registry/exchange_catalog.dart';
 import 'package:bitcoin_checker/features/exchanges/registry/exchange_registry.dart';
 
@@ -61,6 +65,12 @@ void main() {
 
       // 3. Condition evaluator resolves LBank correctly
       expect(ConditionEvaluator.getFormattedExchangeName('lbank'), equals('LBank'));
+
+      // 4. CoinMarketCap and CoinGecko must not be present in international crypto exchanges
+      final hasCMC = international.any((e) => e.id.toLowerCase() == 'coinmarketcap');
+      final hasCG = international.any((e) => e.id.toLowerCase() == 'coingecko');
+      expect(hasCMC, isFalse, reason: 'CoinMarketCap must be removed from international crypto picker');
+      expect(hasCG, isFalse, reason: 'CoinGecko must be removed from international crypto picker');
     });
   });
 
@@ -94,6 +104,14 @@ void main() {
       final bitget = BitgetExchange();
       final pair = CurrencyPair(baseCurrency: 'NONEXISTENTCOIN999', counterCurrency: 'USDT', marketSymbol: 'NONEXISTENTCOIN999USDT');
       expect(() async => await bitget.fetchTicker(pair), throwsA(isA<Exception>()));
+    });
+
+    test('KCEX, Toobit, XT, Ourbit throw when direct endpoint fails without cross-exchange fallback', () async {
+      final pair = CurrencyPair(baseCurrency: 'FAKECRYPTO999', counterCurrency: 'USDT', marketSymbol: 'FAKECRYPTO999USDT');
+      expect(() async => await KCEXExchange().fetchTicker(pair), throwsA(isA<Exception>()));
+      expect(() async => await ToobitExchange().fetchTicker(pair), throwsA(isA<Exception>()));
+      expect(() async => await XTExchange().fetchTicker(pair), throwsA(isA<Exception>()));
+      expect(() async => await OurbitExchange().fetchTicker(pair), throwsA(isA<Exception>()));
     });
   });
 
