@@ -22,6 +22,7 @@ from app.markets.adapters.kraken import KrakenAdapter
 from app.markets.adapters.bybit import BybitAdapter
 from app.markets.adapters.bitget import BitgetAdapter
 from app.markets.adapters.tabdeal import TabdealAdapter
+from app.markets.adapters.htx import HTXAdapter
 
 __all__ = [
     "BaseExchangeAdapter",
@@ -41,4 +42,5 @@ __all__ = [
     "BybitAdapter",
     "BitgetAdapter",
     "TabdealAdapter",
+    "HTXAdapter",
 ]

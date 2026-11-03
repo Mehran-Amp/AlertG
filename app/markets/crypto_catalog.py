@@ -112,6 +112,9 @@ def get_exchange_adapter(exchange_id: str):
     elif ex == "bitget":
         from app.markets.adapters.bitget import BitgetAdapter
         return BitgetAdapter()
+    elif ex in ("htx", "huobi"):
+        from app.markets.adapters.htx import HTXAdapter
+        return HTXAdapter()
     elif ex == "tabdeal":
         from app.markets.adapters.tabdeal import TabdealAdapter
         return TabdealAdapter()

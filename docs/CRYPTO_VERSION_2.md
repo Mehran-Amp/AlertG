@@ -82,3 +82,18 @@
 - **Phase 10 / F-7:** صرافی‌های ایرانی بر اساس کوت ارز (Quote Currency) و حذف اتکای استاتیک بر نام صرافی.
 - **Phase 11 / F-3:** اسکریپت پاکسازی هشدارهای CoinEx با حالت پیش‌فرض Dry-Run و پشتیبان‌گیری اتمیک.
 - **Phase 12:** نظارت و رول‌اوت نهایی.
+
+---
+
+## ۶. وضعیت میکروفازهای تکمیلی (Micro-Phases G-1 to G-7)
+
+| فاز | شرح اقدامات | وضعیت | شواهد و فایل‌ها |
+|---|---|---|---|
+| **G-1** | حذف فال‌بک استاتیک `buildPairs` از `StandardRestExchange` و جایگزینی با دیسک‌کش | ✅ انجام شد | `standard_rest_exchange.dart`، `crypto_catalog_service.dart` |
+| **G-2** | حذف فال‌بک استاتیک از آداپتورهای مستقل کلاینت (`kcex`, `ourbit`, `toobit`, `coinbase`) | ✅ انجام شد | کامیت `f33e445` روی ۴ فایل آداپتور |
+| **G-3** | انحصار USDT در آداپتورهای `bingx` و `xt` | ✅ انجام شد | `bingx_exchange.dart`، `xt_exchange.dart` |
+| **G-4** | حذف صرافی‌های مشتقه Tier X (`Deribit`, `BitMEX`) و مسدودسازی هشدار برای Tier B (`فقط قیمت`) | ✅ انجام شد | کامیت `4551b81` در `exchange_catalog.dart` و `create_alert_flow.dart` |
+| **G-5** | پاکسازی کامل رشته‌های `coinex` از تمام فایل‌های اجرایی + آماده‌سازی ابزار dry-run | ✅ انجام شد | `telegram.py`, `condition_evaluator.dart`, `lbank.py`, `App.tsx`, `scripts/remove_coinex_alerts.py` |
+| **G-6** | افزودن صرافی **HTX** به رجیستری و آداپتورها (دستیابی به ۱۰ صرافی جهانی اسپات) | ✅ انجام شد | `htx.py`, `crypto_registry.py`, `crypto_strict.py`, `limiter.py`, `test_crypto_adapter_htx.py` |
+| **G-7** | پروب زنده، راستی‌آزمایی پوشش بالای ۹۹٪، گزارش مستندات و تست‌های کامل | ✅ انجام شد | `scripts/probe_crypto_exchanges.py`, `reports/`, ۱۰ صرافی جهانی فعال |
+

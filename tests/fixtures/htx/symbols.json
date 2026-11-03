@@ -1,0 +1,64 @@
+{
+  "status": "ok",
+  "data": [
+    {
+      "base-currency": "btc",
+      "quote-currency": "usdt",
+      "symbol": "btcusdt",
+      "state": "online",
+      "api-trading": "enabled",
+      "min-order-amt": 0.0001,
+      "min-order-value": 1
+    },
+    {
+      "base-currency": "eth",
+      "quote-currency": "usdt",
+      "symbol": "ethusdt",
+      "state": "online",
+      "api-trading": "enabled",
+      "min-order-amt": 0.001,
+      "min-order-value": 1
+    },
+    {
+      "base-currency": "sol",
+      "quote-currency": "usdt",
+      "symbol": "solusdt",
+      "state": "online",
+      "api-trading": "enabled",
+      "min-order-amt": 0.01,
+      "min-order-value": 1
+    },
+    {
+      "base-currency": "1inch",
+      "quote-currency": "usdt",
+      "symbol": "1inchusdt",
+      "state": "online",
+      "api-trading": "enabled",
+      "min-order-amt": 0.1,
+      "min-order-value": 1
+    },
+    {
+      "base-currency": "btc3l",
+      "quote-currency": "usdt",
+      "symbol": "btc3lusdt",
+      "state": "online",
+      "api-trading": "enabled",
+      "min-order-amt": 0.1,
+      "min-order-value": 1
+    },
+    {
+      "base-currency": "luna",
+      "quote-currency": "usdt",
+      "symbol": "lunausdt",
+      "state": "offline",
+      "api-trading": "disabled"
+    },
+    {
+      "base-currency": "btc",
+      "quote-currency": "usdc",
+      "symbol": "btcusdc",
+      "state": "online",
+      "api-trading": "enabled"
+    }
+  ]
+}

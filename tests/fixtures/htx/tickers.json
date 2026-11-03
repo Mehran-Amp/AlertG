@@ -1,0 +1,13 @@
+{
+  "status": "ok",
+  "ts": 1729000000000,
+  "data": [
+    {"symbol": "btcusdt", "close": 68500.5, "open": 67000.0, "high": 69000.0, "low": 66800.0},
+    {"symbol": "ethusdt", "close": 2650.25, "open": 2600.0, "high": 2700.0, "low": 2580.0},
+    {"symbol": "solusdt", "close": 155.80, "open": 150.0, "high": 158.0, "low": 149.0},
+    {"symbol": "1inchusdt", "close": 0.325, "open": 0.31, "high": 0.33, "low": 0.30},
+    {"symbol": "btc3lusdt", "close": 1.25, "open": 1.10, "high": 1.30, "low": 1.05},
+    {"symbol": "zero_usdt", "close": 0.0},
+    {"symbol": "btcusdc", "close": 68505.0}
+  ]
+}

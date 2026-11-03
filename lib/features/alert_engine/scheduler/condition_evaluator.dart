@@ -67,7 +67,6 @@ abstract class ConditionEvaluator {
       case 'gateio':
       case 'gate': return 'Gate.io';
       case 'lbank': return 'LBank';
-      case 'coinex': return 'CoinEx';
       case 'okx': return 'OKX';
       case 'bybit': return 'Bybit';
       case 'bitbarg': return 'BitBarg';

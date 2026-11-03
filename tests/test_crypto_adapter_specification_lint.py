@@ -21,6 +21,14 @@ except ImportError:
     httpx = MagicMock()
     sys.modules['httpx'] = httpx
 
+try:
+    import apscheduler
+except ImportError:
+    apscheduler = MagicMock()
+    sys.modules['apscheduler'] = apscheduler
+    sys.modules['apscheduler.schedulers'] = apscheduler
+    sys.modules['apscheduler.schedulers.asyncio'] = apscheduler
+
 from app.markets.adapters.base import (
     AdapterSpecification,
     validate_adapter_specification,
@@ -35,6 +43,7 @@ from app.markets.adapters import (
     KrakenAdapter,
     BybitAdapter,
     BitgetAdapter,
+    HTXAdapter,
 )
 
 
@@ -51,11 +60,12 @@ class TestCryptoAdapterSpecificationLint(unittest.TestCase):
         KrakenAdapter,
         BybitAdapter,
         BitgetAdapter,
+        HTXAdapter,
     ]
 
     def test_01_all_registered_adapters_have_valid_specification(self):
         """Verifies each adapter class defines a valid AdapterSpecification."""
-        self.assertEqual(len(self.ADAPTER_CLASSES), 9, "Must have exactly 9 adapter classes registered")
+        self.assertEqual(len(self.ADAPTER_CLASSES), 10, "Must have exactly 10 adapter classes registered")
         for cls in self.ADAPTER_CLASSES:
             spec = getattr(cls, 'specification', None)
             self.assertIsNotNone(spec, f"{cls.__name__} missing 'specification' attribute")

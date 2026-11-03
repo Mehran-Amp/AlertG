@@ -10,7 +10,21 @@ import shutil
 import tempfile
 import unittest
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from unittest.mock import MagicMock
+
+try:
+    import httpx
+except ImportError:
+    httpx = MagicMock()
+    sys.modules['httpx'] = httpx
+
+try:
+    import apscheduler
+except ImportError:
+    apscheduler = MagicMock()
+    sys.modules['apscheduler'] = apscheduler
+    sys.modules['apscheduler.schedulers'] = apscheduler
+    sys.modules['apscheduler.schedulers.asyncio'] = apscheduler
 
 from scripts.remove_coinex_alerts import run_coinex_removal, is_coinex_alert
 from app.markets.crypto_validation import validate_crypto_alert

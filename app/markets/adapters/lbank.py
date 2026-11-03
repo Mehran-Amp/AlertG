@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-AlertG — LBank Crypto Exchange Adapter (Sub-phase 4e).
-Complete, production-grade replacement for deprecated CoinEx:
+AlertG — LBank Crypto Exchange Adapter.
+Production-grade LBank Spot adapter:
 1. Market list from https://api.lbank.info/v2/currencyPairs.do (fallback: api.lbkex.com)
 2. Bulk prices from https://api.lbank.info/v2/ticker/24hr.do?symbol=all
 3. Single price from https://api.lbank.info/v2/ticker/24hr.do?symbol={symbol}
@@ -32,7 +32,7 @@ from app.markets.limiter import acquire_provider_slot, record_provider_metric
 
 
 class LBankAdapter(BaseExchangeAdapter):
-    """LBank Spot USDT Market Adapter (CoinEx Replacement)."""
+    """LBank Spot USDT Market Adapter."""
 
     exchange_id = "lbank"
     display_name = "LBank (lbank) Spot API"
@@ -55,7 +55,7 @@ class LBankAdapter(BaseExchangeAdapter):
         status="active",
         has_leveraged_tokens=False,
         aliases=("lbank_info", "lbkex"),
-        notes="Official CoinEx replacement for Asia category"
+        notes="LBank Spot API with live-price verification filter"
     )
 
     def to_native_symbol(self, base_or_symbol: str) -> str:

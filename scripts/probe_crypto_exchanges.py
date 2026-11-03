@@ -369,27 +369,28 @@ def probe_kraken():
     }
 
 
-def probe_coinex():
-    res = _http_get('https://api.coinex.com/v1/market/list')
-    tickers_res = _http_get('https://api.coinex.com/v1/market/ticker/all')
+def probe_htx():
+    res = _http_get('https://api.huobi.pro/v1/common/symbols')
+    tickers_res = _http_get('https://api.huobi.pro/market/tickers')
 
     usdt_pairs = []
-    if res['data'] and isinstance(res['data'], dict) and res['data'].get('code') == 0:
+    if res['data'] and isinstance(res['data'], dict) and res['data'].get('status') == 'ok':
         for s in res['data'].get('data', []):
-            if isinstance(s, str) and s.endswith('USDT'):
-                usdt_pairs.append(s)
+            if s.get('quote-currency') == 'usdt' and s.get('state') == 'online':
+                usdt_pairs.append(s.get('symbol'))
 
     live_prices = {}
-    if tickers_res['data'] and isinstance(tickers_res['data'], dict) and tickers_res['data'].get('code') == 0:
-        for sym, t in tickers_res['data'].get('data', {}).get('ticker', {}).items():
-            if sym.endswith('USDT'):
-                p = float(t.get('last', 0) or 0)
+    if tickers_res['data'] and isinstance(tickers_res['data'], dict) and tickers_res['data'].get('status') == 'ok':
+        for t in tickers_res['data'].get('data', []):
+            sym = t.get('symbol', '')
+            if sym.endswith('usdt'):
+                p = float(t.get('close', 0) or 0)
                 if p > 0:
                     live_prices[sym] = p
 
     coverage = (len([p for p in usdt_pairs if p in live_prices]) / len(usdt_pairs) * 100) if usdt_pairs else 0
     return {
-        'exchange': 'coinex',
+        'exchange': 'htx',
         'status': res['status'],
         'latency_ms': res['latency_ms'],
         'total_usdt_pairs': len(usdt_pairs),
@@ -411,12 +412,12 @@ def main():
         ("MEXC", probe_mexc),
         ("KuCoin", probe_kucoin),
         ("Gate.io", probe_gateio),
-        ("LBank (CoinEx replacement)", probe_lbank),
+        ("LBank", probe_lbank),
         ("OKX", probe_okx),
         ("Bybit", probe_bybit),
         ("Bitget", probe_bitget),
         ("Kraken", probe_kraken),
-        ("CoinEx (Deprecated)", probe_coinex),
+        ("HTX", probe_htx),
     ]
 
     results = []

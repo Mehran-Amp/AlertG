@@ -176,7 +176,7 @@ class TestCryptoRegistryLint(unittest.TestCase):
             'bybit': 'Bybit',
             'bitget': 'Bitget',
             'kraken': 'Kraken',
-            'coinex': 'CoinEx',
+            'htx': 'HTX',
         }
         for ex_id, expected_name in expected.items():
             resolved = get_exchange_display_name(ex_id)

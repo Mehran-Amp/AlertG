@@ -63,6 +63,8 @@ def _format_native_symbol(exchange_id: str, symbol: str) -> str:
         return f"{base}USDT"
     elif ex == 'bitget':
         return f"{base}USDT"
+    elif ex in ('htx', 'huobi'):
+        return f"{base.lower()}usdt"
     return f"{base}USDT"
 
 
@@ -256,6 +258,15 @@ async def fetch_crypto_strict(
                         return {'price': float(c[0]), 'state': 'LIVE', 'currency': 'USDT'}
             return None
         p = await _try_fetch(source_label, url, _extract_kraken)
+    elif ex in ('htx', 'huobi'):
+        url = f"https://api.huobi.pro/market/detail/merged?symbol={native_sym}"
+        def _extract_htx(d):
+            if isinstance(d, dict) and d.get('status') == 'ok' and d.get('tick'):
+                val = d.get('tick', {}).get('close')
+                if val and float(val) > 0:
+                    return {'price': float(val), 'state': 'LIVE', 'currency': 'USDT'}
+            return None
+        p = await _try_fetch(source_label, url, _extract_htx)
     elif ex == 'tabdeal':
         tab_sym = native_sym.replace("_", "").upper()
         if tab_sym.endswith("TMN"):

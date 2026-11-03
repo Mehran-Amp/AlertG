@@ -95,7 +95,7 @@ _CRYPTO_EXCHANGES: Dict[str, CryptoExchangeMetadata] = {
         status='active',
         has_leveraged_tokens=False,
         aliases=('lbkex',),
-        notes='Official replacement for CoinEx with verified live-price filter'
+        notes='Tier 1/Asia exchange with verified live-price filter'
     ),
     'okx': CryptoExchangeMetadata(
         id='okx',
@@ -148,6 +148,19 @@ _CRYPTO_EXCHANGES: Dict[str, CryptoExchangeMetadata] = {
         has_leveraged_tokens=False,
         aliases=(),
         notes='Tier 1 spot market via V2 API'
+    ),
+    'htx': CryptoExchangeMetadata(
+        id='htx',
+        name='HTX',
+        category='tier1',
+        provider_key='crypto_htx',
+        source_label='HTX (htx) Spot API',
+        markets_url='https://api.huobi.pro/v1/common/symbols',
+        bulk_ticker_url='https://api.huobi.pro/market/tickers',
+        status='active',
+        has_leveraged_tokens=False,
+        aliases=('huobi', 'htx_global'),
+        notes='Tier 1 global spot market via Huobi API'
     ),
     'tabdeal': CryptoExchangeMetadata(
         id='tabdeal',

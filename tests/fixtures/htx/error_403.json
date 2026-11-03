@@ -1,0 +1,5 @@
+{
+  "status": "error",
+  "err-code": "forbidden",
+  "err-msg": "Access forbidden: restricted jurisdiction."
+}

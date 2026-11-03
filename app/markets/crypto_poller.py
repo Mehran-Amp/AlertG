@@ -40,6 +40,7 @@ DEFAULT_POLL_CADENCES: Dict[str, float] = {
     "bybit": 1.0,
     "bitget": 1.0,
     "kraken": 2.0,
+    "htx": 1.0,
 }
 
 GRACE_PERIOD_SECONDS = 60.0
