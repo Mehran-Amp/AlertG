@@ -328,3 +328,22 @@
    ```bash
    pytest tests/test_coinex_removal.py -v
    ```
+
+---
+
+### ۱۸. دستورالعمل رول‌بک موتور پولر کریپتو و قفل لیدر (Crypto Poller & Singleton Guard Rollback - F-2)
+طبق قواعد Rule R9 و معماری فاز ۳:
+1. **آزادسازی قفل فایلی انحصاری لیدر (Leader Lock Recovery)**:
+   - در صورت قفل ماندن غیرعادی فایل `crypto_poller.lock` پس از کرش سیستمی:
+   ```bash
+   rm -f data/crypto_poller.lock crypto_poller.lock
+   ./run_server.sh restart
+   ```
+2. **بررسی متریک‌های تأخیر P50 و P95 و وضعیت لیدر**:
+   ```bash
+   curl -s http://localhost:8000/api/status | jq '.crypto_latency'
+   ```
+3. **اعتبارسنجی آزمون‌های پایداری F-2**:
+   ```bash
+   pytest tests/test_crypto_poller_f2.py -v
+   ```
