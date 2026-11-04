@@ -108,6 +108,18 @@ def verify_rollout(base_url: str, admin_key: str):
         with urllib.request.urlopen(req_test, timeout=30) as resp:
             tdata = json.loads(resp.read().decode("utf-8"))
             status = tdata.get("status")
+            if status == "NOT_RUN_YET":
+                print("  ℹ️ Self-test has not run yet. Triggering on-demand audit now...")
+                post_req = urllib.request.Request(
+                    f"{selftest_url}?notify_admin=false",
+                    headers=headers,
+                    data=b"",
+                    method="POST"
+                )
+                with urllib.request.urlopen(post_req, timeout=60) as p_resp:
+                    tdata = json.loads(p_resp.read().decode("utf-8"))
+                    status = tdata.get("status")
+
             healthy_count = tdata.get("healthy_count", 0)
             total_ex = tdata.get("total_exchanges", 0)
             print(f"  ✅ Self-Test Overall Status: {status} ({healthy_count}/{total_ex} healthy)")

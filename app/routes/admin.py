@@ -13,6 +13,7 @@ try:
 except ImportError:
     firebase_admin = None
 
+import app.config as config
 from app.config import APP_VERSION, SERVICE_ACCOUNT_FILE
 from app.security import ADMIN_DEP, API_DEP, _validate_market_args
 from app.state import METRICS, RECENT_DIAGNOSTICS, FAILED_SYMBOLS
