@@ -120,9 +120,14 @@ def get_status_dashboard(format: Optional[str] = None, accept: Optional[str] = H
             "ack_latency": latency_stats,
             "ack_latency_avg_ms": latency_stats.get("avg_ms"),
             "ack_latency_p95_ms": latency_stats.get("p95_ms"),
-            "unacked_deliveries": unacked_count,
             "delivery_unacked": unacked_count,
             "websocket": ws_stats,
+            "crypto_flags": {
+                "crypto_engine_v2": getattr(config, "CRYPTO_ENGINE_V2", False),
+                "crypto_strict_v2": getattr(config, "CRYPTO_STRICT_V2", False),
+                "crypto_stage_b_enabled": getattr(config, "CRYPTO_STAGE_B_ENABLED", False),
+                "crypto_validate_alerts": getattr(config, "CRYPTO_VALIDATE_ALERTS", "false"),
+            },
         })
 
     # Kill switch banner
