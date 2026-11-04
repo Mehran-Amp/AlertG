@@ -127,10 +127,11 @@ def verify_rollout(base_url: str, admin_key: str):
             results = tdata.get("results", {})
             for ex_id, ex_res in results.items():
                 is_h = ex_res.get("healthy", False)
-                pairs_cnt = ex_res.get("pairs_count", 0)
-                cov = ex_res.get("live_price_coverage_pct", 0.0)
+                pairs_cnt = ex_res.get("prices_count", ex_res.get("pairs_count", 0))
+                latency = ex_res.get("latency_ms", 0.0)
+                issue = f" — {ex_res['issue']}" if ex_res.get("issue") else ""
                 icon = "🟢" if is_h else "🔴"
-                print(f"    {icon} {ex_id:<10}: {pairs_cnt:>5} pairs | {cov:>5.1f}% price coverage")
+                print(f"    {icon} {ex_id:<10}: {pairs_cnt:>5} live prices | latency: {latency:>6.1f}ms{issue}")
 
     except urllib.error.HTTPError as e:
         print(f"  ❌ /api/admin/crypto/selftest returned HTTP {e.code}: {e.reason}")
