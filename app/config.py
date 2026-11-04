@@ -119,5 +119,9 @@ CRYPTO_CATALOG_SYNC_INTERVAL_HOURS = int(os.getenv("CRYPTO_CATALOG_SYNC_INTERVAL
 CRYPTO_CATALOG_MIN_PAIRS = int(os.getenv("CRYPTO_CATALOG_MIN_PAIRS", "20"))
 CRYPTO_CATALOG_MAX_DROP_RATIO = float(os.getenv("CRYPTO_CATALOG_MAX_DROP_RATIO", "0.50"))
 
+# Phase 7: Real-Time Dedicated Crypto Evaluation Job (Stage B - 1s cadence)
+CRYPTO_STAGE_B_ENABLED = os.getenv("CRYPTO_STAGE_B_ENABLED", "false").strip().lower() in ("1", "true", "yes", "on")
+CRYPTO_DEDICATED_JOB = os.getenv("CRYPTO_DEDICATED_JOB", "false").strip().lower() in ("1", "true", "yes", "on")
+
 
 

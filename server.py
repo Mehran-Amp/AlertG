@@ -67,7 +67,7 @@ from app.markets.iran import (
 from app.markets.global_stocks import (
     EXACT_YF_MAP, FOREX_PAIRS, resolve_yf_symbol, WALLSTREET_MACRO_SYMBOLS
 )
-from app.engine.checker import get_cached_price, check_alerts_job, check_macro_alerts_job
+from app.engine.checker import get_cached_price, check_alerts_job, check_crypto_alerts_job, check_macro_alerts_job
 from app.engine.sync import weekly_catalog_sync_job
 from app.routes.alerts import router as alerts_router
 from app.routes.user import router as user_router
@@ -93,6 +93,17 @@ def setup_scheduler_jobs(sched):
         misfire_grace_time=15,
         id='price_alerts_job'
     )
+    if getattr(config, "CRYPTO_STAGE_B_ENABLED", False) or getattr(config, "CRYPTO_DEDICATED_JOB", False):
+        sched.add_job(
+            check_crypto_alerts_job,
+            'interval',
+            seconds=1,
+            max_instances=1,
+            coalesce=True,
+            misfire_grace_time=5,
+            id='crypto_alerts_1s_job'
+        )
+        logger.info("⚡ [Scheduler] crypto_alerts_1s_job registered (Phase 7 Stage B: 1s cadence)")
     sched.add_job(
         check_macro_alerts_job,
         'interval',

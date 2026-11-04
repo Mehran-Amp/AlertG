@@ -167,30 +167,7 @@ async def get_cached_price(client: httpx.AsyncClient, exchange: str, symbol: str
             break
     return None
 
-async def check_alerts_job():
-    client = state.http_client
-    if client is None:
-        return
-
-    current_time = time.time()
-    METRICS["last_check_ts"] = current_time
-    METRICS["total_checks"] += 1
-
-    active_alerts = [
-        a for a in ALERTS_DB
-        if a.is_active and getattr(a, 'alert_nature', 'price') == 'price' and (
-            a.target_price > 0 or 
-            (a.upper_target_price is not None and a.upper_target_price > 0) or 
-            (a.lower_target_price is not None and a.lower_target_price > 0) or
-            (a.percent is not None and a.percent > 0 and (a.base_price or 0) > 0)
-        ) and a.exchange.lower() not in ['timer', 'local', 'clock', 'none']
-    ]
-    ready_alerts = [
-        a for a in active_alerts
-        if (current_time - a.last_checked_at) >= a.check_interval_seconds
-        and is_market_open(a.exchange, a.symbol)
-    ]
-
+async def evaluate_ready_alerts(client, ready_alerts: List[Any], current_time: float, job_label: str = "Alert Job") -> None:
     if not ready_alerts:
         return
 
@@ -462,10 +439,85 @@ async def check_alerts_job():
         try:
             await _process(alert)
         except Exception as e:
-            print(f"❌ [Alert Job] {alert.id} {alert.symbol}: {e}")
+            print(f"❌ [{job_label}] {alert.id} {alert.symbol}: {e}")
 
     if updated:
         await save_alerts_to_disk_async(ALERTS_DB)
+
+
+async def check_alerts_job():
+    """
+    Main Price Alerts Evaluation Job (2s cadence).
+    Evaluates active price alerts.
+    Under Phase 7 (Stage B - CRYPTO_STAGE_B_ENABLED / CRYPTO_DEDICATED_JOB),
+    skips crypto alerts so they are handled with sub-second accuracy by check_crypto_alerts_job.
+    """
+    client = state.http_client
+    if client is None:
+        return
+
+    current_time = time.time()
+    METRICS["last_check_ts"] = current_time
+    METRICS["total_checks"] = METRICS.get("total_checks", 0) + 1
+
+    active_alerts = [
+        a for a in ALERTS_DB
+        if a.is_active and getattr(a, 'alert_nature', 'price') == 'price' and (
+            a.target_price > 0 or 
+            (a.upper_target_price is not None and a.upper_target_price > 0) or 
+            (a.lower_target_price is not None and a.lower_target_price > 0) or
+            (a.percent is not None and a.percent > 0 and (a.base_price or 0) > 0)
+        ) and a.exchange.lower() not in ['timer', 'local', 'clock', 'none']
+    ]
+
+    # Phase 7 (Stage B): If dedicated crypto job is active, skip crypto in this main 2s job
+    if getattr(config, "CRYPTO_STAGE_B_ENABLED", False) or getattr(config, "CRYPTO_DEDICATED_JOB", False):
+        active_alerts = [
+            a for a in active_alerts
+            if resolve_symbol_category(a.exchange, a.symbol) != 'crypto'
+        ]
+
+    ready_alerts = [
+        a for a in active_alerts
+        if (current_time - a.last_checked_at) >= a.check_interval_seconds
+        and is_market_open(a.exchange, a.symbol)
+    ]
+
+    await evaluate_ready_alerts(client, ready_alerts, current_time, job_label="Alert Job")
+
+
+async def check_crypto_alerts_job():
+    """
+    Phase 7 (Stage B) Dedicated Real-Time Crypto Evaluation Job (1s cadence).
+    Dedicated strictly to crypto alerts.
+    Shares identical cooldowns, one-shot semantics, outbox, and notifications with zero copied logic.
+    """
+    client = state.http_client
+    if client is None:
+        return
+
+    current_time = time.time()
+    METRICS["last_crypto_check_ts"] = current_time
+    METRICS["total_crypto_checks"] = METRICS.get("total_crypto_checks", 0) + 1
+
+    crypto_active_alerts = [
+        a for a in ALERTS_DB
+        if a.is_active and getattr(a, 'alert_nature', 'price') == 'price' and (
+            a.target_price > 0 or 
+            (a.upper_target_price is not None and a.upper_target_price > 0) or 
+            (a.lower_target_price is not None and a.lower_target_price > 0) or
+            (a.percent is not None and a.percent > 0 and (a.base_price or 0) > 0)
+        ) and a.exchange.lower() not in ['timer', 'local', 'clock', 'none']
+        and resolve_symbol_category(a.exchange, a.symbol) == 'crypto'
+    ]
+
+    ready_alerts = [
+        a for a in crypto_active_alerts
+        if (current_time - a.last_checked_at) >= a.check_interval_seconds
+        and is_market_open(a.exchange, a.symbol)
+    ]
+
+    await evaluate_ready_alerts(client, ready_alerts, current_time, job_label="Crypto 1s Job")
 
 
 async def check_macro_alerts_job():
