@@ -21,9 +21,6 @@ abstract class Exchange {
   /// Default counter currency typically paired on this exchange (e.g. "USDT", "USD")
   String get defaultCounterCurrency;
 
-  /// Whether this exchange supports live automated price alerts (Tier A)
-  bool get isAlertCapable => true;
-
   /// Dynamically discovers and fetches all active trading currency pairs from the exchange API
   Future<List<CurrencyPair>> fetchCurrencyPairs();
 
@@ -32,4 +29,26 @@ abstract class Exchange {
 
   /// Fetches the latest 24h ticker for a specific currency pair via REST
   Future<MarketTicker> fetchTicker(CurrencyPair pair);
+}
+
+/// Capability extensions on Exchange interface
+extension ExchangeAlertCapability on Exchange {
+  /// Whether this exchange supports live automated price alerts (Tier A vs Display-Only Tier B/X/Aggregator)
+  bool get isAlertCapable {
+    // 1. Aggregators (CoinGecko, CoinMarketCap) are display-only
+    if (category == ExchangeCategory.aggregator) {
+      return false;
+    }
+    // 2. Known Tier X derivative & display-only exchanges
+    if (id == 'deribit' || id == 'bitmex') {
+      return false;
+    }
+    // 3. Dynamic check for custom implementation property
+    try {
+      final dynamic dyn = this;
+      final val = dyn.isAlertCapable;
+      if (val is bool) return val;
+    } catch (_) {}
+    return true;
+  }
 }

@@ -22,7 +22,6 @@ class StandardRestExchange implements Exchange {
 
   final bool? _isAlertCapableOverride;
 
-  @override
   bool get isAlertCapable => _isAlertCapableOverride ?? (tickerUrlTemplate != null && tickerUrlTemplate!.isNotEmpty);
 
   final String? tickerUrlTemplate;
