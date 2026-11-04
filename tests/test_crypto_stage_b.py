@@ -47,12 +47,20 @@ except ImportError:
     import types
     fastapi = types.ModuleType('fastapi')
     fastapi.__path__ = []
+    class FastAPI:
+        def api_route(self, *a, **kw): return lambda fn: fn
+        def get(self, *a, **kw): return lambda fn: fn
+        def post(self, *a, **kw): return lambda fn: fn
+        def include_router(self, *a, **kw): pass
+        def mount(self, *a, **kw): pass
+        def add_middleware(self, *a, **kw): pass
     class APIRouter:
         def get(self, *a, **kw): return lambda fn: fn
         def post(self, *a, **kw): return lambda fn: fn
         def delete(self, *a, **kw): return lambda fn: fn
         def put(self, *a, **kw): return lambda fn: fn
         def patch(self, *a, **kw): return lambda fn: fn
+        def websocket(self, *a, **kw): return lambda fn: fn
         def include_router(self, *a, **kw): pass
     class Response:
         def __init__(self, content=b"", status_code=200, headers=None, media_type=None, **kwargs):
@@ -173,7 +181,7 @@ class TestCryptoStageB(unittest.IsolatedAsyncioTestCase):
              patch("app.engine.checker.is_market_open", return_value=True), \
              patch("app.engine.checker.get_cached_price", new=AsyncMock(return_value=100.0)):
 
-            await check_alerts_job()
+            await check_alerts_job(skip_crypto=True)
 
             # Crypto alert must NOT be updated by the main 2s job
             self.assertEqual(self.crypto_alert.last_checked_at, 0.0, "Crypto alert must be skipped by main job in Stage B")

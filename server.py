@@ -84,6 +84,7 @@ from app.engine.market_events import refresh_market_events, check_and_dispatch_3
 
 def setup_scheduler_jobs(sched):
     """Registers periodic jobs on the scheduler: 2s price alert job, daily macro alert job, 30s advance reminders, & weekly catalog sync job."""
+    stage_b_active = bool(getattr(config, "CRYPTO_STAGE_B_ENABLED", False) or getattr(config, "CRYPTO_DEDICATED_JOB", False))
     sched.add_job(
         check_alerts_job,
         'interval',
@@ -91,9 +92,10 @@ def setup_scheduler_jobs(sched):
         max_instances=1,
         coalesce=True,
         misfire_grace_time=15,
-        id='price_alerts_job'
+        id='price_alerts_job',
+        kwargs={"skip_crypto": True} if stage_b_active else {}
     )
-    if getattr(config, "CRYPTO_STAGE_B_ENABLED", False) or getattr(config, "CRYPTO_DEDICATED_JOB", False):
+    if stage_b_active:
         sched.add_job(
             check_crypto_alerts_job,
             'interval',

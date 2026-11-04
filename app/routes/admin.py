@@ -128,6 +128,7 @@ def get_status_dashboard(format: Optional[str] = None, accept: Optional[str] = H
             "ack_latency": latency_stats,
             "ack_latency_avg_ms": latency_stats.get("avg_ms"),
             "ack_latency_p95_ms": latency_stats.get("p95_ms"),
+            "unacked_deliveries": unacked_count,
             "delivery_unacked": unacked_count,
             "websocket": ws_stats,
             "crypto_flags": {

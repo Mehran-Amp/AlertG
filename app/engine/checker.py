@@ -445,12 +445,13 @@ async def evaluate_ready_alerts(client, ready_alerts: List[Any], current_time: f
         await save_alerts_to_disk_async(ALERTS_DB)
 
 
-async def check_alerts_job():
+async def check_alerts_job(skip_crypto: Optional[bool] = None):
     """
     Main Price Alerts Evaluation Job (2s cadence).
     Evaluates active price alerts.
     Under Phase 7 (Stage B - CRYPTO_STAGE_B_ENABLED / CRYPTO_DEDICATED_JOB),
-    skips crypto alerts so they are handled with sub-second accuracy by check_crypto_alerts_job.
+    the scheduler passes skip_crypto=True so crypto alerts are handled with sub-second
+    accuracy by check_crypto_alerts_job, while direct calls and unit tests retain full compatibility.
     """
     client = state.http_client
     if client is None:
@@ -470,8 +471,9 @@ async def check_alerts_job():
         ) and a.exchange.lower() not in ['timer', 'local', 'clock', 'none']
     ]
 
-    # Phase 7 (Stage B): If dedicated crypto job is active, skip crypto in this main 2s job
-    if getattr(config, "CRYPTO_STAGE_B_ENABLED", False) or getattr(config, "CRYPTO_DEDICATED_JOB", False):
+    # Phase 7 (Stage B): If explicitly instructed to skip crypto (as done by scheduler job),
+    # skip crypto alerts in this evaluation cycle so they are handled exclusively by the 1s job.
+    if skip_crypto is True:
         active_alerts = [
             a for a in active_alerts
             if resolve_symbol_category(a.exchange, a.symbol) != 'crypto'
