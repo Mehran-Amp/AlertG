@@ -279,11 +279,11 @@ class TabdealAdapter(BaseExchangeAdapter):
             record_provider_metric(self.provider_key, "errors")
             return [], "PROVIDER_ERROR"
 
-    async def fetch_batch_prices(self, client: httpx.AsyncClient) -> BatchPriceResult:
+    async def fetch_batch_prices(self, client: httpx.AsyncClient, timeout: float = 12.0, **kwargs) -> BatchPriceResult:
         """Fetches full market bulk prices in a single call."""
         await acquire_provider_slot(self.provider_key, wait=True)
         try:
-            res = await client.get(self.batch_price_url, timeout=12.0)
+            res = await client.get(self.batch_price_url, timeout=timeout)
             if res.status_code == 200:
                 record_provider_metric(self.provider_key, "success")
                 return self.parse_batch_prices(res.json())

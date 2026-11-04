@@ -93,9 +93,18 @@ def verify_rollout(base_url: str, admin_key: str):
             print(f"  📊 Evaluation Counts: Main 2s Checks={tot_checks} | Crypto 1s Checks={crypto_checks}")
 
     except urllib.error.HTTPError as e:
+        err_body = ""
+        try:
+            err_body = e.read().decode("utf-8")
+        except Exception:
+            pass
         print(f"  ❌ /status returned HTTP {e.code}: {e.reason}")
+        if err_body:
+            print(f"     Details: {err_body[:300]}")
         if e.code == 401 or e.code == 403:
             print("     (Make sure ADMIN_KEY is provided or set in environment)")
+        elif e.code == 500:
+            print("     💡 Notice: If server was running before git pull, please restart it to load updated code.")
     except Exception as e:
         print(f"  ❌ Could not connect to {status_url}: {e}")
         print("     (Make sure server is running via python server.py or systemd)")
