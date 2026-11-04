@@ -28,6 +28,7 @@ class ExchangeSnapshot:
     latency_ms: float = 0.0
     status: str = "NO_PRICE"
     error_detail: Optional[str] = None
+    source: str = "rest"
     updated_at: float = field(default_factory=time.time)
 
 
@@ -42,6 +43,7 @@ def update_exchange_snapshot(
     latency_ms: float = 0.0,
     as_of: Optional[float] = None,
     error: Optional[str] = None,
+    source: str = "rest",
 ) -> ExchangeSnapshot:
     """
     Updates the in-memory snapshot for a given exchange.
@@ -58,10 +60,60 @@ def update_exchange_snapshot(
         latency_ms=max(0.0, float(latency_ms)),
         status=status,
         error_detail=error,
+        source=source,
         updated_at=now_ts,
     )
     _SNAPSHOT_STORE[ex_clean] = snap
     return snap
+
+
+def update_symbol_snapshot(
+    exchange_id: str,
+    native_symbol: str,
+    price: float,
+    as_of: Optional[float] = None,
+    source: str = "ws",
+    latency_ms: float = 0.0,
+) -> None:
+    """
+    Updates a single symbol's price directly in the in-memory snapshot store.
+    Called by Phase 7 Stage C WebSocket streaming producers for sub-10ms ticker latency.
+    """
+    ex_clean = (exchange_id or "").lower().strip()
+    sym_clean = (native_symbol or "").strip()
+    if not ex_clean or not sym_clean or price <= 0:
+        return
+
+    now_ts = time.time()
+    receive_ts = as_of if as_of is not None else now_ts
+
+    snap = _SNAPSHOT_STORE.get(ex_clean)
+    if snap is None:
+        snap = ExchangeSnapshot(
+            exchange_id=ex_clean,
+            prices={sym_clean: price},
+            as_of=receive_ts,
+            latency_ms=max(0.0, float(latency_ms)),
+            status="OK",
+            source=source,
+            updated_at=now_ts,
+        )
+        _SNAPSHOT_STORE[ex_clean] = snap
+    else:
+        snap.prices[sym_clean] = price
+        snap.as_of = receive_ts
+        snap.status = "OK"
+        snap.source = source
+        snap.latency_ms = max(0.0, float(latency_ms))
+        snap.updated_at = now_ts
+
+
+def get_snapshot_source(exchange_id: str) -> str:
+    """Returns the origin source ('ws' or 'rest') of the latest snapshot for an exchange."""
+    ex_clean = (exchange_id or "").lower().strip()
+    snap = _SNAPSHOT_STORE.get(ex_clean)
+    return snap.source if snap else "none"
+
 
 
 def get_snapshot_price(

@@ -250,9 +250,23 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             print(f"⚠️ [Crypto Poller] Failed to start poller: {e}")
 
+    # Phase 7 (Stage C): Start WebSocket stream supervisor if CRYPTO_STREAM_ENABLED is active
+    if getattr(config, "CRYPTO_STREAM_ENABLED", False):
+        try:
+            from app.markets.crypto_stream import STREAM_SUPERVISOR
+            asyncio.create_task(STREAM_SUPERVISOR.start())
+        except Exception as e:
+            print(f"⚠️ [Crypto Stream] Failed to start stream supervisor: {e}")
+
     yield
 
     # Shutdown: Cleanly close pool and scheduler
+    if getattr(config, "CRYPTO_STREAM_ENABLED", False):
+        try:
+            from app.markets.crypto_stream import STREAM_SUPERVISOR
+            asyncio.create_task(STREAM_SUPERVISOR.stop())
+        except Exception:
+            pass
     if getattr(config, "CRYPTO_ENGINE_V2", False):
         try:
             from app.markets.crypto_poller import stop_crypto_poller

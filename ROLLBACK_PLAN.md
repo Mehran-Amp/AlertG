@@ -365,3 +365,26 @@
    pytest tests/test_crypto_stage_b.py -v
    ```
 
+---
+
+### ۲۰. دستورالعمل رول‌بک استریم‌های وب‌سوکت (Phase 7 Stage C WebSocket Rollback)
+طبق معماری فاز ۷ و قواعد فال‌بک خودکار (Automatic REST Fallback):
+1. **غیرفعال‌سازی سریع استریم‌های وب‌سوکت (سوئیچ خودکار به REST Poller)**:
+   - در صورت بروز هرگونه اختلال، فیلتر یا عدم پایداری در اتصال وب‌سوکت صرافی‌ها، با خاموش کردن پرچم‌های استریم، پولر REST بلافاصله و با تأخیر صفر بدون هیچ‌گونه قطعی جایگزین می‌شود:
+   ```bash
+   export CRYPTO_STREAM_ENABLED=false
+   export CRYPTO_STREAM_BINANCE=false
+   export CRYPTO_STREAM_BYBIT=false
+   export CRYPTO_STREAM_OKX=false
+   ```
+2. **اعتبارسنجی بازگشت موفق به REST Poller**:
+   - پولر REST به طور خودکار دریافت قیمت‌ها را به عهده می‌گیرد و متریک‌های تأخیر و سلامت در `/status` بررسی می‌شود:
+   ```bash
+   curl -s http://localhost:8000/status?format=json | jq '.crypto_latency'
+   ```
+3. **اعتبارسنجی آزمون‌های پایداری Stage C**:
+   ```bash
+   pytest tests/test_crypto_stream_stage_c.py -v
+   ```
+
+

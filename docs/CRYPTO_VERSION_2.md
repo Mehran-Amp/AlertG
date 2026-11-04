@@ -76,7 +76,7 @@
 - **Phase 4:** حل دقیق نماد، اعتبارسنجی هشدارها در زمان ثبت، رد صرافی‌های نامعتبر.
 - **Phase 5 / 8b:** فرمتر یکپارچه قیمت دقیق برای تمام ارقام معنادار (ممانعت قطعی از نمایش "$0").
 - **Phase 6:** افزودن امواج بعدی صرافی‌های Tier A.
-- **Phase 7:** بهینه‌سازی تأخیر بلادرنگ؛ پیاده‌سازی جاب ارزیابی ۱ ثانیه‌ای رمزارز (Stage B) با تفکیک کامل از جاب ۲ ثانیه‌ای سایر بازارها و آمادگی استریم وب‌سوکت (Stage C).
+- **Phase 7:** بهینه‌سازی تأخیر بلادرنگ؛ پیاده‌سازی جاب ارزیابی ۱ ثانیه‌ای رمزارز (Stage B) و استریم‌های زنده وب‌سوکت عمومی (Stage C) برای Binance، Bybit و OKX با فال‌بک خودکار به REST Poller.
 - **Phase 8 / F-4:** سلامت، جاب خودکار سلف‌تست روزانه، مانیتور کوین‌های دی‌لیست‌شده (`needs_attention`)، هشدار ادمین و اندپوینت `/api/admin/crypto/selftest`.
 - **Phase 9 / F-5 & F-6:** کلاینت فلاتر: حذف کامل `UniversalPriceAggregator` و `getEstimatedPrice`، اتصال به `CryptoCatalogService` پویا، حذف فال‌بک‌های استاتیک و انحصار USDT.
 - **Phase 10 / F-7:** صرافی‌های ایرانی بر اساس کوت ارز (Quote Currency) و حذف اتکای استاتیک بر نام صرافی.
@@ -85,7 +85,7 @@
 
 ---
 
-## ۶. وضعیت میکروفازهای تکمیلی (Micro-Phases G-1 to G-7 & Stage B & Phase 12)
+## ۶. وضعیت میکروفازهای تکمیلی (Micro-Phases G-1 to G-7 & Stage B & Stage C & Phase 12)
 
 | فاز | شرح اقدامات | وضعیت | شواهد و فایل‌ها |
 |---|---|---|---|
@@ -97,7 +97,9 @@
 | **G-6** | افزودن صرافی **HTX** به رجیستری و آداپتورها (دستیابی به ۱۰ صرافی جهانی اسپات) | ✅ انجام شد | `htx.py`, `crypto_registry.py`, `crypto_strict.py`, `limiter.py`, `test_crypto_adapter_htx.py` |
 | **G-7** | پروب زنده، راستی‌آزمایی پوشش بالای ۹۹٪، گزارش مستندات و تست‌های کامل | ✅ انجام شد | `scripts/probe_crypto_exchanges.py`, `reports/`, ۱۰ صرافی جهانی فعال |
 | **Stage B** | جاب ارزیابی اختصاصی ۱ ثانیه‌ای رمزارز (Phase 7 Stage B) بدون کپی منطق ارزیابی | ✅ انجام شد | `app/engine/checker.py`, `server.py`, `test_crypto_stage_b.py`, `CRYPTO_STAGE_B_ENABLED` |
+| **Stage C** | تولیدکننده‌های استریم وب‌سوکت (Phase 7 Stage C) برای Binance, Bybit, OKX با فال‌بک REST | ✅ انجام شد | `app/markets/crypto_stream.py`, `test_crypto_stream_stage_c.py`, `CRYPTO_STREAM_*` |
 | **Phase 12** | رول‌اوت عملیاتی، پایش سلامت و راستی‌آزمایی ۱۱/۱۱ صرافی فعال در پروداکشن | ✅ انجام شد | `scripts/verify_crypto_rollout.py`, `p50=367ms`, `11/11 healthy` |
+
 
 
 

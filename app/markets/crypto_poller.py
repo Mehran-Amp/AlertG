@@ -25,6 +25,10 @@ import app.config as config
 from app.markets.crypto_registry import get_supported_exchange_ids, get_crypto_exchange
 from app.markets.crypto_catalog import get_exchange_adapter
 from app.markets.crypto_snapshot import update_exchange_snapshot
+try:
+    from app.markets.crypto_stream import is_stream_active_and_healthy
+except ImportError:
+    def is_stream_active_and_healthy(ex: str) -> bool: return False
 
 logger = logging.getLogger("signalalert.crypto_poller")
 
@@ -123,6 +127,11 @@ class CryptoPollerSupervisor:
         """
         ex = exchange_id.lower().strip()
         if ex in self._in_flight:
+            return
+
+        # Phase 7 (Stage C): If WebSocket stream is active and healthy for this exchange,
+        # yield to WebSocket stream to conserve network budget and avoid duplicate updates.
+        if is_stream_active_and_healthy(ex):
             return
 
         adapter = get_exchange_adapter(ex)

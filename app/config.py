@@ -123,5 +123,12 @@ CRYPTO_CATALOG_MAX_DROP_RATIO = float(os.getenv("CRYPTO_CATALOG_MAX_DROP_RATIO",
 CRYPTO_STAGE_B_ENABLED = os.getenv("CRYPTO_STAGE_B_ENABLED", "false").strip().lower() in ("1", "true", "yes", "on")
 CRYPTO_DEDICATED_JOB = os.getenv("CRYPTO_DEDICATED_JOB", "false").strip().lower() in ("1", "true", "yes", "on")
 
+# Phase 7: Stage C - WebSocket Producers (Demand-driven, sub-50ms live stream)
+CRYPTO_STREAM_ENABLED = os.getenv("CRYPTO_STREAM_ENABLED", "false").strip().lower() in ("1", "true", "yes", "on")
+CRYPTO_STREAM_BINANCE = os.getenv("CRYPTO_STREAM_BINANCE", "false").strip().lower() in ("1", "true", "yes", "on")
+CRYPTO_STREAM_BYBIT = os.getenv("CRYPTO_STREAM_BYBIT", "false").strip().lower() in ("1", "true", "yes", "on")
+CRYPTO_STREAM_OKX = os.getenv("CRYPTO_STREAM_OKX", "false").strip().lower() in ("1", "true", "yes", "on")
+
+
 
 

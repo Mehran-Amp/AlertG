@@ -98,6 +98,12 @@ def get_status_dashboard(format: Optional[str] = None, accept: Optional[str] = H
     except Exception:
         crypto_latency_stats = {"p50_ms": 0.0, "p95_ms": 0.0, "samples": 0}
 
+    try:
+        from app.markets.crypto_stream import STREAM_SUPERVISOR
+        crypto_streams_status = STREAM_SUPERVISOR.get_status()
+    except Exception:
+        crypto_streams_status = {}
+
     wants_json = (format == "json") or (isinstance(accept, str) and "application/json" in accept and format != "html")
     if wants_json:
         return JSONResponse({
@@ -111,6 +117,7 @@ def get_status_dashboard(format: Optional[str] = None, accept: Optional[str] = H
             "crypto_latency": crypto_latency_stats,
             "crypto_poll_p50_ms": crypto_latency_stats.get("p50_ms", 0.0),
             "crypto_poll_p95_ms": crypto_latency_stats.get("p95_ms", 0.0),
+            "crypto_streams": crypto_streams_status,
             "failing_symbols": {
                 "count": len(failing_list),
                 "items": failing_list
@@ -127,6 +134,7 @@ def get_status_dashboard(format: Optional[str] = None, accept: Optional[str] = H
                 "crypto_engine_v2": getattr(config, "CRYPTO_ENGINE_V2", False),
                 "crypto_strict_v2": getattr(config, "CRYPTO_STRICT_V2", False),
                 "crypto_stage_b_enabled": getattr(config, "CRYPTO_STAGE_B_ENABLED", False),
+                "crypto_stream_enabled": getattr(config, "CRYPTO_STREAM_ENABLED", False),
                 "crypto_validate_alerts": getattr(config, "CRYPTO_VALIDATE_ALERTS", "false"),
             },
         })

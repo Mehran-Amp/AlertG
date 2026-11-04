@@ -92,6 +92,17 @@ def verify_rollout(base_url: str, admin_key: str):
             crypto_checks = metrics.get("total_crypto_checks", 0)
             print(f"  📊 Evaluation Counts: Main 2s Checks={tot_checks} | Crypto 1s Checks={crypto_checks}")
 
+            streams = data.get("crypto_streams", {})
+            if streams:
+                print("  🔌 WebSocket Streams (Phase 7 Stage C):")
+                for s_ex, s_info in streams.items():
+                    s_en = s_info.get("enabled", False)
+                    s_conn = s_info.get("connected", False)
+                    s_msgs = s_info.get("messages_received", 0)
+                    s_icon = "🟢" if s_conn else ("🟡" if s_en else "⚪")
+                    status_lbl = "CONNECTED" if s_conn else ("STANDBY" if s_en else "DISABLED")
+                    print(f"     {s_icon} {s_ex:<8}: {status_lbl} (msgs: {s_msgs:,})")
+
     except urllib.error.HTTPError as e:
         err_body = ""
         try:
