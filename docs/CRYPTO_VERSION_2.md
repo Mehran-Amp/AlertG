@@ -81,11 +81,11 @@
 - **Phase 9 / F-5 & F-6:** کلاینت فلاتر: حذف کامل `UniversalPriceAggregator` و `getEstimatedPrice`، اتصال به `CryptoCatalogService` پویا، حذف فال‌بک‌های استاتیک و انحصار USDT.
 - **Phase 10 / F-7:** صرافی‌های ایرانی بر اساس کوت ارز (Quote Currency) و حذف اتکای استاتیک بر نام صرافی.
 - **Phase 11 / F-3:** اسکریپت پاکسازی هشدارهای CoinEx با حالت پیش‌فرض Dry-Run و پشتیبان‌گیری اتمیک.
-- **Phase 12:** نظارت و رول‌اوت نهایی.
+- **Phase 12:** رول‌اوت عملیاتی، پایش بلادرنگ و تاییدیه لایو (`verify_crypto_rollout.py`) با ۱۱/۱۱ صرافی سبز و تأخیر زیر ثانیه (p50=367ms).
 
 ---
 
-## ۶. وضعیت میکروفازهای تکمیلی (Micro-Phases G-1 to G-7 & Stage B)
+## ۶. وضعیت میکروفازهای تکمیلی (Micro-Phases G-1 to G-7 & Stage B & Phase 12)
 
 | فاز | شرح اقدامات | وضعیت | شواهد و فایل‌ها |
 |---|---|---|---|
@@ -97,5 +97,7 @@
 | **G-6** | افزودن صرافی **HTX** به رجیستری و آداپتورها (دستیابی به ۱۰ صرافی جهانی اسپات) | ✅ انجام شد | `htx.py`, `crypto_registry.py`, `crypto_strict.py`, `limiter.py`, `test_crypto_adapter_htx.py` |
 | **G-7** | پروب زنده، راستی‌آزمایی پوشش بالای ۹۹٪، گزارش مستندات و تست‌های کامل | ✅ انجام شد | `scripts/probe_crypto_exchanges.py`, `reports/`, ۱۰ صرافی جهانی فعال |
 | **Stage B** | جاب ارزیابی اختصاصی ۱ ثانیه‌ای رمزارز (Phase 7 Stage B) بدون کپی منطق ارزیابی | ✅ انجام شد | `app/engine/checker.py`, `server.py`, `test_crypto_stage_b.py`, `CRYPTO_STAGE_B_ENABLED` |
+| **Phase 12** | رول‌اوت عملیاتی، پایش سلامت و راستی‌آزمایی ۱۱/۱۱ صرافی فعال در پروداکشن | ✅ انجام شد | `scripts/verify_crypto_rollout.py`, `p50=367ms`, `11/11 healthy` |
+
 
 
