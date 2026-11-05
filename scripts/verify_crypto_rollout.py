@@ -121,7 +121,7 @@ def verify_rollout(base_url: str, admin_key: str):
         print("     (Make sure server is running via python server.py or systemd)")
 
     # 3. Query /api/admin/crypto/selftest
-    print(f"\n🔍 3. Running Self-Test on All 10 Supported Exchanges ({base_url}/api/admin/crypto/selftest):")
+    print(f"\n🔍 3. Running Self-Test on All Supported Exchanges ({base_url}/api/admin/crypto/selftest):")
     selftest_url = f"{base_url.rstrip('/')}/api/admin/crypto/selftest"
     req_test = urllib.request.Request(selftest_url, headers=headers)
     try:

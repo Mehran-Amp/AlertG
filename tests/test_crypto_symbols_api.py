@@ -242,12 +242,13 @@ class TestCryptoSymbolsAPI(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
         self.assertEqual(data["status"], "success")
-        self.assertEqual(data["total"], 10)
-        self.assertEqual(len(data["exchanges"]), 10)
+        self.assertEqual(data["total"], 16)
+        self.assertEqual(len(data["exchanges"]), 16)
 
         ex_map = {e["id"]: e for e in data["exchanges"]}
-        for ex_id in ["binance", "mexc", "kucoin", "gateio", "lbank", "okx", "kraken", "bybit", "bitget", "htx"]:
+        for ex_id in ["binance", "mexc", "kucoin", "gateio", "lbank", "okx", "kraken", "bybit", "bitget", "htx", "bingx", "xt", "toobit", "poloniex", "coinbase", "bitfinex"]:
             self.assertIn(ex_id, ex_map)
+
             item = ex_map[ex_id]
             self.assertEqual(item["exchange_id"], ex_id)
             self.assertIn("name", item)

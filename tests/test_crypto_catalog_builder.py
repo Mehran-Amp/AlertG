@@ -143,13 +143,18 @@ class TestCryptoCatalogBuilder(unittest.IsolatedAsyncioTestCase):
             shutil.rmtree(self.test_dir, ignore_errors=True)
 
     def test_01_supported_exchanges_and_adapters(self):
-        """Verifies all 10 supported exchanges instantiate their isolated adapters."""
-        self.assertEqual(len(SUPPORTED_CRYPTO_EXCHANGES), 10)
-        for ex_id in ["binance", "mexc", "kucoin", "gateio", "lbank", "okx", "kraken", "bybit", "bitget", "htx"]:
+        """Verifies all 16 supported global exchanges instantiate their isolated adapters."""
+        self.assertEqual(len(SUPPORTED_CRYPTO_EXCHANGES), 16)
+        all_16 = [
+            "binance", "mexc", "kucoin", "gateio", "lbank", "okx", "kraken",
+            "bybit", "bitget", "htx", "bingx", "xt", "toobit", "poloniex", "coinbase", "bitfinex"
+        ]
+        for ex_id in all_16:
             self.assertIn(ex_id, SUPPORTED_CRYPTO_EXCHANGES)
             adapter = get_exchange_adapter(ex_id)
             self.assertIsNotNone(adapter, f"Adapter for {ex_id} should not be None")
             self.assertEqual(adapter.exchange_id, ex_id)
+
 
     def test_02_atomic_write_and_read(self):
         """Verifies atomic write and read with utf-8 encoding."""
@@ -315,17 +320,18 @@ class TestCryptoCatalogBuilder(unittest.IsolatedAsyncioTestCase):
         with patch("app.markets.crypto_catalog.get_exchange_adapter", side_effect=fake_get_adapter):
             report = await sync_all_crypto_catalogs(override_dir=self.test_dir)
 
-        self.assertEqual(report["total_exchanges"], 10)
-        self.assertEqual(report["success_count"], 9)
+        self.assertEqual(report["total_exchanges"], 16)
+        self.assertEqual(report["success_count"], 15)
 
         # LBank failed gracefully
         self.assertFalse(report["results"]["lbank"]["success"])
         self.assertEqual(report["results"]["lbank"]["error_code"], "RATE_LIMITED")
 
-        # Other 9 exchanges succeeded
-        for ex in ["binance", "mexc", "kucoin", "gateio", "okx", "kraken", "bybit", "bitget", "htx"]:
+        # Other 15 exchanges succeeded
+        for ex in ["binance", "mexc", "kucoin", "gateio", "okx", "kraken", "bybit", "bitget", "htx", "bingx", "xt", "toobit", "poloniex", "coinbase", "bitfinex"]:
             self.assertTrue(report["results"][ex]["success"])
             self.assertEqual(report["results"][ex]["total_pairs"], 25)
+
 
     async def test_09_stale_flagging_on_error_preserves_previous(self):
         """Verifies that an error marks previous catalog stale without deleting pairs."""
@@ -387,7 +393,7 @@ class TestCryptoCatalogBuilder(unittest.IsolatedAsyncioTestCase):
         )
 
         status = get_crypto_catalogs_status(override_dir=self.test_dir)
-        self.assertEqual(status["total_exchanges"], 10)
+        self.assertEqual(status["total_exchanges"], 16)
         self.assertTrue(status["exchanges"]["binance"]["file_exists"])
         self.assertEqual(status["exchanges"]["binance"]["total_pairs"], 150)
         self.assertFalse(status["exchanges"]["binance"]["is_stale"])
@@ -402,7 +408,8 @@ class TestCryptoCatalogBuilder(unittest.IsolatedAsyncioTestCase):
             from app.routes.admin import get_admin_crypto_catalog_status, trigger_admin_crypto_catalog_sync
             status_res = get_admin_crypto_catalog_status()
             self.assertIn("total_exchanges", status_res)
-            self.assertEqual(status_res["total_exchanges"], 10)
+            self.assertEqual(status_res["total_exchanges"], 16)
+
             self.assertIn("exchanges", status_res)
 
             mock_sync_result = {
