@@ -105,8 +105,8 @@ class ExchangeCatalog {
         name: 'Bitfinex',
         category: ExchangeCategory.tier1,
         countryBadge: '🌐 Global',
-        defaultCounterCurrency: 'USD',
-        tickerUrlTemplate: 'https://api-pub.bitfinex.com/v2/ticker/t{BASE_UPPER}{QUOTE_UPPER}',
+        defaultCounterCurrency: 'USDT',
+        tickerUrlTemplate: 'https://api-pub.bitfinex.com/v2/ticker/t{BASE_UPPER}UST',
       ),
       StandardRestExchange(
         id: 'bitstamp',

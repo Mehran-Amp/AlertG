@@ -256,9 +256,10 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
 
   int _calculateTotalIntervalSeconds() {
     final value = int.tryParse(_unitValueController.text.trim()) ?? 3;
+    final isCrypto = (_flowType == MarketFlowType.crypto);
     switch (_checkUnit) {
       case CheckUnit.seconds:
-        return (value * 60).clamp(60, 86400 * 7);
+        return (value * 1).clamp(isCrypto ? 2 : 180, 86400 * 7);
       case CheckUnit.minutes:
         return (value * 60).clamp(60, 86400 * 7);
       case CheckUnit.hours:
@@ -270,7 +271,7 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
     final val = int.tryParse(_unitValueController.text.trim()) ?? 3;
     switch (_checkUnit) {
       case CheckUnit.seconds:
-        return '$val ${AppStrings.get('minutes', lang)}';
+        return '$val ${AppStrings.get('seconds', lang)}';
       case CheckUnit.minutes:
         return '$val ${AppStrings.get('minutes', lang)}';
       case CheckUnit.hours:
@@ -682,13 +683,19 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
   Future<void> _saveAlert(String lang) async {
     final intervalSeconds = _calculateTotalIntervalSeconds();
 
-    // Enforce minimum 3 minutes (180 seconds) check interval rule
-    if (intervalSeconds < 180) {
+    // Enforce check interval rules: minimum 2 seconds for crypto (sub-second engine), 180 seconds for non-crypto
+    final isCrypto = (_flowType == MarketFlowType.crypto);
+    final minInterval = isCrypto ? 2 : 180;
+    if (intervalSeconds < minInterval) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       final isRtl = (lang == 'fa' || lang == 'ar' || lang == 'ckb');
-      final msg = isRtl
-          ? '⏱️ حداقل زمان پایش آلارم باید ۳ دقیقه (۱۸۰ ثانیه) یا بیشتر باشد.'
-          : '⏱️ Minimum check interval must be 3 minutes (180 seconds) or more.';
+      final msg = isCrypto
+          ? (isRtl
+              ? '⏱️ حداقل زمان پایش آلارم رمزارز ۲ ثانیه است.'
+              : '⏱️ Minimum check interval for crypto is 2 seconds.')
+          : (isRtl
+              ? '⏱️ حداقل زمان پایش آلارم باید ۳ دقیقه (۱۸۰ ثانیه) یا بیشتر باشد.'
+              : '⏱️ Minimum check interval must be 3 minutes (180 seconds) or more.');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(msg),
