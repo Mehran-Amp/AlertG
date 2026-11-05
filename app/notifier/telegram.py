@@ -25,7 +25,7 @@ TELEGRAM_BOT_KEYBOARD = {
 def get_exchange_display_name(exchange_id: str) -> str:
     mapping = {
         'nobitex': 'Nobitex', 'wallex': 'Wallex', 'binance': 'Binance',
-        'tabdeal': 'Tabdeal', 'ramzinex': 'Ramzinex', 'kucoin': 'KuCoin',
+        'tabdeal': 'Tabdeal', 'kifpool': 'Kifpool', 'kucoin': 'KuCoin',
         'mexc': 'MEXC', 'gateio': 'Gate.io', 'gate': 'Gate.io',
         'okx': 'OKX', 'bybit': 'Bybit',
         'lbank': 'LBank', 'bitget': 'Bitget', 'kraken': 'Kraken', 'htx': 'HTX', 'huobi': 'HTX',

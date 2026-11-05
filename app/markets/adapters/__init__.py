@@ -29,6 +29,7 @@ from app.markets.adapters.toobit import ToobitAdapter
 from app.markets.adapters.poloniex import PoloniexAdapter
 from app.markets.adapters.bitfinex import BitfinexAdapter
 from app.markets.adapters.coinbase import CoinbaseAdapter
+from app.markets.adapters.kifpool import KifpoolAdapter
 
 __all__ = [
     "BaseExchangeAdapter",
@@ -48,6 +49,7 @@ __all__ = [
     "BybitAdapter",
     "BitgetAdapter",
     "TabdealAdapter",
+    "KifpoolAdapter",
     "HTXAdapter",
     "BingXAdapter",
     "XTAdapter",

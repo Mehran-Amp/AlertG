@@ -118,6 +118,9 @@ def get_exchange_adapter(exchange_id: str):
     elif ex == "tabdeal":
         from app.markets.adapters.tabdeal import TabdealAdapter
         return TabdealAdapter()
+    elif ex in ("kifpool", "kifpool_me"):
+        from app.markets.adapters.kifpool import KifpoolAdapter
+        return KifpoolAdapter()
     elif ex == "bingx":
         from app.markets.adapters.bingx import BingXAdapter
         return BingXAdapter()

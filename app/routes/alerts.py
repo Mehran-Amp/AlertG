@@ -310,7 +310,7 @@ async def sync_user_alerts(payload: dict):
             item_warning = None
             if not sig_matches and val_mode in ("true", "1", "yes", "on", "enforce", "warn"):
                 from app.markets.crypto_validation import validate_crypto_alert
-                ex = str(item.get('exchange') or 'nobitex').strip().lower()
+                ex = str(item.get('exchange') or 'tabdeal').strip().lower()
                 sym = str(item.get('symbol') or 'USDTIRT').strip()
                 is_val, err_code, err_msg = validate_crypto_alert(
                     exchange=ex,
@@ -363,7 +363,7 @@ async def sync_user_alerts(payload: dict):
                 id=rule_id,
                 ack_supported=ack_supported_flag,
                 user_id=user_id,
-                exchange=item.get('exchange', 'nobitex').lower(),
+                exchange=item.get('exchange', 'tabdeal').lower(),
                 symbol=item.get('symbol', 'USDTIRT').upper(),
                 target_price=float(item.get('target_price', 0.0)),
                 condition=item.get('condition', 'ABOVE').upper(),
@@ -386,7 +386,7 @@ async def sync_user_alerts(payload: dict):
                 prefer_server_proxy=bool(item.get('prefer_server_proxy', False)),
                 raw_rule=item.get('raw_rule'),
                 fcm_token=item.get('fcm_token') or fcm_token,
-                check_interval_seconds=_clamp_interval(item.get('check_interval_seconds', 180), exchange=item.get('exchange', 'nobitex').lower()),
+                check_interval_seconds=_clamp_interval(item.get('check_interval_seconds', 180), exchange=item.get('exchange', 'tabdeal').lower()),
                 note=item.get('note'),
                 trigger_mode=item.get('trigger_mode', 'oneShot'),
                 alert_nature=item.get('alert_nature') or 'price',

@@ -1,10 +1,8 @@
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
-import '../base/iranian_exchange_adapter.dart';
 import '../base/standard_rest_exchange.dart';
 import '../binance/binance_exchange.dart';
 import '../bingx/bingx_exchange.dart';
-import '../bitbarg/bitbarg_exchange.dart';
 import '../bitget/bitget_exchange.dart';
 import '../bybit/bybit_exchange.dart';
 import '../coinbase/coinbase_exchange.dart';
@@ -12,20 +10,17 @@ import '../coingecko/coingecko_exchange.dart';
 import '../coinmarketcap/coinmarketcap_exchange.dart';
 import '../gateio/gateio_exchange.dart';
 import '../kcex/kcex_exchange.dart';
+import '../kifpool/kifpool_exchange.dart';
 import '../kraken/kraken_exchange.dart';
 import '../kucoin/kucoin_exchange.dart';
 import '../lbank/lbank_exchange.dart';
 import '../mexc/mexc_exchange.dart';
-import '../nobitex/nobitex_exchange.dart';
 import '../okx/okx_exchange.dart';
 import '../ourbit/ourbit_exchange.dart';
-import '../ramzinex/ramzinex_exchange.dart';
 import '../stocks/global_stocks_exchange.dart';
 import '../stocks/iran_domestic_exchange.dart';
 import '../tabdeal/tabdeal_exchange.dart';
-import '../tetherland/tetherland_exchange.dart';
 import '../toobit/toobit_exchange.dart';
-import '../wallex/wallex_exchange.dart';
 import '../xt/xt_exchange.dart';
 
 /// Standard Catalog of cryptocurrency and global markets adapters.
@@ -43,30 +38,11 @@ class ExchangeCatalog {
     IranDomesticExchange(),
   ];
 
-  /// Iranian domestic cryptocurrency exchanges
+  /// Iranian domestic cryptocurrency exchanges (Approved: Tabdeal & Kifpool with full TMN & USDT support)
   static List<Exchange> buildIranCryptoExchanges() {
     return <Exchange>[
-      NobitexExchange(),
-      WallexExchange(),
-      RamzinexExchange(),
       TabdealExchange(),
-      BitbargExchange(),
-      TetherlandExchange(),
-      IranianExchangeAdapter(
-        id: 'abantether',
-        name: 'AbanTether',
-        defaultCounterCurrency: 'TMN',
-      ),
-      IranianExchangeAdapter(
-        id: 'sarmayex',
-        name: 'Sarmayex',
-        defaultCounterCurrency: 'TMN',
-      ),
-      IranianExchangeAdapter(
-        id: 'exir',
-        name: 'Exir',
-        defaultCounterCurrency: 'TMN',
-      ),
+      KifpoolExchange(),
     ];
   }
 

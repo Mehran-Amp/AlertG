@@ -100,6 +100,7 @@
 | **Stage C** | تولیدکننده‌های استریم وب‌سوکت (Phase 7 Stage C) برای Binance, Bybit, OKX با فال‌بک REST | ✅ انجام و تایید شد | `app/markets/crypto_stream.py`, `server360` live verified (STANDBY/ACTIVE) |
 | **Phase 6** | موج دوم و سوم صرافی‌های بین‌المللی (افزودن ۶ صرافی: BingX, XT, Toobit, Poloniex, Coinbase, Bitfinex) | ✅ انجام شد | ۶ آداپتور رسمی، ثبت در رجیستری و لیمیترها، پوشش ۱۶ صرافی بین‌المللی + ۱ ایرانی |
 | **Phase 9** | کلاینت فلاتر: رفع قفل اینتروال ۱۸۰ ثانیه‌ای، آزادسازی پایش ۲ ثانیه‌ای برای رمزارز، انحصار USDT | ✅ انجام شد | `create_alert_flow.dart`، `exchange_catalog.dart`، `crypto_catalog_service.dart` |
+| **Phase 10** | صرافی‌های مجاز ایرانی: حذف صرافی‌های تحریم‌شده، انحصار به تبدیل و کیف پول من با پوشش کامل TMN و USDT | ✅ انجام شد | `kifpool.py`, `tabdeal.py`, `kifpool_exchange.dart`, `exchange_catalog.dart` |
 | **Phase 11** | پاکسازی و ممیزی هشدارهای CoinEx و آماده‌سازی پشتیبان اتمیک | ✅ انجام و تایید شد | `scripts/remove_coinex_alerts.py`، ممیزی پروداکشن (0 CoinEx Alerts) |
 | **Phase 12** | رول‌اوت عملیاتی، پایش سلامت و راستی‌آزمایی صرافی‌های فعال در پروداکشن | ✅ انجام شد | `scripts/verify_crypto_rollout.py`, ۱۷/۱۷ صرافی سالم، ۲۸,۸۳۳ قیمت لایو |
 

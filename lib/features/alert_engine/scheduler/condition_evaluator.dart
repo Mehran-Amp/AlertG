@@ -61,7 +61,7 @@ abstract class ConditionEvaluator {
       case 'wallex': return 'Wallex';
       case 'binance': return 'Binance';
       case 'tabdeal': return 'Tabdeal';
-      case 'ramzinex': return 'Ramzinex';
+      case 'kifpool': return 'Kifpool';
       case 'kucoin': return 'KuCoin';
       case 'mexc': return 'MEXC';
       case 'gateio':

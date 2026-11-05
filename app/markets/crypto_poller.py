@@ -46,6 +46,7 @@ DEFAULT_POLL_CADENCES: Dict[str, float] = {
     "kraken": 2.0,
     "htx": 1.0,
     "tabdeal": 2.0,
+    "kifpool": 2.0,
     "bingx": 1.0,
     "xt": 1.0,
     "toobit": 1.0,

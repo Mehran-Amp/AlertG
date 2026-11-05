@@ -24,7 +24,7 @@ logger = logging.getLogger("signalalert.crypto_validation")
 
 # Non-crypto exchanges that are handled by other market subsystems
 NON_CRYPTO_EXCHANGES = frozenset({
-    "nobitex", "wallex", "tabdeal", "bitpin", "tetherland", "abantether",
+    "nobitex", "wallex", "tabdeal", "kifpool", "bitpin", "tetherland", "abantether",
     "ramzinex", "bitbarg", "sarmayex", "exir", "iran_market", "bonbast",
     "bridge", "tse", "stocks", "global_stocks", "macro", "forex", "bonds",
     "wallstreet", "commodities", "timer", "local", "clock", "none"

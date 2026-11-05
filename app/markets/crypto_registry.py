@@ -173,7 +173,20 @@ _CRYPTO_EXCHANGES: Dict[str, CryptoExchangeMetadata] = {
         status='active',
         has_leveraged_tokens=False,
         aliases=('tabdeal_spot', 'tabdeal_iran'),
-        notes='Approved Iranian exchange (Wave 1) with dual USDT & TMN quote support'
+        notes='Approved Iranian exchange with dual USDT & TMN quote support'
+    ),
+    'kifpool': CryptoExchangeMetadata(
+        id='kifpool',
+        name='Kifpool',
+        category='iran_crypto',
+        provider_key='crypto_kifpool',
+        source_label='Kifpool (kifpool) Spot API',
+        markets_url='https://api.kifpool.app/api/spot/price',
+        bulk_ticker_url='https://api.kifpool.app/api/spot/price',
+        status='active',
+        has_leveraged_tokens=False,
+        aliases=('kifpool_spot', 'kifpool_iran', 'kifpool_me'),
+        notes='Approved Iranian exchange with 1,200+ coins in dual USDT & TMN quotes'
     ),
     'bingx': CryptoExchangeMetadata(
         id='bingx',

@@ -210,7 +210,7 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
             'price': rule.currentDisplayPrice ?? 0.0,
           },
         );
-      } else if (['nobitex', 'wallex', 'ramzinex', 'tabdeal', 'bitbarg', 'tetherland', 'abantether', 'sarmayex', 'exir'].contains(rule.exchangeId)) {
+      } else if (['tabdeal', 'kifpool'].contains(rule.exchangeId)) {
         _flowType = MarketFlowType.iran;
         _step = 3;
         _iranSubTab = 1;
@@ -1283,8 +1283,7 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
 
   Widget _buildCryptoExchangePicker(ThemeData theme, String lang) {
     const iranExchangeIds = {
-      'iran_market', 'nobitex', 'wallex', 'ramzinex', 'tabdeal', 'bitbarg',
-      'tetherland', 'abantether', 'sarmayex', 'exir'
+      'iran_market', 'tabdeal', 'kifpool'
     };
     final allExchanges = widget.registry.getAll().where((ex) {
       if (ex.id == 'global_stocks' || iranExchangeIds.contains(ex.id)) return false;

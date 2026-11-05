@@ -1394,6 +1394,8 @@ class _WatchlistPageState extends State<WatchlistPage> {
         return 'Wallex';
       case 'tabdeal':
         return 'Tabdeal';
+      case 'kifpool':
+        return 'Kifpool';
       case 'bitbarg':
         return 'Bitbarg';
       case 'abantether':

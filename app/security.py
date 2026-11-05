@@ -117,10 +117,10 @@ def _normalize_sync_item(item: Any) -> Dict[str, Any]:
     raw_ex = item.get('exchange')
     raw_sym = item.get('symbol')
     if not raw_ex:
-        logger.debug("ℹ️ [Sync Normalize] Missing exchange defaulted to 'nobitex'")
+        logger.debug("ℹ️ [Sync Normalize] Missing exchange defaulted to 'tabdeal'")
     if not raw_sym:
         logger.debug("ℹ️ [Sync Normalize] Missing symbol defaulted to 'USDTIRT'")
-    out['exchange'] = str(raw_ex or 'nobitex').strip().lower()
+    out['exchange'] = str(raw_ex or 'tabdeal').strip().lower()
 
     # Same symbol normalization as POST /api/alerts for crypto (Phase 4 / Item 4)
     from app.markets.common import normalize_symbol

@@ -78,6 +78,7 @@ PROVIDER_LIMITERS: Dict[str, TokenBucketRateLimiter] = {
     'crypto_kraken': TokenBucketRateLimiter(rate_per_second=15.0, capacity=25.0),
     'crypto_htx': TokenBucketRateLimiter(rate_per_second=20.0, capacity=30.0),
     'crypto_tabdeal': TokenBucketRateLimiter(rate_per_second=20.0, capacity=30.0),
+    'crypto_kifpool': TokenBucketRateLimiter(rate_per_second=15.0, capacity=25.0),
     'crypto_bingx': TokenBucketRateLimiter(rate_per_second=20.0, capacity=30.0),
     'crypto_xt': TokenBucketRateLimiter(rate_per_second=20.0, capacity=30.0),
     'crypto_toobit': TokenBucketRateLimiter(rate_per_second=20.0, capacity=30.0),
@@ -92,7 +93,6 @@ PROVIDER_LIMITERS: Dict[str, TokenBucketRateLimiter] = {
 # - finnhub: 60 req/min (3,600 req/hr, ~86,400/day)
 # - fred: 120 req/min (7,200 req/hr)
 # - yahoo: 2,000 req/hr soft limit
-# - nobitex: 5,000 req/hr soft limit
 # - bonbast: 500 req/hr soft limit
 # - binance: 1,200 req/min weight limit
 # - iran_bridge: 1,000 req/hr soft limit
@@ -101,7 +101,6 @@ PROVIDER_QUOTAS: Dict[str, Dict[str, Any]] = {
     'finnhub': {'limit': 86400, 'window': 'daily', 'name': 'Finnhub'},
     'fred': {'limit': 7200, 'window': 'daily', 'name': 'FRED Economic Data'},
     'yahoo': {'limit': 50000, 'window': 'daily', 'name': 'Yahoo Finance'},
-    'nobitex': {'limit': 20000, 'window': 'daily', 'name': 'Nobitex'},
     'iran_bridge': {'limit': 15000, 'window': 'daily', 'name': 'Iran Bridge (Aegkala)'},
     'bonbast': {'limit': 2000, 'window': 'daily', 'name': 'Bonbast'},
     'binance': {'limit': 100000, 'window': 'daily', 'name': 'Binance Spot'},
@@ -118,6 +117,7 @@ PROVIDER_QUOTAS: Dict[str, Dict[str, Any]] = {
     'crypto_kraken': {'limit': 40000, 'window': 'daily', 'name': 'Kraken Spot'},
     'crypto_htx': {'limit': 60000, 'window': 'daily', 'name': 'HTX Spot'},
     'crypto_tabdeal': {'limit': 50000, 'window': 'daily', 'name': 'Tabdeal Spot'},
+    'crypto_kifpool': {'limit': 50000, 'window': 'daily', 'name': 'Kifpool Spot'},
     'crypto_bingx': {'limit': 60000, 'window': 'daily', 'name': 'BingX Spot'},
     'crypto_xt': {'limit': 60000, 'window': 'daily', 'name': 'XT.COM Spot'},
     'crypto_toobit': {'limit': 60000, 'window': 'daily', 'name': 'Toobit Spot'},

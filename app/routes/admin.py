@@ -546,11 +546,8 @@ PROBE_TARGETS = [
     {"id": "tsetmc_web", "name": "TSETMC Web (تارنمای قدیمی بورس)", "cat": "iran", "url": "http://old.tsetmc.com/tsev2/data/MarketWatchPlus.aspx", "extractor": lambda d: None},
     {"id": "tsetmc_main", "name": "TSETMC Main (درگاه اصلی بورس تهران)", "cat": "iran", "url": "https://tsetmc.com", "extractor": lambda d: None},
     {"id": "ice_cbi", "name": "ICE (مرکز مبادله ارز و طلای ایران)", "cat": "iran", "url": "https://ice.ir", "extractor": lambda d: None},
-    {"id": "nobitex_stats", "name": "Nobitex Stats (آمار بازار نوبیتکس)", "cat": "iran", "url": "https://apiv2.nobitex.ir/market/stats", "extractor": lambda d: float(d.get('stats', {}).get('usdt-rls', {}).get('latest', 0)) / 10.0 if isinstance(d, dict) else None},
     {"id": "tabdeal_depth", "name": "Tabdeal Depth (دفتر سفارشات تبدیل)", "cat": "iran", "url": "https://api1.tabdeal.org/r/api/v1/depth?symbol=USDTIRT", "extractor": lambda d: float(d.get('bids', [[0]])[0][0]) if isinstance(d, dict) and d.get('bids') else None},
-    {"id": "wallex_markets", "name": "Wallex Markets (مارکت والکس)", "cat": "iran", "url": "https://api.wallex.ir/v1/markets", "extractor": lambda d: float(d.get('result', {}).get('symbols', {}).get('USDTTMN', {}).get('stats', {}).get('lastPrice', 0)) if isinstance(d, dict) else None},
-    {"id": "bitpin_markets", "name": "Bitpin Markets (مارکت بیت‌پین)", "cat": "iran", "url": "https://api.bitpin.org/v1/mkt/markets/", "extractor": lambda d: float(d.get('results', [{}])[0].get('price', 0)) if isinstance(d, dict) and d.get('results') else None},
-    {"id": "tetherland", "name": "Tetherland (نرخ مستقیم تتر)", "cat": "iran", "url": "https://api.tetherland.com/currencies", "extractor": lambda d: float(d.get('data', {}).get('currencies', {}).get('USDT', {}).get('price', 0)) if isinstance(d, dict) else None},
+    {"id": "kifpool_spot", "name": "Kifpool Spot (قیمت‌های زنده کیف پول من)", "cat": "iran", "url": "https://api.kifpool.app/api/spot/price", "extractor": lambda d: float(next((x.get('priceBuyIRT', 0) for x in d if isinstance(x, dict) and x.get('symbol') == 'USDT'), 0)) / 10.0 if isinstance(d, list) else None},
     {"id": "bonbast", "name": "Bonbast (دلار آزاد و سکه)", "cat": "iran", "url": "https://bonbast.com", "extractor": lambda d: None},
 
     # DEX Providers

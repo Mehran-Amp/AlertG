@@ -36,12 +36,8 @@ class _DebugDiagnosticsPageState extends State<DebugDiagnosticsPage> with Single
   String? _currentFcmToken;
 
   final List<Map<String, String>> _exchanges = const [
-    {'id': 'nobitex', 'name': 'نوبیتکس (Nobitex)'},
-    {'id': 'wallex', 'name': 'والکس (Wallex)'},
     {'id': 'tabdeal', 'name': 'تبدیل (Tabdeal)'},
-    {'id': 'ramzinex', 'name': 'رمزینکس (Ramzinex)'},
-    {'id': 'tetherland', 'name': 'تترلند (Tetherland)'},
-    {'id': 'abantether', 'name': 'آبان‌تتر (AbanTether)'},
+    {'id': 'kifpool', 'name': 'کیف پول من (Kifpool)'},
     {'id': 'binance', 'name': 'بایننس (Binance)'},
     {'id': 'kucoin', 'name': 'کوکوین (KuCoin)'},
     {'id': 'mexc', 'name': 'مکسی (MEXC)'},
@@ -128,10 +124,8 @@ class _DebugDiagnosticsPageState extends State<DebugDiagnosticsPage> with Single
     });
 
     final testTargets = [
-      {'ex': 'nobitex', 'sym': 'USDTTMN', 'label': 'Nobitex (تتر/تومان)'},
-      {'ex': 'wallex', 'sym': 'USDTTMN', 'label': 'Wallex (تتر/تومان)'},
       {'ex': 'tabdeal', 'sym': 'USDTTMN', 'label': 'Tabdeal (تتر/تومان)'},
-      {'ex': 'ramzinex', 'sym': 'USDTTMN', 'label': 'Ramzinex (تتر/تومان)'},
+      {'ex': 'kifpool', 'sym': 'USDTTMN', 'label': 'Kifpool (تتر/تومان)'},
       {'ex': 'binance', 'sym': 'BTCUSDT', 'label': 'Binance Spot'},
       {'ex': 'mexc', 'sym': 'BTCUSDT', 'label': 'MEXC Spot'},
       {'ex': 'kucoin', 'sym': 'BTCUSDT', 'label': 'KuCoin Spot'},

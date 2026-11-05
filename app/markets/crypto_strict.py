@@ -77,6 +77,8 @@ def _format_native_symbol(exchange_id: str, symbol: str) -> str:
         return f"{base}-USDT"
     elif ex == 'bitfinex':
         return f"t{base}:UST" if len(base) > 3 else f"t{base}UST"
+    elif ex == 'kifpool':
+        return f"{base}USDT"
     return f"{base}USDT"
 
 
@@ -296,6 +298,27 @@ async def fetch_crypto_strict(
                         return {'price': final_val, 'state': 'LIVE', 'currency': 'TMN' if is_tmn else 'USDT'}
             return None
         p = await _try_fetch(source_label, url, _extract_tabdeal)
+    elif ex == 'kifpool':
+        url = "https://api.kifpool.app/api/spot/price"
+        def _extract_kifpool(d):
+            if isinstance(d, list):
+                target_base = base
+                is_tmn = native_sym.endswith("TMN") or native_sym.endswith("IRT")
+                for item in d:
+                    if isinstance(item, dict) and (item.get("symbol") or "").upper() == target_base:
+                        if is_tmn:
+                            b_irt = item.get("priceBuyIRT")
+                            s_irt = item.get("priceSellIRT")
+                            if b_irt and s_irt:
+                                return {'price': ((float(b_irt) + float(s_irt)) / 2.0) / 10.0, 'state': 'LIVE', 'currency': 'TMN'}
+                            elif b_irt:
+                                return {'price': float(b_irt) / 10.0, 'state': 'LIVE', 'currency': 'TMN'}
+                        else:
+                            p_val = item.get("price")
+                            if p_val and float(p_val) > 0:
+                                return {'price': float(p_val), 'state': 'LIVE', 'currency': 'USDT'}
+            return None
+        p = await _try_fetch(source_label, url, _extract_kifpool)
     else:
         p = None
 
