@@ -78,6 +78,12 @@ PROVIDER_LIMITERS: Dict[str, TokenBucketRateLimiter] = {
     'crypto_kraken': TokenBucketRateLimiter(rate_per_second=15.0, capacity=25.0),
     'crypto_htx': TokenBucketRateLimiter(rate_per_second=20.0, capacity=30.0),
     'crypto_tabdeal': TokenBucketRateLimiter(rate_per_second=20.0, capacity=30.0),
+    'crypto_bingx': TokenBucketRateLimiter(rate_per_second=20.0, capacity=30.0),
+    'crypto_xt': TokenBucketRateLimiter(rate_per_second=20.0, capacity=30.0),
+    'crypto_toobit': TokenBucketRateLimiter(rate_per_second=20.0, capacity=30.0),
+    'crypto_poloniex': TokenBucketRateLimiter(rate_per_second=20.0, capacity=30.0),
+    'crypto_coinbase': TokenBucketRateLimiter(rate_per_second=15.0, capacity=25.0),
+    'crypto_bitfinex': TokenBucketRateLimiter(rate_per_second=15.0, capacity=25.0),
     'default': TokenBucketRateLimiter(rate_per_second=20.0, capacity=30.0),
 }
 
@@ -112,6 +118,12 @@ PROVIDER_QUOTAS: Dict[str, Dict[str, Any]] = {
     'crypto_kraken': {'limit': 40000, 'window': 'daily', 'name': 'Kraken Spot'},
     'crypto_htx': {'limit': 60000, 'window': 'daily', 'name': 'HTX Spot'},
     'crypto_tabdeal': {'limit': 50000, 'window': 'daily', 'name': 'Tabdeal Spot'},
+    'crypto_bingx': {'limit': 60000, 'window': 'daily', 'name': 'BingX Spot'},
+    'crypto_xt': {'limit': 60000, 'window': 'daily', 'name': 'XT.COM Spot'},
+    'crypto_toobit': {'limit': 60000, 'window': 'daily', 'name': 'Toobit Spot'},
+    'crypto_poloniex': {'limit': 60000, 'window': 'daily', 'name': 'Poloniex Spot'},
+    'crypto_coinbase': {'limit': 50000, 'window': 'daily', 'name': 'Coinbase Spot'},
+    'crypto_bitfinex': {'limit': 50000, 'window': 'daily', 'name': 'Bitfinex Spot'},
     'default': {'limit': 20000, 'window': 'daily', 'name': 'Default Gateway'},
 }
 

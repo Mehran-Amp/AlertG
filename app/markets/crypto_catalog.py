@@ -118,7 +118,26 @@ def get_exchange_adapter(exchange_id: str):
     elif ex == "tabdeal":
         from app.markets.adapters.tabdeal import TabdealAdapter
         return TabdealAdapter()
+    elif ex == "bingx":
+        from app.markets.adapters.bingx import BingXAdapter
+        return BingXAdapter()
+    elif ex == "xt":
+        from app.markets.adapters.xt import XTAdapter
+        return XTAdapter()
+    elif ex == "toobit":
+        from app.markets.adapters.toobit import ToobitAdapter
+        return ToobitAdapter()
+    elif ex == "poloniex":
+        from app.markets.adapters.poloniex import PoloniexAdapter
+        return PoloniexAdapter()
+    elif ex in ("coinbase", "coinbase_pro", "coinbase_exchange"):
+        from app.markets.adapters.coinbase import CoinbaseAdapter
+        return CoinbaseAdapter()
+    elif ex == "bitfinex":
+        from app.markets.adapters.bitfinex import BitfinexAdapter
+        return BitfinexAdapter()
     return None
+
 
 
 def load_exchange_catalog(exchange_id: str, override_dir: Optional[str] = None) -> Dict[str, Any]:

@@ -65,7 +65,20 @@ def _format_native_symbol(exchange_id: str, symbol: str) -> str:
         return f"{base}USDT"
     elif ex in ('htx', 'huobi'):
         return f"{base.lower()}usdt"
+    elif ex == 'bingx':
+        return f"{base}-USDT"
+    elif ex == 'xt':
+        return f"{base.lower()}_usdt"
+    elif ex == 'toobit':
+        return f"{base}USDT"
+    elif ex == 'poloniex':
+        return f"{base}_USDT"
+    elif ex in ('coinbase', 'coinbase_pro', 'coinbase_exchange'):
+        return f"{base}-USDT"
+    elif ex == 'bitfinex':
+        return f"t{base}:UST" if len(base) > 3 else f"t{base}UST"
     return f"{base}USDT"
+
 
 
 async def fetch_crypto_strict(

@@ -23,6 +23,12 @@ from app.markets.adapters.bybit import BybitAdapter
 from app.markets.adapters.bitget import BitgetAdapter
 from app.markets.adapters.tabdeal import TabdealAdapter
 from app.markets.adapters.htx import HTXAdapter
+from app.markets.adapters.bingx import BingXAdapter
+from app.markets.adapters.xt import XTAdapter
+from app.markets.adapters.toobit import ToobitAdapter
+from app.markets.adapters.poloniex import PoloniexAdapter
+from app.markets.adapters.bitfinex import BitfinexAdapter
+from app.markets.adapters.coinbase import CoinbaseAdapter
 
 __all__ = [
     "BaseExchangeAdapter",
@@ -43,4 +49,11 @@ __all__ = [
     "BitgetAdapter",
     "TabdealAdapter",
     "HTXAdapter",
+    "BingXAdapter",
+    "XTAdapter",
+    "ToobitAdapter",
+    "PoloniexAdapter",
+    "BitfinexAdapter",
+    "CoinbaseAdapter",
 ]
+

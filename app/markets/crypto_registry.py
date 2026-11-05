@@ -175,6 +175,84 @@ _CRYPTO_EXCHANGES: Dict[str, CryptoExchangeMetadata] = {
         aliases=('tabdeal_spot', 'tabdeal_iran'),
         notes='Approved Iranian exchange (Wave 1) with dual USDT & TMN quote support'
     ),
+    'bingx': CryptoExchangeMetadata(
+        id='bingx',
+        name='BingX',
+        category='tier1',
+        provider_key='crypto_bingx',
+        source_label='BingX (bingx) Spot API',
+        markets_url='https://open-api.bingx.com/openApi/spot/v1/common/symbols',
+        bulk_ticker_url='https://open-api.bingx.com/openApi/spot/v1/ticker/24hr',
+        status='active',
+        has_leveraged_tokens=False,
+        aliases=(),
+        notes='Tier 1 global spot exchange via official Open API'
+    ),
+    'xt': CryptoExchangeMetadata(
+        id='xt',
+        name='XT.COM',
+        category='tier1',
+        provider_key='crypto_xt',
+        source_label='XT.COM (xt) Spot API',
+        markets_url='https://sapi.xt.com/v4/public/symbol',
+        bulk_ticker_url='https://sapi.xt.com/v4/public/ticker/price',
+        status='active',
+        has_leveraged_tokens=False,
+        aliases=('xt_com',),
+        notes='Global spot trading platform via SAPI v4'
+    ),
+    'toobit': CryptoExchangeMetadata(
+        id='toobit',
+        name='Toobit',
+        category='tier1',
+        provider_key='crypto_toobit',
+        source_label='Toobit (toobit) Spot API',
+        markets_url='https://api.toobit.com/api/v1/exchangeInfo',
+        bulk_ticker_url='https://api.toobit.com/quote/v1/ticker/price',
+        status='active',
+        has_leveraged_tokens=False,
+        aliases=(),
+        notes='Global spot crypto market via Toobit API'
+    ),
+    'poloniex': CryptoExchangeMetadata(
+        id='poloniex',
+        name='Poloniex',
+        category='tier1',
+        provider_key='crypto_poloniex',
+        source_label='Poloniex (poloniex) Spot API',
+        markets_url='https://api.poloniex.com/markets',
+        bulk_ticker_url='https://api.poloniex.com/markets/ticker24h',
+        status='active',
+        has_leveraged_tokens=False,
+        aliases=(),
+        notes='Historic crypto spot exchange via official Poloniex API'
+    ),
+    'coinbase': CryptoExchangeMetadata(
+        id='coinbase',
+        name='Coinbase',
+        category='tier1',
+        provider_key='crypto_coinbase',
+        source_label='Coinbase (coinbase) Spot API',
+        markets_url='https://api.exchange.coinbase.com/products',
+        bulk_ticker_url='https://api.coinbase.com/v2/exchange-rates?currency=USDT',
+        status='active',
+        has_leveraged_tokens=False,
+        aliases=('coinbase_pro', 'coinbase_exchange'),
+        notes='Premier US regulated spot exchange'
+    ),
+    'bitfinex': CryptoExchangeMetadata(
+        id='bitfinex',
+        name='Bitfinex',
+        category='tier1',
+        provider_key='crypto_bitfinex',
+        source_label='Bitfinex (bitfinex) Spot API',
+        markets_url='https://api-pub.bitfinex.com/v2/conf/pub:list:pair:exchange',
+        bulk_ticker_url='https://api-pub.bitfinex.com/v2/tickers?symbols=ALL',
+        status='active',
+        has_leveraged_tokens=False,
+        aliases=(),
+        notes='Tier 1 spot market with institutional liquidity'
+    ),
 }
 
 # Fast alias lookup index

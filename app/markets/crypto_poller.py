@@ -45,6 +45,13 @@ DEFAULT_POLL_CADENCES: Dict[str, float] = {
     "bitget": 1.0,
     "kraken": 2.0,
     "htx": 1.0,
+    "tabdeal": 2.0,
+    "bingx": 1.0,
+    "xt": 1.0,
+    "toobit": 1.0,
+    "poloniex": 1.5,
+    "coinbase": 2.0,
+    "bitfinex": 2.0,
 }
 
 GRACE_PERIOD_SECONDS = 60.0

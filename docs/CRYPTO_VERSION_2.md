@@ -98,7 +98,9 @@
 | **G-7** | پروب زنده، راستی‌آزمایی پوشش بالای ۹۹٪، گزارش مستندات و تست‌های کامل | ✅ انجام شد | `scripts/probe_crypto_exchanges.py`, `reports/`, ۱۰ صرافی جهانی فعال |
 | **Stage B** | جاب ارزیابی اختصاصی ۱ ثانیه‌ای رمزارز (Phase 7 Stage B) بدون کپی منطق ارزیابی | ✅ انجام شد | `app/engine/checker.py`, `server.py`, `test_crypto_stage_b.py`, `CRYPTO_STAGE_B_ENABLED` |
 | **Stage C** | تولیدکننده‌های استریم وب‌سوکت (Phase 7 Stage C) برای Binance, Bybit, OKX با فال‌بک REST | ✅ انجام شد | `app/markets/crypto_stream.py`, `test_crypto_stream_stage_c.py`, `CRYPTO_STREAM_*` |
-| **Phase 12** | رول‌اوت عملیاتی، پایش سلامت و راستی‌آزمایی ۱۱/۱۱ صرافی فعال در پروداکشن | ✅ انجام شد | `scripts/verify_crypto_rollout.py`, `p50=367ms`, `11/11 healthy` |
+| **Phase 6** | موج دوم و سوم صرافی‌های بین‌المللی (افزودن ۶ صرافی: BingX, XT, Toobit, Poloniex, Coinbase, Bitfinex) | ✅ انجام شد | ۶ آداپتور رسمی، ثبت در رجیستری و لیمیترها، پوشش ۱۶ صرافی بین‌المللی + ۱ ایرانی |
+| **Phase 12** | رول‌اوت عملیاتی، پایش سلامت و راستی‌آزمایی صرافی‌های فعال در پروداکشن | ✅ انجام شد | `scripts/verify_crypto_rollout.py`, `p50=367ms` |
+
 
 
 
