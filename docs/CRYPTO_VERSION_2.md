@@ -97,9 +97,11 @@
 | **G-6** | افزودن صرافی **HTX** به رجیستری و آداپتورها (دستیابی به ۱۰ صرافی جهانی اسپات) | ✅ انجام شد | `htx.py`, `crypto_registry.py`, `crypto_strict.py`, `limiter.py`, `test_crypto_adapter_htx.py` |
 | **G-7** | پروب زنده، راستی‌آزمایی پوشش بالای ۹۹٪، گزارش مستندات و تست‌های کامل | ✅ انجام شد | `scripts/probe_crypto_exchanges.py`, `reports/`, ۱۰ صرافی جهانی فعال |
 | **Stage B** | جاب ارزیابی اختصاصی ۱ ثانیه‌ای رمزارز (Phase 7 Stage B) بدون کپی منطق ارزیابی | ✅ انجام شد | `app/engine/checker.py`, `server.py`, `test_crypto_stage_b.py`, `CRYPTO_STAGE_B_ENABLED` |
-| **Stage C** | تولیدکننده‌های استریم وب‌سوکت (Phase 7 Stage C) برای Binance, Bybit, OKX با فال‌بک REST | ✅ انجام شد | `app/markets/crypto_stream.py`, `test_crypto_stream_stage_c.py`, `CRYPTO_STREAM_*` |
+| **Stage C** | تولیدکننده‌های استریم وب‌سوکت (Phase 7 Stage C) برای Binance, Bybit, OKX با فال‌بک REST | ✅ انجام و تایید شد | `app/markets/crypto_stream.py`, `server360` live verified (STANDBY/ACTIVE) |
 | **Phase 6** | موج دوم و سوم صرافی‌های بین‌المللی (افزودن ۶ صرافی: BingX, XT, Toobit, Poloniex, Coinbase, Bitfinex) | ✅ انجام شد | ۶ آداپتور رسمی، ثبت در رجیستری و لیمیترها، پوشش ۱۶ صرافی بین‌المللی + ۱ ایرانی |
-| **Phase 12** | رول‌اوت عملیاتی، پایش سلامت و راستی‌آزمایی صرافی‌های فعال در پروداکشن | ✅ انجام شد | `scripts/verify_crypto_rollout.py`, `p50=367ms` |
+| **Phase 9** | کلاینت فلاتر: رفع قفل اینتروال ۱۸۰ ثانیه‌ای، آزادسازی پایش ۲ ثانیه‌ای برای رمزارز، انحصار USDT | ✅ انجام شد | `create_alert_flow.dart`، `exchange_catalog.dart`، `crypto_catalog_service.dart` |
+| **Phase 11** | پاکسازی و ممیزی هشدارهای CoinEx و آماده‌سازی پشتیبان اتمیک | ✅ انجام و تایید شد | `scripts/remove_coinex_alerts.py`، ممیزی پروداکشن (0 CoinEx Alerts) |
+| **Phase 12** | رول‌اوت عملیاتی، پایش سلامت و راستی‌آزمایی صرافی‌های فعال در پروداکشن | ✅ انجام شد | `scripts/verify_crypto_rollout.py`, ۱۷/۱۷ صرافی سالم، ۲۸,۸۳۳ قیمت لایو |
 
 
 
