@@ -214,6 +214,21 @@ const IRANIAN_POPULAR_PAIRS = [
   'ZEN', 'RVN', 'CKB', 'ONE', 'WLD', 'ARKM', 'IO', 'GRASS', 'ATH', 'GLM'
 ];
 
+const GLOBAL_POPULAR_PAIRS = [
+  'BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'ADA', 'AVAX', 'SUI', 'NEAR',
+  'LINK', 'DOT', 'PEPE', 'SHIB', 'TON', 'LTC', 'TRX', 'APT', 'FET', 'NOT',
+  'FLOKI', 'BONK', 'BCH', 'POL', 'RENDER', 'ATOM', 'ARB', 'OP', 'KAS', 'TIA',
+  'WIF', 'HMSTR', 'CATI', 'DOGS', 'TURBO', 'BABYDOGE', 'AAVE', 'CRV', 'UNI', 'ICP',
+  'XLM', 'TAO', 'ETC', 'XMR', 'HBAR', 'FIL', 'VET', 'INJ', 'SEI', 'S',
+  'ALGO', 'RUNE', 'STX', 'THETA', 'EOS', 'EGLD', 'NEO', 'IOTA', 'QNT', 'STRK',
+  'BLUR', 'IMX', 'LDO', 'MANTA', 'METIS', 'ZRO', 'BLAST', 'ZK', 'DYM', 'SAGA',
+  'GALA', 'SAND', 'MANA', 'AXS', 'BEAM', 'RON', 'PIXEL', 'CHZ', 'PENDLE', 'ENA',
+  'JUP', 'ENS', 'DYDX', 'ONDO', 'OM', 'HNT', 'JASMY', 'BAT', 'QTUM', 'XEC',
+  'ZEN', 'RVN', 'CKB', 'ONE', 'WLD', 'ARKM', 'IO', 'GRASS', 'ATH', 'GLM',
+  'LUNC', 'BGB', 'MX', 'GT', 'OKB', 'RAY', 'PYTH', 'JTO', 'PNUT', 'ACT',
+  'MOODENG', 'NEIRO', 'VIRTUAL', 'DEGEN', 'MOG', 'BRETT', 'POPCAT', 'MEW', 'BOME', 'MINA'
+];
+
 export const BONBAST_POPULAR_PAIRS = [
   'USDT', 'USD', 'EUR', 'GBP', 'AED', 'TRY', 'GOLD18', 'MITHQAL', 'COIN_EMAMI', 'COIN_BAHAR', 'COIN_HALF', 'COIN_QUARTER', 'COIN_GRAM',
   'CAD', 'AUD', 'CHF', 'CNY', 'IQD', 'KWD', 'SAR', 'QAR', 'OMR', 'BHD', 'AFN', 'RUB', 'INR', 'JPY'
@@ -222,22 +237,22 @@ export const BONBAST_POPULAR_PAIRS = [
 // === 1. CANONICAL CRYPTO EXCHANGES CATALOG (16 Global + 2 Iranian = 18 Total) ===
 const ALL_EXCHANGES: ExchangeInfo[] = [
   // --- 16 OFFICIAL INTERNATIONAL SPOT EXCHANGES (Crypto Version 2) ---
-  { id: 'binance', name: 'Binance', category: 'tier1', countryBadge: '🌐 Global #1', defaultCounter: 'USDT', availableCounters: ['USDT', 'BTC', 'ETH'], pairsCount: 1420, pairsList: ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'POL', 'RENDER', 'S', 'PEPE', 'DOGE', 'ADA', 'AVAX', 'NEAR', 'SUI', 'LINK', 'DOT'] },
-  { id: 'bingx', name: 'BingX', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 720, pairsList: ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'PEPE'] },
-  { id: 'bitfinex', name: 'Bitfinex', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT', 'USD'], pairsCount: 380, pairsList: ['BTC', 'ETH', 'SOL', 'XRP', 'LTC', 'EOS'] },
-  { id: 'bitget', name: 'Bitget', category: 'tier1', countryBadge: '🇸🇬 Singapore', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 820, pairsList: ['BTC', 'ETH', 'BGB', 'SOL', 'XRP', 'DOGE'] },
-  { id: 'bybit', name: 'Bybit', category: 'tier1', countryBadge: '🇦🇪 UAE / Global', defaultCounter: 'USDT', availableCounters: ['USDT', 'USDC'], pairsCount: 760, pairsList: ['BTC', 'ETH', 'SOL', 'MNT', 'XRP', 'DOGE', 'SUI', 'PEPE'] },
-  { id: 'coinbase', name: 'Coinbase', category: 'tier1', countryBadge: '🇺🇸 USA', defaultCounter: 'USDT', availableCounters: ['USDT', 'USD'], pairsCount: 520, pairsList: ['BTC', 'ETH', 'SOL', 'ADA', 'DOGE', 'AVAX', 'LINK', 'NEAR', 'DOT'] },
-  { id: 'gateio', name: 'Gate.io', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT', 'BTC'], pairsCount: 1900, pairsList: ['BTC', 'ETH', 'GT', 'SOL', 'PEPE', 'POL', 'RENDER', 'S'] },
-  { id: 'htx', name: 'HTX / Huobi', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 750, pairsList: ['BTC', 'ETH', 'HT', 'SOL', 'TRX', 'XRP'] },
-  { id: 'kraken', name: 'Kraken', category: 'tier1', countryBadge: '🇺🇸 USA / EU', defaultCounter: 'USDT', availableCounters: ['USDT', 'USD', 'EUR'], pairsCount: 430, pairsList: ['BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'DOT', 'DOGE', 'LTC'] },
-  { id: 'kucoin', name: 'KuCoin', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT', 'BTC'], pairsCount: 890, pairsList: ['BTC', 'ETH', 'SOL', 'PEPE', 'RENDER', 'S', 'TON', 'SUI', 'POL'] },
-  { id: 'lbank', name: 'LBank', category: 'tier1', countryBadge: '🌐 Global / Asia', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 950, pairsList: ['BTC', 'ETH', 'SOL', 'PEPE', 'DOGE', 'XRP', 'SUI', 'SHIB'] },
-  { id: 'mexc', name: 'MEXC Global', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT', 'USDC'], pairsCount: 2100, pairsList: ['BTC', 'ETH', 'MX', 'SOL', 'PEPE', 'SUI', 'TON'] },
-  { id: 'okx', name: 'OKX', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT', 'USD'], pairsCount: 680, pairsList: ['BTC', 'ETH', 'SOL', 'OKB', 'XRP', 'DOGE', 'ADA', 'TON'] },
-  { id: 'poloniex', name: 'Poloniex', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 450, pairsList: ['BTC', 'ETH', 'TRX', 'SOL', 'DOGE', 'XRP'] },
-  { id: 'toobit', name: 'Toobit', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 450, pairsList: ['BTC', 'ETH', 'SOL', 'DOGE', 'PEPE', 'XRP'] },
-  { id: 'xt', name: 'XT.COM', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 600, pairsList: ['BTC', 'ETH', 'SOL', 'DOGE', 'PEPE', 'XRP'] },
+  { id: 'binance', name: 'Binance', category: 'tier1', countryBadge: '🌐 Global #1', defaultCounter: 'USDT', availableCounters: ['USDT', 'BTC', 'ETH'], pairsCount: 1420, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'bingx', name: 'BingX', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 720, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'bitfinex', name: 'Bitfinex', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT', 'USD'], pairsCount: 380, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'bitget', name: 'Bitget', category: 'tier1', countryBadge: '🇸🇬 Singapore', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 820, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'bybit', name: 'Bybit', category: 'tier1', countryBadge: '🇦🇪 UAE / Global', defaultCounter: 'USDT', availableCounters: ['USDT', 'USDC'], pairsCount: 760, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'coinbase', name: 'Coinbase', category: 'tier1', countryBadge: '🇺🇸 USA', defaultCounter: 'USDT', availableCounters: ['USDT', 'USD'], pairsCount: 520, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'gateio', name: 'Gate.io', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT', 'BTC'], pairsCount: 1900, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'htx', name: 'HTX / Huobi', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 750, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'kraken', name: 'Kraken', category: 'tier1', countryBadge: '🇺🇸 USA / EU', defaultCounter: 'USDT', availableCounters: ['USDT', 'USD', 'EUR'], pairsCount: 430, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'kucoin', name: 'KuCoin', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT', 'BTC'], pairsCount: 890, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'lbank', name: 'LBank', category: 'tier1', countryBadge: '🌐 Global / Asia', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 950, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'mexc', name: 'MEXC Global', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT', 'USDC'], pairsCount: 2100, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'okx', name: 'OKX', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT', 'USD'], pairsCount: 680, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'poloniex', name: 'Poloniex', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 450, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'toobit', name: 'Toobit', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 450, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'xt', name: 'XT.COM', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 600, pairsList: GLOBAL_POPULAR_PAIRS },
 
   // --- 2 APPROVED IRANIAN CRYPTO EXCHANGES (DUAL TMN & USDT) ---
   { id: 'tabdeal', name: 'Tabdeal (تبدیل)', category: 'middleEast', countryBadge: '🇮🇷 Iran', defaultCounter: 'TMN', availableCounters: ['TMN', 'USDT'], pairsCount: 1539, pairsList: IRANIAN_POPULAR_PAIRS },
@@ -971,6 +986,13 @@ export default function App() {
   const [cryptoSearchQuery, setCryptoSearchQuery] = useState<string>('');
   const [selectedCryptoCoin, setSelectedCryptoCoin] = useState<string>('BTC');
   const [isSyncingPairs, setIsSyncingPairs] = useState<boolean>(false);
+  const [exchangePairsMap, setExchangePairsMap] = useState<Record<string, string[]>>(() => {
+    try {
+      const saved = localStorage.getItem('alarmer_exchange_pairs_map');
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return {};
+  });
 
   // Stocks / Forex / US 10Y Bond Flow
   const [macroStep, setMacroStep] = useState<1 | 2>(1);
@@ -1101,6 +1123,251 @@ export default function App() {
       return next;
     });
   };
+
+  const fetchExchangePairs = async (exchangeId: string, showToastFeedback = false) => {
+    const exId = (exchangeId || '').toLowerCase().trim();
+    setIsSyncingPairs(true);
+    let pairs: string[] = [];
+    try {
+      if (exId === 'tabdeal') {
+        const res = await fetch('/api/tabdeal-plots/market_information/');
+        if (res.ok) {
+          const list: any[] = await res.json();
+          if (Array.isArray(list)) {
+            const syms: string[] = [];
+            const tabdealPrices: Record<string, { priceTmn: number; priceUsdt: number; change24h: number; high24hTmn?: number; low24hTmn?: number }> = {};
+            const curRate = usdtTomanRate > 10000 ? usdtTomanRate : 268200;
+
+            list.forEach((item) => {
+              const rawSym = (item.symbol || '').toUpperCase().trim();
+              const parts = rawSym.split('_');
+              const base = parts[0] || rawSym;
+              const quote = parts[1] || 'IRT';
+              if (base) {
+                syms.push(base);
+                const rawPrice = parseFloat(item.price || '0');
+                const rawHigh = parseFloat(item.high || '0');
+                const rawLow = parseFloat(item.low || '0');
+
+                if (quote === 'IRT' || quote === 'TMN') {
+                  const tmn = rawPrice > 0 ? Math.round(rawPrice / 10.0) : 0;
+                  const hTmn = rawHigh > 0 ? Math.round(rawHigh / 10.0) : undefined;
+                  const lTmn = rawLow > 0 ? Math.round(rawLow / 10.0) : undefined;
+                  if (tmn > 0) {
+                    tabdealPrices[base] = {
+                      priceTmn: tmn,
+                      priceUsdt: tmn / curRate,
+                      change24h: 0.5,
+                      high24hTmn: hTmn,
+                      low24hTmn: lTmn,
+                    };
+                    updateLastKnownCoinPrice(base, tmn, tmn / curRate, hTmn, lTmn);
+                  }
+                } else if (quote === 'USDT' && rawPrice > 0) {
+                  if (!tabdealPrices[base]) {
+                    tabdealPrices[base] = {
+                      priceTmn: Math.round(rawPrice * curRate),
+                      priceUsdt: rawPrice,
+                      change24h: 0.5,
+                    };
+                  } else {
+                    tabdealPrices[base].priceUsdt = rawPrice;
+                  }
+                  updateLastKnownCoinPrice(base, Math.round(rawPrice * curRate), rawPrice);
+                }
+
+                if (item.symbol_fa || item.name_fa) {
+                  const faName = item.symbol_fa ? item.symbol_fa.replace(/-(تومان|تتر)/g, '').trim() : item.name_fa;
+                  setCryptoPrices((prev) => {
+                    const existing = prev[base];
+                    return {
+                      ...prev,
+                      [base]: {
+                        name: item.name || base,
+                        nameFa: faName || existing?.nameFa || base,
+                        icon: existing?.icon || 'https://cdn-icons-png.flaticon.com/512/2830/2830284.png',
+                        currentPrice: (quote === 'USDT' && rawPrice > 0) ? rawPrice : (existing?.currentPrice || 1.0),
+                        change24h: existing?.change24h || 0.5,
+                        high24h: existing?.high24h || (rawHigh > 0 && quote === 'USDT' ? rawHigh : 1.0),
+                        low24h: existing?.low24h || (rawLow > 0 && quote === 'USDT' ? rawLow : 1.0),
+                        volume24h: parseFloat(item.volume || '0') || existing?.volume24h || 0,
+                      },
+                    };
+                  });
+                }
+              }
+            });
+
+            if (syms.length > 0) pairs = Array.from(new Set(syms));
+            if (Object.keys(tabdealPrices).length > 0) {
+              setExchangeSpecificPrices((prev) => ({
+                ...prev,
+                tabdeal: { ...(prev['tabdeal'] || {}), ...tabdealPrices },
+              }));
+              setIranianMarketPrices((prev) => ({
+                ...prev,
+                ...tabdealPrices,
+              }));
+            }
+          }
+        }
+        if (pairs.length === 0) {
+          const resInfo = await fetch('/api/tabdeal/exchangeInfo');
+          if (resInfo.ok) {
+            const list: any[] = await resInfo.json();
+            if (Array.isArray(list)) {
+              pairs = Array.from(new Set(list.map((p) => (p.baseAsset || '').toUpperCase()).filter(Boolean)));
+            }
+          }
+        }
+      } else if (exId === 'kifpool') {
+        const res = await fetch('/api/kifpool/spot/price');
+        if (res.ok) {
+          const list: any[] = await res.json();
+          if (Array.isArray(list)) {
+            const syms: string[] = [];
+            const kifpoolPrices: Record<string, { priceTmn: number; priceUsdt: number; change24h: number; high24hTmn?: number; low24hTmn?: number }> = {};
+            const curRate = usdtTomanRate > 10000 ? usdtTomanRate : 268200;
+
+            list.forEach((item) => {
+              const sym = (item.symbol || '').toUpperCase().trim();
+              if (sym) {
+                syms.push(sym);
+                const pTmn = item.priceBuyIRT || item.priceSellIRT || 0;
+                const pUsd = item.price || 0;
+                const ch = item.priceChangePercent || 0;
+                if (pTmn > 0 || pUsd > 0) {
+                  kifpoolPrices[sym] = {
+                    priceTmn: pTmn > 0 ? pTmn : Math.round(pUsd * curRate),
+                    priceUsdt: pUsd > 0 ? pUsd : (pTmn > 0 ? pTmn / curRate : 0),
+                    change24h: ch,
+                  };
+                  updateLastKnownCoinPrice(sym, pTmn > 0 ? pTmn : Math.round(pUsd * curRate), pUsd > 0 ? pUsd : (pTmn > 0 ? pTmn / curRate : 0));
+                }
+                if (item.faName || item.smallImage) {
+                  setCryptoPrices((prev) => {
+                    const existing = prev[sym];
+                    return {
+                      ...prev,
+                      [sym]: {
+                        name: item.name || sym,
+                        nameFa: item.faName || existing?.nameFa || sym,
+                        icon: item.smallImage || existing?.icon || 'https://cdn-icons-png.flaticon.com/512/2830/2830284.png',
+                        currentPrice: pUsd > 0 ? pUsd : (existing?.currentPrice || 1.0),
+                        change24h: ch,
+                        high24h: item.high || existing?.high24h || pUsd * 1.02,
+                        low24h: item.low || existing?.low24h || pUsd * 0.98,
+                        volume24h: item.volume || existing?.volume24h || 0,
+                      },
+                    };
+                  });
+                }
+              }
+            });
+
+            if (syms.length > 0) pairs = Array.from(new Set(syms));
+            if (Object.keys(kifpoolPrices).length > 0) {
+              setExchangeSpecificPrices((prev) => ({
+                ...prev,
+                kifpool: { ...(prev['kifpool'] || {}), ...kifpoolPrices },
+              }));
+              setIranianMarketPrices((prev) => ({
+                ...prev,
+                ...kifpoolPrices,
+              }));
+            }
+          }
+        }
+      } else if (exId === 'binance') {
+        const res = await fetch('/api/binance/ticker/price');
+        if (res.ok) {
+          const list: any[] = await res.json();
+          if (Array.isArray(list)) {
+            const syms = list
+              .filter((p) => p.symbol && p.symbol.endsWith('USDT'))
+              .map((p) => p.symbol.replace('USDT', ''));
+            if (syms.length > 0) pairs = Array.from(new Set(syms));
+          }
+        }
+      } else if (exId === 'kucoin') {
+        const res = await fetch('/api/kucoin/market/allTickers');
+        if (res.ok) {
+          const data = await res.json();
+          const tickers = data?.data?.ticker;
+          if (Array.isArray(tickers)) {
+            const syms = tickers
+              .filter((p) => p.symbol && p.symbol.endsWith('-USDT'))
+              .map((p) => p.symbol.replace('-USDT', ''));
+            if (syms.length > 0) pairs = Array.from(new Set(syms));
+          }
+        }
+      } else if (exId === 'mexc') {
+        const res = await fetch('/api/mexc/ticker/price');
+        if (res.ok) {
+          const list: any[] = await res.json();
+          if (Array.isArray(list)) {
+            const syms = list
+              .filter((p) => p.symbol && p.symbol.endsWith('USDT'))
+              .map((p) => p.symbol.replace('USDT', ''));
+            if (syms.length > 0) pairs = Array.from(new Set(syms));
+          }
+        }
+      } else if (exId === 'lbank') {
+        const res = await fetch('/api/lbank/currencyPairs.do');
+        if (res.ok) {
+          const data = await res.json();
+          const list = data?.data;
+          if (Array.isArray(list)) {
+            const syms = list
+              .filter((p: string) => typeof p === 'string' && p.endsWith('_usdt'))
+              .map((p: string) => p.replace('_usdt', '').toUpperCase());
+            if (syms.length > 0) pairs = Array.from(new Set(syms));
+          }
+        }
+      } else if (exId === 'poloniex') {
+        const res = await fetch('/api/poloniex/markets');
+        if (res.ok) {
+          const list: any[] = await res.json();
+          if (Array.isArray(list)) {
+            const syms = list
+              .filter((p) => (p.quoteCurrencyName === 'USDT' || p.symbol?.endsWith('_USDT')))
+              .map((p) => (p.baseCurrencyName || p.symbol.replace('_USDT', '')).toUpperCase());
+            if (syms.length > 0) pairs = Array.from(new Set(syms));
+          }
+        }
+      }
+    } catch (err) {
+      console.warn(`Could not sync live pairs for ${exId}:`, err);
+    } finally {
+      setIsSyncingPairs(false);
+    }
+
+    if (pairs.length > 0) {
+      setExchangePairsMap((prev) => {
+        const updated = { ...prev, [exId]: pairs };
+        try {
+          localStorage.setItem('alarmer_exchange_pairs_map', JSON.stringify(updated));
+        } catch (_) {}
+        return updated;
+      });
+      if (showToastFeedback) {
+        showToast(`لیست ${pairs.length.toLocaleString('fa-IR')} کوین صرافی ${selectedExchange.name} به‌روزرسانی شد.`);
+      }
+    } else {
+      if (showToastFeedback) {
+        const fallbackCount = (selectedExchange.pairsList || GLOBAL_POPULAR_PAIRS).length;
+        showToast(`لیست پیش‌فرض با ${fallbackCount.toLocaleString('fa-IR')} کوین فعال است.`);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (cryptoStep === 2 && selectedExchange?.id) {
+      if (!exchangePairsMap[selectedExchange.id] || exchangePairsMap[selectedExchange.id].length === 0) {
+        fetchExchangePairs(selectedExchange.id);
+      }
+    }
+  }, [cryptoStep, selectedExchange?.id]);
 
   // Helper to resolve live market price, unit and 24h stats for any exchange pair with 100% offline safety
   const getCryptoMarketPrice = (coin: string, exchangeId: string, counterCurrency: string) => {
@@ -1275,9 +1542,9 @@ export default function App() {
   // Live Crypto Prices Sync (Global Binance + Domestic Iranian Wallex, Nobitex, Ramzinex, TetherLand, Bitbarg)
   useEffect(() => {
     const fetchLivePrices = async () => {
-      // 1. Fetch Global Binance Tickers
+      // 1. Fetch Global Binance Tickers (via Vite Proxy)
       try {
-        const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+        const res = await fetch('/api/binance/ticker/24hr');
         if (res.ok) {
           const tickers: any[] = await res.json();
           const priceMap: Record<string, { price: number; change: number; high: number; low: number; volume: number }> = {};
@@ -1439,6 +1706,108 @@ export default function App() {
               ...prev,
               bonbast: bonbastPrices,
             }));
+          }
+        }
+      } catch (_) {}
+
+      // 1.5 Tabdeal Live Spot Plots (1,027 pairs)
+      try {
+        const tabdealRes = await fetch('/api/tabdeal-plots/market_information/');
+        if (tabdealRes.ok) {
+          const list: any[] = await tabdealRes.json();
+          if (Array.isArray(list)) {
+            const tabdealPrices: Record<string, { priceTmn: number; priceUsdt: number; change24h: number; high24hTmn?: number; low24hTmn?: number }> = {};
+            const curRate = usdtTomanRate > 10000 ? usdtTomanRate : 268200;
+
+            list.forEach((item) => {
+              const rawSym = (item.symbol || '').toUpperCase().trim();
+              const parts = rawSym.split('_');
+              const base = parts[0] || rawSym;
+              const quote = parts[1] || 'IRT';
+              const rawPrice = parseFloat(item.price || '0');
+              const rawHigh = parseFloat(item.high || '0');
+              const rawLow = parseFloat(item.low || '0');
+
+              if (base) {
+                if (quote === 'IRT' || quote === 'TMN') {
+                  const tmn = rawPrice > 0 ? Math.round(rawPrice / 10.0) : 0;
+                  const hTmn = rawHigh > 0 ? Math.round(rawHigh / 10.0) : undefined;
+                  const lTmn = rawLow > 0 ? Math.round(rawLow / 10.0) : undefined;
+                  if (tmn > 0) {
+                    tabdealPrices[base] = {
+                      priceTmn: tmn,
+                      priceUsdt: tmn / curRate,
+                      change24h: 0.5,
+                      high24hTmn: hTmn,
+                      low24hTmn: lTmn,
+                    };
+                    updateLastKnownCoinPrice(base, tmn, tmn / curRate, hTmn, lTmn);
+                  }
+                } else if (quote === 'USDT' && rawPrice > 0) {
+                  if (!tabdealPrices[base]) {
+                    tabdealPrices[base] = {
+                      priceTmn: Math.round(rawPrice * curRate),
+                      priceUsdt: rawPrice,
+                      change24h: 0.5,
+                    };
+                  } else {
+                    tabdealPrices[base].priceUsdt = rawPrice;
+                  }
+                  updateLastKnownCoinPrice(base, Math.round(rawPrice * curRate), rawPrice);
+                }
+              }
+            });
+
+            if (Object.keys(tabdealPrices).length > 0) {
+              setExchangeSpecificPrices((prev) => ({
+                ...prev,
+                tabdeal: { ...(prev['tabdeal'] || {}), ...tabdealPrices },
+              }));
+              setIranianMarketPrices((prev) => ({
+                ...prev,
+                ...tabdealPrices,
+              }));
+            }
+          }
+        }
+      } catch (_) {}
+
+      // 1.6 Kifpool Live Spot Prices (1,298 pairs)
+      try {
+        const kifpoolRes = await fetch('/api/kifpool/spot/price');
+        if (kifpoolRes.ok) {
+          const list: any[] = await kifpoolRes.json();
+          if (Array.isArray(list)) {
+            const kifpoolPrices: Record<string, { priceTmn: number; priceUsdt: number; change24h: number; high24hTmn?: number; low24hTmn?: number }> = {};
+            const curRate = usdtTomanRate > 10000 ? usdtTomanRate : 268200;
+
+            list.forEach((item) => {
+              const sym = (item.symbol || '').toUpperCase().trim();
+              if (sym) {
+                const pTmn = item.priceBuyIRT || item.priceSellIRT || 0;
+                const pUsd = item.price || 0;
+                const ch = item.priceChangePercent || 0;
+                if (pTmn > 0 || pUsd > 0) {
+                  kifpoolPrices[sym] = {
+                    priceTmn: pTmn > 0 ? pTmn : Math.round(pUsd * curRate),
+                    priceUsdt: pUsd > 0 ? pUsd : (pTmn > 0 ? pTmn / curRate : 0),
+                    change24h: ch,
+                  };
+                  updateLastKnownCoinPrice(sym, pTmn > 0 ? pTmn : Math.round(pUsd * curRate), pUsd > 0 ? pUsd : (pTmn > 0 ? pTmn / curRate : 0));
+                }
+              }
+            });
+
+            if (Object.keys(kifpoolPrices).length > 0) {
+              setExchangeSpecificPrices((prev) => ({
+                ...prev,
+                kifpool: { ...(prev['kifpool'] || {}), ...kifpoolPrices },
+              }));
+              setIranianMarketPrices((prev) => ({
+                ...prev,
+                ...kifpoolPrices,
+              }));
+            }
           }
         }
       } catch (_) {}
@@ -4181,7 +4550,9 @@ export default function App() {
                           onClick={() => {
                             setSelectedExchange(ex);
                             setSelectedCounterCurrency(ex.defaultCounter || 'TMN');
+                            setCryptoSearchQuery('');
                             setCryptoStep(2);
+                            fetchExchangePairs(ex.id);
                           }}
                           className={`w-full p-3 rounded-2xl border text-right flex items-center justify-between transition-all ${
                             selectedExchange.id === ex.id
@@ -4215,117 +4586,120 @@ export default function App() {
                 )}
 
                 {/* Crypto Step 2: Select Pair & Manual Sync */}
-                {cryptoStep === 2 && (
-                  <div className="space-y-3 text-xs">
-                    <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between">
-                      <div>
-                        <span className="text-slate-400 text-[10px] block">صرافی انتخاب‌شده:</span>
-                        <div className="flex items-center gap-2">
-                          <strong className="text-white text-xs font-bold">{selectedExchange.name}</strong>
-                          {(selectedExchange.id === 'tabdeal' || selectedExchange.id === 'kifpool') && (
-                            <span className="px-2 py-0.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold">
-                              پشتیبانی دوگانه: تومان (TMN) و تتر (USDT) 🇮🇷
+                {cryptoStep === 2 && (() => {
+                  const currentPairsList = (exchangePairsMap[selectedExchange.id] && exchangePairsMap[selectedExchange.id].length > 0)
+                    ? exchangePairsMap[selectedExchange.id]
+                    : (selectedExchange.pairsList || GLOBAL_POPULAR_PAIRS);
+
+                  return (
+                    <div className="space-y-3 text-xs">
+                      <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                        <div>
+                          <span className="text-slate-400 text-[10px] block">صرافی انتخاب‌شده:</span>
+                          <div className="flex items-center gap-2">
+                            <strong className="text-white text-xs font-bold">{selectedExchange.name}</strong>
+                            <span className="text-[10px] text-emerald-400 font-mono bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 font-bold">
+                              {currentPairsList.length.toLocaleString('fa-IR')} کوین فعال
                             </span>
-                          )}
+                            {(selectedExchange.id === 'tabdeal' || selectedExchange.id === 'kifpool') && (
+                              <span className="px-2 py-0.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold">
+                                پشتیبانی دوگانه: تومان (TMN) و تتر (USDT) 🇮🇷
+                              </span>
+                            )}
+                          </div>
                         </div>
+                        <button
+                          onClick={() => fetchExchangePairs(selectedExchange.id, true)}
+                          disabled={isSyncingPairs}
+                          className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold text-[11px] flex items-center gap-1.5 transition-all"
+                        >
+                          <RefreshCw className={`h-3 w-3 ${isSyncingPairs ? 'animate-spin' : ''}`} />
+                          <span>{isSyncingPairs ? 'در حال دریافت لیست...' : '🔄 بروزرسانی لیست'}</span>
+                        </button>
                       </div>
-                      <button
-                        onClick={() => {
-                          setIsSyncingPairs(true);
-                          setTimeout(() => {
-                            setIsSyncingPairs(false);
-                            showToast(`لیست جفت‌ارزهای ${selectedExchange.name} به‌روزرسانی شد.`);
-                          }, 500);
-                        }}
-                        disabled={isSyncingPairs}
-                        className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold text-[11px] flex items-center gap-1.5 transition-all"
-                      >
-                        <RefreshCw className={`h-3 w-3 ${isSyncingPairs ? 'animate-spin' : ''}`} />
-                        <span>{isSyncingPairs ? 'در حال بروزرسانی...' : '🔄 بروزرسانی لیست'}</span>
-                      </button>
-                    </div>
 
-                    <input
-                      type="text"
-                      value={cryptoSearchQuery}
-                      onChange={(e) => setCryptoSearchQuery(e.target.value)}
-                      placeholder="جستجوی رمزارز (BTC, ETH, SOL, POL, S, RENDER, PEPE)..."
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white"
-                    />
+                      <input
+                        type="text"
+                        value={cryptoSearchQuery}
+                        onChange={(e) => setCryptoSearchQuery(e.target.value)}
+                        placeholder="جستجوی رمزارز (BTC, ETH, SOL, POL, S, RENDER, PEPE)..."
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white"
+                      />
 
-                    <div className="max-h-56 overflow-y-auto space-y-1.5 custom-scrollbar">
-                      {selectedExchange.pairsList
-                        .filter(sym => !cryptoSearchQuery || sym.toLowerCase().includes(cryptoSearchQuery.toLowerCase()))
-                        .map((sym) => {
-                          const meta = cryptoPrices[sym] || { nameFa: sym, currentPrice: 1.0, icon: 'https://cdn-icons-png.flaticon.com/512/2830/2830284.png' };
-                          const isSelectedIrEx = selectedExchange.id?.toLowerCase() === 'tabdeal' || selectedExchange.id?.toLowerCase() === 'kifpool';
-                          const counter = (isSelectedIrEx && (!selectedCounterCurrency || selectedCounterCurrency === 'TMN' || selectedCounterCurrency === 'IRT'))
-                            ? 'TMN'
-                            : (selectedCounterCurrency || selectedExchange.defaultCounter);
-                          const mkt = getCryptoMarketPrice(sym, selectedExchange.id, counter);
-                          const isIrOrTmn = isSelectedIrEx || mkt.unit === 'تومان' || counter === 'TMN';
-                          const priceDisplay = isIrOrTmn
-                            ? `${Math.round(mkt.price).toLocaleString('fa-IR')} تومان`
-                            : `${mkt.unit}${mkt.price < 1 ? mkt.price.toFixed(6) : mkt.price.toLocaleString()}`;
+                      <div className="max-h-56 overflow-y-auto space-y-1.5 custom-scrollbar">
+                        {currentPairsList
+                          .filter((sym) => !cryptoSearchQuery || sym.toLowerCase().includes(cryptoSearchQuery.toLowerCase()))
+                          .map((sym) => {
+                            const meta = cryptoPrices[sym] || { nameFa: sym, currentPrice: 1.0, icon: 'https://cdn-icons-png.flaticon.com/512/2830/2830284.png' };
+                            const isSelectedIrEx = selectedExchange.id?.toLowerCase() === 'tabdeal' || selectedExchange.id?.toLowerCase() === 'kifpool';
+                            const counter = (isSelectedIrEx && (!selectedCounterCurrency || selectedCounterCurrency === 'TMN' || selectedCounterCurrency === 'IRT'))
+                              ? 'TMN'
+                              : (selectedCounterCurrency || selectedExchange.defaultCounter);
+                            const mkt = getCryptoMarketPrice(sym, selectedExchange.id, counter);
+                            const isIrOrTmn = isSelectedIrEx || mkt.unit === 'تومان' || counter === 'TMN';
+                            const priceDisplay = isIrOrTmn
+                              ? `${Math.round(mkt.price).toLocaleString('fa-IR')} تومان`
+                              : `${mkt.unit}${mkt.price < 1 ? mkt.price.toFixed(6) : mkt.price.toLocaleString()}`;
 
-                          return (
-                            <button
-                              key={sym}
-                              onClick={() => {
-                                setSelectedCryptoCoin(sym);
-                                const curCounter = (isSelectedIrEx || !selectedCounterCurrency || selectedCounterCurrency === 'TMN' || selectedCounterCurrency === 'IRT') ? 'TMN' : (selectedCounterCurrency || selectedExchange.defaultCounter);
-                                const liveMkt = getCryptoMarketPrice(sym, selectedExchange.id, curCounter);
-                                const isTmnLocal = isSelectedIrEx || selectedExchange.id?.toLowerCase().includes('bonbast') || liveMkt.unit === 'تومان' || curCounter === 'TMN' || curCounter === 'IRT';
-                                const liveValStr = isTmnLocal ? Math.round(liveMkt.price).toString() : (liveMkt.price < 1 ? liveMkt.price.toFixed(6) : liveMkt.price.toFixed(2));
-                                setTargetValueStr(liveValStr);
-                                setUpperPriceStr(isTmnLocal ? Math.round(liveMkt.high24h || liveMkt.price * 1.025).toString() : (liveMkt.high24h || liveMkt.price * 1.025).toFixed(2));
-                                setLowerPriceStr(isTmnLocal ? Math.round(liveMkt.low24h || liveMkt.price * 0.975).toString() : (liveMkt.low24h || liveMkt.price * 0.975).toFixed(2));
-                                setCryptoStep(3);
-                              }}
-                              className={`w-full p-2.5 rounded-2xl border text-right flex items-center justify-between transition-all ${
-                                selectedCryptoCoin === sym
-                                  ? 'border-emerald-500 bg-emerald-500/10 text-white'
-                                  : 'border-slate-800 bg-slate-950 text-slate-300 hover:border-slate-700'
-                              }`}
-                            >
-                              <div className="flex items-center gap-2.5">
-                                <img src={meta.icon} alt={sym} className="h-7 w-7 rounded-full" />
-                                <div>
-                                  <div className="font-bold text-xs text-white">{meta.nameFa || sym} ({sym}/{counter})</div>
-                                  <div className="text-[10px] text-emerald-400 font-mono font-bold">
-                                    {priceDisplay}
+                            return (
+                              <button
+                                key={sym}
+                                onClick={() => {
+                                  setSelectedCryptoCoin(sym);
+                                  const curCounter = (isSelectedIrEx || !selectedCounterCurrency || selectedCounterCurrency === 'TMN' || selectedCounterCurrency === 'IRT') ? 'TMN' : (selectedCounterCurrency || selectedExchange.defaultCounter);
+                                  const liveMkt = getCryptoMarketPrice(sym, selectedExchange.id, curCounter);
+                                  const isTmnLocal = isSelectedIrEx || selectedExchange.id?.toLowerCase().includes('bonbast') || liveMkt.unit === 'تومان' || curCounter === 'TMN' || curCounter === 'IRT';
+                                  const liveValStr = isTmnLocal ? Math.round(liveMkt.price).toString() : (liveMkt.price < 1 ? liveMkt.price.toFixed(6) : liveMkt.price.toFixed(2));
+                                  setTargetValueStr(liveValStr);
+                                  setUpperPriceStr(isTmnLocal ? Math.round(liveMkt.high24h || liveMkt.price * 1.025).toString() : (liveMkt.high24h || liveMkt.price * 1.025).toFixed(2));
+                                  setLowerPriceStr(isTmnLocal ? Math.round(liveMkt.low24h || liveMkt.price * 0.975).toString() : (liveMkt.low24h || liveMkt.price * 0.975).toFixed(2));
+                                  setCryptoStep(3);
+                                }}
+                                className={`w-full p-2.5 rounded-2xl border text-right flex items-center justify-between transition-all ${
+                                  selectedCryptoCoin === sym
+                                    ? 'border-emerald-500 bg-emerald-500/10 text-white'
+                                    : 'border-slate-800 bg-slate-950 text-slate-300 hover:border-slate-700'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2.5">
+                                  <img src={meta.icon} alt={sym} className="h-7 w-7 rounded-full" />
+                                  <div>
+                                    <div className="font-bold text-xs text-white">{meta.nameFa || sym} ({sym}/{counter})</div>
+                                    <div className="text-[10px] text-emerald-400 font-mono font-bold">
+                                      {priceDisplay}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                              <span className="text-emerald-400 text-xs font-bold">انتخاب →</span>
-                            </button>
-                          );
-                        })}
+                                <span className="text-emerald-400 text-xs font-bold">انتخاب →</span>
+                              </button>
+                            );
+                          })}
 
-                      {selectedExchange.pairsList.filter(sym => !cryptoSearchQuery || sym.toLowerCase().includes(cryptoSearchQuery.toLowerCase())).length === 0 && cryptoSearchQuery.trim() && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const customSym = cryptoSearchQuery.trim().toUpperCase();
-                            setSelectedCryptoCoin(customSym);
-                            const isSelectedIr = selectedExchange.id?.toLowerCase() === 'tabdeal' || selectedExchange.id?.toLowerCase() === 'kifpool';
-                            const curCounter = (isSelectedIr || !selectedCounterCurrency || selectedCounterCurrency === 'TMN' || selectedCounterCurrency === 'IRT') ? 'TMN' : (selectedCounterCurrency || selectedExchange.defaultCounter);
-                            const liveMkt = getCryptoMarketPrice(customSym, selectedExchange.id, curCounter);
-                            const isTmnLocal = isSelectedIr || selectedExchange.id?.toLowerCase().includes('bonbast') || liveMkt.unit === 'تومان' || curCounter === 'TMN' || curCounter === 'IRT';
-                            const liveValStr = isTmnLocal ? Math.round(liveMkt.price).toString() : (liveMkt.price < 1 ? liveMkt.price.toFixed(6) : liveMkt.price.toFixed(2));
-                            setTargetValueStr(liveValStr);
-                            setUpperPriceStr(isTmnLocal ? Math.round(liveMkt.high24h || liveMkt.price * 1.025).toString() : (liveMkt.high24h || liveMkt.price * 1.025).toFixed(2));
-                            setLowerPriceStr(isTmnLocal ? Math.round(liveMkt.low24h || liveMkt.price * 0.975).toString() : (liveMkt.low24h || liveMkt.price * 0.975).toFixed(2));
-                            setCryptoStep(3);
-                          }}
-                          className="w-full p-3 rounded-2xl border border-dashed border-emerald-500/50 bg-emerald-500/10 text-emerald-300 font-bold text-xs text-center hover:bg-emerald-500/20 transition-all"
-                        >
-                          + پایش دستی نماد {cryptoSearchQuery.trim().toUpperCase()} در صرافی {selectedExchange.name}
-                        </button>
-                      )}
+                        {currentPairsList.filter((sym) => !cryptoSearchQuery || sym.toLowerCase().includes(cryptoSearchQuery.toLowerCase())).length === 0 && cryptoSearchQuery.trim() && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const customSym = cryptoSearchQuery.trim().toUpperCase();
+                              setSelectedCryptoCoin(customSym);
+                              const isSelectedIr = selectedExchange.id?.toLowerCase() === 'tabdeal' || selectedExchange.id?.toLowerCase() === 'kifpool';
+                              const curCounter = (isSelectedIr || !selectedCounterCurrency || selectedCounterCurrency === 'TMN' || selectedCounterCurrency === 'IRT') ? 'TMN' : (selectedCounterCurrency || selectedExchange.defaultCounter);
+                              const liveMkt = getCryptoMarketPrice(customSym, selectedExchange.id, curCounter);
+                              const isTmnLocal = isSelectedIr || selectedExchange.id?.toLowerCase().includes('bonbast') || liveMkt.unit === 'تومان' || curCounter === 'TMN' || curCounter === 'IRT';
+                              const liveValStr = isTmnLocal ? Math.round(liveMkt.price).toString() : (liveMkt.price < 1 ? liveMkt.price.toFixed(6) : liveMkt.price.toFixed(2));
+                              setTargetValueStr(liveValStr);
+                              setUpperPriceStr(isTmnLocal ? Math.round(liveMkt.high24h || liveMkt.price * 1.025).toString() : (liveMkt.high24h || liveMkt.price * 1.025).toFixed(2));
+                              setLowerPriceStr(isTmnLocal ? Math.round(liveMkt.low24h || liveMkt.price * 0.975).toString() : (liveMkt.low24h || liveMkt.price * 0.975).toFixed(2));
+                              setCryptoStep(3);
+                            }}
+                            className="w-full p-3 rounded-2xl border border-dashed border-emerald-500/50 bg-emerald-500/10 text-emerald-300 font-bold text-xs text-center hover:bg-emerald-500/20 transition-all"
+                          >
+                            + پایش دستی نماد {cryptoSearchQuery.trim().toUpperCase()} در صرافی {selectedExchange.name}
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {/* Crypto Step 3: Frequency & Condition */}
                 {cryptoStep === 3 && (
