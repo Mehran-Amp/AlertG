@@ -34,6 +34,17 @@ sys.path.insert(0, ROOT)
 import app.config as config
 
 
+def get_auth_headers(admin_key: str = "", api_key: str = ""):
+    adm = admin_key or os.getenv("ADMIN_KEY", getattr(config, "ADMIN_KEY", ""))
+    api = api_key or os.getenv("API_KEY", getattr(config, "API_KEY", "")) or adm
+    hdrs = {"Accept": "application/json"}
+    if adm:
+        hdrs["X-Admin-Key"] = adm
+    if api:
+        hdrs["X-API-Key"] = api
+    return hdrs
+
+
 def query_json(url: str, method: str = "GET", payload: dict = None, headers: dict = None, timeout: float = 15.0):
     hdrs = {"Accept": "application/json"}
     if headers:
@@ -51,14 +62,12 @@ def query_json(url: str, method: str = "GET", payload: dict = None, headers: dic
         return {}
 
 
-def test_single_exchange_alert(base_url: str, exchange: str, symbol: str, admin_key: str = "", cleanup: bool = True):
+def test_single_exchange_alert(base_url: str, exchange: str, symbol: str, admin_key: str = "", api_key: str = "", cleanup: bool = True):
     print(f"\n" + "-" * 65)
     print(f"🎯 Testing Live Alert on [{exchange.upper()}] for symbol: {symbol}")
     print("-" * 65)
 
-    headers = {}
-    if admin_key:
-        headers["X-Admin-Key"] = admin_key
+    headers = get_auth_headers(admin_key, api_key)
 
     # 1. Fetch current live price directly from server/exchange to pick realistic target
     print(f"📡 1. Querying current market price for {exchange}:{symbol}...")
@@ -185,10 +194,11 @@ def test_single_exchange_alert(base_url: str, exchange: str, symbol: str, admin_
 
 def main():
     parser = argparse.ArgumentParser(description="AlertG Crypto V2 — Live Alert E2E Verification")
-    parser.add_argument("--url", default="http://127.0.0.1:8000", help="Base URL of AlertG backend")
+    parser.add_argument("--url", default=os.getenv("SERVER_URL", "http://127.0.0.1:8000"), help="Base URL of AlertG backend")
     parser.add_argument("--exchange", default="", help="Exchange to test (binance, tabdeal, kifpool)")
     parser.add_argument("--symbol", default="", help="Symbol to test (BTCUSDT, BTC_IRT, BTCUSDT)")
-    parser.add_argument("--admin-key", default=os.getenv("ADMIN_KEY", ""), help="Admin API key if needed")
+    parser.add_argument("--admin-key", default=os.getenv("ADMIN_KEY", getattr(config, "ADMIN_KEY", "")), help="Admin Key")
+    parser.add_argument("--api-key", default=os.getenv("API_KEY", getattr(config, "API_KEY", "")), help="API Key")
     parser.add_argument("--all", action="store_true", help="Run live alert test on all 3 target exchanges")
     args = parser.parse_args()
 
@@ -196,11 +206,20 @@ def main():
     print("🚀 AlertG Crypto Version 2 — Live Real-Alert End-to-End Test")
     print("=" * 70)
 
+    auth_headers = get_auth_headers(args.admin_key, args.api_key)
+
     # Verify server availability
     try:
-        st = query_json(f"{args.url.rstrip('/')}/status?format=json")
+        st = query_json(f"{args.url.rstrip('/')}/status?format=json", headers=auth_headers)
         print(f"✅ Connected to AlertG Server: {st.get('engine', 'FastAPI Engine')}")
         print(f"   Uptime: {st.get('uptime_seconds', 0)}s | Crypto Stage B: {st.get('crypto_flags', {}).get('crypto_stage_b_enabled')}")
+    except urllib.error.HTTPError as e:
+        print(f"❌ Failed to reach AlertG server at {args.url}: HTTP {e.code} ({e.reason})")
+        if e.code == 401 or e.code == 403:
+            print("   💡 Hint: Authentication required. Pass keys via:")
+            print("      python scripts/verify_live_crypto_alert.py --admin-key <YOUR_ADMIN_KEY>")
+            print("      or set ADMIN_KEY in your .env file.")
+        sys.exit(1)
     except Exception as e:
         print(f"❌ Failed to reach AlertG server at {args.url}: {e}")
         print("   Ensure the backend is running via: python server.py")
@@ -225,7 +244,7 @@ def main():
 
     results = []
     for ex, sym in targets:
-        success = test_single_exchange_alert(args.url, ex, sym, admin_key=args.admin_key)
+        success = test_single_exchange_alert(args.url, ex, sym, admin_key=args.admin_key, api_key=args.api_key)
         results.append((ex, sym, success))
 
     print("\n" + "=" * 70)
