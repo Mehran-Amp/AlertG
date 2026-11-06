@@ -219,46 +219,29 @@ export const BONBAST_POPULAR_PAIRS = [
   'CAD', 'AUD', 'CHF', 'CNY', 'IQD', 'KWD', 'SAR', 'QAR', 'OMR', 'BHD', 'AFN', 'RUB', 'INR', 'JPY'
 ];
 
-// === 1. COMPLETE 40+ EXCHANGES CATALOG (Sorted Alphabetically A-Z by English Name) ===
+// === 1. CANONICAL CRYPTO EXCHANGES CATALOG (16 Global + 2 Iranian = 18 Total) ===
 const ALL_EXCHANGES: ExchangeInfo[] = [
-  { id: 'bonbast', name: 'Bonbast (بن‌بست)', category: 'middleEast', countryBadge: '🇮🇷 مرجع اصلی آزاد', defaultCounter: 'TMN', availableCounters: ['TMN'], pairsCount: 38, pairsList: BONBAST_POPULAR_PAIRS },
-  { id: 'abantether', name: 'AbanTether', category: 'middleEast', countryBadge: '🇮🇷 Iran', defaultCounter: 'TMN', availableCounters: ['TMN', 'USDT'], pairsCount: 1000, pairsList: IRANIAN_POPULAR_PAIRS },
+  // --- 16 OFFICIAL INTERNATIONAL SPOT EXCHANGES (Crypto Version 2) ---
   { id: 'binance', name: 'Binance', category: 'tier1', countryBadge: '🌐 Global #1', defaultCounter: 'USDT', availableCounters: ['USDT', 'BTC', 'ETH'], pairsCount: 1420, pairsList: ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'POL', 'RENDER', 'S', 'PEPE', 'DOGE', 'ADA', 'AVAX', 'NEAR', 'SUI', 'LINK', 'DOT'] },
   { id: 'bingx', name: 'BingX', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 720, pairsList: ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'PEPE'] },
-  { id: 'bitbarg', name: 'Bitbarg', category: 'middleEast', countryBadge: '🇮🇷 Iran', defaultCounter: 'TMN', availableCounters: ['TMN', 'USDT'], pairsCount: 420, pairsList: IRANIAN_POPULAR_PAIRS },
-  { id: 'bitcoinde', name: 'Bitcoin.de', category: 'europe', countryBadge: '🇩🇪 Germany', defaultCounter: 'EUR', pairsCount: 35, pairsList: ['BTC', 'ETH', 'BCH', 'LTC'] },
-  { id: 'bitfinex', name: 'Bitfinex', category: 'tier1', countryBadge: '🇭🇰 Hong Kong', defaultCounter: 'USD', availableCounters: ['USD', 'USDT'], pairsCount: 380, pairsList: ['BTC', 'ETH', 'SOL', 'XRP', 'LTC', 'EOS'] },
-  { id: 'bitflyer', name: 'bitFlyer', category: 'asia', countryBadge: '🇯🇵 Japan', defaultCounter: 'JPY', pairsCount: 85, pairsList: ['BTC', 'ETH', 'XRP', 'MONA', 'LTC'] },
+  { id: 'bitfinex', name: 'Bitfinex', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT', 'USD'], pairsCount: 380, pairsList: ['BTC', 'ETH', 'SOL', 'XRP', 'LTC', 'EOS'] },
   { id: 'bitget', name: 'Bitget', category: 'tier1', countryBadge: '🇸🇬 Singapore', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 820, pairsList: ['BTC', 'ETH', 'BGB', 'SOL', 'XRP', 'DOGE'] },
-  { id: 'bithumb', name: 'Bithumb', category: 'asia', countryBadge: '🇰🇷 South Korea', defaultCounter: 'KRW', pairsCount: 290, pairsList: ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'ADA'] },
-  { id: 'bitkub', name: 'Bitkub', category: 'asia', countryBadge: '🇹🇭 Thailand', defaultCounter: 'THB', pairsCount: 110, pairsList: ['BTC', 'ETH', 'KUB', 'SOL', 'DOGE'] },
-  { id: 'bitpanda', name: 'Bitpanda', category: 'europe', countryBadge: '🇦🇹 Austria', defaultCounter: 'EUR', pairsCount: 320, pairsList: ['BTC', 'ETH', 'BEST', 'SOL', 'ADA'] },
-  { id: 'bitso', name: 'Bitso', category: 'americas', countryBadge: '🇲🇽 Mexico', defaultCounter: 'MXN', pairsCount: 95, pairsList: ['BTC', 'ETH', 'SOL', 'XRP'] },
-  { id: 'bitstamp', name: 'Bitstamp', category: 'tier1', countryBadge: '🇱🇺 Luxembourg', defaultCounter: 'USD', availableCounters: ['USD', 'EUR'], pairsCount: 220, pairsList: ['BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'ADA'] },
-  { id: 'bitvavo', name: 'Bitvavo', category: 'europe', countryBadge: '🇳🇱 Netherlands', defaultCounter: 'EUR', pairsCount: 240, pairsList: ['BTC', 'ETH', 'SOL', 'ADA', 'XRP', 'DOGE'] },
   { id: 'bybit', name: 'Bybit', category: 'tier1', countryBadge: '🇦🇪 UAE / Global', defaultCounter: 'USDT', availableCounters: ['USDT', 'USDC'], pairsCount: 760, pairsList: ['BTC', 'ETH', 'SOL', 'MNT', 'XRP', 'DOGE', 'SUI', 'PEPE'] },
-  { id: 'coinbase', name: 'Coinbase', category: 'tier1', countryBadge: '🇺🇸 USA', defaultCounter: 'USD', availableCounters: ['USD', 'USDC'], pairsCount: 520, pairsList: ['BTC', 'ETH', 'SOL', 'ADA', 'DOGE', 'AVAX', 'LINK', 'NEAR', 'DOT'] },
-  { id: 'coingecko', name: 'CoinGecko', category: 'aggregator', countryBadge: '📊 Global Index', defaultCounter: 'USD', availableCounters: ['USD', 'USDT'], pairsCount: 10450, pairsList: ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'ADA', 'POL', 'RENDER', 'S', 'PEPE', 'SHIB', 'NEAR', 'SUI', 'APT', 'AVAX'] },
-  { id: 'coinmarketcap', name: 'CoinMarketCap', category: 'aggregator', countryBadge: '📊 Global Index', defaultCounter: 'USD', availableCounters: ['USD', 'USDT'], pairsCount: 9800, pairsList: ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'TON', 'ADA', 'TRX', 'AVAX'] },
-  { id: 'cryptocompare', name: 'CryptoCompare', category: 'aggregator', countryBadge: '📊 Aggregator', defaultCounter: 'USD', availableCounters: ['USD', 'USDT'], pairsCount: 6500, pairsList: ['BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'DOT', 'LTC'] },
-  { id: 'exmo', name: 'EXMO', category: 'europe', countryBadge: '🇬🇧 United Kingdom', defaultCounter: 'USD', pairsCount: 160, pairsList: ['BTC', 'ETH', 'EXM', 'SOL', 'XRP'] },
-  { id: 'foxbit', name: 'Foxbit', category: 'americas', countryBadge: '🇧🇷 Brazil', defaultCounter: 'BRL', pairsCount: 140, pairsList: ['BTC', 'ETH', 'SOL', 'DOGE'] },
+  { id: 'coinbase', name: 'Coinbase', category: 'tier1', countryBadge: '🇺🇸 USA', defaultCounter: 'USDT', availableCounters: ['USDT', 'USD'], pairsCount: 520, pairsList: ['BTC', 'ETH', 'SOL', 'ADA', 'DOGE', 'AVAX', 'LINK', 'NEAR', 'DOT'] },
   { id: 'gateio', name: 'Gate.io', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT', 'BTC'], pairsCount: 1900, pairsList: ['BTC', 'ETH', 'GT', 'SOL', 'PEPE', 'POL', 'RENDER', 'S'] },
-  { id: 'gemini', name: 'Gemini', category: 'tier1', countryBadge: '🇺🇸 USA', defaultCounter: 'USD', availableCounters: ['USD'], pairsCount: 180, pairsList: ['BTC', 'ETH', 'SOL', 'DOGE', 'LINK', 'LTC'] },
-  { id: 'huobi', name: 'HTX / Huobi', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 750, pairsList: ['BTC', 'ETH', 'HT', 'SOL', 'TRX', 'XRP'] },
-  { id: 'indodax', name: 'Indodax', category: 'asia', countryBadge: '🇮🇩 Indonesia', defaultCounter: 'IDR', pairsCount: 210, pairsList: ['BTC', 'ETH', 'USDT', 'DOGE', 'XRP'] },
-  { id: 'kraken', name: 'Kraken', category: 'tier1', countryBadge: '🇺🇸 USA / EU', defaultCounter: 'USD', availableCounters: ['USD', 'EUR'], pairsCount: 430, pairsList: ['BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'DOT', 'DOGE', 'LTC'] },
+  { id: 'htx', name: 'HTX / Huobi', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 750, pairsList: ['BTC', 'ETH', 'HT', 'SOL', 'TRX', 'XRP'] },
+  { id: 'kraken', name: 'Kraken', category: 'tier1', countryBadge: '🇺🇸 USA / EU', defaultCounter: 'USDT', availableCounters: ['USDT', 'USD', 'EUR'], pairsCount: 430, pairsList: ['BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'DOT', 'DOGE', 'LTC'] },
   { id: 'kucoin', name: 'KuCoin', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT', 'BTC'], pairsCount: 890, pairsList: ['BTC', 'ETH', 'SOL', 'PEPE', 'RENDER', 'S', 'TON', 'SUI', 'POL'] },
-  { id: 'luno', name: 'Luno', category: 'americas', countryBadge: '🇿🇦 South Africa', defaultCounter: 'ZAR', pairsCount: 45, pairsList: ['BTC', 'ETH', 'XRP', 'SOL', 'ADA'] },
-  { id: 'mercadobitcoin', name: 'Mercado Bitcoin', category: 'americas', countryBadge: '🇧🇷 Brazil', defaultCounter: 'BRL', pairsCount: 210, pairsList: ['BTC', 'ETH', 'SOL', 'XRP', 'ADA'] },
+  { id: 'lbank', name: 'LBank', category: 'tier1', countryBadge: '🌐 Global / Asia', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 950, pairsList: ['BTC', 'ETH', 'SOL', 'PEPE', 'DOGE', 'XRP', 'SUI', 'SHIB'] },
   { id: 'mexc', name: 'MEXC Global', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT', 'USDC'], pairsCount: 2100, pairsList: ['BTC', 'ETH', 'MX', 'SOL', 'PEPE', 'SUI', 'TON'] },
-  { id: 'ndax', name: 'NDAX', category: 'americas', countryBadge: '🇨🇦 Canada', defaultCounter: 'CAD', pairsCount: 65, pairsList: ['BTC', 'ETH', 'SOL', 'ADA', 'DOGE'] },
   { id: 'okx', name: 'OKX', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT', 'USD'], pairsCount: 680, pairsList: ['BTC', 'ETH', 'SOL', 'OKB', 'XRP', 'DOGE', 'ADA', 'TON'] },
   { id: 'poloniex', name: 'Poloniex', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 450, pairsList: ['BTC', 'ETH', 'TRX', 'SOL', 'DOGE', 'XRP'] },
+  { id: 'toobit', name: 'Toobit', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 450, pairsList: ['BTC', 'ETH', 'SOL', 'DOGE', 'PEPE', 'XRP'] },
+  { id: 'xt', name: 'XT.COM', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 600, pairsList: ['BTC', 'ETH', 'SOL', 'DOGE', 'PEPE', 'XRP'] },
+
+  // --- 2 APPROVED IRANIAN CRYPTO EXCHANGES (DUAL TMN & USDT) ---
   { id: 'tabdeal', name: 'Tabdeal (تبدیل)', category: 'middleEast', countryBadge: '🇮🇷 Iran', defaultCounter: 'TMN', availableCounters: ['TMN', 'USDT'], pairsCount: 1539, pairsList: IRANIAN_POPULAR_PAIRS },
   { id: 'kifpool', name: 'Kifpool (کیف پول من)', category: 'middleEast', countryBadge: '🇮🇷 Iran', defaultCounter: 'TMN', availableCounters: ['TMN', 'USDT'], pairsCount: 1298, pairsList: IRANIAN_POPULAR_PAIRS },
-  { id: 'wazirx', name: 'WazirX', category: 'asia', countryBadge: '🇮🇳 India', defaultCounter: 'INR', pairsCount: 240, pairsList: ['BTC', 'ETH', 'WRX', 'SOL', 'XRP', 'DOGE'] },
-  { id: 'zaif', name: 'Zaif', category: 'asia', countryBadge: '🇯🇵 Japan', defaultCounter: 'JPY', pairsCount: 45, pairsList: ['BTC', 'ETH', 'ZAIF', 'XEM', 'MONA'] },
 ];
 
 export interface CryptoCoinMeta {
@@ -2712,7 +2695,7 @@ export default function App() {
                 Alarmer (سامانه هشدار بازارها)
               </h1>
               <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono border ${accentSubtleClass}`}>
-                40+ Exchanges & US Treasury
+                16 Global Exchanges • 2 Iran • US Treasury
               </span>
             </div>
             <p className="text-xs text-slate-400 hidden sm:block">
@@ -4167,7 +4150,7 @@ export default function App() {
                     <div>
                       <span className="text-xs text-emerald-400 font-semibold block">مرحله {cryptoStep} از ۳ (رمزارزها)</span>
                       <h4 className="font-bold text-sm text-white">
-                        {cryptoStep === 1 && (currentLang === 'fa' ? '۱. انتخاب از بین ۴۰+ صرافی' : '1. Select from 40+ Exchanges')}
+                        {cryptoStep === 1 && (currentLang === 'fa' ? '۱. انتخاب صرافی (۱۶ جهانی + ۲ ایرانی)' : '1. Select Exchange (16 Global + 2 Iran)')}
                         {cryptoStep === 2 && (currentLang === 'fa' ? `۲. انتخاب جفت‌ارز (${selectedExchange.name})` : `2. Select Pair (${selectedExchange.name})`)}
                         {cryptoStep === 3 && (currentLang === 'fa' ? '۳. زمان‌بندی و شرط هشدار' : '3. Schedule & Alert Condition')}
                       </h4>
@@ -4175,7 +4158,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Crypto Step 1: Exchange Filter Chips & 40+ Exchanges */}
+                {/* Crypto Step 1: Exchange Filter Chips & 16+2 Exchanges */}
                 {cryptoStep === 1 && (
                   <div className="space-y-3 text-xs">
                     {/* Search */}
@@ -4183,20 +4166,16 @@ export default function App() {
                       type="text"
                       value={exchangeSearchQuery}
                       onChange={(e) => setExchangeSearchQuery(e.target.value)}
-                      placeholder={currentLang === 'fa' ? "جستجوی صرافی (Binance, Nobitex, Wallex, KuCoin, OKX, Bybit, CoinGecko)..." : "Search exchange (Binance, Nobitex, Wallex, KuCoin, OKX, Bybit, CoinGecko)..."}
+                      placeholder={currentLang === 'fa' ? "جستجوی صرافی (Binance, Tabdeal, KuCoin, OKX, Kifpool, MEXC, Bybit, LBank)..." : "Search exchange (Binance, Tabdeal, KuCoin, OKX, Kifpool, MEXC, Bybit, LBank)..."}
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white placeholder:text-slate-500"
                     />
 
                     {/* Category Filter Chips */}
                     <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
                       {[
-                        { id: 'all', label: currentLang === 'fa' ? 'همه (۴۰+)' : 'All (40+)', icon: '🌐' },
-                        { id: 'tier1', label: currentLang === 'fa' ? '⭐ جهانی رتبه یک' : '⭐ Tier 1 Global', icon: '⭐' },
-                        { id: 'aggregator', label: currentLang === 'fa' ? '📊 اگریگیتورها' : '📊 Aggregators', icon: '📊' },
-                        { id: 'middleEast', label: currentLang === 'fa' ? '🇮🇷 ایران و خاورمیانه' : '🇮🇷 Iran & M.East', icon: '🇮🇷' },
-                        { id: 'asia', label: currentLang === 'fa' ? '⛩️ آسیا و شرق دور' : '⛩️ Asia & Far East', icon: '⛩️' },
-                        { id: 'europe', label: currentLang === 'fa' ? '🇪🇺 اروپا' : '🇪🇺 Europe', icon: '🇪🇺' },
-                        { id: 'americas', label: currentLang === 'fa' ? '🌎 آمریکا و سایر' : '🌎 Americas & Other', icon: '🌎' },
+                        { id: 'all', label: currentLang === 'fa' ? 'همه (۱۸)' : 'All (18)', icon: '🌐' },
+                        { id: 'tier1', label: currentLang === 'fa' ? '⭐ بین‌المللی (۱۶)' : '⭐ Global (16)', icon: '⭐' },
+                        { id: 'middleEast', label: currentLang === 'fa' ? '🇮🇷 ایران (تبدیل و کیف‌پول)' : '🇮🇷 Iran (Tabdeal & Kifpool)', icon: '🇮🇷' },
                       ].map((tab) => (
                         <button
                           key={tab.id}
