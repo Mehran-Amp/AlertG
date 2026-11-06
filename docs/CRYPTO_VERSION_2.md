@@ -102,7 +102,7 @@
 | **Phase 9** | کلاینت فلاتر: رفع قفل اینتروال ۱۸۰ ثانیه‌ای، آزادسازی پایش ۲ ثانیه‌ای برای رمزارز، انحصار USDT | ✅ انجام شد | `create_alert_flow.dart`، `exchange_catalog.dart`، `crypto_catalog_service.dart` |
 | **Phase 10** | صرافی‌های مجاز ایرانی: حذف صرافی‌های تحریم‌شده، انحصار به تبدیل و کیف پول من با پوشش کامل TMN و USDT | ✅ انجام شد | `kifpool.py`, `tabdeal.py`, `kifpool_exchange.dart`, `exchange_catalog.dart` |
 | **Phase 11** | پاکسازی و ممیزی هشدارهای CoinEx و آماده‌سازی پشتیبان اتمیک | ✅ انجام و تایید شد | `scripts/remove_coinex_alerts.py`، ممیزی پروداکشن (0 CoinEx Alerts) |
-| **Phase 12** | رول‌اوت عملیاتی، پایش سلامت و راستی‌آزمایی صرافی‌های فعال در پروداکشن | ✅ انجام شد | `scripts/verify_crypto_rollout.py`, ۱۷/۱۷ صرافی سالم، ۲۸,۸۳۳ قیمت لایو |
+| **Phase 12** | رول‌اوت عملیاتی، پایش سلامت و راستی‌آزمایی صرافی‌های فعال در پروداکشن | ✅ انجام شد | `scripts/verify_crypto_rollout.py`, ۱۸/۱۸ صرافی سالم، ۴۰,۰۲۷ قیمت لایو |
 
 
 

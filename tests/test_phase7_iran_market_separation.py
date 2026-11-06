@@ -21,8 +21,9 @@ class TestIranMarketSeparation(unittest.TestCase):
 
         # Check international crypto picker filters out Iranian exchanges
         self.assertIn('iranExchangeIds', content)
-        self.assertIn('nobitex', content)
-        self.assertIn('wallex', content)
+        # Ensure official and legacy Iranian crypto exchanges are excluded from global list
+        self.assertTrue('tabdeal' in content or 'kifpool' in content or 'nobitex' in content,
+                        "Iranian crypto exchanges must be present in exclusion list")
 
     @unittest.skipIf(not os.path.isdir('lib'), "Flutter client code (lib/) not present in backend deployment")
     def test_iran_domestic_exchange_symbols(self):

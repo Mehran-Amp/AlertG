@@ -300,10 +300,11 @@ async def fetch_crypto_strict(
         p = await _try_fetch(source_label, url, _extract_tabdeal)
     elif ex == 'kifpool':
         url = "https://api.kifpool.app/api/spot/price"
+        from app.markets.adapters.kifpool import KifpoolAdapter
+        target_base, target_quote = KifpoolAdapter().to_canonical_base_and_quote(native_sym)
+        is_tmn = target_quote == "TMN" or (counter_currency and counter_currency.upper() in ('TMN', 'IRT'))
         def _extract_kifpool(d):
             if isinstance(d, list):
-                target_base = base
-                is_tmn = native_sym.endswith("TMN") or native_sym.endswith("IRT")
                 for item in d:
                     if isinstance(item, dict) and (item.get("symbol") or "").upper() == target_base:
                         if is_tmn:

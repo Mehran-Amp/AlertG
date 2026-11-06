@@ -103,6 +103,7 @@ PROVIDER_QUOTAS: Dict[str, Dict[str, Any]] = {
     'yahoo': {'limit': 50000, 'window': 'daily', 'name': 'Yahoo Finance'},
     'iran_bridge': {'limit': 15000, 'window': 'daily', 'name': 'Iran Bridge (Aegkala)'},
     'bonbast': {'limit': 2000, 'window': 'daily', 'name': 'Bonbast'},
+    'nobitex': {'limit': 20000, 'window': 'daily', 'name': 'Nobitex'},
     'binance': {'limit': 100000, 'window': 'daily', 'name': 'Binance Spot'},
     'crypto_global': {'limit': 50000, 'window': 'daily', 'name': 'Global Crypto & DEX'},
     # Phase 2: Dedicated isolated daily quotas per crypto exchange
@@ -278,18 +279,20 @@ def get_all_providers_status() -> Dict[str, Any]:
     from app.markets.kill_switch import is_provider_killed
     prov_metrics = METRICS.setdefault("providers", {})
     statuses = {}
-    for p_key, q_info in PROVIDER_QUOTAS.items():
+    all_provider_keys = set(PROVIDER_QUOTAS.keys()).union(set(prov_metrics.keys()))
+    for p_key in sorted(all_provider_keys):
+        q_info = PROVIDER_QUOTAS.get(p_key, {"limit": 20000, "window": "daily", "name": p_key.capitalize()})
         curr = prov_metrics.get(p_key, {
             "requests": 0, "success": 0, "errors": 0, "rate_limits_429": 0, "health": "HEALTHY"
         })
-        limit = q_info["limit"]
+        limit = q_info.get("limit", 20000)
         reqs = curr.get("requests", 0)
         pct = round((reqs / max(1, limit)) * 100, 1)
         killed = is_provider_killed(p_key)
         health = "KILLED" if killed else curr.get("health", "HEALTHY")
 
         statuses[p_key] = {
-            "name": q_info["name"],
+            "name": q_info.get("name", p_key.capitalize()),
             "health": health,
             "is_killed": killed,
             "requests": reqs,

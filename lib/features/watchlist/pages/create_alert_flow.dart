@@ -1280,10 +1280,9 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
       ),
     );
   }
-
   Widget _buildCryptoExchangePicker(ThemeData theme, String lang) {
     const iranExchangeIds = {
-      'iran_market', 'tabdeal', 'kifpool'
+      'iran_market', 'nobitex', 'wallex', 'ramzinex', 'bitpin', 'tabdeal', 'kifpool', 'bitbarg', 'tetherland', 'abantether', 'sarmayex', 'exir'
     };
     final allExchanges = widget.registry.getAll().where((ex) {
       if (ex.id == 'global_stocks' || iranExchangeIds.contains(ex.id)) return false;
