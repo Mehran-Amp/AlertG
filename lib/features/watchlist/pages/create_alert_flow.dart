@@ -1154,7 +1154,7 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
           badgeText: AppStrings.get('iran_market_badge', lang),
           title: AppStrings.get('iran_market_title', lang),
           description: AppStrings.get('iran_market_desc', lang),
-          tags: ['دلار آزاد', 'طلای ۱۸ عیار', 'سکه امامی', 'نوبیتکس', 'والکس', 'تبدیل', 'تترلند'],
+          tags: ['دلار آزاد', 'طلای ۱۸ عیار', 'سکه امامی', 'تبدیل', 'کیف پول من', 'صندوق‌های طلا'],
           buttonText: AppStrings.get('iran_market_cta', lang),
           buttonColor: const Color(0xFFFFB300),
           onTap: () {

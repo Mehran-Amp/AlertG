@@ -198,7 +198,7 @@ export const formatScaledPrice = (price: number, unit?: string): string | null =
 export const isTomanRule = (rule: { counterCurrency?: string; exchangeId?: string }) => {
   const c = (rule.counterCurrency || '').toUpperCase().trim();
   const ex = (rule.exchangeId || '').toLowerCase();
-  return c === 'TMN' || c === 'IRT' || c === 'TOMAN' || c === 'ت' || rule.counterCurrency === 'تومان' || ex.includes('nobitex') || ex.includes('bonbast');
+  return c === 'TMN' || c === 'IRT' || c === 'TOMAN' || c === 'ت' || rule.counterCurrency === 'تومان' || ex.includes('tabdeal') || ex.includes('kifpool') || ex.includes('nobitex') || ex.includes('bonbast');
 };
 
 const IRANIAN_POPULAR_PAIRS = [
@@ -253,17 +253,10 @@ const ALL_EXCHANGES: ExchangeInfo[] = [
   { id: 'mercadobitcoin', name: 'Mercado Bitcoin', category: 'americas', countryBadge: '🇧🇷 Brazil', defaultCounter: 'BRL', pairsCount: 210, pairsList: ['BTC', 'ETH', 'SOL', 'XRP', 'ADA'] },
   { id: 'mexc', name: 'MEXC Global', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT', 'USDC'], pairsCount: 2100, pairsList: ['BTC', 'ETH', 'MX', 'SOL', 'PEPE', 'SUI', 'TON'] },
   { id: 'ndax', name: 'NDAX', category: 'americas', countryBadge: '🇨🇦 Canada', defaultCounter: 'CAD', pairsCount: 65, pairsList: ['BTC', 'ETH', 'SOL', 'ADA', 'DOGE'] },
-  { id: 'nobitex', name: 'Nobitex', category: 'middleEast', countryBadge: '🇮🇷 Iran', defaultCounter: 'TMN', availableCounters: ['TMN', 'USDT'], pairsCount: 531, pairsList: IRANIAN_POPULAR_PAIRS },
   { id: 'okx', name: 'OKX', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT', 'USD'], pairsCount: 680, pairsList: ['BTC', 'ETH', 'SOL', 'OKB', 'XRP', 'DOGE', 'ADA', 'TON'] },
-  { id: 'paymium', name: 'Paymium', category: 'europe', countryBadge: '🇫🇷 France', defaultCounter: 'EUR', pairsCount: 20, pairsList: ['BTC', 'ETH', 'EUR'] },
   { id: 'poloniex', name: 'Poloniex', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 450, pairsList: ['BTC', 'ETH', 'TRX', 'SOL', 'DOGE', 'XRP'] },
-  { id: 'ramzinex', name: 'Ramzinex', category: 'middleEast', countryBadge: '🇮🇷 Iran', defaultCounter: 'TMN', availableCounters: ['TMN', 'USDT'], pairsCount: 631, pairsList: IRANIAN_POPULAR_PAIRS },
-  { id: 'sarmayex', name: 'Sarmayex', category: 'middleEast', countryBadge: '🇮🇷 Iran', defaultCounter: 'TMN', availableCounters: ['TMN', 'USDT'], pairsCount: 120, pairsList: IRANIAN_POPULAR_PAIRS.slice(0, 40) },
-  { id: 'tabdeal', name: 'Tabdeal', category: 'middleEast', countryBadge: '🇮🇷 Iran', defaultCounter: 'TMN', availableCounters: ['TMN', 'USDT'], pairsCount: 1047, pairsList: IRANIAN_POPULAR_PAIRS },
-  { id: 'tetherland', name: 'TetherLand', category: 'middleEast', countryBadge: '🇮🇷 Iran', defaultCounter: 'TMN', availableCounters: ['TMN', 'USDT'], pairsCount: 150, pairsList: ['USDT', 'BTC', 'ETH', 'SOL', 'TON', 'XRP', 'DOGE', 'TRX', 'SHIB', 'PEPE', 'ADA', 'AVAX', 'NEAR', 'SUI', 'LINK', 'DOT', 'LTC'] },
-  { id: 'upbit', name: 'Upbit', category: 'asia', countryBadge: '🇰🇷 South Korea', defaultCounter: 'KRW', pairsCount: 310, pairsList: ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'ADA', 'ETC'] },
-  { id: 'valr', name: 'VALR', category: 'americas', countryBadge: '🇿🇦 South Africa', defaultCounter: 'ZAR', pairsCount: 90, pairsList: ['BTC', 'ETH', 'SOL', 'XRP'] },
-  { id: 'wallex', name: 'Wallex', category: 'middleEast', countryBadge: '🇮🇷 Iran', defaultCounter: 'TMN', availableCounters: ['TMN', 'USDT'], pairsCount: 373, pairsList: IRANIAN_POPULAR_PAIRS },
+  { id: 'tabdeal', name: 'Tabdeal (تبدیل)', category: 'middleEast', countryBadge: '🇮🇷 Iran', defaultCounter: 'TMN', availableCounters: ['TMN', 'USDT'], pairsCount: 1539, pairsList: IRANIAN_POPULAR_PAIRS },
+  { id: 'kifpool', name: 'Kifpool (کیف پول من)', category: 'middleEast', countryBadge: '🇮🇷 Iran', defaultCounter: 'TMN', availableCounters: ['TMN', 'USDT'], pairsCount: 1298, pairsList: IRANIAN_POPULAR_PAIRS },
   { id: 'wazirx', name: 'WazirX', category: 'asia', countryBadge: '🇮🇳 India', defaultCounter: 'INR', pairsCount: 240, pairsList: ['BTC', 'ETH', 'WRX', 'SOL', 'XRP', 'DOGE'] },
   { id: 'zaif', name: 'Zaif', category: 'asia', countryBadge: '🇯🇵 Japan', defaultCounter: 'JPY', pairsCount: 45, pairsList: ['BTC', 'ETH', 'ZAIF', 'XEM', 'MONA'] },
 ];
@@ -963,7 +956,7 @@ export default function App() {
   // Crypto Flow: Exchange Chips + Search + 40+ Exchanges + Pairs Sync + Frequency + Both-Sides Condition
   const [cryptoStep, setCryptoStep] = useState<1 | 2 | 3>(1);
   const [exchangeCategoryFilter, setExchangeCategoryFilter] = useState<ExchangeCategoryType>('all');
-  const [selectedExchange, setSelectedExchange] = useState<ExchangeInfo>(ALL_EXCHANGES.find(e => e.id === 'nobitex') || ALL_EXCHANGES[0]);
+  const [selectedExchange, setSelectedExchange] = useState<ExchangeInfo>(ALL_EXCHANGES.find(e => e.id === 'tabdeal') || ALL_EXCHANGES[0]);
   const [selectedCounterCurrency, setSelectedCounterCurrency] = useState<string>('TMN');
   
   // Real-Time Iranian Exchange Toman Rates & Domestic Orderbook Cache
@@ -1129,13 +1122,14 @@ export default function App() {
   // Helper to resolve live market price, unit and 24h stats for any exchange pair with 100% offline safety
   const getCryptoMarketPrice = (coin: string, exchangeId: string, counterCurrency: string) => {
     const exId = (exchangeId || '').toLowerCase();
-    const isNobitex = exId.includes('nobitex');
+    const isTabdeal = exId.includes('tabdeal');
+    const isKifpool = exId.includes('kifpool');
     const isBonbast = exId.includes('bonbast');
-    const isIranianExchange = isNobitex || isBonbast || ['wallex', 'tabdeal', 'bitbarg', 'abantether', 'ramzinex', 'tetherland', 'sarmayex'].includes(exId);
-    // For Nobitex or Bonbast, ALWAYS display in Toman across all stages as requested!
-    const isTmn = isNobitex || isBonbast || counterCurrency === 'TMN' || counterCurrency === 'IRT' || counterCurrency === 'تومان' || counterCurrency === 'ت';
+    const isIranianExchange = isTabdeal || isKifpool || isBonbast;
+    // For Tabdeal, Kifpool or Bonbast, ALWAYS display in Toman when requested!
+    const isTmn = isTabdeal || isKifpool || isBonbast || counterCurrency === 'TMN' || counterCurrency === 'IRT' || counterCurrency === 'تومان' || counterCurrency === 'ت';
     const cUpper = coin.toUpperCase();
-    const exPrices = exchangeSpecificPrices[exId] || (isNobitex ? exchangeSpecificPrices['nobitex'] : undefined) || (isBonbast ? exchangeSpecificPrices['bonbast'] : undefined);
+    const exPrices = exchangeSpecificPrices[exId] || (isTabdeal ? exchangeSpecificPrices['tabdeal'] : undefined) || (isKifpool ? exchangeSpecificPrices['kifpool'] : undefined) || (isBonbast ? exchangeSpecificPrices['bonbast'] : undefined);
     const exData = exPrices ? exPrices[cUpper] : undefined;
     const irData = exData || iranianMarketPrices[cUpper];
     const binanceMeta = cryptoPrices[cUpper];
@@ -1143,9 +1137,9 @@ export default function App() {
     while (rate > 150000) rate = Math.round(rate / 10.0);
     const lastKnown = lastKnownCoinPrices[cUpper];
 
-    // Priority Fix: USDT in Nobitex / Iranian exchanges / Toman counter currency
+    // Priority Fix: USDT in Tabdeal / Kifpool / Iranian exchanges / Toman counter currency
     // Always returns the genuine live Toman rate (e.g. 268,398 تومان) and unit تومان!
-    if (cUpper === 'USDT' && (isNobitex || isBonbast || isTmn)) {
+    if (cUpper === 'USDT' && (isTabdeal || isKifpool || isBonbast || isTmn)) {
       let usdtPrice = (exData && exData.priceTmn > 0)
         ? exData.priceTmn
         : (irData && irData.priceTmn > 0 ? irData.priceTmn : rate);
@@ -2329,7 +2323,7 @@ export default function App() {
         rule,
         title,
         body,
-        value: (unit === 'تومان' || rule.exchangeId?.toLowerCase() === 'nobitex' || rule.counterCurrency === 'TMN' || rule.counterCurrency === 'IRT')
+        value: (unit === 'تومان' || rule.exchangeId?.toLowerCase() === 'tabdeal' || rule.exchangeId?.toLowerCase() === 'kifpool' || rule.counterCurrency === 'TMN' || rule.counterCurrency === 'IRT')
           ? `${Math.round(newPrice).toLocaleString('fa-IR')} تومان`
           : `${unit}${newPrice.toLocaleString()}`,
         timestamp: now,
@@ -2517,7 +2511,8 @@ export default function App() {
 
     const meta = cryptoPrices[selectedCryptoCoin] || cryptoPrices.BTC;
     const totalSecs = calculateTotalSeconds(unitType, unitNumber);
-    const counterCur = (selectedExchange.id?.toLowerCase() === 'nobitex' && (!selectedCounterCurrency || selectedCounterCurrency === 'TMN' || selectedCounterCurrency === 'IRT'))
+    const isIrExchange = selectedExchange.id?.toLowerCase() === 'tabdeal' || selectedExchange.id?.toLowerCase() === 'kifpool';
+    const counterCur = (isIrExchange && (!selectedCounterCurrency || selectedCounterCurrency === 'TMN' || selectedCounterCurrency === 'IRT'))
       ? 'TMN'
       : (selectedCounterCurrency || selectedExchange.defaultCounter);
     const mkt = getCryptoMarketPrice(selectedCryptoCoin, selectedExchange.id, counterCur);
@@ -2557,7 +2552,7 @@ export default function App() {
     setShowCreateModal(false);
     setCreatePath('NONE');
     setCryptoStep(1);
-    const isTmnRule = selectedExchange.id?.toLowerCase() === 'nobitex' || counterCur === 'TMN' || mkt.unit === 'تومان';
+    const isTmnRule = selectedExchange.id?.toLowerCase() === 'tabdeal' || selectedExchange.id?.toLowerCase() === 'kifpool' || counterCur === 'TMN' || mkt.unit === 'تومان';
     showToast(isTmnRule
       ? `هشدار برای ${selectedCryptoCoin} (${Math.round(val).toLocaleString('fa-IR')} تومان) در ${selectedExchange.name} فعال شد.`
       : `هشدار کریپتو برای ${selectedCryptoCoin} فعال شد.`);
@@ -4247,10 +4242,10 @@ export default function App() {
                                 <span className="text-[10px] text-slate-400">{ex.countryBadge}</span>
                               </div>
                               <div className="text-[10px] text-slate-500">
-                                {ex.id === 'nobitex' ? (
-                                  <span>جفت‌ارز مبنا: <strong className="text-emerald-400">تومان (TMN)</strong> • ۵۳۱+ جفت‌ارز زنده • نرخ تتر: <strong className="text-white font-mono">{Math.round(usdtTomanRate > 10000 ? usdtTomanRate : 267000).toLocaleString('fa-IR')} تومان</strong></span>
+                                {ex.defaultCounter === 'TMN' || ex.id === 'tabdeal' || ex.id === 'kifpool' ? (
+                                  <span>پشتیبانی کامل: <strong className="text-emerald-400">تومان (TMN)</strong> و <strong className="text-cyan-400">تتر (USDT)</strong> • {ex.pairsCount}+ جفت‌ارز رسمی</span>
                                 ) : (
-                                  <span>جفت‌ارز مبنا: {ex.defaultCounter === 'TMN' ? 'تومان (TMN)' : ex.defaultCounter} • موجودی: ~{ex.pairsCount}</span>
+                                  <span>جفت‌ارز مبنا: {ex.defaultCounter} • موجودی: ~{ex.pairsCount}</span>
                                 )}
                               </div>
                             </div>
@@ -4270,9 +4265,9 @@ export default function App() {
                         <span className="text-slate-400 text-[10px] block">صرافی انتخاب‌شده:</span>
                         <div className="flex items-center gap-2">
                           <strong className="text-white text-xs font-bold">{selectedExchange.name}</strong>
-                          {selectedExchange.id === 'nobitex' && (
+                          {(selectedExchange.id === 'tabdeal' || selectedExchange.id === 'kifpool') && (
                             <span className="px-2 py-0.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold">
-                              نمایش قیمت‌ها به تومان 🇮🇷
+                              پشتیبانی دوگانه: تومان (TMN) و تتر (USDT) 🇮🇷
                             </span>
                           )}
                         </div>
@@ -4306,12 +4301,13 @@ export default function App() {
                         .filter(sym => !cryptoSearchQuery || sym.toLowerCase().includes(cryptoSearchQuery.toLowerCase()))
                         .map((sym) => {
                           const meta = cryptoPrices[sym] || { nameFa: sym, currentPrice: 1.0, icon: 'https://cdn-icons-png.flaticon.com/512/2830/2830284.png' };
-                          const counter = (selectedExchange.id === 'nobitex' && (!selectedCounterCurrency || selectedCounterCurrency === 'TMN' || selectedCounterCurrency === 'IRT'))
+                          const isSelectedIrEx = selectedExchange.id?.toLowerCase() === 'tabdeal' || selectedExchange.id?.toLowerCase() === 'kifpool';
+                          const counter = (isSelectedIrEx && (!selectedCounterCurrency || selectedCounterCurrency === 'TMN' || selectedCounterCurrency === 'IRT'))
                             ? 'TMN'
                             : (selectedCounterCurrency || selectedExchange.defaultCounter);
                           const mkt = getCryptoMarketPrice(sym, selectedExchange.id, counter);
-                          const isNobitexOrTmn = selectedExchange.id === 'nobitex' || mkt.unit === 'تومان' || counter === 'TMN';
-                          const priceDisplay = isNobitexOrTmn
+                          const isIrOrTmn = isSelectedIrEx || mkt.unit === 'تومان' || counter === 'TMN';
+                          const priceDisplay = isIrOrTmn
                             ? `${Math.round(mkt.price).toLocaleString('fa-IR')} تومان`
                             : `${mkt.unit}${mkt.price < 1 ? mkt.price.toFixed(6) : mkt.price.toLocaleString()}`;
 
@@ -4320,9 +4316,9 @@ export default function App() {
                               key={sym}
                               onClick={() => {
                                 setSelectedCryptoCoin(sym);
-                                const curCounter = (selectedExchange.id?.toLowerCase().includes('nobitex') || !selectedCounterCurrency || selectedCounterCurrency === 'TMN' || selectedCounterCurrency === 'IRT') ? 'TMN' : (selectedCounterCurrency || selectedExchange.defaultCounter);
+                                const curCounter = (isSelectedIrEx || !selectedCounterCurrency || selectedCounterCurrency === 'TMN' || selectedCounterCurrency === 'IRT') ? 'TMN' : (selectedCounterCurrency || selectedExchange.defaultCounter);
                                 const liveMkt = getCryptoMarketPrice(sym, selectedExchange.id, curCounter);
-                                const isTmnLocal = selectedExchange.id?.toLowerCase().includes('nobitex') || selectedExchange.id?.toLowerCase().includes('bonbast') || liveMkt.unit === 'تومان' || curCounter === 'TMN' || curCounter === 'IRT';
+                                const isTmnLocal = isSelectedIrEx || selectedExchange.id?.toLowerCase().includes('bonbast') || liveMkt.unit === 'تومان' || curCounter === 'TMN' || curCounter === 'IRT';
                                 const liveValStr = isTmnLocal ? Math.round(liveMkt.price).toString() : (liveMkt.price < 1 ? liveMkt.price.toFixed(6) : liveMkt.price.toFixed(2));
                                 setTargetValueStr(liveValStr);
                                 setUpperPriceStr(isTmnLocal ? Math.round(liveMkt.high24h || liveMkt.price * 1.025).toString() : (liveMkt.high24h || liveMkt.price * 1.025).toFixed(2));
@@ -4355,9 +4351,10 @@ export default function App() {
                           onClick={() => {
                             const customSym = cryptoSearchQuery.trim().toUpperCase();
                             setSelectedCryptoCoin(customSym);
-                            const curCounter = (selectedExchange.id?.toLowerCase().includes('nobitex') || !selectedCounterCurrency || selectedCounterCurrency === 'TMN' || selectedCounterCurrency === 'IRT') ? 'TMN' : (selectedCounterCurrency || selectedExchange.defaultCounter);
+                            const isSelectedIr = selectedExchange.id?.toLowerCase() === 'tabdeal' || selectedExchange.id?.toLowerCase() === 'kifpool';
+                            const curCounter = (isSelectedIr || !selectedCounterCurrency || selectedCounterCurrency === 'TMN' || selectedCounterCurrency === 'IRT') ? 'TMN' : (selectedCounterCurrency || selectedExchange.defaultCounter);
                             const liveMkt = getCryptoMarketPrice(customSym, selectedExchange.id, curCounter);
-                            const isTmnLocal = selectedExchange.id?.toLowerCase().includes('nobitex') || selectedExchange.id?.toLowerCase().includes('bonbast') || liveMkt.unit === 'تومان' || curCounter === 'TMN' || curCounter === 'IRT';
+                            const isTmnLocal = isSelectedIr || selectedExchange.id?.toLowerCase().includes('bonbast') || liveMkt.unit === 'تومان' || curCounter === 'TMN' || curCounter === 'IRT';
                             const liveValStr = isTmnLocal ? Math.round(liveMkt.price).toString() : (liveMkt.price < 1 ? liveMkt.price.toFixed(6) : liveMkt.price.toFixed(2));
                             setTargetValueStr(liveValStr);
                             setUpperPriceStr(isTmnLocal ? Math.round(liveMkt.high24h || liveMkt.price * 1.025).toString() : (liveMkt.high24h || liveMkt.price * 1.025).toFixed(2));
@@ -4376,13 +4373,14 @@ export default function App() {
                 {/* Crypto Step 3: Frequency & Condition */}
                 {cryptoStep === 3 && (
                   <form onSubmit={handleCreateCryptoSubmit} className="space-y-4 text-xs">
-                    {/* Selected Asset & Live Nobitex / Exchange Market Price Bar */}
+                    {/* Selected Asset & Live Iranian / Exchange Market Price Bar */}
                     {(() => {
-                      const counter = (selectedExchange.id === 'nobitex' && (!selectedCounterCurrency || selectedCounterCurrency === 'TMN' || selectedCounterCurrency === 'IRT'))
+                      const isIrEx = selectedExchange.id?.toLowerCase() === 'tabdeal' || selectedExchange.id?.toLowerCase() === 'kifpool';
+                      const counter = (isIrEx && (!selectedCounterCurrency || selectedCounterCurrency === 'TMN' || selectedCounterCurrency === 'IRT'))
                         ? 'TMN'
                         : (selectedCounterCurrency || selectedExchange.defaultCounter);
                       const mkt = getCryptoMarketPrice(selectedCryptoCoin, selectedExchange.id, counter);
-                      const isTmn = selectedExchange.id === 'nobitex' || mkt.unit === 'تومان' || counter === 'TMN' || counter === 'IRT';
+                      const isTmn = isIrEx || mkt.unit === 'تومان' || counter === 'TMN' || counter === 'IRT';
                       const meta = cryptoPrices[selectedCryptoCoin] || { nameFa: selectedCryptoCoin, icon: 'https://cdn-icons-png.flaticon.com/512/2830/2830284.png' };
                       return (
                         <div className="p-3 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-950 border border-emerald-500/30 flex items-center justify-between shadow-sm">
@@ -4547,14 +4545,15 @@ export default function App() {
                       <div className="space-y-3 p-3 rounded-2xl bg-slate-950 border border-slate-800">
                         {/* 24h High & Low 1-Tap Auto-Fill Presets */}
                         {(() => {
-                          const counter = (selectedExchange.id?.toLowerCase() === 'nobitex' && (!selectedCounterCurrency || selectedCounterCurrency === 'TMN' || selectedCounterCurrency === 'IRT'))
+                          const isIrEx = selectedExchange.id?.toLowerCase() === 'tabdeal' || selectedExchange.id?.toLowerCase() === 'kifpool';
+                          const counter = (isIrEx && (!selectedCounterCurrency || selectedCounterCurrency === 'TMN' || selectedCounterCurrency === 'IRT'))
                             ? 'TMN'
                             : (selectedCounterCurrency || selectedExchange.defaultCounter);
                           const mkt = getCryptoMarketPrice(selectedCryptoCoin, selectedExchange.id, counter);
                           const curP = mkt.price;
                           const h24 = mkt.high24h || curP * 1.025;
                           const l24 = mkt.low24h || curP * 0.975;
-                          const isTmn = selectedExchange.id?.toLowerCase() === 'nobitex' || mkt.unit === 'تومان' || counter === 'TMN' || counter === 'IRT';
+                          const isTmn = isIrEx || mkt.unit === 'تومان' || counter === 'TMN' || counter === 'IRT';
 
                           return (
                             <div className="space-y-1">
@@ -4664,11 +4663,12 @@ export default function App() {
                             </div>
 
                             {(() => {
-                              const counter = (selectedExchange.id?.toLowerCase() === 'nobitex' && (!selectedCounterCurrency || selectedCounterCurrency === 'TMN' || selectedCounterCurrency === 'IRT'))
+                              const isIrEx = selectedExchange.id?.toLowerCase() === 'tabdeal' || selectedExchange.id?.toLowerCase() === 'kifpool';
+                              const counter = (isIrEx && (!selectedCounterCurrency || selectedCounterCurrency === 'TMN' || selectedCounterCurrency === 'IRT'))
                                 ? 'TMN'
                                 : (selectedCounterCurrency || selectedExchange.defaultCounter);
                               const mkt = getCryptoMarketPrice(selectedCryptoCoin, selectedExchange.id, counter);
-                              const isTmn = selectedExchange.id?.toLowerCase() === 'nobitex' || mkt.unit === 'تومان' || counter === 'TMN' || counter === 'IRT';
+                              const isTmn = isIrEx || mkt.unit === 'تومان' || counter === 'TMN' || counter === 'IRT';
                               const h24 = mkt.high24h || mkt.price * 1.025;
                               const l24 = mkt.low24h || mkt.price * 0.975;
 
@@ -4748,11 +4748,12 @@ export default function App() {
                         ) : (
                           <div>
                             {(() => {
-                              const counter = (selectedExchange.id?.toLowerCase() === 'nobitex' && (!selectedCounterCurrency || selectedCounterCurrency === 'TMN' || selectedCounterCurrency === 'IRT'))
+                              const isIrEx = selectedExchange.id?.toLowerCase() === 'tabdeal' || selectedExchange.id?.toLowerCase() === 'kifpool';
+                              const counter = (isIrEx && (!selectedCounterCurrency || selectedCounterCurrency === 'TMN' || selectedCounterCurrency === 'IRT'))
                                 ? 'TMN'
                                 : (selectedCounterCurrency || selectedExchange.defaultCounter);
                               const mkt = getCryptoMarketPrice(selectedCryptoCoin, selectedExchange.id, counter);
-                              const isTmn = selectedExchange.id?.toLowerCase() === 'nobitex' || mkt.unit === 'تومان' || counter === 'TMN' || counter === 'IRT';
+                              const isTmn = isIrEx || mkt.unit === 'تومان' || counter === 'TMN' || counter === 'IRT';
                               return (
                                 <>
                                   <label className="block text-slate-400 mb-1">
