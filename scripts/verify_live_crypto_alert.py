@@ -149,8 +149,8 @@ def test_single_exchange_alert(base_url: str, exchange: str, symbol: str, admin_
             streams = status_data.get("crypto_streams", {}).get(exchange, {})
             stream_status = "CONNECTED" if streams.get("connected") else ("ACTIVE" if streams.get("enabled") else "OFF")
 
-            # Check alert status
-            alerts_url = f"{base_url.rstrip('/')}/api/alerts?user_id=test_e2e_runner"
+            # Check alert status via path parameter /api/alerts/{user_id}
+            alerts_url = f"{base_url.rstrip('/')}/api/alerts/test_e2e_runner"
             user_alerts = query_json(alerts_url, headers=headers)
             target_alert = None
             if isinstance(user_alerts, list):
