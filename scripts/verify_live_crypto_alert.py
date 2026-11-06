@@ -91,13 +91,23 @@ def test_single_exchange_alert(base_url: str, exchange: str, symbol: str, admin_
             elif exchange == "tabdeal":
                 d = query_json(f"https://api1.tabdeal.org/r/api/v1/trades?symbol={symbol.upper().replace('_', '')}")
                 if d and isinstance(d, list) and len(d) > 0:
-                    current_price = float(d[0].get("price", 0))
+                    raw_val = float(d[0].get("price", 0))
+                    # Tabdeal trade API reports Rials (IRR) for IRT pairs; engine uses Tomans (TMN)
+                    is_tmn = "IRT" in symbol.upper() or "TMN" in symbol.upper()
+                    current_price = (raw_val / 10.0) if is_tmn else raw_val
             elif exchange == "kifpool":
                 d = query_json("https://api.kifpool.app/api/spot/price")
                 if isinstance(d, list):
+                    is_tmn = "TMN" in symbol.upper() or "IRT" in symbol.upper()
+                    base = symbol.upper().replace("USDT", "").replace("TMN", "").replace("IRT", "").replace("_", "")
                     for it in d:
-                        if (it.get("symbol") or "").upper() == "BTC":
-                            current_price = float(it.get("price", 0))
+                        if (it.get("symbol") or "").upper() == base:
+                            if is_tmn:
+                                b_irt = float(it.get("priceBuyIRT") or 0)
+                                s_irt = float(it.get("priceSellIRT") or 0)
+                                current_price = (((b_irt + s_irt) / 2.0) / 10.0) if (b_irt and s_irt) else (b_irt / 10.0)
+                            else:
+                                current_price = float(it.get("price", 0))
                             break
             if current_price:
                 print(f"  ✅ Current live price from provider: {current_price:,.4f}")

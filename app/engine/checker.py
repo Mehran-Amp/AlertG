@@ -256,7 +256,8 @@ async def evaluate_ready_alerts(client, ready_alerts: List[Any], current_time: f
             eff_target = eff_upper if current_price >= ((eff_upper + eff_lower) / 2.0) else eff_lower
 
         # 2. Level-Crossing Guard (Edge-Trigger Hysteresis across ALL markets):
-        if getattr(alert, 'last_eval_price', None) is None:
+        is_fresh_alert = (getattr(alert, 'last_eval_price', None) is None)
+        if is_fresh_alert:
             alert.last_eval_price = current_price
             is_initially_triggered = False
             if eff_upper is not None and eff_lower is not None and eff_cond in ['BOTHSIDES', 'BOTH']:
@@ -268,11 +269,11 @@ async def evaluate_ready_alerts(client, ready_alerts: List[Any], current_time: f
 
             if is_initially_triggered:
                 # Edge Guard: only arm for crossing if the alert was restored
-                # from a previous session (last_eval_price is not None) or
+                # from a previous session (last_eval_price was not None) or
                 # explicitly synced with waiting_for_cross=True. For a freshly
-                # created alert (last_eval_price is None and waiting_for_cross
+                # created alert (is_fresh_alert is True and waiting_for_cross
                 # is False), trigger immediately instead of waiting for a cross.
-                if getattr(alert, 'last_eval_price', None) is None and not getattr(alert, 'waiting_for_cross', False):
+                if is_fresh_alert and not getattr(alert, 'waiting_for_cross', False):
                     # Fresh alert: fall through to trigger below.
                     pass
                 else:
