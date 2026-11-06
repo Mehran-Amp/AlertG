@@ -2657,14 +2657,13 @@ export default function App() {
     ? 'bg-orange-500/10 border-orange-500/20 text-orange-400'
     : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400';
 
-  // Filtered 40+ Exchanges (Strictly Sorted Alphabetically A-Z by English Name)
+  // Filtered Crypto Exchanges (Strictly Sorted Alphabetically A-Z by English Name)
   const filteredExchanges = ALL_EXCHANGES.filter((ex) => {
-    const matchesCategory = exchangeCategoryFilter === 'all' || ex.category === exchangeCategoryFilter;
     const matchesSearch = !exchangeSearchQuery ||
       ex.name.toLowerCase().includes(exchangeSearchQuery.toLowerCase()) ||
       ex.id.toLowerCase().includes(exchangeSearchQuery.toLowerCase()) ||
       ex.countryBadge.toLowerCase().includes(exchangeSearchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
+    return matchesSearch;
   }).sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
 
   // Filtered Macro Assets (Robust Offline Persian & English Search)
@@ -4150,7 +4149,7 @@ export default function App() {
                     <div>
                       <span className="text-xs text-emerald-400 font-semibold block">مرحله {cryptoStep} از ۳ (رمزارزها)</span>
                       <h4 className="font-bold text-sm text-white">
-                        {cryptoStep === 1 && (currentLang === 'fa' ? '۱. انتخاب صرافی (۱۶ جهانی + ۲ ایرانی)' : '1. Select Exchange (16 Global + 2 Iran)')}
+                        {cryptoStep === 1 && (currentLang === 'fa' ? '۱. انتخاب صرافی' : '1. Select Exchange')}
                         {cryptoStep === 2 && (currentLang === 'fa' ? `۲. انتخاب جفت‌ارز (${selectedExchange.name})` : `2. Select Pair (${selectedExchange.name})`)}
                         {cryptoStep === 3 && (currentLang === 'fa' ? '۳. زمان‌بندی و شرط هشدار' : '3. Schedule & Alert Condition')}
                       </h4>
@@ -4158,7 +4157,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Crypto Step 1: Exchange Filter Chips & 16+2 Exchanges */}
+                {/* Crypto Step 1: Search & Unified Single Exchanges List */}
                 {cryptoStep === 1 && (
                   <div className="space-y-3 text-xs">
                     {/* Search */}
@@ -4170,33 +4169,12 @@ export default function App() {
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white placeholder:text-slate-500"
                     />
 
-                    {/* Category Filter Chips */}
-                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
-                      {[
-                        { id: 'all', label: currentLang === 'fa' ? 'همه (۱۸)' : 'All (18)', icon: '🌐' },
-                        { id: 'tier1', label: currentLang === 'fa' ? '⭐ بین‌المللی (۱۶)' : '⭐ Global (16)', icon: '⭐' },
-                        { id: 'middleEast', label: currentLang === 'fa' ? '🇮🇷 ایران (تبدیل و کیف‌پول)' : '🇮🇷 Iran (Tabdeal & Kifpool)', icon: '🇮🇷' },
-                      ].map((tab) => (
-                        <button
-                          key={tab.id}
-                          onClick={() => setExchangeCategoryFilter(tab.id as any)}
-                          className={`px-3 py-1.5 rounded-xl whitespace-nowrap text-[11px] font-bold transition-all flex items-center gap-1.5 ${
-                            exchangeCategoryFilter === tab.id
-                              ? 'bg-emerald-500 text-slate-950 shadow'
-                              : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
-                          }`}
-                        >
-                          <span>{tab.label}</span>
-                        </button>
-                      ))}
-                    </div>
-
                     {/* Exchanges List */}
-                    <div className="flex items-center justify-between text-[11px] text-slate-400 px-1 pt-1">
-                      <span>فهرست صرافی‌ها (مرتب‌سازی الفبای انگلیسی):</span>
+                    <div className="flex items-center justify-between text-[11px] text-slate-400 px-1 pt-0.5">
+                      <span>{currentLang === 'fa' ? `فهرست صرافی‌ها (${filteredExchanges.length} صرافی):` : `Exchanges List (${filteredExchanges.length} exchanges):`}</span>
                       <span className="font-mono text-emerald-400 text-[10px] bg-slate-900 px-2 py-0.5 rounded border border-slate-800 font-bold">A → Z</span>
                     </div>
-                    <div className="max-h-64 overflow-y-auto space-y-1.5 custom-scrollbar pr-1">
+                    <div className="max-h-72 overflow-y-auto space-y-1.5 custom-scrollbar pr-1">
                       {filteredExchanges.map((ex) => (
                         <button
                           key={ex.id}
