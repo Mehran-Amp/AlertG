@@ -115,6 +115,9 @@ class KifpoolExchange implements Exchange {
     );
   }
 
+  static List<dynamic>? _cachedSpotPrices;
+  static DateTime? _lastSpotPriceFetch;
+
   @override
   Future<MarketTicker> fetchTicker(CurrencyPair pair) async {
     final cacheKey = '${pair.baseCurrency}_${pair.counterCurrency}'.toUpperCase();
@@ -122,10 +125,19 @@ class KifpoolExchange implements Exchange {
     final isTmn = pair.counterCurrency.toUpperCase() == 'TMN' || pair.counterCurrency.toUpperCase() == 'IRT';
 
     try {
-      final response = await _dio.get('/api/spot/price');
-      final data = response.data;
-      if (data is List) {
-        for (final item in data) {
+      final now = DateTime.now();
+      if (_cachedSpotPrices == null ||
+          _lastSpotPriceFetch == null ||
+          now.difference(_lastSpotPriceFetch!) > const Duration(seconds: 15)) {
+        final response = await _dio.get('/api/spot/price');
+        if (response.data is List && (response.data as List).isNotEmpty) {
+          _cachedSpotPrices = response.data as List;
+          _lastSpotPriceFetch = now;
+        }
+      }
+
+      if (_cachedSpotPrices != null) {
+        for (final item in _cachedSpotPrices!) {
           if (item is Map && (item['symbol'] ?? '').toString().toUpperCase() == baseSym) {
             double price = 0.0;
             if (isTmn) {
@@ -148,6 +160,7 @@ class KifpoolExchange implements Exchange {
               final low = double.tryParse(item['low']?.toString() ?? '') ?? 0.0;
 
               final ticker = MarketTicker(
+                exchangeId: id,
                 pair: pair,
                 lastPrice: price,
                 volume24h: vol,

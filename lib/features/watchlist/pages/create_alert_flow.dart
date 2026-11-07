@@ -337,6 +337,18 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
         quoteCurrencies: ['TMN', 'USDT'],
         symbolFormatter: (b, q) => '${b.toUpperCase()}${q.toUpperCase()}',
       );
+    } else if (ex.id == 'gateio' || ex.id == 'xt' || ex.id == 'poloniex') {
+      final defaultQuote = ex.defaultCounterCurrency.isNotEmpty ? ex.defaultCounterCurrency : 'USDT';
+      return CryptoCatalogData.buildPairs(
+        quoteCurrencies: [defaultQuote, if (defaultQuote != 'USDT') 'USDT'],
+        symbolFormatter: (b, q) => '${b.toUpperCase()}_${q.toUpperCase()}',
+      );
+    } else if (ex.id == 'kucoin' || ex.id == 'okx' || ex.id == 'bingx' || ex.id == 'coinbase') {
+      final defaultQuote = ex.defaultCounterCurrency.isNotEmpty ? ex.defaultCounterCurrency : 'USDT';
+      return CryptoCatalogData.buildPairs(
+        quoteCurrencies: [defaultQuote, if (defaultQuote != 'USDT') 'USDT'],
+        symbolFormatter: (b, q) => '${b.toUpperCase()}-${q.toUpperCase()}',
+      );
     } else {
       final defaultQuote = ex.defaultCounterCurrency.isNotEmpty ? ex.defaultCounterCurrency : 'USDT';
       return CryptoCatalogData.buildPairs(
@@ -416,7 +428,7 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
 
       // Local fetch
       try {
-        final snapshot = await widget.registry.fetchSnapshotFrom('iran_market', pair).timeout(const Duration(seconds: 5));
+        final snapshot = await widget.registry.fetchSnapshotFrom('iran_market', pair).timeout(const Duration(seconds: 10));
         if (snapshot != null && snapshot.price > 0 && mounted) {
           setState(() {
             _iranLivePrices[sym] = snapshot.price;
@@ -453,12 +465,12 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
       _isLoadingPrice = true;
     });
 
-    // 1. Try local direct fetch first with 5-second timeout (for weak Iranian internet)
+    // 1. Try local direct fetch first with 12-second timeout (accommodates mobile network latency)
     try {
       final snapshot = await widget.registry.fetchSnapshotFrom(
         _selectedExchange!.id,
         _selectedPair!,
-      ).timeout(const Duration(seconds: 5));
+      ).timeout(const Duration(seconds: 12));
 
       if (snapshot != null && snapshot.price > 0 && mounted) {
         setState(() {
@@ -516,7 +528,7 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
 
     // 1. Try local direct fetch
     try {
-      final snapshot = await widget.registry.fetchSnapshotFrom('iran_market', pair).timeout(const Duration(seconds: 5));
+      final snapshot = await widget.registry.fetchSnapshotFrom('iran_market', pair).timeout(const Duration(seconds: 10));
       if (snapshot != null && snapshot.price > 0 && mounted) {
         setState(() {
           _iranLivePrices[sym] = snapshot.price;
@@ -656,7 +668,7 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
 
     // 1. Try local direct fetch first
     try {
-      final snapshot = await widget.registry.fetchSnapshotFrom('global_stocks', pair).timeout(const Duration(seconds: 5));
+      final snapshot = await widget.registry.fetchSnapshotFrom('global_stocks', pair).timeout(const Duration(seconds: 10));
       if (snapshot != null && snapshot.price > 0 && mounted) {
         setState(() {
           _macroLivePrices[sym] = snapshot.price;

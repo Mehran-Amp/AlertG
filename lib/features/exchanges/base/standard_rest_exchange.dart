@@ -201,12 +201,18 @@ class StandardRestExchange implements Exchange {
           final d = data['tick'] is Map
               ? data['tick'] as Map<String, dynamic>
               : (data['data'] is Map ? data['data'] as Map<String, dynamic> : data);
-          price = double.tryParse(d['lastPrice']?.toString() ?? d['last']?.toString() ?? d['price']?.toString() ?? d['close']?.toString() ?? '0') ?? 0.0;
+          price = double.tryParse(d['lastPrice']?.toString() ?? d['last']?.toString() ?? d['price']?.toString() ?? d['close']?.toString() ?? d['trade_price']?.toString() ?? d['p']?.toString() ?? '0') ?? 0.0;
           vol = double.tryParse(d['volume']?.toString() ?? d['vol']?.toString() ?? d['volume24h']?.toString() ?? d['quoteVolume']?.toString() ?? d['amount']?.toString() ?? '0') ?? 0.0;
-        } else if (data is List && data.isNotEmpty && data.first is Map) {
-          final first = data.first as Map<String, dynamic>;
-          price = double.tryParse(first['lastPrice']?.toString() ?? first['last']?.toString() ?? first['price']?.toString() ?? first['close']?.toString() ?? '0') ?? 0.0;
-          vol = double.tryParse(first['volume24h']?.toString() ?? first['volume']?.toString() ?? first['quote_volume']?.toString() ?? '0') ?? 0.0;
+        } else if (data is List && data.isNotEmpty) {
+          if (data.first is Map) {
+            final first = data.first as Map<String, dynamic>;
+            price = double.tryParse(first['lastPrice']?.toString() ?? first['last']?.toString() ?? first['price']?.toString() ?? first['close']?.toString() ?? first['trade_price']?.toString() ?? first['p']?.toString() ?? '0') ?? 0.0;
+            vol = double.tryParse(first['volume24h']?.toString() ?? first['volume']?.toString() ?? first['quote_volume']?.toString() ?? first['trade_volume']?.toString() ?? '0') ?? 0.0;
+          } else if (data.first is num && data.length >= 7) {
+            // Bitfinex V2 ticker format: [BID, BID_SIZE, ASK, ASK_SIZE, DAILY_CHANGE, DAILY_CHANGE_RELATIVE, LAST_PRICE, VOLUME, HIGH, LOW]
+            price = (data[6] as num).toDouble();
+            vol = (data[7] as num).toDouble();
+          }
         }
 
         if (price > 0) {

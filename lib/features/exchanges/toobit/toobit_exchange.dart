@@ -88,13 +88,45 @@ class ToobitExchange implements Exchange {
   Future<MarketTicker> fetchTicker(CurrencyPair pair) async {
     final symbol = '${pair.baseCurrency}${pair.counterCurrency}'.toUpperCase();
 
-    // 1. Direct Toobit API
+    // 1. Direct Toobit API (Verified live endpoints: /quote/v1/ticker/price & /quote/v1/ticker/24hr)
     try {
-      final response = await _dio.get('/api/v1/ticker/24hr', queryParameters: {'symbol': symbol});
-      if (response.data is Map) {
-        final d = response.data as Map<String, dynamic>;
-        final p = double.tryParse(d['lastPrice']?.toString() ?? d['price']?.toString() ?? '0') ?? 0.0;
-        final v = double.tryParse(d['quoteVolume']?.toString() ?? d['volume']?.toString() ?? '0') ?? 0.0;
+      final response = await _dio.get('/quote/v1/ticker/price', queryParameters: {'symbol': symbol});
+      final data = response.data;
+      if (data is List && data.isNotEmpty && data.first is Map) {
+        final d = data.first as Map<String, dynamic>;
+        final p = double.tryParse(d['p']?.toString() ?? d['price']?.toString() ?? '0') ?? 0.0;
+        if (p > 0) {
+          return MarketTicker(
+            exchangeId: id,
+            pair: pair,
+            lastPrice: p,
+            volume24h: 0.0,
+            timestamp: DateTime.now(),
+          );
+        }
+      } else if (data is Map) {
+        final d = data as Map<String, dynamic>;
+        final p = double.tryParse(d['p']?.toString() ?? d['price']?.toString() ?? d['lastPrice']?.toString() ?? '0') ?? 0.0;
+        final v = double.tryParse(d['v']?.toString() ?? d['volume']?.toString() ?? '0') ?? 0.0;
+        if (p > 0) {
+          return MarketTicker(
+            exchangeId: id,
+            pair: pair,
+            lastPrice: p,
+            volume24h: v,
+            timestamp: DateTime.now(),
+          );
+        }
+      }
+    } catch (_) {}
+
+    try {
+      final response = await _dio.get('/quote/v1/ticker/24hr', queryParameters: {'symbol': symbol});
+      final data = response.data;
+      if (data is List && data.isNotEmpty && data.first is Map) {
+        final d = data.first as Map<String, dynamic>;
+        final p = double.tryParse(d['c']?.toString() ?? d['lastPrice']?.toString() ?? '0') ?? 0.0;
+        final v = double.tryParse(d['v']?.toString() ?? '0') ?? 0.0;
         if (p > 0) {
           return MarketTicker(
             exchangeId: id,

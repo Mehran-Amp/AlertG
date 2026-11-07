@@ -89,21 +89,43 @@ class BinanceExchange implements Exchange {
       final high = double.tryParse(json['highPrice']?.toString() ?? '0') ?? price;
       final low = double.tryParse(json['lowPrice']?.toString() ?? '0') ?? price;
 
-      if (price <= 0) {
-        throw Exception('Invalid price received from Binance for $symbol');
+      if (price > 0) {
+        return MarketTicker(
+          exchangeId: id,
+          pair: pair,
+          lastPrice: price,
+          volume24h: vol,
+          high24h: high,
+          low24h: low,
+          timestamp: DateTime.now(),
+        );
       }
+    } catch (_) {}
 
-      return MarketTicker(
-        exchangeId: id,
-        pair: pair,
-        lastPrice: price,
-        volume24h: vol,
-        high24h: high,
-        low24h: low,
-        timestamp: DateTime.now(),
+    // Fallback: Binance Public Vision Data Mirror (Unfiltered worldwide & highly accessible)
+    try {
+      final visionDio = Dio(BaseOptions(
+        baseUrl: 'https://data-api.binance.vision',
+        connectTimeout: const Duration(seconds: 5),
+        receiveTimeout: const Duration(seconds: 5),
+      ));
+      final res = await visionDio.get(
+        '/api/v3/ticker/price',
+        queryParameters: {'symbol': symbol},
       );
-    } catch (e) {
-      throw Exception('Binance Live Connection Error for ${pair.displayName}: $e');
-    }
+      final json = res.data as Map<String, dynamic>;
+      final price = double.tryParse(json['price']?.toString() ?? '0') ?? 0.0;
+      if (price > 0) {
+        return MarketTicker(
+          exchangeId: id,
+          pair: pair,
+          lastPrice: price,
+          volume24h: 0.0,
+          timestamp: DateTime.now(),
+        );
+      }
+    } catch (_) {}
+
+    throw Exception('Binance Live Connection Error for ${pair.displayName}');
   }
 }

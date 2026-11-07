@@ -978,7 +978,7 @@ class ServerAlertService {
     try {
       final sanitizedSym = symbol.replaceAll('/', '').replaceAll(' ', '');
       final url = Uri.parse('$effectiveBaseUrl/api/price/${exchange.toLowerCase()}/$sanitizedSym');
-      final response = await http.get(url, headers: _buildHeaders()).timeout(const Duration(seconds: 4));
+      final response = await http.get(url, headers: _buildHeaders()).timeout(const Duration(seconds: 8));
 
       if (response.statusCode == 200) {
         _circuitBreakerUntil = null;
@@ -988,10 +988,7 @@ class ServerAlertService {
           if (p > 0) return p;
         }
       }
-    } catch (_) {
-      // Temporarily trip circuit breaker so local scheduler doesn't retry unreachable host
-      _circuitBreakerUntil = DateTime.now().add(const Duration(minutes: 2));
-    }
+    } catch (_) {}
     return null;
   }
 

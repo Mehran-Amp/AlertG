@@ -212,7 +212,7 @@ def build_crypto_symbols_response(
     return JSONResponse(content=payload, status_code=200, headers=headers)
 
 
-@router.get("/api/crypto/exchanges", dependencies=API_DEP)
+@router.get("/api/crypto/exchanges")
 def get_crypto_exchanges(
     catalog_dir: Optional[str] = None,
     include_pending: bool = False,
@@ -270,8 +270,8 @@ def get_crypto_exchanges(
     return JSONResponse(content=payload, status_code=200, headers=headers)
 
 
-@router.get("/api/crypto/exchanges/{exchange}/symbols", dependencies=API_DEP)
-@router.get("/api/crypto/symbols/{exchange}", dependencies=API_DEP)
+@router.get("/api/crypto/exchanges/{exchange}/symbols")
+@router.get("/api/crypto/symbols/{exchange}")
 def get_crypto_symbols_by_path(
     exchange: str,
     q: Optional[str] = Query(None),

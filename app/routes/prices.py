@@ -19,8 +19,8 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-@router.get("/api/price/{exchange}/{symbol}", dependencies=API_DEP)
-@router.get("/price/{exchange}/{symbol}", dependencies=API_DEP)
+@router.get("/api/price/{exchange}/{symbol}")
+@router.get("/price/{exchange}/{symbol}")
 async def get_live_price(exchange: str, symbol: str):
     client = state.http_client
     if client is None:

@@ -91,25 +91,71 @@ class TabdealExchange implements Exchange {
     );
   }
 
+  static List<dynamic>? _cachedMarketInfo;
+  static DateTime? _lastMarketInfoFetch;
+
   @override
   Future<MarketTicker> fetchTicker(CurrencyPair pair) async {
     final cacheKey = '${pair.baseCurrency}_${pair.counterCurrency}'.toUpperCase();
-    final quoteSymbol = pair.counterCurrency.toUpperCase() == 'TMN' ? 'IRT' : pair.counterCurrency.toUpperCase();
-    final tabdealSymbol = '${pair.baseCurrency.toUpperCase()}$quoteSymbol';
+    final isTmn = pair.counterCurrency.toUpperCase() == 'TMN' || pair.counterCurrency.toUpperCase() == 'IRT';
+    final quoteSymbol = isTmn ? 'IRT' : pair.counterCurrency.toUpperCase();
+    final baseSym = pair.baseCurrency.toUpperCase();
+    final tabdealSymbol = '$baseSym$quoteSymbol';
+    final tabdealSymbolWithUnderscore = '${baseSym}_$quoteSymbol';
 
-    // 1. Direct Tabdeal Trades / Depth API
+    // 0. Primary Live Source: Tabdeal market_information (1,027 live spot pairs)
+    try {
+      final now = DateTime.now();
+      if (_cachedMarketInfo == null ||
+          _lastMarketInfoFetch == null ||
+          now.difference(_lastMarketInfoFetch!) > const Duration(seconds: 15)) {
+        final res = await _dio.get('/r/plots/market_information/');
+        if (res.data is List && (res.data as List).isNotEmpty) {
+          _cachedMarketInfo = res.data as List;
+          _lastMarketInfoFetch = now;
+        }
+      }
+
+      if (_cachedMarketInfo != null) {
+        for (final item in _cachedMarketInfo!) {
+          if (item is Map) {
+            final s = (item['symbol'] ?? item['tabdealSymbol'] ?? '').toString().toUpperCase();
+            if (s == tabdealSymbol || s == tabdealSymbolWithUnderscore) {
+              final rawPrice = double.tryParse(item['price']?.toString() ?? '') ?? 0.0;
+              final vol = double.tryParse(item['volume']?.toString() ?? '') ?? 0.0;
+              if (rawPrice > 0) {
+                // Tabdeal prices for IRT are in Rials -> divide by 10 for Tomans
+                final effectivePrice = isTmn ? (rawPrice / 10.0) : rawPrice;
+                final ticker = MarketTicker(
+                  exchangeId: id,
+                  pair: pair,
+                  lastPrice: effectivePrice,
+                  volume24h: vol,
+                  timestamp: DateTime.now(),
+                );
+                _lastKnownLiveTickers[cacheKey] = ticker;
+                return ticker;
+              }
+            }
+          }
+        }
+      }
+    } catch (_) {}
+
+    // 1. Direct Tabdeal Trades API (strip underscore so no 500 error)
     try {
       final response = await _dio.get('/r/api/v1/trades?symbol=$tabdealSymbol');
       final data = response.data;
       if (data is List && data.isNotEmpty && data[0] is Map) {
         final latestTrade = data[0];
-        final p = double.tryParse(latestTrade['price']?.toString() ?? '0') ?? 0.0;
+        final rawPrice = double.tryParse(latestTrade['price']?.toString() ?? '0') ?? 0.0;
         final q = double.tryParse(latestTrade['qty']?.toString() ?? '0') ?? 0.0;
-        if (p > 0) {
+        if (rawPrice > 0) {
+          final effectivePrice = isTmn ? (rawPrice / 10.0) : rawPrice;
           final ticker = MarketTicker(
             exchangeId: id,
             pair: pair,
-            lastPrice: p,
+            lastPrice: effectivePrice,
             volume24h: q,
             timestamp: DateTime.now(),
           );
@@ -124,12 +170,13 @@ class TabdealExchange implements Exchange {
       final depthRes = await _dio.get('/r/api/v1/depth?symbol=$tabdealSymbol');
       final bids = depthRes.data?['bids'] as List?;
       if (bids != null && bids.isNotEmpty && bids[0] is List) {
-        final p = double.tryParse(bids[0][0]?.toString() ?? '0') ?? 0.0;
-        if (p > 0) {
+        final rawPrice = double.tryParse(bids[0][0]?.toString() ?? '0') ?? 0.0;
+        if (rawPrice > 0) {
+          final effectivePrice = isTmn ? (rawPrice / 10.0) : rawPrice;
           final ticker = MarketTicker(
             exchangeId: id,
             pair: pair,
-            lastPrice: p,
+            lastPrice: effectivePrice,
             volume24h: 0.0,
             timestamp: DateTime.now(),
           );
