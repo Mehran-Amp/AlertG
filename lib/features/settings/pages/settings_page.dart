@@ -372,6 +372,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         selectedTileColor: theme.colorScheme.primary.withValues(alpha: 0.12),
                         onTap: () async {
                           await settingsService.setLanguage(l['code']!);
+                          BackgroundServiceManager.updateLanguage(l['code']!);
                           if (ctx.mounted) Navigator.pop(ctx);
                         },
                       ),

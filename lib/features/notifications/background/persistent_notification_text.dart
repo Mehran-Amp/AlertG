@@ -60,19 +60,23 @@ class PersistentNotificationText {
     String? date;
     if (calendar == NotificationCalendar.jalali) {
       final j = _jalaliFromEpochDay(epochDay);
-      date = '${j[2]} ${(fa ? _jalaliMonthsFa : _jalaliMonthsEn)[j[1] - 1]} ${j[0]}';
+      date = _fmt(j[2], j[1], (fa ? _jalaliMonthsFa : _jalaliMonthsEn)[j[1] - 1], j[0]);
     } else if (calendar == NotificationCalendar.hijri) {
       final int off = hijriOffsetDays < -1 ? -1 : (hijriOffsetDays > 1 ? 1 : hijriOffsetDays);
       final h = _hijriFromEpochDay(epochDay + off);
       if (h != null) {
-        date = '${h[2]} ${(fa ? _hijriMonthsFa : _hijriMonthsEn)[h[1] - 1]} ${h[0]}';
+        date = _fmt(h[2], h[1], (fa ? _hijriMonthsFa : _hijriMonthsEn)[h[1] - 1], h[0]);
       }
     }
-    date ??= '${now.day} ${(fa ? _gregorianMonthsFa : _gregorianMonthsEn)[now.month - 1]} ${now.year}';
+    date ??= _fmt(now.day, now.month, (fa ? _gregorianMonthsFa : _gregorianMonthsEn)[now.month - 1], now.year);
 
     final String line = '$weekday \u00b7 $date';
     return fa ? _toPersianDigits(line) : line;
   }
+
+  /// Date style: `<day> <month number>-<month name> <year>`, e.g. `6 11-Nov 2026`.
+  static String _fmt(int day, int month, String monthName, int year) =>
+      '$day $month-$monthName $year';
 
   /// Second line. Honest by design: "online" is shown only while prices come
   /// from the server; otherwise the app says it is monitoring locally.

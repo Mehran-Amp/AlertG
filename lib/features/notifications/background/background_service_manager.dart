@@ -78,7 +78,7 @@ class BackgroundServiceManager {
   /// Updates foreground persistent notification text with current price source.
   static void updatePriceSource({required bool isFromServer, String? lang}) {
     _lastPriceFromServer = isFromServer;
-    final effectiveLang = lang ?? 'fa';
+    final effectiveLang = lang ?? _lastLang;
 
     // 1. Direct application if running inside the background service isolate
     if (_currentServiceInstance != null) {
@@ -91,7 +91,8 @@ class BackgroundServiceManager {
       final service = FlutterBackgroundService();
       service.invoke('updatePriceSource', {
         'source': isFromServer ? 'fcm' : 'local',
-        'lang': effectiveLang,
+        // null = keep the language the service isolate already knows.
+        'lang': lang,
       });
       ServiceLogger.log(
         'bg.notification',
@@ -100,6 +101,20 @@ class BackgroundServiceManager {
     } catch (e, st) {
       ServiceLogger.logError('updatePriceSource', e, st).ignore();
     }
+  }
+
+  /// Called from the UI isolate when the user changes the app language, so the
+  /// permanent notification follows it immediately (the service isolate keeps
+  /// its own copy of the settings and would otherwise show a stale language).
+  static void updateLanguage(String lang) {
+    final l = lang.isEmpty ? 'fa' : lang;
+    if (_currentServiceInstance != null) {
+      _applyNotificationInfo(isFromServer: _lastPriceFromServer, lang: l);
+      return;
+    }
+    try {
+      FlutterBackgroundService().invoke('updateLanguage', {'lang': l});
+    } catch (_) {}
   }
 
   /// Called from the UI isolate when the user changes the notification calendar
@@ -241,10 +256,17 @@ class BackgroundServiceManager {
         }
       });
 
+      service.on('updateLanguage').listen((event) {
+        if (event != null) {
+          final lang = event['lang'] as String? ?? 'fa';
+          _applyNotificationInfo(isFromServer: _lastPriceFromServer, lang: lang);
+        }
+      });
+
       service.on('updatePriceSource').listen((event) {
         if (event != null) {
           final isServer = event['source'] == 'fcm';
-          final lang = event['lang'] as String? ?? 'fa';
+          final lang = event['lang'] as String? ?? _lastLang;
           _lastPriceFromServer = isServer;
           _applyNotificationInfo(isFromServer: isServer, lang: lang);
         }
@@ -379,7 +401,7 @@ class BackgroundServiceManager {
           final hasActiveServer = ServerAlertService.isServerAvailable &&
               FCMNotificationService.isRealFCMActive;
           setNotificationText(
-              _lastPriceFromServer || hasActiveServer, settingsService.settings.language);
+              _lastPriceFromServer || hasActiveServer, _lastLang);
         }
       } catch (e, st) {
         await ServiceLogger.logError('tick.reload', e, st);
