@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import '../../../core/services/server_alert_service.dart';
+import 'crypto_catalog_data.dart';
 import 'currency_pair.dart';
 import 'exchange.dart';
 
@@ -74,10 +75,11 @@ class CryptoCatalogService {
           for (final item in symbolList) {
             if (item is Map) {
               final base = (item['base_currency'] ?? '').toString().toUpperCase();
-              final quote = (item['counter_currency'] ?? 'USDT').toString().toUpperCase();
+              final rawQuote = (item['counter_currency'] ?? 'USDT').toString().toUpperCase();
+              final quote = (rawQuote == 'IRT' || rawQuote == 'RLS') ? 'TMN' : rawQuote;
               final marketSym = (item['market_symbol'] ?? '$base$quote').toString();
 
-              if (base.isNotEmpty && quote == 'USDT') {
+              if (base.isNotEmpty && quote.isNotEmpty) {
                 pairs.add(CurrencyPair(
                   baseCurrency: base,
                   counterCurrency: quote,
@@ -113,24 +115,38 @@ class CryptoCatalogService {
       return cached;
     }
 
-    // 4. Last resort: Direct exchange adapter if available (no static list)
+    // 4. Fallback: Direct exchange adapter if available
     if (fallbackExchange != null) {
       try {
         final directPairs = await fallbackExchange.fetchCurrencyPairs();
-        final usdtOnly = directPairs
-            .where((p) => p.counterCurrency.toUpperCase() == 'USDT')
-            .toList();
-        if (usdtOnly.isNotEmpty) {
-          _memCache[cleanId] = usdtOnly;
+        if (directPairs.isNotEmpty) {
+          _memCache[cleanId] = directPairs;
           _memCacheTimestamps[cleanId] = now;
-          return usdtOnly;
+          return directPairs;
         }
       } catch (e) {
         debugPrint('Direct exchange fallback failed for $cleanId: $e');
       }
     }
 
-    return <CurrencyPair>[];
+    // 5. Guaranteed Fallback: Never display 0 pairs
+    final defaultQuote = fallbackExchange?.defaultCounterCurrency ?? (cleanId == 'tabdeal' || cleanId == 'kifpool' ? 'TMN' : 'USDT');
+    final fallbackList = CryptoCatalogData.buildPairs(
+      quoteCurrencies: [
+        defaultQuote,
+        if (defaultQuote != 'USDT') 'USDT',
+        if (cleanId == 'tabdeal' || cleanId == 'kifpool') 'TMN',
+      ],
+      symbolFormatter: (b, q) {
+        if (cleanId == 'tabdeal') {
+          return '${b.toUpperCase()}_${q == "TMN" ? "IRT" : q.toUpperCase()}';
+        }
+        return '${b.toUpperCase()}${q.toUpperCase()}';
+      },
+    );
+    _memCache[cleanId] = fallbackList;
+    _memCacheTimestamps[cleanId] = now;
+    return fallbackList;
   }
 
   /// Saves raw JSON to device cache file

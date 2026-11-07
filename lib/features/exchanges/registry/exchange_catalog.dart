@@ -91,9 +91,12 @@ class ExchangeCatalog {
     ];
   }
 
-  /// Combined crypto exchanges (Strictly International & Global)
+  /// Combined crypto exchanges (Iranian Tabdeal & Kifpool pinned at top, plus 16 canonical international)
   static List<Exchange> buildCryptoExchanges() {
-    return buildInternationalCryptoExchanges();
+    return <Exchange>[
+      ...buildIranCryptoExchanges(),
+      ...buildInternationalCryptoExchanges(),
+    ];
   }
 
   /// Combined catalog containing all market providers and crypto exchanges
@@ -104,12 +107,16 @@ class ExchangeCatalog {
       ...buildCryptoExchanges(),
     ];
 
-    // Strictly sort all exchanges alphabetically A-Z by English name with global stocks prioritized
+    // Keep global stocks and iran market at top, followed by crypto exchanges
     exchanges.sort((a, b) {
       if (a.id == globalStocksId) return -1;
       if (b.id == globalStocksId) return 1;
       if (a.id == iranMarketId) return -1;
       if (b.id == iranMarketId) return 1;
+      if (a.id == 'tabdeal') return -1;
+      if (b.id == 'tabdeal') return 1;
+      if (a.id == 'kifpool') return -1;
+      if (b.id == 'kifpool') return 1;
       return a.name.toLowerCase().compareTo(b.name.toLowerCase());
     });
 

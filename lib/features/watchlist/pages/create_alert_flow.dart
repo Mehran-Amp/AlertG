@@ -297,8 +297,16 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
       if (pairs.isEmpty) {
         pairs = await CryptoCatalogService.instance.fetchPairsForExchange(
           _selectedExchange!.id,
+          fallbackExchange: _selectedExchange,
           forceRefresh: forceRefresh,
         );
+      }
+      if (pairs.isEmpty) {
+        pairs = await _selectedExchange!.fetchCurrencyPairs();
+      }
+      // Guaranteed robust catalog fallback: Never show 0 coins
+      if (pairs.isEmpty) {
+        pairs = _getGuaranteedFallbackPairs(_selectedExchange!);
       }
       if (mounted) {
         setState(() {
@@ -307,16 +315,33 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
         });
       }
     } catch (_) {
+      final fallback = _getGuaranteedFallbackPairs(_selectedExchange!);
       if (mounted) {
-        final cached = await CryptoCatalogService.instance.fetchPairsForExchange(
-          _selectedExchange!.id,
-          forceRefresh: false,
-        );
         setState(() {
-          _exchangePairs = cached;
+          _exchangePairs = fallback;
           _isLoadingPairs = false;
         });
       }
+    }
+  }
+
+  List<CurrencyPair> _getGuaranteedFallbackPairs(Exchange ex) {
+    if (ex.id == 'tabdeal') {
+      return CryptoCatalogData.buildPairs(
+        quoteCurrencies: ['TMN', 'USDT'],
+        symbolFormatter: (b, q) => '${b.toUpperCase()}_${q == "TMN" ? "IRT" : q.toUpperCase()}',
+      );
+    } else if (ex.id == 'kifpool') {
+      return CryptoCatalogData.buildPairs(
+        quoteCurrencies: ['TMN', 'USDT'],
+        symbolFormatter: (b, q) => '${b.toUpperCase()}${q.toUpperCase()}',
+      );
+    } else {
+      final defaultQuote = ex.defaultCounterCurrency.isNotEmpty ? ex.defaultCounterCurrency : 'USDT';
+      return CryptoCatalogData.buildPairs(
+        quoteCurrencies: [defaultQuote, if (defaultQuote != 'USDT') 'USDT'],
+        symbolFormatter: (b, q) => '${b.toUpperCase()}${q.toUpperCase()}',
+      );
     }
   }
 
@@ -1281,26 +1306,61 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
     );
   }
   Widget _buildCryptoExchangePicker(ThemeData theme, String lang) {
-    const iranExchangeIds = {
-      'iran_market', 'nobitex', 'wallex', 'ramzinex', 'bitpin', 'tabdeal', 'kifpool', 'bitbarg', 'tetherland', 'abantether', 'sarmayex', 'exir'
-    };
-    final allExchanges = widget.registry.getAll().where((ex) {
-      if (ex.id == 'global_stocks' || iranExchangeIds.contains(ex.id)) return false;
-      if (ex.category == ExchangeCategory.middleEast || ex.defaultCounterCurrency == 'TMN') return false;
-      return true;
-    }).toList();
+    // 18 Canonical Crypto Exchanges (Tabdeal & Kifpool pinned at #1 & #2, plus 16 international)
+    const canonicalOrder = [
+      'tabdeal',
+      'kifpool',
+      'binance',
+      'kucoin',
+      'mexc',
+      'gateio',
+      'lbank',
+      'okx',
+      'bybit',
+      'bitget',
+      'kraken',
+      'htx',
+      'bingx',
+      'coinbase',
+      'poloniex',
+      'toobit',
+      'xt',
+      'bitfinex',
+    ];
 
-    final filtered = allExchanges.where((ex) {
-      if (_selectedCategory != ExchangeCategory.all && ex.category != _selectedCategory) {
-        return false;
+    final allExchanges = <Exchange>[];
+    for (final id in canonicalOrder) {
+      final ex = widget.registry.get(id);
+      if (ex != null) {
+        allExchanges.add(ex);
       }
-      final q = _exchangeSearchQuery.trim().toLowerCase();
+    }
+    // Fallback if any exchange instance was not in registry
+    if (allExchanges.length < 18) {
+      for (final ex in ExchangeCatalog.buildCryptoExchanges()) {
+        if (!allExchanges.any((e) => e.id == ex.id)) {
+          allExchanges.add(ex);
+        }
+      }
+    }
+
+    final q = _exchangeSearchQuery.trim().toLowerCase();
+    final filtered = allExchanges.where((ex) {
       if (q.isEmpty) return true;
-      return ex.name.toLowerCase().contains(q) ||
-          ex.id.toLowerCase().contains(q) ||
-          ex.countryBadge.toLowerCase().contains(q);
-    }).toList()
-      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+      final name = ex.name.toLowerCase();
+      final id = ex.id.toLowerCase();
+      final badge = ex.countryBadge.toLowerCase();
+      final faAlias = ex.id == 'tabdeal'
+          ? 'تبدیل'
+          : (ex.id == 'kifpool'
+              ? 'کیف پول من کیفپول'
+              : (ex.id == 'binance'
+                  ? 'بایننس'
+                  : (ex.id == 'kucoin'
+                      ? 'کوکوین'
+                      : (ex.id == 'mexc' ? 'مکس سی' : ''))));
+      return name.contains(q) || id.contains(q) || badge.contains(q) || faAlias.contains(q);
+    }).toList();
 
     return Column(
       children: [
@@ -1310,7 +1370,9 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
             onChanged: (val) => setState(() => _exchangeSearchQuery = val),
             style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurface),
             decoration: InputDecoration(
-              hintText: AppStrings.get('search_exchange_hint', lang),
+              hintText: lang == 'fa'
+                  ? 'جستجوی صرافی (تبدیل، کیف پول، بایننس...)'
+                  : AppStrings.get('search_exchange_hint', lang),
               prefixIcon: Icon(Icons.search, size: 20, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
               filled: true,
               fillColor: theme.colorScheme.surface,
@@ -1320,32 +1382,7 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
           ),
         ),
 
-        // Category Filter Chips
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: ExchangeCategory.values.map((cat) {
-              final isSelected = _selectedCategory == cat;
-              return Padding(
-                padding: const EdgeInsets.only(right: 6, bottom: 6),
-                child: FilterChip(
-                  selected: isSelected,
-                  label: Text('${cat.icon} ${cat.getTitle(lang)}'),
-                  labelStyle: TextStyle(
-                    fontSize: 11,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                  ),
-                  selectedColor: theme.colorScheme.primary.withValues(alpha: 0.15),
-                  backgroundColor: theme.colorScheme.surface,
-                  side: BorderSide(color: isSelected ? theme.colorScheme.primary : theme.dividerColor),
-                  onSelected: (_) => setState(() => _selectedCategory = cat),
-                ),
-              );
-            }).toList(),
-          ),
-        ),
+        // Category tabs removed for crypto mode: Single unified list directly displayed
 
         Expanded(
           child: ListView.separated(
@@ -1408,13 +1445,35 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
                             Row(
                               children: [
                                 Text(
-                                  ex.name,
+                                  lang == 'fa'
+                                      ? (ex.id == 'tabdeal'
+                                          ? 'تبدیل (Tabdeal)'
+                                          : (ex.id == 'kifpool' ? 'کیف پول من (Kifpool)' : ex.name))
+                                      : ex.name,
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 13,
                                     color: theme.colorScheme.onSurface,
                                   ),
                                 ),
+                                if (ex.id == 'tabdeal' || ex.id == 'kifpool') ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      lang == 'fa' ? 'صرافی داخلی' : 'Domestic',
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.green[800],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                                 if (!isCapable) ...[
                                   const SizedBox(width: 6),
                                   Container(
@@ -1437,7 +1496,11 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              '${ex.countryBadge} · ${ex.defaultCounterCurrency}',
+                              ex.id == 'tabdeal'
+                                  ? (lang == 'fa' ? '🇮🇷 ایران · بازار تومانی و تتری' : '🇮🇷 Iran · TMN & USDT pairs')
+                                  : (ex.id == 'kifpool'
+                                      ? (lang == 'fa' ? '🇮🇷 ایران · بیش از ۱,۲۰۰ کوین' : '🇮🇷 Iran · 1,200+ Coins')
+                                      : '${ex.countryBadge} · ${ex.defaultCounterCurrency}'),
                               style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurface.withValues(alpha: 0.55)),
                             ),
                           ],

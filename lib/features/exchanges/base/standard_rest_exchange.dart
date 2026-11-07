@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../base/crypto_catalog_data.dart';
 import '../base/crypto_catalog_service.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
@@ -148,7 +149,10 @@ class StandardRestExchange implements Exchange {
       }
     } catch (_) {}
 
-    return [];
+    return CryptoCatalogData.buildPairs(
+      quoteCurrencies: [defaultCounterCurrency, if (defaultCounterCurrency != 'USDT') 'USDT'],
+      symbolFormatter: (b, q) => '$b$q',
+    );
   }
 
   @override
