@@ -2,6 +2,20 @@
 
 ## [Unreleased] — Phase 3-5 completion
 
+### NTF — Permanent notification shows the date (feature/ntf-calendar-notification)
+
+- Notification 777 title is now `weekday · date` in the calendar chosen in Settings
+  (Jalali / Gregorian / Hijri, independent of the app language; 'auto' = Jalali for
+  Persian, Gregorian otherwise until the user chooses). Line 2: `server 24/7 online`,
+  or `server offline · local monitoring` when prices are not coming from the server.
+- Hijri uses a built-in Umm al-Qura table (AH 1400-1499) with a -1/0/+1 day adjustment.
+- New pure helper `persistent_notification_text.dart` (no I/O, safe in the service isolate);
+  date refresh rides the existing 10 s service tick (midnight / time-zone safe).
+- Alarm notifications, channels and notification ID 777 are unchanged.
+- Device checklist: title correct; tap opens the app; midnight rollover; time-zone change;
+  English UI + Jalali calendar; Hijri adjustment; swipe-away + reboot keep the service;
+  alarm sound / flash / banner unchanged.
+
 ### Phase 3 — Health & observability
 
 - **3C-1** (`2bc8e89`): pin `firebase-admin==7.7.0` + lock error classes

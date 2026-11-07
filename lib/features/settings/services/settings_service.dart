@@ -63,6 +63,16 @@ class SettingsService extends ChangeNotifier {
     await update(_settings.copyWith(language: langCode));
   }
 
+  /// Calendar of the permanent notification title: 'auto' | 'jalali' | 'gregorian' | 'hijri'.
+  Future<void> setNotificationCalendar(String pref) async {
+    await update(_settings.copyWith(notificationCalendar: pref));
+  }
+
+  /// Hijri day adjustment, clamped to -1..+1.
+  Future<void> setHijriOffsetDays(int days) async {
+    await update(_settings.copyWith(hijriOffsetDays: days.clamp(-1, 1).toInt()));
+  }
+
   Future<void> toggleSound(bool val) async {
     await update(_settings.copyWith(soundEnabled: val));
   }

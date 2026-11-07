@@ -19,6 +19,7 @@ import '../../exchanges/registry/exchange_registry.dart';
 import '../../notifications/repositories/notification_repository.dart';
 import '../../notifications/services/notification_service.dart';
 import '../../settings/services/settings_service.dart';
+import 'persistent_notification_text.dart';
 
 /// Configures Android 14+ Foreground Service
 /// using a persistent background task to keep market monitoring alive 24/7
@@ -28,27 +29,40 @@ class BackgroundServiceManager {
   static const String notificationChannelId = 'alarmer_foreground_service';
   static const int notificationId = 777;
   static bool _lastPriceFromServer = false;
+  // Permanent-notification date style (service isolate copy; kept in sync by
+  // settings load at service start and by the 'updateCalendarPref' event).
+  static String _calendarPref = PersistentNotificationText.prefAuto;
+  static int _hijriOffset = 0;
+  static String _lastLang = 'fa';
   static ServiceInstance? _currentServiceInstance;
 
-  /// Applies foreground persistent notification text with current price source (777).
+  /// Applies the permanent notification (777): title = weekday + date in the
+  /// user's chosen calendar, content = honest server status line.
+  /// The 10-second service tick calls this, so the date also rolls over at
+  /// midnight and follows time-zone / clock changes without a separate timer.
   static void _applyNotificationInfo({required bool isFromServer, String lang = 'fa'}) {
     final service = _currentServiceInstance;
     if (service is AndroidServiceInstance) {
-      final isFa = lang == 'fa' || lang == 'ar' || lang == 'ckb';
-      final sourceText = isFromServer
-          ? (isFa ? 'سرور ابری (FCM)' : 'Cloud Server (FCM)')
-          : (isFa ? 'پایش محلی دستگاه' : 'Local Device Engine');
-      final contentText = isFa
-          ? 'سرویس پایش ۲۴/۷ بازار فعال است • منبع: $sourceText'
-          : '24/7 Market Monitor Active • Source: $sourceText';
+      _lastLang = lang;
+      final calendar = PersistentNotificationText.resolveCalendar(_calendarPref, lang);
+      final titleText = PersistentNotificationText.title(
+        DateTime.now(),
+        calendar: calendar,
+        lang: lang,
+        hijriOffsetDays: _hijriOffset,
+      );
+      final contentText = PersistentNotificationText.statusLine(
+        isFromServer: isFromServer,
+        lang: lang,
+      );
       try {
         service.setForegroundNotificationInfo(
-          title: 'SignalAlert',
+          title: titleText,
           content: contentText,
         );
         ServiceLogger.log(
           'bg.notification',
-          'notification 777 text applied: isFromServer=$isFromServer, text="$contentText"',
+          'notification 777 text applied: isFromServer=$isFromServer, title="$titleText", text="$contentText"',
         ).ignore();
       } catch (e, st) {
         ServiceLogger.logError('applyNotificationInfo', e, st).ignore();
@@ -88,6 +102,31 @@ class BackgroundServiceManager {
     }
   }
 
+  /// Called from the UI isolate when the user changes the notification calendar
+  /// (or the Hijri day adjustment) in Settings.
+  static void updateCalendarPref({required String calendar, required int hijriOffsetDays}) {
+    final pref = PersistentNotificationText.sanitizePref(calendar);
+    final offset = hijriOffsetDays.clamp(-1, 1).toInt();
+
+    // Running inside the background-service isolate: apply directly.
+    if (_currentServiceInstance != null) {
+      _calendarPref = pref;
+      _hijriOffset = offset;
+      _applyNotificationInfo(isFromServer: _lastPriceFromServer, lang: _lastLang);
+      return;
+    }
+
+    // Called from the main UI isolate: dispatch an event to the service isolate.
+    try {
+      FlutterBackgroundService().invoke('updateCalendarPref', {
+        'calendar': pref,
+        'hijriOffset': offset,
+      });
+    } catch (e, st) {
+      ServiceLogger.logError('updateCalendarPref', e, st).ignore();
+    }
+  }
+
   static Future<void> initializeService() async {
     if (kIsWeb) return;
 
@@ -124,9 +163,17 @@ class BackgroundServiceManager {
             autoStartOnBoot: true,
             isForegroundMode: true,
             notificationChannelId: notificationChannelId,
-            initialNotificationTitle: 'SignalAlert',
-            initialNotificationContent:
-                'سرویس پایش ۲۴/۷ بازار فعال است • منبع: پایش محلی دستگاه',
+            // Replaced within moments by _applyNotificationInfo() once the
+            // service isolate starts (no disk I/O is allowed before that).
+            initialNotificationTitle: PersistentNotificationText.title(
+              DateTime.now(),
+              calendar: NotificationCalendar.gregorian,
+              lang: 'en',
+            ),
+            initialNotificationContent: PersistentNotificationText.statusLine(
+              isFromServer: false,
+              lang: 'en',
+            ),
             foregroundServiceNotificationId: notificationId,
           ),
           iosConfiguration: IosConfiguration(
@@ -182,6 +229,15 @@ class BackgroundServiceManager {
           service.setAsBackgroundService();
         } catch (e, st) {
           ServiceLogger.logError('setAsBackground', e, st).ignore();
+        }
+      });
+
+      service.on('updateCalendarPref').listen((event) {
+        if (event != null) {
+          _calendarPref = PersistentNotificationText.sanitizePref(event['calendar'] as String?);
+          final off = event['hijriOffset'];
+          _hijriOffset = off is num ? off.toInt().clamp(-1, 1).toInt() : 0;
+          _applyNotificationInfo(isFromServer: _lastPriceFromServer, lang: _lastLang);
         }
       });
 
@@ -255,6 +311,13 @@ class BackgroundServiceManager {
     try {
       await settingsService.load();
       await ServiceLogger.log('init', 'settingsService.load OK');
+      // Pick up the saved calendar style and show the real title right away.
+      _calendarPref = PersistentNotificationText.sanitizePref(
+          settingsService.settings.notificationCalendar);
+      _hijriOffset = settingsService.settings.hijriOffsetDays.clamp(-1, 1).toInt();
+      _applyNotificationInfo(
+          isFromServer: _lastPriceFromServer,
+          lang: settingsService.settings.language);
     } catch (e, st) {
       await ServiceLogger.logError('init.settingsService', e, st);
     }

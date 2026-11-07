@@ -15,6 +15,8 @@ import '../../alert_engine/bloc/alert_rules_bloc.dart';
 import '../../alert_engine/bloc/alert_rules_event.dart';
 import '../../alert_engine/repositories/json_alert_rule_repository.dart';
 import '../../notifications/repositories/notification_repository.dart';
+import '../../notifications/background/background_service_manager.dart';
+import '../../notifications/background/persistent_notification_text.dart';
 import '../../notifications/services/notification_service.dart';
 import '../models/app_settings.dart';
 import '../services/settings_service.dart';
@@ -85,6 +87,220 @@ class _SettingsPageState extends State<SettingsPage> {
         );
       }
     }
+  }
+
+  Future<void> _setNotificationCalendar(SettingsService settingsService, String pref) async {
+    await settingsService.setNotificationCalendar(pref);
+    BackgroundServiceManager.updateCalendarPref(
+      calendar: settingsService.settings.notificationCalendar,
+      hijriOffsetDays: settingsService.settings.hijriOffsetDays,
+    );
+  }
+
+  Future<void> _setHijriOffset(SettingsService settingsService, int days) async {
+    await settingsService.setHijriOffsetDays(days);
+    BackgroundServiceManager.updateCalendarPref(
+      calendar: settingsService.settings.notificationCalendar,
+      hijriOffsetDays: settingsService.settings.hijriOffsetDays,
+    );
+  }
+
+  /// Row in Settings: shows a live preview of the permanent-notification title.
+  Widget _buildNotificationCalendarTile(
+    BuildContext context,
+    SettingsService settingsService,
+    String lang,
+    ThemeData theme,
+    bool isFa,
+  ) {
+    final s = settingsService.settings;
+    final effective = PersistentNotificationText.resolveCalendar(s.notificationCalendar, lang);
+    final preview = PersistentNotificationText.title(
+      DateTime.now(),
+      calendar: effective,
+      lang: lang,
+      hijriOffsetDays: s.hijriOffsetDays,
+    );
+    return InkWell(
+      onTap: () => _showNotificationCalendarPicker(context, settingsService, lang),
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: AppTokens.space16, vertical: AppTokens.space12),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: theme.dividerColor),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.calendar_month_rounded, color: theme.colorScheme.primary),
+            const SizedBox(width: AppTokens.space12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isFa ? 'تقویم اعلان دائمی' : 'Permanent notification date',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    preview,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_drop_down_rounded,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              size: 28,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showNotificationCalendarPicker(
+    BuildContext context,
+    SettingsService settingsService,
+    String lang,
+  ) {
+    final theme = Theme.of(context);
+    final isRtl = AppStrings.isRtl(lang);
+    final isFa = lang == 'fa' || lang == 'ar' || lang == 'ckb';
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: theme.colorScheme.surface,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => ListenableBuilder(
+        listenable: settingsService,
+        builder: (ctx, _) {
+          final s = settingsService.settings;
+          final effective = PersistentNotificationText.resolveCalendar(s.notificationCalendar, lang);
+          final entries = <NotificationCalendar, String>{
+            NotificationCalendar.jalali: isFa ? 'شمسی (جلالی)' : 'Jalali (Persian)',
+            NotificationCalendar.gregorian: isFa ? 'میلادی' : 'Gregorian',
+            NotificationCalendar.hijri: isFa ? 'هجری قمری' : 'Hijri (Islamic)',
+          };
+          return Directionality(
+            textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          isFa ? 'تقویم اعلان دائمی' : 'Permanent notification date',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.close_rounded,
+                              color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    for (final entry in entries.entries)
+                      Material(
+                        color: Colors.transparent,
+                        child: ListTile(
+                          title: Text(
+                            entry.value,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                          subtitle: Text(
+                            PersistentNotificationText.title(
+                              DateTime.now(),
+                              calendar: entry.key,
+                              lang: lang,
+                              hijriOffsetDays: s.hijriOffsetDays,
+                            ),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+                            ),
+                          ),
+                          trailing: effective == entry.key
+                              ? Icon(Icons.check_circle_rounded, color: theme.colorScheme.primary)
+                              : null,
+                          selected: effective == entry.key,
+                          selectedTileColor: theme.colorScheme.primary.withValues(alpha: 0.12),
+                          onTap: () async {
+                            await _setNotificationCalendar(settingsService, entry.key.name);
+                            if (entry.key != NotificationCalendar.hijri && ctx.mounted) {
+                              Navigator.pop(ctx);
+                            }
+                          },
+                        ),
+                      ),
+                    if (effective == NotificationCalendar.hijri) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        isFa ? 'تنظیم روز هجری' : 'Hijri day adjustment',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        children: [
+                          for (final v in const [-1, 0, 1])
+                            ChoiceChip(
+                              label: Text(v > 0 ? '+$v' : '$v'),
+                              selected: s.hijriOffsetDays == v,
+                              onSelected: (_) => _setHijriOffset(settingsService, v),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        isFa
+                            ? 'تاریخ هجری محاسباتی (ام‌القری) است و ممکن است با رؤیت هلال محلی یک روز تفاوت داشته باشد.'
+                            : 'Calculated (Umm al-Qura) date. It can differ by one day from local moon sighting.',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   void _showLanguagePicker(BuildContext context, SettingsService settingsService, String currentLang) {
@@ -1335,6 +1551,8 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ),
+          const SizedBox(height: AppTokens.space12),
+          _buildNotificationCalendarTile(context, settingsService, lang, theme, isFa),
           const SizedBox(height: AppTokens.space20),
 
           // Section 7: 24/7 Background Alert Delivery Guide & Battery (بخش تنظیمات باتری و پس‌زمینه)

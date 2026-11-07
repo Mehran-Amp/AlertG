@@ -38,6 +38,11 @@ class AppSettings {
   final bool eventsMacroEnabled;
   final bool eventsEnergyEnabled;
   final bool eventsStocksEnabled;
+  /// Calendar shown in the permanent notification title:
+  /// 'auto' (follows app language until the user chooses) | 'jalali' | 'gregorian' | 'hijri'.
+  final String notificationCalendar;
+  /// Day adjustment (-1, 0, +1) for the Hijri date (moon-sighting differences).
+  final int hijriOffsetDays;
 
   const AppSettings({
     this.themePalette = AppThemePalette.lightPurpleBlue,
@@ -64,6 +69,8 @@ class AppSettings {
     this.eventsMacroEnabled = true,
     this.eventsEnergyEnabled = true,
     this.eventsStocksEnabled = true,
+    this.notificationCalendar = 'auto',
+    this.hijriOffsetDays = 0,
   });
 
   /// Helper whether user is logged in with Google
@@ -103,6 +110,8 @@ class AppSettings {
     bool? eventsMacroEnabled,
     bool? eventsEnergyEnabled,
     bool? eventsStocksEnabled,
+    String? notificationCalendar,
+    int? hijriOffsetDays,
   }) {
     return AppSettings(
       themePalette: themePalette ?? this.themePalette,
@@ -129,6 +138,8 @@ class AppSettings {
       eventsMacroEnabled: eventsMacroEnabled ?? this.eventsMacroEnabled,
       eventsEnergyEnabled: eventsEnergyEnabled ?? this.eventsEnergyEnabled,
       eventsStocksEnabled: eventsStocksEnabled ?? this.eventsStocksEnabled,
+      notificationCalendar: notificationCalendar ?? this.notificationCalendar,
+      hijriOffsetDays: hijriOffsetDays ?? this.hijriOffsetDays,
     );
   }
 
@@ -157,7 +168,14 @@ class AppSettings {
         'eventsMacroEnabled': eventsMacroEnabled,
         'eventsEnergyEnabled': eventsEnergyEnabled,
         'eventsStocksEnabled': eventsStocksEnabled,
+        'notificationCalendar': notificationCalendar,
+        'hijriOffsetDays': hijriOffsetDays,
       };
+
+  static String _sanitizeCalendarPref(Object? v) {
+    if (v == 'jalali' || v == 'gregorian' || v == 'hijri') return v as String;
+    return 'auto';
+  }
 
   factory AppSettings.fromJson(Map<String, dynamic> json) {
     AppThemePalette palette = AppThemePalette.lightPurpleBlue;
@@ -196,6 +214,8 @@ class AppSettings {
       eventsMacroEnabled: (json['eventsMacroEnabled'] as bool?) ?? true,
       eventsEnergyEnabled: (json['eventsEnergyEnabled'] as bool?) ?? true,
       eventsStocksEnabled: (json['eventsStocksEnabled'] as bool?) ?? true,
+      notificationCalendar: _sanitizeCalendarPref(json['notificationCalendar']),
+      hijriOffsetDays: ((json['hijriOffsetDays'] as num?)?.toInt() ?? 0).clamp(-1, 1).toInt(),
     );
   }
 
