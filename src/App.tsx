@@ -234,29 +234,47 @@ export const BONBAST_POPULAR_PAIRS = [
   'CAD', 'AUD', 'CHF', 'CNY', 'IQD', 'KWD', 'SAR', 'QAR', 'OMR', 'BHD', 'AFN', 'RUB', 'INR', 'JPY'
 ];
 
-// === 1. CANONICAL CRYPTO EXCHANGES CATALOG (16 Global + 2 Iranian = 18 Total) ===
+// === 1. CANONICAL CRYPTO EXCHANGES CATALOG (18 Total: 2 Iranian + 16 International) ===
 const ALL_EXCHANGES: ExchangeInfo[] = [
-  // --- 16 OFFICIAL INTERNATIONAL SPOT EXCHANGES (Crypto Version 2) ---
-  { id: 'binance', name: 'Binance', category: 'tier1', countryBadge: '🌐 Global #1', defaultCounter: 'USDT', availableCounters: ['USDT', 'BTC', 'ETH'], pairsCount: 1420, pairsList: GLOBAL_POPULAR_PAIRS },
-  { id: 'bingx', name: 'BingX', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 720, pairsList: GLOBAL_POPULAR_PAIRS },
-  { id: 'bitfinex', name: 'Bitfinex', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT', 'USD'], pairsCount: 380, pairsList: GLOBAL_POPULAR_PAIRS },
-  { id: 'bitget', name: 'Bitget', category: 'tier1', countryBadge: '🇸🇬 Singapore', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 820, pairsList: GLOBAL_POPULAR_PAIRS },
-  { id: 'bybit', name: 'Bybit', category: 'tier1', countryBadge: '🇦🇪 UAE / Global', defaultCounter: 'USDT', availableCounters: ['USDT', 'USDC'], pairsCount: 760, pairsList: GLOBAL_POPULAR_PAIRS },
-  { id: 'coinbase', name: 'Coinbase', category: 'tier1', countryBadge: '🇺🇸 USA', defaultCounter: 'USDT', availableCounters: ['USDT', 'USD'], pairsCount: 520, pairsList: GLOBAL_POPULAR_PAIRS },
-  { id: 'gateio', name: 'Gate.io', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT', 'BTC'], pairsCount: 1900, pairsList: GLOBAL_POPULAR_PAIRS },
-  { id: 'htx', name: 'HTX / Huobi', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 750, pairsList: GLOBAL_POPULAR_PAIRS },
-  { id: 'kraken', name: 'Kraken', category: 'tier1', countryBadge: '🇺🇸 USA / EU', defaultCounter: 'USDT', availableCounters: ['USDT', 'USD', 'EUR'], pairsCount: 430, pairsList: GLOBAL_POPULAR_PAIRS },
-  { id: 'kucoin', name: 'KuCoin', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT', 'BTC'], pairsCount: 890, pairsList: GLOBAL_POPULAR_PAIRS },
-  { id: 'lbank', name: 'LBank', category: 'tier1', countryBadge: '🌐 Global / Asia', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 950, pairsList: GLOBAL_POPULAR_PAIRS },
-  { id: 'mexc', name: 'MEXC Global', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT', 'USDC'], pairsCount: 2100, pairsList: GLOBAL_POPULAR_PAIRS },
-  { id: 'okx', name: 'OKX', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT', 'USD'], pairsCount: 680, pairsList: GLOBAL_POPULAR_PAIRS },
-  { id: 'poloniex', name: 'Poloniex', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 450, pairsList: GLOBAL_POPULAR_PAIRS },
-  { id: 'toobit', name: 'Toobit', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 450, pairsList: GLOBAL_POPULAR_PAIRS },
-  { id: 'xt', name: 'XT.COM', category: 'tier1', countryBadge: '🌐 Global', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 600, pairsList: GLOBAL_POPULAR_PAIRS },
+  // --- 2 APPROVED IRANIAN CRYPTO EXCHANGES (PINNED AT THE VERY TOP - DUAL TMN & USDT) ---
+  {
+    id: 'tabdeal',
+    name: 'تبدیل (Tabdeal)',
+    category: 'middleEast',
+    countryBadge: '🇮🇷 صرافی ایرانی (تومان و تتر)',
+    defaultCounter: 'TMN',
+    availableCounters: ['TMN', 'USDT'],
+    pairsCount: 1027,
+    pairsList: IRANIAN_POPULAR_PAIRS
+  },
+  {
+    id: 'kifpool',
+    name: 'کیف پول من (Kifpool)',
+    category: 'middleEast',
+    countryBadge: '🇮🇷 صرافی ایرانی (تومان و تتر)',
+    defaultCounter: 'TMN',
+    availableCounters: ['TMN', 'USDT'],
+    pairsCount: 1298,
+    pairsList: IRANIAN_POPULAR_PAIRS
+  },
 
-  // --- 2 APPROVED IRANIAN CRYPTO EXCHANGES (DUAL TMN & USDT) ---
-  { id: 'tabdeal', name: 'Tabdeal (تبدیل)', category: 'middleEast', countryBadge: '🇮🇷 Iran', defaultCounter: 'TMN', availableCounters: ['TMN', 'USDT'], pairsCount: 1539, pairsList: IRANIAN_POPULAR_PAIRS },
-  { id: 'kifpool', name: 'Kifpool (کیف پول من)', category: 'middleEast', countryBadge: '🇮🇷 Iran', defaultCounter: 'TMN', availableCounters: ['TMN', 'USDT'], pairsCount: 1298, pairsList: IRANIAN_POPULAR_PAIRS },
+  // --- 16 CANONICAL INTERNATIONAL SPOT EXCHANGES ---
+  { id: 'binance', name: 'Binance (بایننس)', category: 'tier1', countryBadge: '🌐 رتبه ۱ جهانی', defaultCounter: 'USDT', availableCounters: ['USDT', 'BTC', 'ETH'], pairsCount: 776, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'kucoin', name: 'KuCoin (کوکوین)', category: 'tier1', countryBadge: '🌐 جهانی', defaultCounter: 'USDT', availableCounters: ['USDT', 'BTC'], pairsCount: 800, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'mexc', name: 'MEXC Global (ام‌ئی‌ایکس‌سی)', category: 'tier1', countryBadge: '🌐 جهانی', defaultCounter: 'USDT', availableCounters: ['USDT', 'USDC'], pairsCount: 1425, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'gateio', name: 'Gate.io (گیت‌آی‌او)', category: 'tier1', countryBadge: '🌐 جهانی', defaultCounter: 'USDT', availableCounters: ['USDT', 'BTC'], pairsCount: 2039, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'lbank', name: 'LBank (ال‌بانک)', category: 'tier1', countryBadge: '🌐 جهانی', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 1333, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'okx', name: 'OKX (اوکی‌اکس)', category: 'tier1', countryBadge: '🌐 جهانی', defaultCounter: 'USDT', availableCounters: ['USDT', 'USD'], pairsCount: 468, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'bybit', name: 'Bybit (بای‌بیت)', category: 'tier1', countryBadge: '🌐 جهانی', defaultCounter: 'USDT', availableCounters: ['USDT', 'USDC'], pairsCount: 389, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'bitget', name: 'Bitget (بیت‌گت)', category: 'tier1', countryBadge: '🌐 جهانی', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 3598, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'kraken', name: 'Kraken (کراکن)', category: 'tier1', countryBadge: '🌐 جهانی (آمریکا/اروپا)', defaultCounter: 'USDT', availableCounters: ['USDT', 'USD', 'EUR'], pairsCount: 739, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'htx', name: 'HTX / Huobi (هوبی)', category: 'tier1', countryBadge: '🌐 جهانی', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 582, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'bingx', name: 'BingX (بینگ‌ایکس)', category: 'tier1', countryBadge: '🌐 جهانی', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 630, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'coinbase', name: 'Coinbase (کوین‌بیس)', category: 'tier1', countryBadge: '🌐 جهانی (آمریکا)', defaultCounter: 'USDT', availableCounters: ['USDT', 'USD'], pairsCount: 425, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'poloniex', name: 'Poloniex (پولونیکس)', category: 'tier1', countryBadge: '🌐 جهانی', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 832, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'toobit', name: 'Toobit (توبیت)', category: 'tier1', countryBadge: '🌐 جهانی', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 1072, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'xt', name: 'XT.COM (ایکس‌تی)', category: 'tier1', countryBadge: '🌐 جهانی', defaultCounter: 'USDT', availableCounters: ['USDT'], pairsCount: 944, pairsList: GLOBAL_POPULAR_PAIRS },
+  { id: 'bitfinex', name: 'Bitfinex (بیت‌فینکس)', category: 'tier1', countryBadge: '🌐 جهانی', defaultCounter: 'USDT', availableCounters: ['USDT', 'USD'], pairsCount: 163, pairsList: GLOBAL_POPULAR_PAIRS },
 ];
 
 export interface CryptoCoinMeta {
@@ -989,7 +1007,16 @@ export default function App() {
   const [exchangePairsMap, setExchangePairsMap] = useState<Record<string, string[]>>(() => {
     try {
       const saved = localStorage.getItem('alarmer_exchange_pairs_map');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          const valid: Record<string, string[]> = {};
+          for (const [k, v] of Object.entries(parsed)) {
+            if (Array.isArray(v) && v.length > 0) valid[k] = v;
+          }
+          return valid;
+        }
+      }
     } catch (_) {}
     return {};
   });
@@ -1312,6 +1339,55 @@ export default function App() {
             if (syms.length > 0) pairs = Array.from(new Set(syms));
           }
         }
+      } else if (exId === 'gateio') {
+        let res = await fetch('/api/gateio/spot/currency_pairs');
+        if (!res.ok) res = await fetch('/api/gateio/spot/tickers');
+        if (res.ok) {
+          const list: any[] = await res.json();
+          if (Array.isArray(list)) {
+            const syms = list
+              .map((p) => (p.id || p.currency_pair || ''))
+              .filter((sym: string) => sym.endsWith('_USDT'))
+              .map((sym: string) => sym.replace('_USDT', ''));
+            if (syms.length > 0) pairs = Array.from(new Set(syms));
+          }
+        }
+      } else if (exId === 'bybit') {
+        const res = await fetch('/api/bybit/market/tickers?category=spot');
+        if (res.ok) {
+          const data = await res.json();
+          const list = data?.result?.list;
+          if (Array.isArray(list)) {
+            const syms = list
+              .filter((p) => p.symbol && p.symbol.endsWith('USDT'))
+              .map((p) => p.symbol.replace('USDT', ''));
+            if (syms.length > 0) pairs = Array.from(new Set(syms));
+          }
+        }
+      } else if (exId === 'okx') {
+        const res = await fetch('/api/okx/market/tickers?instType=SPOT');
+        if (res.ok) {
+          const data = await res.json();
+          const list = data?.data;
+          if (Array.isArray(list)) {
+            const syms = list
+              .filter((p) => p.instId && p.instId.endsWith('-USDT'))
+              .map((p) => p.instId.replace('-USDT', ''));
+            if (syms.length > 0) pairs = Array.from(new Set(syms));
+          }
+        }
+      } else if (exId === 'bitget') {
+        const res = await fetch('/api/bitget/spot/market/tickers');
+        if (res.ok) {
+          const data = await res.json();
+          const list = data?.data;
+          if (Array.isArray(list)) {
+            const syms = list
+              .filter((p) => p.symbol && p.symbol.endsWith('USDT'))
+              .map((p) => p.symbol.replace('USDT', ''));
+            if (syms.length > 0) pairs = Array.from(new Set(syms));
+          }
+        }
       } else if (exId === 'lbank') {
         const res = await fetch('/api/lbank/currencyPairs.do');
         if (res.ok) {
@@ -1321,6 +1397,53 @@ export default function App() {
             const syms = list
               .filter((p: string) => typeof p === 'string' && p.endsWith('_usdt'))
               .map((p: string) => p.replace('_usdt', '').toUpperCase());
+            if (syms.length > 0) pairs = Array.from(new Set(syms));
+          }
+        }
+      } else if (exId === 'kraken') {
+        const res = await fetch('/api/kraken/0/public/Ticker');
+        if (res.ok) {
+          const data = await res.json();
+          const result = data?.result;
+          if (result && typeof result === 'object') {
+            const syms = Object.keys(result)
+              .filter((k) => k.endsWith('USD') || k.endsWith('USDT'))
+              .map((k) => k.replace(/Z?USD$/, '').replace(/USDT$/, '').replace(/^X/, ''));
+            if (syms.length > 0) pairs = Array.from(new Set(syms));
+          }
+        }
+      } else if (exId === 'htx') {
+        const res = await fetch('/api/htx/market/tickers');
+        if (res.ok) {
+          const data = await res.json();
+          const list = data?.data;
+          if (Array.isArray(list)) {
+            const syms = list
+              .filter((p) => p.symbol && p.symbol.endsWith('usdt'))
+              .map((p) => p.symbol.replace('usdt', '').toUpperCase());
+            if (syms.length > 0) pairs = Array.from(new Set(syms));
+          }
+        }
+      } else if (exId === 'bingx') {
+        const res = await fetch('/api/bingx/spot/v1/ticker/24hr');
+        if (res.ok) {
+          const data = await res.json();
+          const list = data?.data;
+          if (Array.isArray(list)) {
+            const syms = list
+              .filter((p) => p.symbol && p.symbol.endsWith('-USDT'))
+              .map((p) => p.symbol.replace('-USDT', ''));
+            if (syms.length > 0) pairs = Array.from(new Set(syms));
+          }
+        }
+      } else if (exId === 'coinbase') {
+        const res = await fetch('/api/coinbase/products');
+        if (res.ok) {
+          const list: any[] = await res.json();
+          if (Array.isArray(list)) {
+            const syms = list
+              .filter((p) => (p.quote_currency === 'USDT' || p.quote_currency === 'USD') && p.status === 'online')
+              .map((p) => p.base_currency || (p.id || '').split('-')[0]);
             if (syms.length > 0) pairs = Array.from(new Set(syms));
           }
         }
@@ -1335,6 +1458,40 @@ export default function App() {
             if (syms.length > 0) pairs = Array.from(new Set(syms));
           }
         }
+      } else if (exId === 'toobit') {
+        const res = await fetch('/api/toobit/ticker/price');
+        if (res.ok) {
+          const list: any[] = await res.json();
+          if (Array.isArray(list)) {
+            const syms = list
+              .filter((p) => (p.s || p.symbol || '').endsWith('USDT'))
+              .map((p) => (p.s || p.symbol).replace('USDT', ''));
+            if (syms.length > 0) pairs = Array.from(new Set(syms));
+          }
+        }
+      } else if (exId === 'xt') {
+        const res = await fetch('/api/xt/public/ticker/price');
+        if (res.ok) {
+          const data = await res.json();
+          const list = data?.result;
+          if (Array.isArray(list)) {
+            const syms = list
+              .filter((p) => (p.s || '').endsWith('_usdt'))
+              .map((p) => p.s.replace('_usdt', '').toUpperCase());
+            if (syms.length > 0) pairs = Array.from(new Set(syms));
+          }
+        }
+      } else if (exId === 'bitfinex') {
+        const res = await fetch('/api/bitfinex/tickers?symbols=ALL');
+        if (res.ok) {
+          const list: any[] = await res.json();
+          if (Array.isArray(list)) {
+            const syms = list
+              .filter((p) => Array.isArray(p) && typeof p[0] === 'string' && (p[0].endsWith('UST') || p[0].endsWith('USD')))
+              .map((p) => p[0].replace(/^t/, '').replace(/UST$/, '').replace(/USD$/, ''));
+            if (syms.length > 0) pairs = Array.from(new Set(syms));
+          }
+        }
       }
     } catch (err) {
       console.warn(`Could not sync live pairs for ${exId}:`, err);
@@ -1342,22 +1499,24 @@ export default function App() {
       setIsSyncingPairs(false);
     }
 
-    if (pairs.length > 0) {
-      setExchangePairsMap((prev) => {
-        const updated = { ...prev, [exId]: pairs };
-        try {
-          localStorage.setItem('alarmer_exchange_pairs_map', JSON.stringify(updated));
-        } catch (_) {}
-        return updated;
-      });
-      if (showToastFeedback) {
-        showToast(`لیست ${pairs.length.toLocaleString('fa-IR')} کوین صرافی ${selectedExchange.name} به‌روزرسانی شد.`);
-      }
-    } else {
-      if (showToastFeedback) {
-        const fallbackCount = (selectedExchange.pairsList || GLOBAL_POPULAR_PAIRS).length;
-        showToast(`لیست پیش‌فرض با ${fallbackCount.toLocaleString('fa-IR')} کوین فعال است.`);
-      }
+    // Safety fallback: NEVER leave pairs empty so the user never sees 0 coins!
+    if (pairs.length === 0) {
+      const exInfo = ALL_EXCHANGES.find((e) => e.id === exId);
+      pairs = (exInfo?.pairsList && exInfo.pairsList.length > 0)
+        ? exInfo.pairsList
+        : (exId === 'tabdeal' || exId === 'kifpool' ? IRANIAN_POPULAR_PAIRS : GLOBAL_POPULAR_PAIRS);
+    }
+
+    setExchangePairsMap((prev) => {
+      const updated = { ...prev, [exId]: pairs };
+      try {
+        localStorage.setItem('alarmer_exchange_pairs_map', JSON.stringify(updated));
+      } catch (_) {}
+      return updated;
+    });
+
+    if (showToastFeedback) {
+      showToast(`لیست ${pairs.length.toLocaleString('fa-IR')} کوین صرافی ${selectedExchange.name} به‌روزرسانی شد.`);
     }
   };
 
@@ -3026,14 +3185,16 @@ export default function App() {
     ? 'bg-orange-500/10 border-orange-500/20 text-orange-400'
     : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400';
 
-  // Filtered Crypto Exchanges (Strictly Sorted Alphabetically A-Z by English Name)
+  // Filtered Crypto Exchanges (Tabdeal and Kifpool pinned at top, then 16 canonical international exchanges)
   const filteredExchanges = ALL_EXCHANGES.filter((ex) => {
-    const matchesSearch = !exchangeSearchQuery ||
-      ex.name.toLowerCase().includes(exchangeSearchQuery.toLowerCase()) ||
-      ex.id.toLowerCase().includes(exchangeSearchQuery.toLowerCase()) ||
-      ex.countryBadge.toLowerCase().includes(exchangeSearchQuery.toLowerCase());
-    return matchesSearch;
-  }).sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
+    if (!exchangeSearchQuery.trim()) return true;
+    const cleanQ = normalizeSearchQuery(exchangeSearchQuery);
+    return (
+      normalizeSearchQuery(ex.name).includes(cleanQ) ||
+      normalizeSearchQuery(ex.id).includes(cleanQ) ||
+      normalizeSearchQuery(ex.countryBadge).includes(cleanQ)
+    );
+  });
 
   // Filtered Macro Assets (Robust Offline Persian & English Search)
   const filteredMacroAssets = Object.entries(macroPrices).filter(([key, asset]) => {
@@ -4526,7 +4687,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Crypto Step 1: Search & Unified Single Exchanges List */}
+                {/* Crypto Step 1: Single Unified Exchanges List (NO Category Tabs) */}
                 {cryptoStep === 1 && (
                   <div className="space-y-3 text-xs">
                     {/* Search */}
@@ -4534,53 +4695,64 @@ export default function App() {
                       type="text"
                       value={exchangeSearchQuery}
                       onChange={(e) => setExchangeSearchQuery(e.target.value)}
-                      placeholder={currentLang === 'fa' ? "جستجوی صرافی (Binance, Tabdeal, KuCoin, OKX, Kifpool, MEXC, Bybit, LBank)..." : "Search exchange (Binance, Tabdeal, KuCoin, OKX, Kifpool, MEXC, Bybit, LBank)..."}
+                      placeholder={currentLang === 'fa' ? "جستجوی صرافی (تبدیل، کیف پول من، Binance, KuCoin, OKX, MEXC, Bybit, LBank)..." : "Search exchange (Tabdeal, Kifpool, Binance, KuCoin, OKX, MEXC, Bybit, LBank)..."}
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white placeholder:text-slate-500"
                     />
 
-                    {/* Exchanges List */}
+                    {/* Exchanges List Header without any category tabs */}
                     <div className="flex items-center justify-between text-[11px] text-slate-400 px-1 pt-0.5">
-                      <span>{currentLang === 'fa' ? `فهرست صرافی‌ها (${filteredExchanges.length} صرافی):` : `Exchanges List (${filteredExchanges.length} exchanges):`}</span>
-                      <span className="font-mono text-emerald-400 text-[10px] bg-slate-900 px-2 py-0.5 rounded border border-slate-800 font-bold">A → Z</span>
+                      <span>{currentLang === 'fa' ? `فهرست ۱۸ صرافی رسمی (${filteredExchanges.length} صرافی فعال):` : `Official Exchanges (${filteredExchanges.length} active exchanges):`}</span>
+                      <span className="text-slate-500 text-[10px]">بدون تب دسته‌بندی • نمایش در یک لیست</span>
                     </div>
                     <div className="max-h-72 overflow-y-auto space-y-1.5 custom-scrollbar pr-1">
-                      {filteredExchanges.map((ex) => (
-                        <button
-                          key={ex.id}
-                          onClick={() => {
-                            setSelectedExchange(ex);
-                            setSelectedCounterCurrency(ex.defaultCounter || 'TMN');
-                            setCryptoSearchQuery('');
-                            setCryptoStep(2);
-                            fetchExchangePairs(ex.id);
-                          }}
-                          className={`w-full p-3 rounded-2xl border text-right flex items-center justify-between transition-all ${
-                            selectedExchange.id === ex.id
-                              ? 'border-emerald-500 bg-emerald-500/10 text-white'
-                              : 'border-slate-800 bg-slate-950 text-slate-300 hover:border-slate-700'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <div className="h-8 w-8 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center font-bold text-emerald-400">
-                              {ex.name.charAt(0)}
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-sm text-white">{ex.name}</span>
-                                <span className="text-[10px] text-slate-400">{ex.countryBadge}</span>
+                      {filteredExchanges.map((ex) => {
+                        const isIrEx = ex.id === 'tabdeal' || ex.id === 'kifpool';
+                        return (
+                          <button
+                            key={ex.id}
+                            onClick={() => {
+                              setSelectedExchange(ex);
+                              setSelectedCounterCurrency(ex.defaultCounter || (isIrEx ? 'TMN' : 'USDT'));
+                              setCryptoSearchQuery('');
+                              setCryptoStep(2);
+                              fetchExchangePairs(ex.id);
+                            }}
+                            className={`w-full p-3 rounded-2xl border text-right flex items-center justify-between transition-all ${
+                              selectedExchange.id === ex.id
+                                ? 'border-emerald-500 bg-emerald-500/10 text-white'
+                                : isIrEx
+                                ? 'border-emerald-500/40 bg-emerald-950/20 text-slate-200 hover:border-emerald-500/70'
+                                : 'border-slate-800 bg-slate-950 text-slate-300 hover:border-slate-700'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <div className={`h-8 w-8 rounded-xl flex items-center justify-center font-bold text-xs ${
+                                isIrEx ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300' : 'bg-slate-900 border border-slate-700 text-emerald-400'
+                              }`}>
+                                {isIrEx ? '🇮🇷' : ex.name.charAt(0)}
                               </div>
-                              <div className="text-[10px] text-slate-500">
-                                {ex.defaultCounter === 'TMN' || ex.id === 'tabdeal' || ex.id === 'kifpool' ? (
-                                  <span>پشتیبانی کامل: <strong className="text-emerald-400">تومان (TMN)</strong> و <strong className="text-cyan-400">تتر (USDT)</strong> • {ex.pairsCount}+ جفت‌ارز رسمی</span>
-                                ) : (
-                                  <span>جفت‌ارز مبنا: {ex.defaultCounter} • موجودی: ~{ex.pairsCount}</span>
-                                )}
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-sm text-white">{ex.name}</span>
+                                  <span className={`text-[10px] px-1.5 py-0.2 rounded font-semibold ${
+                                    isIrEx ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'text-slate-400'
+                                  }`}>
+                                    {ex.countryBadge}
+                                  </span>
+                                </div>
+                                <div className="text-[10px] text-slate-400 mt-0.5">
+                                  {isIrEx ? (
+                                    <span>پشتیبانی دوگانه: <strong className="text-emerald-400">تومان (TMN)</strong> و <strong className="text-cyan-400">تتر (USDT)</strong> • {ex.pairsCount}+ کوین فعال</span>
+                                  ) : (
+                                    <span>جفت‌ارز مبنا: <strong className="text-emerald-400">{ex.defaultCounter}</strong> • موجودی رسمی: ~{ex.pairsCount} کوین</span>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                          <span className="text-emerald-400 text-xs font-bold">انتخاب →</span>
-                        </button>
-                      ))}
+                            <span className="text-emerald-400 text-xs font-bold">انتخاب →</span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -4589,7 +4761,9 @@ export default function App() {
                 {cryptoStep === 2 && (() => {
                   const currentPairsList = (exchangePairsMap[selectedExchange.id] && exchangePairsMap[selectedExchange.id].length > 0)
                     ? exchangePairsMap[selectedExchange.id]
-                    : (selectedExchange.pairsList || GLOBAL_POPULAR_PAIRS);
+                    : ((selectedExchange.pairsList && selectedExchange.pairsList.length > 0)
+                        ? selectedExchange.pairsList
+                        : (selectedExchange.id === 'tabdeal' || selectedExchange.id === 'kifpool' ? IRANIAN_POPULAR_PAIRS : GLOBAL_POPULAR_PAIRS));
 
                   return (
                     <div className="space-y-3 text-xs">

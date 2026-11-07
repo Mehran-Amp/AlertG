@@ -118,7 +118,7 @@ const createProxyOptions = (target: string, pathPrefix: string) => ({
   proxyTimeout: 8000,
   rewrite: (p: string) => p.replace(new RegExp(`^${pathPrefix}`), ''),
   headers: {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
     'Accept': 'application/json, text/plain, */*',
   },
   configure: (proxy: any) => {
@@ -152,20 +152,26 @@ export default defineConfig(() => {
       // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
       proxy: {
+        // Iranian Tier 1 Exchanges
         '/api/tabdeal-plots': createProxyOptions('https://api1.tabdeal.org/r/plots', '/api/tabdeal-plots'),
         '/api/tabdeal': createProxyOptions('https://api1.tabdeal.org/r/api/v1', '/api/tabdeal'),
         '/api/kifpool': createProxyOptions('https://api.kifpool.app/api', '/api/kifpool'),
+        // Canonical 16 International Spot Exchanges
         '/api/binance': createProxyOptions('https://api.binance.com/api/v3', '/api/binance'),
         '/api/kucoin': createProxyOptions('https://api.kucoin.com/api/v1', '/api/kucoin'),
         '/api/mexc': createProxyOptions('https://api.mexc.com/api/v3', '/api/mexc'),
         '/api/gateio': createProxyOptions('https://api.gateio.ws/api/v4', '/api/gateio'),
         '/api/bybit': createProxyOptions('https://api.bybit.com/v5', '/api/bybit'),
         '/api/okx': createProxyOptions('https://www.okx.com/api/v5', '/api/okx'),
+        '/api/bitget': createProxyOptions('https://api.bitget.com/api/v2', '/api/bitget'),
         '/api/lbank': createProxyOptions('https://api.lbank.info/v2', '/api/lbank'),
+        '/api/kraken': createProxyOptions('https://api.kraken.com', '/api/kraken'),
+        '/api/htx': createProxyOptions('https://api.huobi.pro', '/api/htx'),
         '/api/bingx': createProxyOptions('https://open-api.bingx.com/openApi', '/api/bingx'),
-        '/api/xt': createProxyOptions('https://sapi.xt.com/v4', '/api/xt'),
-        '/api/toobit': createProxyOptions('https://api.toobit.com/api/v1', '/api/toobit'),
+        '/api/coinbase': createProxyOptions('https://api.exchange.coinbase.com', '/api/coinbase'),
         '/api/poloniex': createProxyOptions('https://api.poloniex.com', '/api/poloniex'),
+        '/api/toobit': createProxyOptions('https://api.toobit.com/quote/v1', '/api/toobit'),
+        '/api/xt': createProxyOptions('https://sapi.xt.com/v4', '/api/xt'),
         '/api/bitfinex': createProxyOptions('https://api-pub.bitfinex.com/v2', '/api/bitfinex'),
       },
     },
