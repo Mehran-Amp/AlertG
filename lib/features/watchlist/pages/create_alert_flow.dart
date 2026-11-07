@@ -11,6 +11,7 @@ import '../../exchanges/base/crypto_catalog_service.dart';
 import '../../exchanges/base/currency_pair.dart';
 import '../../exchanges/base/exchange.dart';
 import '../../exchanges/base/exchange_category.dart';
+import '../../exchanges/registry/exchange_catalog.dart';
 import '../../exchanges/registry/exchange_registry.dart';
 import '../../exchanges/stocks/global_stocks_exchange.dart';
 import '../../exchanges/stocks/iran_domestic_exchange.dart';
