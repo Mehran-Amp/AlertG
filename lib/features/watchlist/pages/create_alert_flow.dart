@@ -1307,6 +1307,11 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
     );
   }
   Widget _buildCryptoExchangePicker(ThemeData theme, String lang) {
+    // Iranian domestic exchange ids registry
+    const iranExchangeIds = {
+      'iran_market', 'nobitex', 'wallex', 'ramzinex', 'bitpin', 'tabdeal', 'kifpool', 'bitbarg', 'tetherland', 'abantether', 'sarmayex', 'exir'
+    };
+
     // 18 Canonical Crypto Exchanges (Tabdeal & Kifpool pinned at #1 & #2, plus 16 international)
     const canonicalOrder = [
       'tabdeal',

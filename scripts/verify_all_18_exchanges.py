@@ -76,11 +76,12 @@ def probe_tabdeal() -> Dict[str, Any]:
             elif sym in ('BTC_USDT', 'BTCUSDT'):
                 btc_price_usd = float(item.get('price', 0) or 0)
 
-    sample = f"{btc_price_tmn:,.0f} TMN" if btc_price_tmn else (f"${btc_price_usd:,.2f}" if btc_price_usd else "N/A")
+    sample = f"${btc_price_usd:,.2f}" if btc_price_usd else (f"{btc_price_tmn:,.0f} TMN" if btc_price_tmn else "N/A")
     return {
         'id': 'tabdeal',
         'name': 'Tabdeal (تبدیل)',
         'category': 'Iranian (Tier 1)',
+        'endpoint': 'https://api1.tabdeal.org/r/plots/market_information/',
         'accessible': res['status'] == 200 and len(pairs) > 0,
         'status': res['status'],
         'latency_ms': res['latency_ms'],
@@ -106,11 +107,12 @@ def probe_kifpool() -> Dict[str, Any]:
                 btc_price_tmn = ((b_irt + s_irt) / 2.0) if (b_irt and s_irt) else b_irt
                 btc_price_usd = float(item.get('price', 0) or 0)
 
-    sample = f"{btc_price_tmn:,.0f} TMN" if btc_price_tmn else (f"${btc_price_usd:,.2f}" if btc_price_usd else "N/A")
+    sample = f"${btc_price_usd:,.2f}" if btc_price_usd else (f"{btc_price_tmn:,.0f} TMN" if btc_price_tmn else "N/A")
     return {
         'id': 'kifpool',
         'name': 'Kifpool (کیف پول من)',
         'category': 'Iranian (Tier 1)',
+        'endpoint': 'https://api.kifpool.app/api/spot/price',
         'accessible': res['status'] == 200 and len(pairs) > 0,
         'status': res['status'],
         'latency_ms': res['latency_ms'],
@@ -598,7 +600,7 @@ def main():
     total_coins_sum = 0
     accessible_count = 0
 
-    print(f"{'#':<3} | {'Exchange':<23} | {'Category':<16} | {'Access':<8} | {'HTTP':<5} | {'Latency':<8} | {'Pairs':<7} | {'Sample Price':<18}")
+    print(f"{'#':<3} | {'Exchange':<23} | {'Category':<16} | {'Access':<8} | {'HTTP':<5} | {'Latency':<8} | {'Coins':<7} | {'BTC Price (Live)':<18}")
     print("-" * 95)
 
     for idx, (name, probe_fn) in enumerate(exchanges, 1):
