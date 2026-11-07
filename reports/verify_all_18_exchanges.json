@@ -1,0 +1,206 @@
+{
+  "timestamp": "2026-11-07T13:23:05.537258+00:00",
+  "total_exchanges": 18,
+  "accessible_exchanges": 18,
+  "total_coins_available": 18540,
+  "results": [
+    {
+      "id": "tabdeal",
+      "name": "Tabdeal (تبدیل)",
+      "category": "Iranian (Tier 1)",
+      "accessible": true,
+      "status": 200,
+      "latency_ms": 584.8,
+      "total_pairs": 1027,
+      "sample_price": "2,030,862,157 TMN",
+      "error": null
+    },
+    {
+      "id": "kifpool",
+      "name": "Kifpool (کیف پول من)",
+      "category": "Iranian (Tier 1)",
+      "accessible": true,
+      "status": 200,
+      "latency_ms": 93.9,
+      "total_pairs": 1298,
+      "sample_price": "20,302,776,276 TMN",
+      "error": null
+    },
+    {
+      "id": "binance",
+      "name": "Binance",
+      "category": "Global #1",
+      "accessible": true,
+      "status": 200,
+      "latency_ms": 285.0,
+      "total_pairs": 776,
+      "sample_price": "$75,856.26",
+      "error": null
+    },
+    {
+      "id": "kucoin",
+      "name": "KuCoin",
+      "category": "Global Tier 1",
+      "accessible": true,
+      "status": 200,
+      "latency_ms": 324.8,
+      "total_pairs": 800,
+      "sample_price": "$75,866.40",
+      "error": null
+    },
+    {
+      "id": "mexc",
+      "name": "MEXC Global",
+      "category": "Global Tier 1",
+      "accessible": true,
+      "status": 200,
+      "latency_ms": 127.4,
+      "total_pairs": 1425,
+      "sample_price": "$75,860.06",
+      "error": null
+    },
+    {
+      "id": "gateio",
+      "name": "Gate.io",
+      "category": "Global Tier 1",
+      "accessible": true,
+      "status": 200,
+      "latency_ms": 2071.3,
+      "total_pairs": 2039,
+      "sample_price": "$75,854.30",
+      "error": null
+    },
+    {
+      "id": "lbank",
+      "name": "LBank",
+      "category": "Global Tier 1",
+      "accessible": true,
+      "status": 200,
+      "latency_ms": 254.1,
+      "total_pairs": 1333,
+      "sample_price": "$75,857.96",
+      "error": null
+    },
+    {
+      "id": "okx",
+      "name": "OKX",
+      "category": "Global Tier 1",
+      "accessible": true,
+      "status": 200,
+      "latency_ms": 298.2,
+      "total_pairs": 468,
+      "sample_price": "$75,859.00",
+      "error": null
+    },
+    {
+      "id": "bybit",
+      "name": "Bybit",
+      "category": "Global Tier 1",
+      "accessible": true,
+      "status": 200,
+      "latency_ms": 692.3,
+      "total_pairs": 389,
+      "sample_price": "$75,859.40",
+      "error": null
+    },
+    {
+      "id": "bitget",
+      "name": "Bitget",
+      "category": "Global Tier 1",
+      "accessible": true,
+      "status": 200,
+      "latency_ms": 572.7,
+      "total_pairs": 3598,
+      "sample_price": "$75,858.58",
+      "error": null
+    },
+    {
+      "id": "kraken",
+      "name": "Kraken",
+      "category": "Global Tier 1",
+      "accessible": true,
+      "status": 200,
+      "latency_ms": 67.1,
+      "total_pairs": 739,
+      "sample_price": "$75,863.00",
+      "error": null
+    },
+    {
+      "id": "htx",
+      "name": "HTX / Huobi",
+      "category": "Global Tier 1",
+      "accessible": true,
+      "status": 200,
+      "latency_ms": 437.2,
+      "total_pairs": 582,
+      "sample_price": "$75,858.79",
+      "error": null
+    },
+    {
+      "id": "bingx",
+      "name": "BingX",
+      "category": "Global Tier 1",
+      "accessible": true,
+      "status": 200,
+      "latency_ms": 230.1,
+      "total_pairs": 630,
+      "sample_price": "$75,856.25",
+      "error": null
+    },
+    {
+      "id": "bitfinex",
+      "name": "Bitfinex",
+      "category": "Global Tier 1",
+      "accessible": true,
+      "status": 200,
+      "latency_ms": 51.8,
+      "total_pairs": 163,
+      "sample_price": "$75,886.00",
+      "error": null
+    },
+    {
+      "id": "coinbase",
+      "name": "Coinbase",
+      "category": "Global Tier 1 (USA)",
+      "accessible": true,
+      "status": 200,
+      "latency_ms": 64.4,
+      "total_pairs": 425,
+      "sample_price": "$75,751.47",
+      "error": null
+    },
+    {
+      "id": "poloniex",
+      "name": "Poloniex",
+      "category": "Global Tier 1",
+      "accessible": true,
+      "status": 200,
+      "latency_ms": 733.4,
+      "total_pairs": 832,
+      "sample_price": "$75,853.61",
+      "error": null
+    },
+    {
+      "id": "toobit",
+      "name": "Toobit",
+      "category": "Global Tier 1",
+      "accessible": true,
+      "status": 200,
+      "latency_ms": 290.3,
+      "total_pairs": 1072,
+      "sample_price": "$75,856.27",
+      "error": null
+    },
+    {
+      "id": "xt",
+      "name": "XT.COM",
+      "category": "Global Tier 1",
+      "accessible": true,
+      "status": 200,
+      "latency_ms": 203.2,
+      "total_pairs": 944,
+      "sample_price": "$75,856.27",
+      "error": null
+    }
+  ]
+}
