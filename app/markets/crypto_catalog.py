@@ -20,6 +20,7 @@ import time
 import json
 import logging
 import tempfile
+import asyncio
 from typing import Dict, Any, Optional, List, Tuple
 
 import httpx
@@ -335,20 +336,6 @@ async def sync_exchange_catalog(
                 "is_stale": True,
                 "pairs_count": len(existing_catalog.get("pairs", [])) if existing_catalog else 0
             }
-    except asyncio.CancelledError:
-        # Phase H2: CancelledError must be re-raised after finally cleanup
-        raise
-    except Exception as e:
-        if "client has been closed" in str(e).lower():
-            return {
-                "exchange": ex_id,
-                "success": False,
-                "error_code": "ABORTED",
-                "error": str(e),
-                "is_stale": existing_catalog.get("is_stale", False) if existing_catalog else False,
-                "pairs_count": len(existing_catalog.get("pairs", [])) if existing_catalog else 0
-            }
-        raise
 
         # Format symbols to catalog pair format with alias index (Task 6)
         new_pairs = [
@@ -428,6 +415,20 @@ async def sync_exchange_catalog(
             "saved_path": saved_path,
         }
 
+    except asyncio.CancelledError:
+        # Phase H2: CancelledError must be re-raised after finally cleanup
+        raise
+    except Exception as e:
+        if "client has been closed" in str(e).lower():
+            return {
+                "exchange": ex_id,
+                "success": False,
+                "error_code": "ABORTED",
+                "error": str(e),
+                "is_stale": existing_catalog.get("is_stale", False) if existing_catalog else False,
+                "pairs_count": len(existing_catalog.get("pairs", [])) if existing_catalog else 0
+            }
+        raise
     finally:
         if own_client and hasattr(client, "aclose"):
             res = client.aclose()
