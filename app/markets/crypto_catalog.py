@@ -303,6 +303,17 @@ async def sync_exchange_catalog(
         symbols, err_code, err_msg = await adapter.fetch_symbols(client)
 
         if err_code or not symbols:
+            # Phase H2: Abort guard — client closed must NOT write to catalog or notify admin
+            if err_msg and "client has been closed" in str(err_msg).lower():
+                return {
+                    "exchange": ex_id,
+                    "success": False,
+                    "error_code": "ABORTED",
+                    "error": str(err_msg),
+                    "is_stale": existing_catalog.get("is_stale", False) if existing_catalog else False,
+                    "pairs_count": len(existing_catalog.get("pairs", [])) if existing_catalog else 0
+                }
+
             # Mark existing catalog as stale
             if existing_catalog and existing_catalog.get("pairs"):
                 existing_catalog["is_stale"] = True
@@ -324,6 +335,20 @@ async def sync_exchange_catalog(
                 "is_stale": True,
                 "pairs_count": len(existing_catalog.get("pairs", [])) if existing_catalog else 0
             }
+    except asyncio.CancelledError:
+        # Phase H2: CancelledError must be re-raised after finally cleanup
+        raise
+    except Exception as e:
+        if "client has been closed" in str(e).lower():
+            return {
+                "exchange": ex_id,
+                "success": False,
+                "error_code": "ABORTED",
+                "error": str(e),
+                "is_stale": existing_catalog.get("is_stale", False) if existing_catalog else False,
+                "pairs_count": len(existing_catalog.get("pairs", [])) if existing_catalog else 0
+            }
+        raise
 
         # Format symbols to catalog pair format with alias index (Task 6)
         new_pairs = [
