@@ -168,6 +168,21 @@ def build_crypto_symbols_response(
     next_cursor = (cur_offset + effective_limit) if (cur_offset + effective_limit) < total_count else None
     has_more = next_cursor is not None
 
+    formatted_symbols = []
+    for p in page_items:
+        base_val = str(p.get("base_currency") or p.get("base") or "").upper()
+        quote_val = str(p.get("counter_currency") or p.get("quote") or "USDT").upper()
+        native_val = str(p.get("market_symbol") or p.get("native_symbol") or p.get("symbol") or f"{base_val}{quote_val}")
+
+        item_copy = dict(p)
+        item_copy["base"] = p.get("base", base_val)
+        item_copy["quote"] = p.get("quote", quote_val)
+        item_copy["native_symbol"] = p.get("native_symbol", native_val)
+        item_copy["base_currency"] = base_val
+        item_copy["counter_currency"] = quote_val
+        item_copy["market_symbol"] = native_val
+        formatted_symbols.append(item_copy)
+
     payload = {
         "status": "success",
         "exchange": canonical_id,
@@ -179,12 +194,12 @@ def build_crypto_symbols_response(
         "is_stale": is_stale,
         "error": error_msg,
         "total_count": total_count,
-        "count": len(page_items),
+        "count": len(formatted_symbols),
         "offset": cur_offset,
         "limit": effective_limit,
         "cursor": next_cursor,
         "has_more": has_more,
-        "symbols": page_items,
+        "symbols": formatted_symbols,
     }
 
     # 5. Deterministic ETag calculation

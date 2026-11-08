@@ -1384,19 +1384,31 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-          child: TextField(
-            onChanged: (val) => setState(() => _exchangeSearchQuery = val),
-            style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurface),
-            decoration: InputDecoration(
-              hintText: lang == 'fa'
-                  ? 'جستجوی صرافی (تبدیل، کیف پول، بایننس...)'
-                  : AppStrings.get('search_exchange_hint', lang),
-              prefixIcon: Icon(Icons.search, size: 20, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
-              filled: true,
-              fillColor: theme.colorScheme.surface,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.dividerColor)),
-            ),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  onChanged: (val) => setState(() => _exchangeSearchQuery = val),
+                  style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurface),
+                  decoration: InputDecoration(
+                    hintText: lang == 'fa'
+                        ? 'جستجوی صرافی (تبدیل، کیف پول، بایننس...)'
+                        : AppStrings.get('search_exchange_hint', lang),
+                    prefixIcon: Icon(Icons.search, size: 20, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+                    filled: true,
+                    fillColor: theme.colorScheme.surface,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.dividerColor)),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton.filledTonal(
+                tooltip: lang == 'fa' ? 'عیب‌یابی وضعیت کاتالوگ' : 'Catalog Diagnostics',
+                icon: const Icon(Icons.monitor_heart_outlined, size: 20),
+                onPressed: () => _showDiagnosticsBottomSheet(context, allExchanges, theme, lang),
+              ),
+            ],
           ),
         ),
 
@@ -1542,11 +1554,235 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
     );
   }
 
+  void _showDiagnosticsBottomSheet(
+    BuildContext context,
+    List<Exchange> exchanges,
+    ThemeData theme,
+    String lang,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: theme.colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (modalCtx, setModalState) {
+            final allDiags = CryptoCatalogService.instance.getAllDiagnostics();
+            return DraggableScrollableSheet(
+              initialChildSize: 0.75,
+              maxChildSize: 0.95,
+              minChildSize: 0.5,
+              expand: false,
+              builder: (_, scrollController) {
+                return Column(
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.symmetric(vertical: 10),
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: theme.dividerColor,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.monitor_heart_rounded, color: theme.colorScheme.primary, size: 22),
+                              const SizedBox(width: 8),
+                              Text(
+                                lang == 'fa' ? 'عیب‌یابی کاتالوگ صرافی‌ها' : 'Exchange Catalog Diagnostics',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
+                            ],
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.refresh_rounded, size: 20),
+                            tooltip: lang == 'fa' ? 'تازه سازی' : 'Refresh',
+                            onPressed: () => setModalState(() {}),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    Expanded(
+                      child: ListView.separated(
+                        controller: scrollController,
+                        padding: const EdgeInsets.all(16),
+                        itemCount: exchanges.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 8),
+                        itemBuilder: (context, index) {
+                          final ex = exchanges[index];
+                          final diag = allDiags[ex.id.toLowerCase()];
+                          final source = diag?.source ?? 'pending';
+                          final count = diag?.pairCount ?? 0;
+                          final hasError = diag?.error != null;
+
+                          Color badgeColor;
+                          String badgeLabel;
+                          IconData badgeIcon;
+
+                          switch (source) {
+                            case 'server':
+                              badgeColor = Colors.green;
+                              badgeLabel = lang == 'fa' ? 'سرور زنده' : 'Live Server';
+                              badgeIcon = Icons.cloud_done_rounded;
+                              break;
+                            case 'disk_cache':
+                              badgeColor = Colors.blue;
+                              badgeLabel = lang == 'fa' ? 'کش دیسک' : 'Disk Cache';
+                              badgeIcon = Icons.storage_rounded;
+                              break;
+                            case 'direct_exchange':
+                              badgeColor = Colors.purple;
+                              badgeLabel = lang == 'fa' ? 'اتصال مستقیم' : 'Direct API';
+                              badgeIcon = Icons.swap_horiz_rounded;
+                              break;
+                            case 'static_fallback':
+                              badgeColor = Colors.orange;
+                              badgeLabel = lang == 'fa' ? 'لیست پایه' : 'Static Fallback';
+                              badgeIcon = Icons.warning_amber_rounded;
+                              break;
+                            default:
+                              badgeColor = Colors.grey;
+                              badgeLabel = lang == 'fa' ? 'آماده استعلام' : 'Ready to fetch';
+                              badgeIcon = Icons.hourglass_empty_rounded;
+                          }
+
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surface,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: theme.dividerColor),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text(
+                                            ex.name,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 13,
+                                              color: theme.colorScheme.onSurface,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            ex.countryBadge,
+                                            style: const TextStyle(fontSize: 10),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        count > 0
+                                            ? '$count ${lang == 'fa' ? 'جفت‌ارز در دسترس' : 'pairs available'}'
+                                            : (lang == 'fa' ? 'آماده بارگذاری' : 'Ready to load'),
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                                        ),
+                                      ),
+                                      if (hasError)
+                                        Padding(
+                                          padding: const EdgeInsets.only(top: 2),
+                                          child: Text(
+                                            diag!.error!,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(fontSize: 10, color: Colors.orange),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: badgeColor.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: badgeColor.withValues(alpha: 0.4)),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(badgeIcon, size: 12, color: badgeColor),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        badgeLabel,
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                          color: badgeColor,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildCryptoPairPicker(ThemeData theme, String lang) {
     final filtered = SymbolFilterHelper.filterAndSort(_exchangePairs, _pairSearchQuery);
+    final currentDiag = _selectedExchange != null ? CryptoCatalogService.instance.getDiagnostic(_selectedExchange!.id) : null;
+    final isStaticFallback = currentDiag?.source == 'static_fallback';
 
     return Column(
       children: [
+        if (isStaticFallback)
+          Container(
+            margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.amber.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.amber.withValues(alpha: 0.35)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline_rounded, size: 16, color: Colors.amber),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    lang == 'fa'
+                        ? 'در حال حاضر کاتالوگ پایه آفلاین نمایش داده می‌شود. برای دریافت آخرین فهرست زنده، دکمه تازه‌سازی را بزنید.'
+                        : 'Currently showing offline baseline. Tap refresh to sync live catalog from server.',
+                    style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurface.withValues(alpha: 0.85)),
+                  ),
+                ),
+              ],
+            ),
+          ),
         Padding(
           padding: const EdgeInsets.all(16),
           child: Container(

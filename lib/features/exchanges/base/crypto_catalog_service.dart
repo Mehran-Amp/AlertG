@@ -8,6 +8,31 @@ import 'crypto_catalog_data.dart';
 import 'currency_pair.dart';
 import 'exchange.dart';
 
+/// Diagnostics record for catalog origin tracking (CAT-4 / Diagnostics).
+class CatalogDiagnostic {
+  final String exchangeId;
+  final String source; // 'server', 'disk_cache', 'direct_exchange', 'static_fallback'
+  final int pairCount;
+  final DateTime timestamp;
+  final String? error;
+
+  CatalogDiagnostic({
+    required this.exchangeId,
+    required this.source,
+    required this.pairCount,
+    required this.timestamp,
+    this.error,
+  });
+
+  Map<String, dynamic> toMap() => {
+        'exchange_id': exchangeId,
+        'source': source,
+        'pair_count': pairCount,
+        'timestamp': timestamp.toIso8601String(),
+        'error': error,
+      };
+}
+
 /// Dynamic Cryptocurrency Catalog Service (Phase 10 / R4 & R9 Discipline).
 /// Replaces static hardcoded coin catalogs with dynamic server-synced catalogs
 /// from `/api/crypto/exchanges/{exchange}/symbols` and provides guaranteed
@@ -20,6 +45,7 @@ class CryptoCatalogService {
   /// In-memory cache for fast lookups during active session
   final Map<String, List<CurrencyPair>> _memCache = {};
   final Map<String, DateTime> _memCacheTimestamps = {};
+  final Map<String, CatalogDiagnostic> _diagnostics = {};
   static const Duration memCacheTtl = Duration(minutes: 15);
 
   /// Test hook for injected HTTP client
@@ -29,6 +55,13 @@ class CryptoCatalogService {
   /// Test hook for custom cache directory
   @visibleForTesting
   Directory? testCacheDir;
+
+  /// Diagnostics getters
+  CatalogDiagnostic? getDiagnostic(String exchangeId) =>
+      _diagnostics[exchangeId.trim().toLowerCase()];
+
+  Map<String, CatalogDiagnostic> getAllDiagnostics() =>
+      Map.unmodifiable(_diagnostics);
 
   /// Fetches the dynamic coin catalog for the specified exchange.
   /// 1. Tries the backend API endpoint (`/api/crypto/exchanges/{exchange}/symbols`).
@@ -51,59 +84,98 @@ class CryptoCatalogService {
       return _memCache[cleanId]!;
     }
 
-    // 2. Attempt fetching from Server Phase 6 endpoint
+    String? lastError;
+
+    // 2. Attempt fetching from Server endpoint with pagination support (CAT-2)
     try {
       final baseUrl = ServerAlertService.effectiveBaseUrl;
-      final uri = Uri.parse('$baseUrl/api/crypto/exchanges/$cleanId/symbols');
       final client = testClient ?? http.Client();
+      final pairs = <CurrencyPair>[];
+      int? cursor;
+      bool hasMore = true;
+      int pageCount = 0;
+      const int maxPages = 10; // Max 5,000 symbols safety cap
 
-      final response = await client
-          .get(
-            uri,
-            headers: {
-              'Accept': 'application/json',
-              'User-Agent': 'AlertG-Flutter-CryptoCatalog/2.0',
-            },
-          )
-          .timeout(const Duration(seconds: 6));
+      while (hasMore && pageCount < maxPages) {
+        pageCount++;
+        final queryParams = <String, String>{
+          'limit': '500',
+        };
+        if (cursor != null) {
+          queryParams['cursor'] = cursor.toString();
+        }
 
-      if (response.statusCode == 200) {
-        final decoded = json.decode(utf8.decode(response.bodyBytes));
-        if (decoded is Map && decoded['status'] == 'success' && decoded['symbols'] is List) {
-          final symbolList = decoded['symbols'] as List;
-          final pairs = <CurrencyPair>[];
-          for (final item in symbolList) {
-            if (item is Map) {
-              final base = (item['base_currency'] ?? '').toString().toUpperCase();
-              final rawQuote = (item['counter_currency'] ?? 'USDT').toString().toUpperCase();
-              final quote = (rawQuote == 'IRT' || rawQuote == 'RLS') ? 'TMN' : rawQuote;
-              final marketSym = (item['market_symbol'] ?? '$base$quote').toString();
+        final uri = Uri.parse('$baseUrl/api/crypto/exchanges/$cleanId/symbols')
+            .replace(queryParameters: queryParams);
 
-              if (base.isNotEmpty && quote.isNotEmpty) {
-                pairs.add(CurrencyPair(
-                  baseCurrency: base,
-                  counterCurrency: quote,
-                  marketSymbol: marketSym,
-                ));
+        final response = await client
+            .get(
+              uri,
+              headers: {
+                'Accept': 'application/json',
+                'User-Agent': 'AlertG-Flutter-CryptoCatalog/2.0',
+              },
+            )
+            .timeout(const Duration(seconds: 8));
+
+        if (response.statusCode == 200) {
+          final decoded = json.decode(utf8.decode(response.bodyBytes));
+          if (decoded is Map && decoded['status'] == 'success' && decoded['symbols'] is List) {
+            final symbolList = decoded['symbols'] as List;
+            for (final item in symbolList) {
+              if (item is Map) {
+                // Dual compatibility (CAT-2): Reads base_currency or base, counter_currency or quote
+                final base = (item['base_currency'] ?? item['base'] ?? '').toString().toUpperCase();
+                final rawQuote = (item['counter_currency'] ?? item['quote'] ?? 'USDT').toString().toUpperCase();
+                final quote = (rawQuote == 'IRT' || rawQuote == 'RLS') ? 'TMN' : rawQuote;
+                final marketSym = (item['market_symbol'] ?? item['native_symbol'] ?? item['symbol'] ?? '$base$quote').toString();
+
+                if (base.isNotEmpty && quote.isNotEmpty) {
+                  pairs.add(CurrencyPair(
+                    baseCurrency: base,
+                    counterCurrency: quote,
+                    marketSymbol: marketSym,
+                  ));
+                }
               }
             }
+
+            hasMore = decoded['has_more'] == true;
+            if (hasMore && decoded['cursor'] != null) {
+              cursor = int.tryParse(decoded['cursor'].toString());
+              if (cursor == null) hasMore = false;
+            } else {
+              hasMore = false;
+            }
+          } else {
+            hasMore = false;
           }
-
-          if (pairs.isNotEmpty) {
-            // Save to memory cache
-            _memCache[cleanId] = pairs;
-            _memCacheTimestamps[cleanId] = now;
-
-            // Save to offline local disk cache asynchronously
-            _saveToDiskCache(cleanId, response.body).catchError((e) {
-              debugPrint('Failed to save crypto catalog disk cache for $cleanId: $e');
-            });
-
-            return pairs;
-          }
+        } else {
+          lastError = 'HTTP ${response.statusCode}';
+          hasMore = false;
         }
       }
+
+      if (pairs.isNotEmpty) {
+        // Save to memory cache
+        _memCache[cleanId] = pairs;
+        _memCacheTimestamps[cleanId] = now;
+        _diagnostics[cleanId] = CatalogDiagnostic(
+          exchangeId: cleanId,
+          source: 'server',
+          pairCount: pairs.length,
+          timestamp: now,
+        );
+
+        // Save complete catalog to offline local disk cache
+        _savePairsToDiskCache(cleanId, pairs).catchError((e) {
+          debugPrint('Failed to save crypto catalog disk cache for $cleanId: $e');
+        });
+
+        return pairs;
+      }
     } catch (e) {
+      lastError = e.toString();
       debugPrint('Network fetch failed for crypto catalog ($cleanId): $e. Checking offline cache...');
     }
 
@@ -112,6 +184,13 @@ class CryptoCatalogService {
     if (cached.isNotEmpty) {
       _memCache[cleanId] = cached;
       _memCacheTimestamps[cleanId] = now;
+      _diagnostics[cleanId] = CatalogDiagnostic(
+        exchangeId: cleanId,
+        source: 'disk_cache',
+        pairCount: cached.length,
+        timestamp: now,
+        error: lastError,
+      );
       return cached;
     }
 
@@ -122,15 +201,26 @@ class CryptoCatalogService {
         if (directPairs.isNotEmpty) {
           _memCache[cleanId] = directPairs;
           _memCacheTimestamps[cleanId] = now;
+          _diagnostics[cleanId] = CatalogDiagnostic(
+            exchangeId: cleanId,
+            source: 'direct_exchange',
+            pairCount: directPairs.length,
+            timestamp: now,
+            error: lastError,
+          );
+          // Persist direct pairs to disk cache as well
+          _savePairsToDiskCache(cleanId, directPairs).catchError((_) {});
           return directPairs;
         }
       } catch (e) {
+        lastError = 'Direct exchange error: $e';
         debugPrint('Direct exchange fallback failed for $cleanId: $e');
       }
     }
 
-    // 5. Guaranteed Fallback: Never display 0 pairs
-    final defaultQuote = fallbackExchange?.defaultCounterCurrency ?? (cleanId == 'tabdeal' || cleanId == 'kifpool' ? 'TMN' : 'USDT');
+    // 5. Guaranteed Fallback: Safe static baseline if network and cache failed
+    final defaultQuote = fallbackExchange?.defaultCounterCurrency ??
+        (cleanId == 'tabdeal' || cleanId == 'kifpool' ? 'TMN' : 'USDT');
     final fallbackList = CryptoCatalogData.buildPairs(
       quoteCurrencies: [
         defaultQuote,
@@ -146,19 +236,40 @@ class CryptoCatalogService {
     );
     _memCache[cleanId] = fallbackList;
     _memCacheTimestamps[cleanId] = now;
+    _diagnostics[cleanId] = CatalogDiagnostic(
+      exchangeId: cleanId,
+      source: 'static_fallback',
+      pairCount: fallbackList.length,
+      timestamp: now,
+      error: lastError ?? 'Offline / server unavailable',
+    );
     return fallbackList;
   }
 
-  /// Saves raw JSON to device cache file
-  Future<void> _saveToDiskCache(String exchangeId, String rawJson) async {
+  /// Saves unified pairs list to device disk cache
+  Future<void> _savePairsToDiskCache(String exchangeId, List<CurrencyPair> pairs) async {
     try {
       final dir = testCacheDir ?? await getApplicationDocumentsDirectory();
       final file = File('${dir.path}/crypto_catalog_$exchangeId.json');
-      await file.writeAsString(rawJson, flush: true);
+      final payload = {
+        'status': 'success',
+        'exchange': exchangeId,
+        'symbols': pairs
+            .map((p) => {
+                  'base_currency': p.baseCurrency,
+                  'counter_currency': p.counterCurrency,
+                  'market_symbol': p.marketSymbol,
+                  'base': p.baseCurrency,
+                  'quote': p.counterCurrency,
+                  'native_symbol': p.marketSymbol,
+                })
+            .toList(),
+      };
+      await file.writeAsString(json.encode(payload), flush: true);
     } catch (_) {}
   }
 
-  /// Loads cached catalog from device disk file
+  /// Loads cached catalog from device disk file supporting both field conventions
   Future<List<CurrencyPair>> _loadFromDiskCache(String exchangeId) async {
     try {
       final dir = testCacheDir ?? await getApplicationDocumentsDirectory();
@@ -171,11 +282,12 @@ class CryptoCatalogService {
           final pairs = <CurrencyPair>[];
           for (final item in symbolList) {
             if (item is Map) {
-              final base = (item['base_currency'] ?? '').toString().toUpperCase();
-              final quote = (item['counter_currency'] ?? 'USDT').toString().toUpperCase();
-              final marketSym = (item['market_symbol'] ?? '$base$quote').toString();
+              final base = (item['base_currency'] ?? item['base'] ?? '').toString().toUpperCase();
+              final rawQuote = (item['counter_currency'] ?? item['quote'] ?? 'USDT').toString().toUpperCase();
+              final quote = (rawQuote == 'IRT' || rawQuote == 'RLS') ? 'TMN' : rawQuote;
+              final marketSym = (item['market_symbol'] ?? item['native_symbol'] ?? item['symbol'] ?? '$base$quote').toString();
 
-              if (base.isNotEmpty && quote == 'USDT') {
+              if (base.isNotEmpty && quote.isNotEmpty) {
                 pairs.add(CurrencyPair(
                   baseCurrency: base,
                   counterCurrency: quote,

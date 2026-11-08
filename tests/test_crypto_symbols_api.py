@@ -488,6 +488,39 @@ class TestCryptoSymbolsAPI(unittest.TestCase):
         self.assertEqual(legacy_data["total_count"], 94)
         self.assertEqual(len(legacy_data["symbols"]), 94)
 
+    def test_11_contract_dual_field_names_for_mobile_compatibility(self):
+        """
+        CAT-3 Contract Test:
+        Verifies that every symbol returned by /api/crypto/exchanges/{exchange}/symbols
+        contains BOTH backend fields (base, quote, native_symbol) AND
+        Flutter mobile client fields (base_currency, counter_currency, market_symbol).
+        """
+        raw_resp = build_crypto_symbols_response(
+            exchange_param="binance",
+            catalog_dir=self.test_dir
+        )
+        resp = _OfflineMockResponse(raw_resp)
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data["status"], "success")
+        self.assertGreater(len(data["symbols"]), 0)
+
+        for sym in data["symbols"]:
+            # Backend canonical fields
+            self.assertIn("base", sym)
+            self.assertIn("quote", sym)
+            self.assertIn("native_symbol", sym)
+
+            # Mobile Flutter client compatibility fields
+            self.assertIn("base_currency", sym)
+            self.assertIn("counter_currency", sym)
+            self.assertIn("market_symbol", sym)
+
+            # Verify equivalence
+            self.assertEqual(sym["base_currency"], sym["base"])
+            self.assertEqual(sym["counter_currency"], sym["quote"])
+            self.assertEqual(sym["market_symbol"], sym["native_symbol"])
+
 
 if __name__ == "__main__":
     unittest.main()
