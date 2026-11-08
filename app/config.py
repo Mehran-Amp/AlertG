@@ -109,6 +109,11 @@ CRYPTO_ENGINE_V2 = os.getenv("CRYPTO_ENGINE_V2", "false").strip().lower() in ("1
 CRYPTO_SNAPSHOT_MAX_AGE_SECONDS = float(os.getenv("CRYPTO_SNAPSHOT_MAX_AGE_SECONDS", "10.0"))
 CRYPTO_MIN_CHECK_INTERVAL_SECONDS = int(os.getenv("CRYPTO_MIN_CHECK_INTERVAL_SECONDS", "1"))
 
+# Phase S1: On-Demand Crypto Snapshot Refresh Settings
+CRYPTO_ONDEMAND_ENABLED = os.getenv("CRYPTO_ONDEMAND_ENABLED", "true").strip().lower() in ("1", "true", "yes", "on")
+CRYPTO_ONDEMAND_TIMEOUT_SECONDS = float(os.getenv("CRYPTO_ONDEMAND_TIMEOUT_SECONDS", "6.0"))
+CRYPTO_ONDEMAND_NEG_TTL_SECONDS = float(os.getenv("CRYPTO_ONDEMAND_NEG_TTL_SECONDS", "5.0"))
+
 # Phase 4: Crypto Alert Validation ('false' / 'warn' / 'enforce')
 CRYPTO_VALIDATE_ALERTS = os.getenv("CRYPTO_VALIDATE_ALERTS", "false").strip().lower()
 
