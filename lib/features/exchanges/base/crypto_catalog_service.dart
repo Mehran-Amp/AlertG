@@ -75,13 +75,17 @@ class CryptoCatalogService {
   }) async {
     final cleanId = exchangeId.trim().toLowerCase();
     final now = DateTime.now();
+    final stopwatch = Stopwatch()..start();
+    int pageCount = 0;
 
     // 1. Check in-memory cache if not forcing refresh
     if (!forceRefresh &&
         _memCache.containsKey(cleanId) &&
         _memCacheTimestamps.containsKey(cleanId) &&
         now.difference(_memCacheTimestamps[cleanId]!) < memCacheTtl) {
-      return _memCache[cleanId]!;
+      final cached = _memCache[cleanId]!;
+      debugPrint('[CryptoCatalog] ex=$cleanId source=memory pairs=${cached.length} ms=${stopwatch.elapsedMilliseconds} pages=0 err=none');
+      return cached;
     }
 
     String? lastError;
@@ -93,7 +97,6 @@ class CryptoCatalogService {
       final pairs = <CurrencyPair>[];
       int? cursor;
       bool hasMore = true;
-      int pageCount = 0;
       const int maxPages = 10; // Max 5,000 symbols safety cap
 
       while (hasMore && pageCount < maxPages) {
@@ -152,6 +155,7 @@ class CryptoCatalogService {
           }
         } else {
           lastError = 'HTTP ${response.statusCode}';
+          debugPrint('[CryptoCatalog] ex=$cleanId page_fail cursor=${cursor ?? 0} status=${response.statusCode}');
           hasMore = false;
         }
       }
@@ -172,10 +176,12 @@ class CryptoCatalogService {
           debugPrint('Failed to save crypto catalog disk cache for $cleanId: $e');
         });
 
+        debugPrint('[CryptoCatalog] ex=$cleanId source=server pairs=${pairs.length} ms=${stopwatch.elapsedMilliseconds} pages=$pageCount err=none');
         return pairs;
       }
     } catch (e) {
       lastError = e.toString();
+      debugPrint('[CryptoCatalog] ex=$cleanId page_fail cursor=0 status=$e');
       debugPrint('Network fetch failed for crypto catalog ($cleanId): $e. Checking offline cache...');
     }
 
@@ -191,6 +197,7 @@ class CryptoCatalogService {
         timestamp: now,
         error: lastError,
       );
+      debugPrint('[CryptoCatalog] ex=$cleanId source=disk pairs=${cached.length} ms=${stopwatch.elapsedMilliseconds} pages=$pageCount err=${lastError ?? "none"}');
       return cached;
     }
 
@@ -210,6 +217,7 @@ class CryptoCatalogService {
           );
           // Persist direct pairs to disk cache as well
           _savePairsToDiskCache(cleanId, directPairs).catchError((_) {});
+          debugPrint('[CryptoCatalog] ex=$cleanId source=direct pairs=${directPairs.length} ms=${stopwatch.elapsedMilliseconds} pages=$pageCount err=${lastError ?? "none"}');
           return directPairs;
         }
       } catch (e) {
@@ -243,6 +251,7 @@ class CryptoCatalogService {
       timestamp: now,
       error: lastError ?? 'Offline / server unavailable',
     );
+    debugPrint('[CryptoCatalog] ex=$cleanId source=static pairs=${fallbackList.length} ms=${stopwatch.elapsedMilliseconds} pages=$pageCount err=${lastError ?? "none"}');
     return fallbackList;
   }
 
