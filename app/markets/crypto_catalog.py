@@ -323,7 +323,7 @@ async def sync_exchange_catalog(
 
             admin_msg = (
                 f"⚠️ <b>[Crypto Catalog Sync Error]</b>\n"
-                f"Exchange: <b>{adapter.display_name}</b>\n"
+                f"Exchange: <b>{getattr(adapter, 'display_name', ex_id.upper())}</b>\n"
                 f"Error: {err_code} — {err_msg}"
             )
             await _safe_notify_admin(admin_msg, client=client)

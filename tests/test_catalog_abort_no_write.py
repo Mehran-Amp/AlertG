@@ -36,11 +36,12 @@ from app.markets.crypto_catalog import (
 
 
 class FakeCatalogAdapter:
-    def __init__(self, symbols=None, err_code=None, err_msg=None, raise_exc=None):
+    def __init__(self, symbols=None, err_code=None, err_msg=None, raise_exc=None, display_name="Binance"):
         self.symbols = symbols or []
         self.err_code = err_code
         self.err_msg = err_msg
         self.raise_exc = raise_exc
+        self.display_name = display_name
 
     async def fetch_symbols(self, client=None):
         if self.raise_exc:
