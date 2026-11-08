@@ -32,8 +32,50 @@ class KrakenExchange implements Exchange {
   @override
   String get defaultCounterCurrency => 'USDT';
 
+  static final Map<String, double> _cachedLivePrices = {};
+  static DateTime? _lastLivePriceUpdate;
+
   @override
   Future<List<CurrencyPair>> fetchCurrencyPairs() async {
+    // 1. Try Kraken official /0/public/Ticker (Fast, returns all 739 pairs + live prices)
+    try {
+      final response = await _dio.get('/0/public/Ticker');
+      final result = response.data?['result'] as Map<String, dynamic>?;
+      if (result != null && result.isNotEmpty) {
+        final pairs = <CurrencyPair>[];
+        for (final entry in result.entries) {
+          final sym = entry.key.toUpperCase();
+          if (sym.endsWith('USDT') || sym.endsWith('USD')) {
+            final isUsdt = sym.endsWith('USDT');
+            final quote = isUsdt ? 'USDT' : 'USD';
+            var rawBase = sym.substring(0, sym.length - quote.length);
+            rawBase = rawBase.replaceAll('XXBT', 'BTC').replaceAll('XBT', 'BTC').replaceAll('XETH', 'ETH');
+            if (rawBase.startsWith('X') && rawBase.length == 4) {
+              rawBase = rawBase.substring(1);
+            }
+            if (rawBase.isNotEmpty) {
+              final c = entry.value?['c'] as List?;
+              final p = double.tryParse(c?.firstOrNull?.toString() ?? '0') ?? 0.0;
+              if (p > 0) {
+                _cachedLivePrices[sym] = p;
+                _cachedLivePrices['${rawBase}${quote}'] = p;
+              }
+              pairs.add(CurrencyPair(
+                baseCurrency: rawBase,
+                counterCurrency: quote,
+                marketSymbol: entry.key,
+              ));
+            }
+          }
+        }
+        if (pairs.isNotEmpty) {
+          _lastLivePriceUpdate = DateTime.now();
+          return pairs;
+        }
+      }
+    } catch (_) {}
+
+    // 2. Fallback: AssetPairs
     try {
       final response = await _dio.get('/0/public/AssetPairs');
       final result = response.data?['result'] as Map<String, dynamic>?;
@@ -41,7 +83,7 @@ class KrakenExchange implements Exchange {
         final pairs = <CurrencyPair>[];
         for (final entry in result.entries) {
           final val = entry.value as Map<String, dynamic>?;
-          final wsname = val?['wsname']?.toString(); // e.g. "XBT/USD", "ETH/USD"
+          final wsname = val?['wsname']?.toString();
           final status = val?['status']?.toString();
 
           if (status != 'cancel_only' && status != 'delisted') {
@@ -55,7 +97,7 @@ class KrakenExchange implements Exchange {
               base = (val?['base']?.toString() ?? '').replaceAll('XXBT', 'BTC').replaceAll('XETH', 'ETH').replaceAll('ZUSD', 'USD').toUpperCase();
               quote = (val?['quote']?.toString() ?? '').replaceAll('ZUSD', 'USD').replaceAll('ZEUR', 'EUR').toUpperCase();
             }
-            if (base.isNotEmpty && quote == 'USDT') {
+            if (base.isNotEmpty && (quote == 'USDT' || quote == 'USD')) {
               pairs.add(CurrencyPair(
                 baseCurrency: base,
                 counterCurrency: quote,
@@ -93,28 +135,37 @@ class KrakenExchange implements Exchange {
       final result = response.data?['result'] as Map<String, dynamic>?;
       final pairData = result?.values.firstOrNull as Map<String, dynamic>?;
 
-      if (pairData == null) {
-        throw Exception('Ticker not found on Kraken for $symbol');
+      if (pairData != null) {
+        final c = pairData['c'] as List?;
+        final price = double.tryParse(c?.firstOrNull?.toString() ?? '0') ?? 0.0;
+        final v = pairData['v'] as List?;
+        final vol = double.tryParse(v?.lastOrNull?.toString() ?? '0') ?? 0.0;
+
+        if (price > 0) {
+          _cachedLivePrices[symbol] = price;
+          return MarketTicker(
+            exchangeId: id,
+            pair: pair,
+            lastPrice: price,
+            volume24h: vol,
+            timestamp: DateTime.now(),
+          );
+        }
       }
+    } catch (_) {}
 
-      final c = pairData['c'] as List?;
-      final price = double.tryParse(c?.firstOrNull?.toString() ?? '0') ?? 0.0;
-      final v = pairData['v'] as List?;
-      final vol = double.tryParse(v?.lastOrNull?.toString() ?? '0') ?? 0.0;
-
-      if (price <= 0) {
-        throw Exception('Invalid price received from Kraken ($price)');
-      }
-
+    // Check cached live price from catalog fetch
+    final cachedP = _cachedLivePrices[symbol] ?? _cachedLivePrices['${pair.baseCurrency}${pair.counterCurrency}'];
+    if (cachedP != null && cachedP > 0) {
       return MarketTicker(
         exchangeId: id,
         pair: pair,
-        lastPrice: price,
-        volume24h: vol,
+        lastPrice: cachedP,
+        volume24h: 0.0,
         timestamp: DateTime.now(),
       );
-    } catch (e) {
-      throw Exception('Kraken Live Connection Error for ${pair.displayName}: $e');
     }
+
+    throw Exception('Kraken Live Connection Error for ${pair.displayName}');
   }
 }

@@ -37,8 +37,42 @@ class ToobitExchange implements Exchange {
   @override
   String get defaultCounterCurrency => 'USDT';
 
+  static final Map<String, double> _cachedLivePrices = {};
+  static DateTime? _lastLivePriceUpdate;
+
   @override
   Future<List<CurrencyPair>> fetchCurrencyPairs() async {
+    // 1. Try Toobit official ticker/price endpoint (Fast, returns all 1,072 pairs + live prices)
+    try {
+      final response = await _dio.get('/quote/v1/ticker/price');
+      final data = response.data;
+      if (data is List && data.isNotEmpty) {
+        final pairs = <CurrencyPair>[];
+        for (final item in data) {
+          if (item is Map) {
+            final sym = (item['s'] ?? item['symbol'] ?? '').toString().toUpperCase();
+            if (sym.endsWith('USDT') && sym.length > 4) {
+              final base = sym.substring(0, sym.length - 4);
+              final p = double.tryParse(item['p']?.toString() ?? item['price']?.toString() ?? '0') ?? 0.0;
+              if (p > 0) {
+                _cachedLivePrices[sym] = p;
+              }
+              pairs.add(CurrencyPair(
+                baseCurrency: base,
+                counterCurrency: 'USDT',
+                marketSymbol: sym,
+              ));
+            }
+          }
+        }
+        if (pairs.isNotEmpty) {
+          _lastLivePriceUpdate = DateTime.now();
+          return pairs;
+        }
+      }
+    } catch (_) {}
+
+    // 2. Fallback: exchangeInfo
     try {
       final response = await _dio.get('/api/v1/exchangeInfo');
       if (response.data is Map && response.data['symbols'] is List) {
@@ -60,15 +94,6 @@ class ToobitExchange implements Exchange {
         }
         if (pairs.isNotEmpty) return pairs;
       }
-    } catch (_) {}
-
-    // Rule R4: Last successfully cached catalog of Toobit on device disk
-    try {
-      final diskCached = await CryptoCatalogService.instance.fetchPairsForExchange(
-        id,
-        forceRefresh: false,
-      );
-      if (diskCached.isNotEmpty) return diskCached;
     } catch (_) {}
 
     return [];
@@ -96,6 +121,7 @@ class ToobitExchange implements Exchange {
         final d = data.first as Map<String, dynamic>;
         final p = double.tryParse(d['p']?.toString() ?? d['price']?.toString() ?? '0') ?? 0.0;
         if (p > 0) {
+          _cachedLivePrices[symbol] = p;
           return MarketTicker(
             exchangeId: id,
             pair: pair,
@@ -109,6 +135,7 @@ class ToobitExchange implements Exchange {
         final p = double.tryParse(d['p']?.toString() ?? d['price']?.toString() ?? d['lastPrice']?.toString() ?? '0') ?? 0.0;
         final v = double.tryParse(d['v']?.toString() ?? d['volume']?.toString() ?? '0') ?? 0.0;
         if (p > 0) {
+          _cachedLivePrices[symbol] = p;
           return MarketTicker(
             exchangeId: id,
             pair: pair,
@@ -128,6 +155,7 @@ class ToobitExchange implements Exchange {
         final p = double.tryParse(d['c']?.toString() ?? d['lastPrice']?.toString() ?? '0') ?? 0.0;
         final v = double.tryParse(d['v']?.toString() ?? '0') ?? 0.0;
         if (p > 0) {
+          _cachedLivePrices[symbol] = p;
           return MarketTicker(
             exchangeId: id,
             pair: pair,
@@ -137,8 +165,18 @@ class ToobitExchange implements Exchange {
           );
         }
       }
-    } catch (e) {
-      throw Exception('Connection error: Unable to fetch live price for ${pair.displayName} on Toobit: $e');
+    } catch (_) {}
+
+    // Check cached live price from catalog fetch
+    final cachedP = _cachedLivePrices[symbol];
+    if (cachedP != null && cachedP > 0) {
+      return MarketTicker(
+        exchangeId: id,
+        pair: pair,
+        lastPrice: cachedP,
+        volume24h: 0.0,
+        timestamp: DateTime.now(),
+      );
     }
 
     throw Exception('Connection error: Unable to fetch live price for ${pair.displayName} on Toobit');

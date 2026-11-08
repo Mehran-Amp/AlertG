@@ -38,8 +38,46 @@ class BingXExchange implements Exchange {
   @override
   String get defaultCounterCurrency => 'USDT';
 
+  static final Map<String, double> _cachedLivePrices = {};
+  static DateTime? _lastLivePriceUpdate;
+
   @override
   Future<List<CurrencyPair>> fetchCurrencyPairs() async {
+    // 1. Try BingX official ticker/24hr endpoint (Fast, returns all 630 pairs + live prices)
+    try {
+      final response = await _dio.get('/openApi/spot/v1/ticker/24hr');
+      final data = response.data;
+      if (data is Map && data['data'] is List) {
+        final list = data['data'] as List;
+        final pairs = <CurrencyPair>[];
+        for (final item in list) {
+          if (item is Map) {
+            final symbol = (item['symbol'] ?? '').toString().toUpperCase();
+            if (symbol.endsWith('-USDT')) {
+              final parts = symbol.split('-');
+              if (parts.length == 2 && parts[0].isNotEmpty) {
+                final base = parts[0];
+                final p = double.tryParse(item['lastPrice']?.toString() ?? '0') ?? 0.0;
+                if (p > 0) {
+                  _cachedLivePrices[symbol] = p;
+                }
+                pairs.add(CurrencyPair(
+                  baseCurrency: base,
+                  counterCurrency: 'USDT',
+                  marketSymbol: symbol,
+                ));
+              }
+            }
+          }
+        }
+        if (pairs.isNotEmpty) {
+          _lastLivePriceUpdate = DateTime.now();
+          return pairs;
+        }
+      }
+    } catch (_) {}
+
+    // 2. Fallback: symbols
     try {
       final response = await _dio.get('/openApi/spot/v1/common/symbols');
       final data = response.data;
@@ -48,11 +86,11 @@ class BingXExchange implements Exchange {
         final pairs = <CurrencyPair>[];
         for (final item in list) {
           if (item is Map) {
-            final symbol = (item['symbol'] ?? '').toString();
+            final symbol = (item['symbol'] ?? '').toString().toUpperCase();
             final parts = symbol.split('-');
             if (parts.length == 2) {
-              final base = parts[0].toUpperCase();
-              final quote = parts[1].toUpperCase();
+              final base = parts[0];
+              final quote = parts[1];
               if (quote == 'USDT' && base.isNotEmpty) {
                 pairs.add(CurrencyPair(
                   baseCurrency: base,
@@ -65,15 +103,6 @@ class BingXExchange implements Exchange {
         }
         if (pairs.isNotEmpty) return pairs;
       }
-    } catch (_) {}
-
-    // Rule R4: Last successfully cached catalog of BingX on device disk
-    try {
-      final diskCached = await CryptoCatalogService.instance.fetchPairsForExchange(
-        id,
-        forceRefresh: false,
-      );
-      if (diskCached.isNotEmpty) return diskCached;
     } catch (_) {}
 
     return [];
@@ -99,37 +128,38 @@ class BingXExchange implements Exchange {
         queryParameters: {'symbol': symbol},
       );
       final data = response.data;
-      if (data is Map && data['data'] is Map) {
-        final d = data['data'] as Map<String, dynamic>;
-        final p = double.tryParse(d['lastPrice']?.toString() ?? '0') ?? 0.0;
-        final v = double.tryParse(d['volume']?.toString() ?? d['quoteVolume']?.toString() ?? '0') ?? 0.0;
-        if (p > 0) {
-          return MarketTicker(
-            exchangeId: id,
-            pair: pair,
-            lastPrice: p,
-            volume24h: v,
-            timestamp: DateTime.now(),
-          );
+      if (data is Map && data['data'] != null) {
+        final d = (data['data'] is List && (data['data'] as List).isNotEmpty)
+            ? (data['data'] as List).first as Map<String, dynamic>
+            : (data['data'] is Map ? data['data'] as Map<String, dynamic> : null);
+        if (d != null) {
+          final p = double.tryParse(d['lastPrice']?.toString() ?? '0') ?? 0.0;
+          final v = double.tryParse(d['volume']?.toString() ?? d['quoteVolume']?.toString() ?? '0') ?? 0.0;
+          if (p > 0) {
+            _cachedLivePrices[symbol] = p;
+            return MarketTicker(
+              exchangeId: id,
+              pair: pair,
+              lastPrice: p,
+              volume24h: v,
+              timestamp: DateTime.now(),
+            );
+          }
         }
       }
     } catch (_) {}
 
-    // Fallback: Query Binance
-    try {
-      final binRes = await Dio().get('https://api.binance.com/api/v3/ticker/24hr?symbol=${pair.baseCurrency}${pair.counterCurrency}');
-      final p = double.tryParse(binRes.data['lastPrice']?.toString() ?? '0') ?? 0.0;
-      final v = double.tryParse(binRes.data['quoteVolume']?.toString() ?? '0') ?? 0.0;
-      if (p > 0) {
-        return MarketTicker(
-          exchangeId: id,
-          pair: pair,
-          lastPrice: p,
-          volume24h: v,
-          timestamp: DateTime.now(),
-        );
-      }
-    } catch (_) {}
+    // Check cached live price from catalog fetch
+    final cachedP = _cachedLivePrices[symbol];
+    if (cachedP != null && cachedP > 0) {
+      return MarketTicker(
+        exchangeId: id,
+        pair: pair,
+        lastPrice: cachedP,
+        volume24h: 0.0,
+        timestamp: DateTime.now(),
+      );
+    }
 
     throw Exception('Connection error: Unable to fetch live price for ${pair.displayName} on BingX');
   }

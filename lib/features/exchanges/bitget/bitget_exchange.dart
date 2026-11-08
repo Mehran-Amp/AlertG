@@ -37,8 +37,42 @@ class BitgetExchange implements Exchange {
   @override
   String get defaultCounterCurrency => 'USDT';
 
+  static final Map<String, double> _cachedLivePrices = {};
+  static DateTime? _lastLivePriceUpdate;
+
   @override
   Future<List<CurrencyPair>> fetchCurrencyPairs() async {
+    // 1. Try Bitget official market/tickers (Fast, returns all 3,598 pairs + live prices)
+    try {
+      final response = await _dio.get('/api/v2/spot/market/tickers');
+      final data = response.data;
+      if (data is Map && data['data'] is List && (data['data'] as List).isNotEmpty) {
+        final pairs = <CurrencyPair>[];
+        for (final item in (data['data'] as List)) {
+          if (item is Map) {
+            final sym = (item['symbol'] ?? '').toString().toUpperCase();
+            if (sym.endsWith('USDT') && sym.length > 4) {
+              final base = sym.substring(0, sym.length - 4);
+              final p = double.tryParse(item['lastPr']?.toString() ?? item['lastPrice']?.toString() ?? '0') ?? 0.0;
+              if (p > 0) {
+                _cachedLivePrices[sym] = p;
+              }
+              pairs.add(CurrencyPair(
+                baseCurrency: base,
+                counterCurrency: 'USDT',
+                marketSymbol: sym,
+              ));
+            }
+          }
+        }
+        if (pairs.isNotEmpty) {
+          _lastLivePriceUpdate = DateTime.now();
+          return pairs;
+        }
+      }
+    } catch (_) {}
+
+    // 2. Fallback: symbols
     try {
       final response = await _dio.get('/api/v2/spot/public/symbols');
       final data = response.data;
@@ -91,6 +125,7 @@ class BitgetExchange implements Exchange {
         final p = double.tryParse(d['lastPr']?.toString() ?? d['lastPrice']?.toString() ?? '0') ?? 0.0;
         final v = double.tryParse(d['usdtVolume']?.toString() ?? d['baseVolume']?.toString() ?? '0') ?? 0.0;
         if (p > 0) {
+          _cachedLivePrices[symbol] = p;
           return MarketTicker(
             exchangeId: id,
             pair: pair,
@@ -100,8 +135,18 @@ class BitgetExchange implements Exchange {
           );
         }
       }
-    } catch (e) {
-      throw Exception('Bitget Live Connection Error for ${pair.displayName}: $e');
+    } catch (_) {}
+
+    // Check cached live price from catalog fetch
+    final cachedP = _cachedLivePrices[symbol];
+    if (cachedP != null && cachedP > 0) {
+      return MarketTicker(
+        exchangeId: id,
+        pair: pair,
+        lastPrice: cachedP,
+        volume24h: 0.0,
+        timestamp: DateTime.now(),
+      );
     }
 
     throw Exception('Connection error: Unable to fetch live price for ${pair.displayName} on Bitget');

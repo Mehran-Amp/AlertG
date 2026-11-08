@@ -33,8 +33,44 @@ class GateioExchange implements Exchange {
   @override
   String get defaultCounterCurrency => 'USDT';
 
+  static final Map<String, double> _cachedLivePrices = {};
+  static DateTime? _lastLivePriceUpdate;
+
   @override
   Future<List<CurrencyPair>> fetchCurrencyPairs() async {
+    // 1. Try Gate.io official /spot/tickers (Fast, returns all 2,039 pairs + live prices)
+    try {
+      final response = await _dio.get('/spot/tickers');
+      if (response.data is List && (response.data as List).isNotEmpty) {
+        final pairs = <CurrencyPair>[];
+        for (final item in response.data as List) {
+          if (item is Map) {
+            final id = (item['currency_pair'] ?? item['id'] ?? '').toString().toUpperCase();
+            if (id.endsWith('_USDT')) {
+              final parts = id.split('_');
+              if (parts.length == 2 && parts[0].isNotEmpty) {
+                final base = parts[0];
+                final p = double.tryParse(item['last']?.toString() ?? item['price']?.toString() ?? '0') ?? 0.0;
+                if (p > 0) {
+                  _cachedLivePrices[id] = p;
+                }
+                pairs.add(CurrencyPair(
+                  baseCurrency: base,
+                  counterCurrency: 'USDT',
+                  marketSymbol: id,
+                ));
+              }
+            }
+          }
+        }
+        if (pairs.isNotEmpty) {
+          _lastLivePriceUpdate = DateTime.now();
+          return pairs;
+        }
+      }
+    } catch (_) {}
+
+    // 2. Fallback: currency_pairs
     try {
       final response = await _dio.get('/spot/currency_pairs');
       final list = response.data as List?;
@@ -86,30 +122,39 @@ class GateioExchange implements Exchange {
       final list = response.data as List?;
       final json = list?.firstOrNull as Map<String, dynamic>?;
 
-      if (json == null) {
-        throw Exception('Market ticker not found on Gate.io for $pairId');
+      if (json != null) {
+        final price = double.tryParse(json['last']?.toString() ?? '0') ?? 0.0;
+        final vol = double.tryParse(json['quote_volume']?.toString() ?? '0') ?? 0.0;
+        final high = double.tryParse(json['high_24h']?.toString() ?? '0') ?? price;
+        final low = double.tryParse(json['low_24h']?.toString() ?? '0') ?? price;
+
+        if (price > 0) {
+          _cachedLivePrices[pairId] = price;
+          return MarketTicker(
+            exchangeId: id,
+            pair: pair,
+            lastPrice: price,
+            volume24h: vol,
+            high24h: high,
+            low24h: low,
+            timestamp: DateTime.now(),
+          );
+        }
       }
+    } catch (_) {}
 
-      final price = double.tryParse(json['last']?.toString() ?? '0') ?? 0.0;
-      final vol = double.tryParse(json['quote_volume']?.toString() ?? '0') ?? 0.0;
-      final high = double.tryParse(json['high_24h']?.toString() ?? '0') ?? price;
-      final low = double.tryParse(json['low_24h']?.toString() ?? '0') ?? price;
-
-      if (price <= 0) {
-        throw Exception('Invalid price received from Gate.io for $pairId');
-      }
-
+    // Check cached live price from catalog fetch
+    final cachedP = _cachedLivePrices[pairId];
+    if (cachedP != null && cachedP > 0) {
       return MarketTicker(
         exchangeId: id,
         pair: pair,
-        lastPrice: price,
-        volume24h: vol,
-        high24h: high,
-        low24h: low,
+        lastPrice: cachedP,
+        volume24h: 0.0,
         timestamp: DateTime.now(),
       );
-    } catch (e) {
-      throw Exception('Gate.io Live Connection Error for ${pair.displayName}: $e');
     }
+
+    throw Exception('Gate.io Live Connection Error for ${pair.displayName}');
   }
 }

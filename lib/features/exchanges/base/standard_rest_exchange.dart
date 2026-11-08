@@ -29,6 +29,7 @@ class StandardRestExchange implements Exchange {
   final String? pairsUrl;
   final List<CurrencyPair> fallbackPairs;
   final Dio _dio;
+  final Map<String, double> _cachedLivePrices = {};
 
   StandardRestExchange({
     required this.id,
@@ -171,6 +172,29 @@ class StandardRestExchange implements Exchange {
 
   @override
   Future<MarketTicker> fetchTicker(CurrencyPair pair) async {
+    final cacheKey = '${pair.baseCurrency}_${pair.counterCurrency}'.toUpperCase();
+    final altKey = (pair.marketSymbol.isNotEmpty ? pair.marketSymbol : '${pair.baseCurrency}${pair.counterCurrency}').toUpperCase();
+
+    // Check memory cache first
+    if (_cachedLivePrices.containsKey(cacheKey) && (_cachedLivePrices[cacheKey] ?? 0) > 0) {
+      return MarketTicker(
+        exchangeId: id,
+        pair: pair,
+        lastPrice: _cachedLivePrices[cacheKey]!,
+        volume24h: 0.0,
+        timestamp: DateTime.now(),
+      );
+    }
+    if (_cachedLivePrices.containsKey(altKey) && (_cachedLivePrices[altKey] ?? 0) > 0) {
+      return MarketTicker(
+        exchangeId: id,
+        pair: pair,
+        lastPrice: _cachedLivePrices[altKey]!,
+        volume24h: 0.0,
+        timestamp: DateTime.now(),
+      );
+    }
+
     // 1. If specific tickerUrlTemplate provided, query official exchange endpoint
     if (tickerUrlTemplate != null) {
       try {
@@ -216,6 +240,8 @@ class StandardRestExchange implements Exchange {
         }
 
         if (price > 0) {
+          _cachedLivePrices[cacheKey] = price;
+          _cachedLivePrices[altKey] = price;
           return MarketTicker(
             exchangeId: id,
             pair: pair,
@@ -224,7 +250,17 @@ class StandardRestExchange implements Exchange {
             timestamp: DateTime.now(),
           );
         }
-      } catch (_) {}
+      } catch (_) {
+        if (_cachedLivePrices.containsKey(cacheKey) && (_cachedLivePrices[cacheKey] ?? 0) > 0) {
+          return MarketTicker(
+            exchangeId: id,
+            pair: pair,
+            lastPrice: _cachedLivePrices[cacheKey]!,
+            volume24h: 0.0,
+            timestamp: DateTime.now(),
+          );
+        }
+      }
     }
 
     // Zero fake Binance fallback: Throw honest connection error on failure

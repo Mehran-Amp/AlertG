@@ -33,8 +33,41 @@ class MEXCExchange implements Exchange {
   @override
   String get defaultCounterCurrency => 'USDT';
 
+  static final Map<String, double> _cachedLivePrices = {};
+  static DateTime? _lastLivePriceUpdate;
+
   @override
   Future<List<CurrencyPair>> fetchCurrencyPairs() async {
+    // 1. Try MEXC official ticker/price endpoint (Fast 300ms, returns all 1,420 pairs + live prices)
+    try {
+      final response = await _dio.get('/api/v3/ticker/price');
+      if (response.data is List && (response.data as List).isNotEmpty) {
+        final pairs = <CurrencyPair>[];
+        for (final item in response.data as List) {
+          if (item is Map) {
+            final sym = (item['symbol'] ?? '').toString().toUpperCase();
+            if (sym.endsWith('USDT') && sym.length > 4) {
+              final base = sym.substring(0, sym.length - 4);
+              final p = double.tryParse(item['price']?.toString() ?? '0') ?? 0.0;
+              if (p > 0) {
+                _cachedLivePrices[sym] = p;
+              }
+              pairs.add(CurrencyPair(
+                baseCurrency: base,
+                counterCurrency: 'USDT',
+                marketSymbol: sym,
+              ));
+            }
+          }
+        }
+        if (pairs.isNotEmpty) {
+          _lastLivePriceUpdate = DateTime.now();
+          return pairs;
+        }
+      }
+    } catch (_) {}
+
+    // 2. Fallback: exchangeInfo
     try {
       final response = await _dio.get('/api/v3/exchangeInfo');
       final symbols = response.data?['symbols'] as List?;
@@ -92,21 +125,32 @@ class MEXCExchange implements Exchange {
       final high = double.tryParse(json['highPrice']?.toString() ?? '0') ?? price;
       final low = double.tryParse(json['lowPrice']?.toString() ?? '0') ?? price;
 
-      if (price <= 0) {
-        throw Exception('Invalid price received from MEXC for $symbol');
+      if (price > 0) {
+        _cachedLivePrices[symbol] = price;
+        return MarketTicker(
+          exchangeId: id,
+          pair: pair,
+          lastPrice: price,
+          volume24h: vol,
+          high24h: high,
+          low24h: low,
+          timestamp: DateTime.now(),
+        );
       }
+    } catch (_) {}
 
+    // Check cached live price from catalog fetch
+    final cachedP = _cachedLivePrices[symbol];
+    if (cachedP != null && cachedP > 0) {
       return MarketTicker(
         exchangeId: id,
         pair: pair,
-        lastPrice: price,
-        volume24h: vol,
-        high24h: high,
-        low24h: low,
+        lastPrice: cachedP,
+        volume24h: 0.0,
         timestamp: DateTime.now(),
       );
-    } catch (e) {
-      throw Exception('MEXC Live Connection Error for ${pair.displayName}: $e');
     }
+
+    throw Exception('MEXC Live Connection Error for ${pair.displayName}');
   }
 }

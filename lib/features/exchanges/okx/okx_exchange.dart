@@ -32,8 +32,43 @@ class OKXExchange implements Exchange {
   @override
   String get defaultCounterCurrency => 'USDT';
 
+  static final Map<String, double> _cachedLivePrices = {};
+  static DateTime? _lastLivePriceUpdate;
+
   @override
   Future<List<CurrencyPair>> fetchCurrencyPairs() async {
+    // 1. Try OKX official market/tickers (Fast, returns all 468 pairs + live prices)
+    try {
+      final response = await _dio.get('/api/v5/market/tickers', queryParameters: {'instType': 'SPOT'});
+      final data = response.data?['data'] as List?;
+      if (data != null && data.isNotEmpty) {
+        final pairs = <CurrencyPair>[];
+        for (final item in data) {
+          final instId = (item['instId'] ?? '').toString().toUpperCase();
+          if (instId.endsWith('-USDT')) {
+            final parts = instId.split('-');
+            if (parts.length == 2 && parts[0].isNotEmpty) {
+              final base = parts[0];
+              final p = double.tryParse(item['last']?.toString() ?? '0') ?? 0.0;
+              if (p > 0) {
+                _cachedLivePrices[instId] = p;
+              }
+              pairs.add(CurrencyPair(
+                baseCurrency: base,
+                counterCurrency: 'USDT',
+                marketSymbol: instId,
+              ));
+            }
+          }
+        }
+        if (pairs.isNotEmpty) {
+          _lastLivePriceUpdate = DateTime.now();
+          return pairs;
+        }
+      }
+    } catch (_) {}
+
+    // 2. Fallback: instruments
     try {
       final response = await _dio.get('/api/v5/public/instruments', queryParameters: {'instType': 'SPOT'});
       final data = response.data?['data'] as List?;
@@ -72,38 +107,47 @@ class OKXExchange implements Exchange {
 
   @override
   Future<MarketTicker> fetchTicker(CurrencyPair pair) async {
+    final instId = '${pair.baseCurrency}-${pair.counterCurrency}'.toUpperCase();
     try {
-      final instId = '${pair.baseCurrency}-${pair.counterCurrency}'.toUpperCase();
       final response = await _dio.get(
         '/api/v5/market/ticker',
         queryParameters: {'instId': instId},
       );
 
       final data = (response.data?['data'] as List?)?.firstOrNull as Map<String, dynamic>?;
-      if (data == null) {
-        throw Exception('Market data not found on OKX for $instId');
+      if (data != null) {
+        final price = double.tryParse(data['last']?.toString() ?? '0') ?? 0.0;
+        final vol = double.tryParse(data['vol24h']?.toString() ?? '0') ?? 0.0;
+        final high = double.tryParse(data['high24h']?.toString() ?? '0') ?? price;
+        final low = double.tryParse(data['low24h']?.toString() ?? '0') ?? price;
+
+        if (price > 0) {
+          _cachedLivePrices[instId] = price;
+          return MarketTicker(
+            exchangeId: id,
+            pair: pair,
+            lastPrice: price,
+            volume24h: vol,
+            high24h: high,
+            low24h: low,
+            timestamp: DateTime.now(),
+          );
+        }
       }
+    } catch (_) {}
 
-      final price = double.tryParse(data['last']?.toString() ?? '0') ?? 0.0;
-      final vol = double.tryParse(data['vol24h']?.toString() ?? '0') ?? 0.0;
-      final high = double.tryParse(data['high24h']?.toString() ?? '0') ?? price;
-      final low = double.tryParse(data['low24h']?.toString() ?? '0') ?? price;
-
-      if (price <= 0) {
-        throw Exception('Invalid price from OKX ($price)');
-      }
-
+    // Check cached live price from catalog fetch
+    final cachedP = _cachedLivePrices[instId];
+    if (cachedP != null && cachedP > 0) {
       return MarketTicker(
         exchangeId: id,
         pair: pair,
-        lastPrice: price,
-        volume24h: vol,
-        high24h: high,
-        low24h: low,
+        lastPrice: cachedP,
+        volume24h: 0.0,
         timestamp: DateTime.now(),
       );
-    } catch (e) {
-      throw Exception('OKX Live Connection Error for ${pair.displayName}: $e');
     }
+
+    throw Exception('OKX Live Connection Error for ${pair.displayName}');
   }
 }

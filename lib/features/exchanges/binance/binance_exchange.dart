@@ -34,8 +34,31 @@ class BinanceExchange implements Exchange {
   @override
   String get defaultCounterCurrency => 'USDT';
 
+  static final Map<String, double> _cachedLivePrices = {};
+  static DateTime? _lastLivePriceUpdate;
+
   @override
   Future<List<CurrencyPair>> fetchCurrencyPairs() async {
+    // 1. Try Binance official ticker/price endpoint (Fast 250ms, returns all 776 pairs + live prices)
+    try {
+      final response = await _dio.get('/api/v3/ticker/price');
+      final pairs = _parseTickerPriceResponse(response.data);
+      if (pairs.isNotEmpty) return pairs;
+    } catch (_) {}
+
+    // 2. Fallback: Binance Vision public data mirror (Unfiltered in Iran)
+    try {
+      final visionDio = Dio(BaseOptions(
+        baseUrl: 'https://data-api.binance.vision',
+        connectTimeout: const Duration(seconds: 8),
+        receiveTimeout: const Duration(seconds: 8),
+      ));
+      final response = await visionDio.get('/api/v3/ticker/price');
+      final pairs = _parseTickerPriceResponse(response.data);
+      if (pairs.isNotEmpty) return pairs;
+    } catch (_) {}
+
+    // 3. Fallback: exchangeInfo
     try {
       final response = await _dio.get('/api/v3/exchangeInfo');
       final data = response.data as Map<String, dynamic>;
@@ -63,6 +86,32 @@ class BinanceExchange implements Exchange {
       quoteCurrencies: ['USDT'],
       symbolFormatter: (b, q) => '$b$q',
     );
+  }
+
+  List<CurrencyPair> _parseTickerPriceResponse(dynamic data) {
+    if (data is! List || data.isEmpty) return [];
+    final pairs = <CurrencyPair>[];
+    for (final item in data) {
+      if (item is Map) {
+        final sym = (item['symbol'] ?? '').toString().toUpperCase();
+        if (sym.endsWith('USDT') && sym.length > 4) {
+          final base = sym.substring(0, sym.length - 4);
+          final p = double.tryParse(item['price']?.toString() ?? '0') ?? 0.0;
+          if (p > 0) {
+            _cachedLivePrices[sym] = p;
+          }
+          pairs.add(CurrencyPair(
+            baseCurrency: base,
+            counterCurrency: 'USDT',
+            marketSymbol: sym,
+          ));
+        }
+      }
+    }
+    if (pairs.isNotEmpty) {
+      _lastLivePriceUpdate = DateTime.now();
+    }
+    return pairs;
   }
 
   @override
@@ -125,6 +174,17 @@ class BinanceExchange implements Exchange {
         );
       }
     } catch (_) {}
+
+    final cachedP = _cachedLivePrices[symbol];
+    if (cachedP != null && cachedP > 0) {
+      return MarketTicker(
+        exchangeId: id,
+        pair: pair,
+        lastPrice: cachedP,
+        volume24h: 0.0,
+        timestamp: DateTime.now(),
+      );
+    }
 
     throw Exception('Binance Live Connection Error for ${pair.displayName}');
   }

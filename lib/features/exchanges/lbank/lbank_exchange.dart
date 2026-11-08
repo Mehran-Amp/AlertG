@@ -36,31 +36,49 @@ class LBankExchange implements Exchange {
   @override
   String get defaultCounterCurrency => 'USDT';
 
+  static final Map<String, double> _cachedLivePrices = {};
+  static DateTime? _lastLivePriceUpdate;
+
   @override
   Future<List<CurrencyPair>> fetchCurrencyPairs() async {
-    try {
-      final response = await _dio.get('/v2/currencyPairs.do');
-      if (response.data is Map && response.data['data'] is List) {
-        final list = response.data['data'] as List;
-        final pairs = <CurrencyPair>[];
-        for (final item in list) {
-          final sym = item.toString();
-          final parts = sym.split('_');
-          if (parts.length == 2) {
-            final base = parts[0].toUpperCase();
-            final quote = parts[1].toUpperCase();
-            if (quote == 'USDT') {
-              pairs.add(CurrencyPair(
-                baseCurrency: base,
-                counterCurrency: quote,
-                marketSymbol: sym,
-              ));
+    final domains = ['https://api.lbank.info', 'https://api.lbkex.com'];
+    for (final domain in domains) {
+      try {
+        final client = Dio(BaseOptions(
+          baseUrl: domain,
+          connectTimeout: const Duration(seconds: 8),
+          receiveTimeout: const Duration(seconds: 8),
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          },
+        ));
+        final response = await client.get('/v2/currencyPairs.do');
+        if (response.data is Map && response.data['data'] is List) {
+          final list = response.data['data'] as List;
+          final pairs = <CurrencyPair>[];
+          for (final item in list) {
+            final sym = item.toString().toLowerCase();
+            final parts = sym.split('_');
+            if (parts.length == 2) {
+              final base = parts[0].toUpperCase();
+              final quote = parts[1].toUpperCase();
+              if (quote == 'USDT' && base.isNotEmpty) {
+                pairs.add(CurrencyPair(
+                  baseCurrency: base,
+                  counterCurrency: quote,
+                  marketSymbol: sym,
+                ));
+              }
             }
           }
+          if (pairs.isNotEmpty) {
+            _lastLivePriceUpdate = DateTime.now();
+            return pairs;
+          }
         }
-        if (pairs.isNotEmpty) return pairs;
-      }
-    } catch (_) {}
+      } catch (_) {}
+    }
 
     return <CurrencyPair>[];
   }
@@ -78,30 +96,52 @@ class LBankExchange implements Exchange {
   @override
   Future<MarketTicker> fetchTicker(CurrencyPair pair) async {
     final symbol = '${pair.baseCurrency.toLowerCase()}_${pair.counterCurrency.toLowerCase()}';
+    final domains = ['https://api.lbank.info', 'https://api.lbkex.com'];
 
-    // Direct LBank API (Strict R1: No fallback to other exchanges or aggregators)
-    try {
-      final response = await _dio.get('/v2/ticker/24hr.do', queryParameters: {'symbol': symbol});
-      if (response.data is Map && response.data['data'] is List) {
-        final list = response.data['data'] as List;
-        if (list.isNotEmpty && list.first is Map) {
-          final d = list.first as Map<String, dynamic>;
-          final tickerData = d['ticker'] as Map<String, dynamic>? ?? d;
-          final p = double.tryParse(tickerData['latest']?.toString() ?? tickerData['lastPrice']?.toString() ?? '0') ?? 0.0;
-          final v = double.tryParse(tickerData['vol']?.toString() ?? tickerData['turnover']?.toString() ?? '0') ?? 0.0;
-          if (p > 0) {
-            return MarketTicker(
-              exchangeId: id,
-              pair: pair,
-              lastPrice: p,
-              volume24h: v,
-              timestamp: DateTime.now(),
-            );
+    for (final domain in domains) {
+      try {
+        final client = Dio(BaseOptions(
+          baseUrl: domain,
+          connectTimeout: const Duration(seconds: 6),
+          receiveTimeout: const Duration(seconds: 6),
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          },
+        ));
+        final response = await client.get('/v2/ticker/24hr.do', queryParameters: {'symbol': symbol});
+        if (response.data is Map && response.data['data'] is List) {
+          final list = response.data['data'] as List;
+          if (list.isNotEmpty && list.first is Map) {
+            final d = list.first as Map<String, dynamic>;
+            final tickerData = d['ticker'] as Map<String, dynamic>? ?? d;
+            final p = double.tryParse(tickerData['latest']?.toString() ?? tickerData['lastPrice']?.toString() ?? '0') ?? 0.0;
+            final v = double.tryParse(tickerData['vol']?.toString() ?? tickerData['turnover']?.toString() ?? '0') ?? 0.0;
+            if (p > 0) {
+              _cachedLivePrices[symbol] = p;
+              return MarketTicker(
+                exchangeId: id,
+                pair: pair,
+                lastPrice: p,
+                volume24h: v,
+                timestamp: DateTime.now(),
+              );
+            }
           }
         }
-      }
-    } catch (e) {
-      throw Exception('LBank Live Connection Error for ${pair.displayName}: $e');
+      } catch (_) {}
+    }
+
+    // Check cached live price
+    final cachedP = _cachedLivePrices[symbol];
+    if (cachedP != null && cachedP > 0) {
+      return MarketTicker(
+        exchangeId: id,
+        pair: pair,
+        lastPrice: cachedP,
+        volume24h: 0.0,
+        timestamp: DateTime.now(),
+      );
     }
 
     throw Exception('Connection error: Unable to fetch live price for ${pair.displayName} on LBank');

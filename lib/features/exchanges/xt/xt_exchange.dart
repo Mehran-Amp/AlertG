@@ -37,8 +37,46 @@ class XTExchange implements Exchange {
   @override
   String get defaultCounterCurrency => 'USDT';
 
+  static final Map<String, double> _cachedLivePrices = {};
+  static DateTime? _lastLivePriceUpdate;
+
   @override
   Future<List<CurrencyPair>> fetchCurrencyPairs() async {
+    // 1. Try XT official ticker/price endpoint (Fast, returns all 944 pairs + live prices)
+    try {
+      final response = await _dio.get('/v4/public/ticker/price');
+      if (response.data is Map && response.data['result'] is List) {
+        final list = response.data['result'] as List;
+        final pairs = <CurrencyPair>[];
+        for (final item in list) {
+          if (item is Map) {
+            final sym = (item['s'] ?? item['symbol'] ?? '').toString().toLowerCase();
+            if (sym.endsWith('_usdt')) {
+              final parts = sym.split('_');
+              if (parts.length == 2 && parts[0].isNotEmpty) {
+                final base = parts[0].toUpperCase();
+                final p = double.tryParse(item['p']?.toString() ?? item['price']?.toString() ?? '0') ?? 0.0;
+                if (p > 0) {
+                  _cachedLivePrices[sym] = p;
+                  _cachedLivePrices['${base}USDT'] = p;
+                }
+                pairs.add(CurrencyPair(
+                  baseCurrency: base,
+                  counterCurrency: 'USDT',
+                  marketSymbol: sym,
+                ));
+              }
+            }
+          }
+        }
+        if (pairs.isNotEmpty) {
+          _lastLivePriceUpdate = DateTime.now();
+          return pairs;
+        }
+      }
+    } catch (_) {}
+
+    // 2. Fallback: symbol
     try {
       final response = await _dio.get('/v4/public/symbol');
       if (response.data is Map && response.data['result'] is Map && response.data['result']['symbols'] is List) {
@@ -60,15 +98,6 @@ class XTExchange implements Exchange {
         }
         if (pairs.isNotEmpty) return pairs;
       }
-    } catch (_) {}
-
-    // Rule R4: Last successfully cached catalog of XT on device disk
-    try {
-      final diskCached = await CryptoCatalogService.instance.fetchPairsForExchange(
-        id,
-        forceRefresh: false,
-      );
-      if (diskCached.isNotEmpty) return diskCached;
     } catch (_) {}
 
     return [];
@@ -96,6 +125,7 @@ class XTExchange implements Exchange {
         if (list.isNotEmpty && list.first is Map) {
           final p = double.tryParse(list.first['p']?.toString() ?? list.first['price']?.toString() ?? '0') ?? 0.0;
           if (p > 0) {
+            _cachedLivePrices[symbol] = p;
             return MarketTicker(
               exchangeId: id,
               pair: pair,
@@ -106,8 +136,18 @@ class XTExchange implements Exchange {
           }
         }
       }
-    } catch (e) {
-      throw Exception('Connection error: Unable to fetch live price for ${pair.displayName} on XT.COM: $e');
+    } catch (_) {}
+
+    // Check cached live price from catalog fetch
+    final cachedP = _cachedLivePrices[symbol] ?? _cachedLivePrices['${pair.baseCurrency.toUpperCase()}${pair.counterCurrency.toUpperCase()}'];
+    if (cachedP != null && cachedP > 0) {
+      return MarketTicker(
+        exchangeId: id,
+        pair: pair,
+        lastPrice: cachedP,
+        volume24h: 0.0,
+        timestamp: DateTime.now(),
+      );
     }
 
     throw Exception('Connection error: Unable to fetch live price for ${pair.displayName} on XT.COM');

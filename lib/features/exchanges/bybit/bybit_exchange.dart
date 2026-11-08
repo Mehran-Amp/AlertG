@@ -32,8 +32,40 @@ class BybitExchange implements Exchange {
   @override
   String get defaultCounterCurrency => 'USDT';
 
+  static final Map<String, double> _cachedLivePrices = {};
+  static DateTime? _lastLivePriceUpdate;
+
   @override
   Future<List<CurrencyPair>> fetchCurrencyPairs() async {
+    // 1. Try Bybit official spot tickers (Fast, returns all 389 pairs + live prices)
+    try {
+      final response = await _dio.get('/v5/market/tickers', queryParameters: {'category': 'spot'});
+      final list = response.data?['result']?['list'] as List?;
+      if (list != null && list.isNotEmpty) {
+        final pairs = <CurrencyPair>[];
+        for (final item in list) {
+          final symbol = (item['symbol'] ?? '').toString().toUpperCase();
+          if (symbol.endsWith('USDT') && symbol.length > 4) {
+            final base = symbol.substring(0, symbol.length - 4);
+            final p = double.tryParse(item['lastPrice']?.toString() ?? '0') ?? 0.0;
+            if (p > 0) {
+              _cachedLivePrices[symbol] = p;
+            }
+            pairs.add(CurrencyPair(
+              baseCurrency: base,
+              counterCurrency: 'USDT',
+              marketSymbol: symbol,
+            ));
+          }
+        }
+        if (pairs.isNotEmpty) {
+          _lastLivePriceUpdate = DateTime.now();
+          return pairs;
+        }
+      }
+    } catch (_) {}
+
+    // 2. Fallback: instruments-info
     try {
       final response = await _dio.get('/v5/market/instruments-info', queryParameters: {'category': 'spot'});
       final list = response.data?['result']?['list'] as List?;
@@ -72,8 +104,8 @@ class BybitExchange implements Exchange {
 
   @override
   Future<MarketTicker> fetchTicker(CurrencyPair pair) async {
+    final symbol = '${pair.baseCurrency}${pair.counterCurrency}'.toUpperCase();
     try {
-      final symbol = '${pair.baseCurrency}${pair.counterCurrency}'.toUpperCase();
       final response = await _dio.get(
         '/v5/market/tickers',
         queryParameters: {'category': 'spot', 'symbol': symbol},
@@ -82,30 +114,39 @@ class BybitExchange implements Exchange {
       final list = response.data?['result']?['list'] as List?;
       final data = list?.firstOrNull as Map<String, dynamic>?;
 
-      if (data == null) {
-        throw Exception('Ticker not found on Bybit for $symbol');
+      if (data != null) {
+        final price = double.tryParse(data['lastPrice']?.toString() ?? '0') ?? 0.0;
+        final vol = double.tryParse(data['volume24h']?.toString() ?? '0') ?? 0.0;
+        final high = double.tryParse(data['highPrice24h']?.toString() ?? '0') ?? price;
+        final low = double.tryParse(data['lowPrice24h']?.toString() ?? '0') ?? price;
+
+        if (price > 0) {
+          _cachedLivePrices[symbol] = price;
+          return MarketTicker(
+            exchangeId: id,
+            pair: pair,
+            lastPrice: price,
+            volume24h: vol,
+            high24h: high,
+            low24h: low,
+            timestamp: DateTime.now(),
+          );
+        }
       }
+    } catch (_) {}
 
-      final price = double.tryParse(data['lastPrice']?.toString() ?? '0') ?? 0.0;
-      final vol = double.tryParse(data['volume24h']?.toString() ?? '0') ?? 0.0;
-      final high = double.tryParse(data['highPrice24h']?.toString() ?? '0') ?? price;
-      final low = double.tryParse(data['lowPrice24h']?.toString() ?? '0') ?? price;
-
-      if (price <= 0) {
-        throw Exception('Invalid price from Bybit ($price)');
-      }
-
+    // Check cached live price from catalog fetch
+    final cachedP = _cachedLivePrices[symbol];
+    if (cachedP != null && cachedP > 0) {
       return MarketTicker(
         exchangeId: id,
         pair: pair,
-        lastPrice: price,
-        volume24h: vol,
-        high24h: high,
-        low24h: low,
+        lastPrice: cachedP,
+        volume24h: 0.0,
         timestamp: DateTime.now(),
       );
-    } catch (e) {
-      throw Exception('Bybit Live Connection Error for ${pair.displayName}: $e');
     }
+
+    throw Exception('Bybit Live Connection Error for ${pair.displayName}');
   }
 }

@@ -18,6 +18,8 @@ class CoinbaseExchange implements Exchange {
               receiveTimeout: const Duration(seconds: 8),
             ));
 
+  final Map<String, double> _cachedLivePrices = {};
+
   @override
   String get id => 'coinbase';
 
@@ -38,14 +40,21 @@ class CoinbaseExchange implements Exchange {
     try {
       final response = await _dio.get('/products');
       final data = response.data as List;
-      final pairs = data
-          .where((item) => item['status'] == 'online' && (item['quote_currency']?.toString().toUpperCase() == 'USDT'))
-          .map((item) => CurrencyPair(
-                baseCurrency: (item['base_currency'] as String).toUpperCase(),
-                counterCurrency: 'USDT',
-                marketSymbol: (item['id'] as String).toUpperCase(),
-              ))
-          .toList();
+      final pairs = <CurrencyPair>[];
+      for (final item in data) {
+        if (item is Map && item['status'] == 'online') {
+          final quote = item['quote_currency']?.toString().toUpperCase() ?? '';
+          if (quote == 'USD' || quote == 'USDT') {
+            final base = item['base_currency']?.toString().toUpperCase() ?? '';
+            final id = item['id']?.toString().toUpperCase() ?? '$base-$quote';
+            pairs.add(CurrencyPair(
+              baseCurrency: base,
+              counterCurrency: quote,
+              marketSymbol: id,
+            ));
+          }
+        }
+      }
       if (pairs.isNotEmpty) return pairs;
     } catch (_) {}
 
@@ -73,8 +82,23 @@ class CoinbaseExchange implements Exchange {
 
   @override
   Future<MarketTicker> fetchTicker(CurrencyPair pair) async {
+    final symKey = '${pair.baseCurrency}-${pair.counterCurrency}'.toUpperCase();
+
+    // Check memory cache first
+    if (_cachedLivePrices.containsKey(symKey) && (_cachedLivePrices[symKey] ?? 0) > 0) {
+      return MarketTicker(
+        exchangeId: id,
+        pair: pair,
+        lastPrice: _cachedLivePrices[symKey]!,
+        volume24h: 0.0,
+        timestamp: DateTime.now(),
+      );
+    }
+
     try {
-      final productId = '${pair.baseCurrency}-${pair.counterCurrency}'.toUpperCase();
+      final productId = (pair.marketSymbol.isNotEmpty && pair.marketSymbol.contains('-'))
+          ? pair.marketSymbol.toUpperCase()
+          : symKey;
       final response = await _dio.get('/products/$productId/ticker');
       final data = response.data as Map<String, dynamic>;
       final price = double.tryParse(data['price']?.toString() ?? '0') ?? 0.0;
@@ -84,6 +108,8 @@ class CoinbaseExchange implements Exchange {
         throw Exception('Invalid price from Coinbase ($price)');
       }
 
+      _cachedLivePrices[symKey] = price;
+
       return MarketTicker(
         exchangeId: id,
         pair: pair,
@@ -92,6 +118,15 @@ class CoinbaseExchange implements Exchange {
         timestamp: DateTime.now(),
       );
     } catch (e) {
+      if (_cachedLivePrices.containsKey(symKey) && (_cachedLivePrices[symKey] ?? 0) > 0) {
+        return MarketTicker(
+          exchangeId: id,
+          pair: pair,
+          lastPrice: _cachedLivePrices[symKey]!,
+          volume24h: 0.0,
+          timestamp: DateTime.now(),
+        );
+      }
       throw Exception('Coinbase Live Connection Error for ${pair.displayName}: $e');
     }
   }
