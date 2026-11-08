@@ -197,12 +197,19 @@ async def _run_background_market_refresh(client: httpx.AsyncClient):
     except Exception as e:
         logger.exception(f"⚠️ [Startup Background] refresh_market_events failed: {e}")
 
-async def _run_background_crypto_catalog_sync(client: httpx.AsyncClient):
+async def _run_background_crypto_catalog_sync():
+    logger.info("[CatalogSync] startup start")
+    t0 = time.perf_counter()
     try:
         from app.markets.crypto_catalog import sync_all_crypto_catalogs
-        await sync_all_crypto_catalogs(client=client)
+        res = await sync_all_crypto_catalogs()
+        ms = round((time.perf_counter() - t0) * 1000.0, 1)
+        ok_count = res.get("success_count", 0) if isinstance(res, dict) else 0
+        total_count = res.get("total_exchanges", 0) if isinstance(res, dict) else 0
+        logger.info(f"[CatalogSync] startup end (ok={ok_count}/{total_count}, {ms}ms)")
     except Exception as e:
-        logger.warning(f"⚠️ [Startup Background] crypto catalog initial sync error: {e}")
+        ms = round((time.perf_counter() - t0) * 1000.0, 1)
+        logger.warning(f"[CatalogSync] startup error after {ms}ms: {e}")
 
 
 # -------------------------------------------------------------------
@@ -240,7 +247,7 @@ async def lifespan(app: FastAPI):
     bg_market_task.add_done_callback(_SERVER_BG_TASKS.discard)
 
     # Initial crypto catalog sync on startup (kept in strong-ref set, exceptions logged)
-    bg_crypto_cat_task = asyncio.create_task(_run_background_crypto_catalog_sync(state.http_client))
+    bg_crypto_cat_task = asyncio.create_task(_run_background_crypto_catalog_sync())
     _SERVER_BG_TASKS.add(bg_crypto_cat_task)
     bg_crypto_cat_task.add_done_callback(_SERVER_BG_TASKS.discard)
 
