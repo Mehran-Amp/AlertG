@@ -153,6 +153,12 @@ async def fetch_crypto_strict(
         max_age = getattr(config, "CRYPTO_SNAPSHOT_MAX_AGE_SECONDS", 10.0)
         snap_price, snap_as_of, snap_status, latency_ms = get_snapshot_price(ex, native_sym, max_age_seconds=max_age)
 
+        # Phase S3: On-demand snapshot refresh if snapshot missed or not OK
+        if not (snap_status == "OK" and snap_price is not None and snap_price > 0):
+            from app.markets.crypto_ondemand import ensure_fresh_snapshot
+            await ensure_fresh_snapshot(ex, client=client)
+            snap_price, snap_as_of, snap_status, latency_ms = get_snapshot_price(ex, native_sym, max_age_seconds=max_age)
+
         if snap_status == "OK" and snap_price is not None and snap_price > 0:
             traces.append({
                 'source': source_label,
