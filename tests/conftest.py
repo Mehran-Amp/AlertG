@@ -78,23 +78,10 @@ def isolate_crypto_catalog_dir(tmp_path, monkeypatch):
     """
     PHASE T1: Guarantees zero tests touch live crypto_catalogs/ by redirecting the
     catalog directory to tmp_path for every test.
-    Copies existing live catalogs so read queries succeed seamlessly, while any write
-    or sync is strictly quarantined in tmp_path.
     """
     test_catalog_dir = tmp_path / "crypto_catalogs"
     test_catalog_dir.mkdir(parents=True, exist_ok=True)
-
-    # Seed test dir with copies of live catalogs so read queries succeed
-    for d_name in ("crypto_catalogs", "crypto_catalog"):
-        live_dir = os.path.abspath(d_name)
-        if os.path.isdir(live_dir):
-            for src_file in glob.glob(os.path.join(live_dir, "*.json")):
-                dst_file = test_catalog_dir / os.path.basename(src_file)
-                if not dst_file.exists():
-                    shutil.copy2(src_file, dst_file)
-
-    test_cat_path = str(test_catalog_dir)
-    monkeypatch.setattr(config, "CRYPTO_CATALOG_DIR", test_cat_path)
+    monkeypatch.setattr(config, "CRYPTO_CATALOG_DIR", str(test_catalog_dir))
 
 
 
