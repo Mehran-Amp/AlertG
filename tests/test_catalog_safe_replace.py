@@ -33,7 +33,7 @@ except ImportError:
     sys.modules['apscheduler'] = apscheduler
 
 import app.config as config
-from app.markets.adapters.base import MarketSymbol
+from app.markets.adapters.base import SymbolInfo
 from app.markets.crypto_catalog import (
     sync_exchange_catalog,
     save_exchange_catalog_atomic,
@@ -86,7 +86,7 @@ class TestCatalogSafeReplace(unittest.IsolatedAsyncioTestCase):
 
     def _make_symbols(self, count: int, prefix: str = "COIN"):
         return [
-            MarketSymbol(
+            SymbolInfo(
                 base=f"{prefix}{i}",
                 quote="USDT",
                 market_symbol=f"{prefix}{i}USDT",
