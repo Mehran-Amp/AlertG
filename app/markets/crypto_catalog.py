@@ -226,6 +226,7 @@ def save_exchange_catalog_atomic(
 
 MIN_PAIRS_CEILING = 20
 MAX_DROP_RATIO = 0.50
+DEFAULT_MIN_RATIO = 0.70
 
 
 def validate_catalog_safety(
@@ -236,36 +237,47 @@ def validate_catalog_safety(
 ) -> Tuple[bool, Optional[str]]:
     """
     Validates incoming pairs against safety ceilings:
-    1. Rejects if incoming count < MIN_PAIRS_CEILING (20 pairs).
-    2. Rejects if incoming count drops > 50% from previously recorded valid catalog.
+    1. Rejects if incoming count is 0 (empty catalog).
+    2. Rejects if incoming count drops below CRYPTO_CATALOG_MIN_RATIO (default 0.7) of previous valid catalog.
+    3. Rejects if incoming count < MIN_PAIRS_CEILING (20 pairs) on first sync when no previous catalog exists.
     """
     if ignore_safety:
         return True, None
 
     new_count = len(incoming_pairs)
 
-    # 1. Minimum ceiling check
-    if new_count < MIN_PAIRS_CEILING:
+    # 1. Reject empty catalog
+    if new_count == 0:
         reason = (
-            f"Catalog for '{exchange_id}' contains only {new_count} pairs, "
+            f"Catalog for '{exchange_id}' is empty (0 pairs), "
             f"which is below minimum ceiling of {MIN_PAIRS_CEILING}."
         )
         return False, reason
 
-    # 2. Maximum drop check
+    # 2. Maximum shrink/drop check against existing valid catalog
+    min_ratio = float(getattr(config, "CRYPTO_CATALOG_MIN_RATIO", DEFAULT_MIN_RATIO))
     if existing_catalog:
         prev_pairs = existing_catalog.get("pairs", [])
         prev_count = len(prev_pairs)
-        if prev_count >= MIN_PAIRS_CEILING:
-            drop_ratio = (prev_count - new_count) / float(prev_count)
-            if drop_ratio > MAX_DROP_RATIO:
+        if prev_count > 0:
+            if new_count < (min_ratio * prev_count):
+                drop_ratio = (prev_count - new_count) / float(prev_count)
                 drop_pct = round(drop_ratio * 100, 1)
                 drop_int = int(drop_pct)
                 reason = (
                     f"Catalog for '{exchange_id}' dropped by {drop_int}% "
-                    f"({prev_count} -> {new_count} pairs). Exceeds MAX_DROP_RATIO of 50%."
+                    f"({prev_count} -> {new_count} pairs). Below CRYPTO_CATALOG_MIN_RATIO of {min_ratio:.2f}."
                 )
                 return False, reason
+
+    # 3. Minimum ceiling check when no previous catalog exists
+    if not existing_catalog or not existing_catalog.get("pairs"):
+        if new_count < MIN_PAIRS_CEILING:
+            reason = (
+                f"Catalog for '{exchange_id}' contains only {new_count} pairs, "
+                f"which is below minimum ceiling of {MIN_PAIRS_CEILING}."
+            )
+            return False, reason
 
     return True, None
 
@@ -369,15 +381,20 @@ async def sync_exchange_catalog(
         )
 
         if not is_safe:
+            prev_count = len(existing_catalog.get("pairs", [])) if existing_catalog else 0
+            logger.warning(
+                f"[CatalogSync] ex={ex_id} REJECTED old={prev_count} new={len(new_pairs)}"
+            )
+
             # Reject replacement; retain previous catalog on disk but flag as stale
-            if existing_catalog:
+            if existing_catalog and existing_catalog.get("pairs"):
                 existing_catalog["is_stale"] = True
                 existing_catalog["error"] = safety_reason
                 save_exchange_catalog_atomic(ex_id, existing_catalog, override_dir)
 
             admin_alert = (
                 f"🚨 <b>[Crypto Catalog Safety Ceiling Breach]</b>\n"
-                f"Exchange: <b>{adapter.display_name}</b>\n"
+                f"Exchange: <b>{getattr(adapter, 'display_name', ex_id.upper())}</b>\n"
                 f"Alert: {safety_reason}\n"
                 f"<i>Previous catalog preserved on disk with is_stale=True.</i>"
             )
@@ -389,7 +406,7 @@ async def sync_exchange_catalog(
                 "safety_rejected": True,
                 "reason": safety_reason,
                 "is_stale": True,
-                "pairs_count": len(existing_catalog.get("pairs", [])) if existing_catalog else 0
+                "pairs_count": prev_count
             }
 
         # Safety checks passed -> Save atomically
@@ -404,6 +421,16 @@ async def sync_exchange_catalog(
             "pairs": new_pairs,
         }
         saved_path = save_exchange_catalog_atomic(ex_id, catalog_payload, override_dir)
+
+        # Log accepted diff
+        prev_pairs = existing_catalog.get("pairs", []) if existing_catalog else []
+        old_symbols = {p.get("native_symbol") or p.get("symbol") for p in prev_pairs}
+        new_symbols = {p.get("native_symbol") or p.get("symbol") for p in new_pairs}
+        added = len(new_symbols - old_symbols)
+        removed = len(old_symbols - new_symbols)
+        logger.info(
+            f"[CatalogSync] ex={ex_id} total={len(new_pairs)} +{added} -{removed}"
+        )
 
         return {
             "exchange": ex_id,
