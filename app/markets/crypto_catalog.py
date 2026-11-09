@@ -315,7 +315,7 @@ async def sync_exchange_catalog(
         # Fetch market symbols
         symbols, err_code, err_msg = await adapter.fetch_symbols(client)
 
-        if err_code or not symbols:
+        if err_code or symbols is None:
             # Phase H2: Abort guard — client closed must NOT write to catalog or notify admin
             if err_msg and "client has been closed" in str(err_msg).lower():
                 return {
