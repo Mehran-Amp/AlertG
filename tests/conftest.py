@@ -114,6 +114,14 @@ def isolate_test_environment(tmp_path, monkeypatch, request):
     monkeypatch.setattr(storage, "DB_FILE", test_db)
     monkeypatch.setattr(storage, "PROFILES_FILE", test_prof)
 
+    # Neutralize server background catalog sync in tests so lifespan never leaks to disk
+    if "test_server_startup_catalog_sync" not in request.node.nodeid:
+        if "server" in sys.modules:
+            server_mod = sys.modules["server"]
+            if hasattr(server_mod, "_run_background_crypto_catalog_sync"):
+                async def _noop_bg_sync(): pass
+                monkeypatch.setattr(server_mod, "_run_background_crypto_catalog_sync", _noop_bg_sync)
+
     # Snapshot state of root files before test execution
     def _read_bytes(path):
         if os.path.exists(path):

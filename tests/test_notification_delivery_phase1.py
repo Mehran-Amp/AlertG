@@ -362,7 +362,9 @@ class TestNotificationDeliveryPhase1(unittest.IsolatedAsyncioTestCase):
              patch("app.engine.market_events.send_telegram_alert", side_effect=slow_send_telegram), \
              patch("server.init_telegram_bot", new_callable=AsyncMock), \
              patch("server.telegram_bot_polling_loop", new_callable=AsyncMock), \
-             patch("server.outbox_worker_loop", new_callable=AsyncMock):
+             patch("server.outbox_worker_loop", new_callable=AsyncMock), \
+             patch("server._run_background_crypto_catalog_sync", new_callable=AsyncMock), \
+             patch("server._run_background_market_refresh", new_callable=AsyncMock):
 
             t0 = time.time()
             async with lifespan(app):
