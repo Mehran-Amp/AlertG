@@ -114,13 +114,32 @@ def isolate_test_environment(tmp_path, monkeypatch, request):
     monkeypatch.setattr(storage, "DB_FILE", test_db)
     monkeypatch.setattr(storage, "PROFILES_FILE", test_prof)
 
-    # Neutralize server background catalog sync in tests so lifespan never leaks to disk
+    # Intercept get_catalog_dir to guarantee zero writes to live crypto_catalogs during tests
+    try:
+        import app.markets.crypto_catalog as cat_module
+        orig_get_dir = cat_module.get_catalog_dir
+        real_dirs = {os.path.abspath("crypto_catalogs"), os.path.abspath("crypto_catalog")}
+        def _safe_get_catalog_dir(override_dir=None):
+            resolved = orig_get_dir(override_dir)
+            if os.path.abspath(resolved) in real_dirs:
+                return test_crypto_cat
+            return resolved
+        monkeypatch.setattr(cat_module, "get_catalog_dir", _safe_get_catalog_dir)
+    except Exception:
+        pass
+
+    # Neutralize server background catalog sync & retry worker in tests so lifespan never leaks to disk
     if "test_server_startup_catalog_sync" not in request.node.nodeid:
-        if "server" in sys.modules:
-            server_mod = sys.modules["server"]
+        try:
+            import server as server_mod
             if hasattr(server_mod, "_run_background_crypto_catalog_sync"):
                 async def _noop_bg_sync(): pass
                 monkeypatch.setattr(server_mod, "_run_background_crypto_catalog_sync", _noop_bg_sync)
+            if hasattr(server_mod, "_run_stale_catalogs_retry_worker") and "test_catalog_startup_retry" not in request.node.nodeid:
+                async def _noop_retry_worker(*args, **kwargs): pass
+                monkeypatch.setattr(server_mod, "_run_stale_catalogs_retry_worker", _noop_retry_worker)
+        except Exception:
+            pass
 
     # Snapshot state of root files before test execution
     def _read_bytes(path):
