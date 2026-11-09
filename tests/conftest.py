@@ -6,11 +6,96 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
+import glob
+import hashlib
 import shutil
 import pytest
 import app.config as config
 import app.engine.sync as sync_module
 import app.storage as storage
+
+
+@pytest.fixture(scope="session", autouse=True)
+def guard_live_crypto_catalogs_session():
+    """
+    PHASE T1: Session-level guard that records mtime and md5 of all live crypto catalog files at session start.
+    At session end, fails if any live catalog file's mtime or md5 changed, or if files were created/deleted.
+    """
+    catalog_dirs = ["crypto_catalogs", "crypto_catalog"]
+    initial_state = {}
+
+    def _file_md5(filepath):
+        h = hashlib.md5()
+        with open(filepath, "rb") as f:
+            for chunk in iter(lambda: f.read(65536), b""):
+                h.update(chunk)
+        return h.hexdigest()
+
+    for d in catalog_dirs:
+        abs_d = os.path.abspath(d)
+        if os.path.isdir(abs_d):
+            for path in glob.glob(os.path.join(abs_d, "*.json")):
+                initial_state[path] = {
+                    "mtime": os.path.getmtime(path),
+                    "md5": _file_md5(path),
+                }
+
+    yield
+
+    violations = []
+    for path, before in initial_state.items():
+        if not os.path.exists(path):
+            violations.append(f"DELETED: {os.path.basename(path)}")
+            continue
+        curr_mtime = os.path.getmtime(path)
+        if curr_mtime != before["mtime"]:
+            curr_md5 = _file_md5(path)
+            if curr_md5 != before["md5"]:
+                violations.append(
+                    f"MODIFIED: {os.path.basename(path)} (md5 {before['md5'][:8]} -> {curr_md5[:8]})"
+                )
+            else:
+                violations.append(
+                    f"TOUCHED: {os.path.basename(path)} (mtime {before['mtime']} -> {curr_mtime})"
+                )
+
+    for d in catalog_dirs:
+        abs_d = os.path.abspath(d)
+        if os.path.isdir(abs_d):
+            for path in glob.glob(os.path.join(abs_d, "*.json")):
+                if path not in initial_state:
+                    violations.append(f"CREATED in live dir: {os.path.basename(path)}")
+
+    if violations:
+        pytest.fail(
+            "PHASE T1 VIOLATION — Live crypto catalog files modified during test session:\n  "
+            + "\n  ".join(violations)
+        )
+
+
+@pytest.fixture(autouse=True)
+def isolate_crypto_catalog_dir(tmp_path, monkeypatch):
+    """
+    PHASE T1: Guarantees zero tests touch live crypto_catalogs/ by redirecting the
+    catalog directory to tmp_path for every test.
+    Copies existing live catalogs so read queries succeed seamlessly, while any write
+    or sync is strictly quarantined in tmp_path.
+    """
+    test_catalog_dir = tmp_path / "crypto_catalogs"
+    test_catalog_dir.mkdir(parents=True, exist_ok=True)
+
+    # Seed test dir with copies of live catalogs so read queries succeed
+    for d_name in ("crypto_catalogs", "crypto_catalog"):
+        live_dir = os.path.abspath(d_name)
+        if os.path.isdir(live_dir):
+            for src_file in glob.glob(os.path.join(live_dir, "*.json")):
+                dst_file = test_catalog_dir / os.path.basename(src_file)
+                if not dst_file.exists():
+                    shutil.copy2(src_file, dst_file)
+
+    test_cat_path = str(test_catalog_dir)
+    monkeypatch.setattr(config, "CRYPTO_CATALOG_DIR", test_cat_path)
+
 
 
 @pytest.fixture(autouse=True)
