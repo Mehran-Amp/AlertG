@@ -74,22 +74,11 @@ def guard_live_crypto_catalogs_session():
 
 
 @pytest.fixture(autouse=True)
-def isolate_crypto_catalog_dir(tmp_path, monkeypatch):
-    """
-    PHASE T1: Guarantees zero tests touch live crypto_catalogs/ by redirecting the
-    catalog directory to tmp_path for every test.
-    """
-    test_catalog_dir = tmp_path / "crypto_catalogs"
-    test_catalog_dir.mkdir(parents=True, exist_ok=True)
-    monkeypatch.setattr(config, "CRYPTO_CATALOG_DIR", str(test_catalog_dir))
-
-
-
-@pytest.fixture(autouse=True)
 def isolate_test_environment(tmp_path, monkeypatch, request):
     """
-    Guarantees zero tests write into real sync_runs.json, catalog.json, or alerts_data.json.
-    All storage and sync paths are bound to a clean isolated tmp_path directory for every test.
+    Guarantees zero tests write into real sync_runs.json, catalog.json, alerts_data.json,
+    or live crypto_catalogs/.
+    All storage, sync paths, and catalog paths are bound to a clean isolated tmp_path directory.
     """
     temp_dir = str(tmp_path)
     test_cat = os.path.join(temp_dir, "catalog.json")
@@ -97,6 +86,8 @@ def isolate_test_environment(tmp_path, monkeypatch, request):
     test_runs = os.path.join(temp_dir, "sync_runs.json")
     test_db = os.path.join(temp_dir, "alerts_data.json")
     test_prof = os.path.join(temp_dir, "user_profiles.json")
+    test_crypto_cat = os.path.join(temp_dir, "crypto_catalogs")
+    os.makedirs(test_crypto_cat, exist_ok=True)
 
     # Seed with real catalog.json so read-only tests succeed seamlessly
     real_cat = os.path.abspath("catalog.json")
@@ -110,6 +101,7 @@ def isolate_test_environment(tmp_path, monkeypatch, request):
     monkeypatch.setattr(config, "SYNC_RUNS_FILE", test_runs)
     monkeypatch.setattr(config, "ALERTS_DATA_FILE", test_db)
     monkeypatch.setattr(config, "USER_PROFILES_FILE", test_prof)
+    monkeypatch.setattr(config, "CRYPTO_CATALOG_DIR", test_crypto_cat)
     # WS-OFF-1: WS_ENABLED is false in production. Most tests (including all
     # WebSocket tests) need it on. test_ws_disabled.py sets it to False
     # explicitly via monkeypatch, which overrides this.
