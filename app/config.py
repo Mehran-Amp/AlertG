@@ -120,7 +120,8 @@ CRYPTO_VALIDATE_ALERTS = os.getenv("CRYPTO_VALIDATE_ALERTS", "false").strip().lo
 # Phase 5: Dynamic Crypto Exchange Catalogs & Safety Settings
 CRYPTO_CATALOG_DIR = os.getenv("CRYPTO_CATALOG_DIR") or (os.path.join(DATA_DIR, "crypto_catalogs") if DATA_DIR != "." else "crypto_catalogs")
 CRYPTO_CATALOG_SYNC_ENABLED = os.getenv("CRYPTO_CATALOG_SYNC_ENABLED", "true").strip().lower() in ("1", "true", "yes", "on")
-CRYPTO_CATALOG_SYNC_INTERVAL_HOURS = int(os.getenv("CRYPTO_CATALOG_SYNC_INTERVAL_HOURS", "6"))
+CRYPTO_CATALOG_SYNC_INTERVAL_HOURS = int(os.getenv("CRYPTO_CATALOG_SYNC_INTERVAL_HOURS", os.getenv("CRYPTO_CATALOG_SYNC_HOURS", "2")))
+CRYPTO_CATALOG_SYNC_HOURS = float(os.getenv("CRYPTO_CATALOG_SYNC_HOURS", str(CRYPTO_CATALOG_SYNC_INTERVAL_HOURS)))
 CRYPTO_CATALOG_MIN_PAIRS = int(os.getenv("CRYPTO_CATALOG_MIN_PAIRS", "20"))
 CRYPTO_CATALOG_MAX_DROP_RATIO = float(os.getenv("CRYPTO_CATALOG_MAX_DROP_RATIO", "0.50"))
 CRYPTO_CATALOG_MIN_RATIO = float(os.getenv("CRYPTO_CATALOG_MIN_RATIO", "0.7"))

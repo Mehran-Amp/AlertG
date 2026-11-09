@@ -148,10 +148,10 @@ def setup_scheduler_jobs(sched):
         misfire_grace_time=15,
         id='advance_reminders_30s_job'
     )
-    # Crypto Dynamic Catalogs Periodic Job (Phase 5)
+    # Crypto Dynamic Catalogs Periodic Job (Phase 5 / CS3: default 2h)
     try:
         from app.markets.crypto_catalog import crypto_catalog_sync_job, DEFAULT_SYNC_HOURS
-        sync_hours = float(os.getenv("CRYPTO_CATALOG_SYNC_HOURS", str(DEFAULT_SYNC_HOURS)))
+        sync_hours = float(os.getenv("CRYPTO_CATALOG_SYNC_HOURS", getattr(config, "CRYPTO_CATALOG_SYNC_HOURS", DEFAULT_SYNC_HOURS)))
         sched.add_job(
             crypto_catalog_sync_job,
             'interval',
@@ -197,16 +197,89 @@ async def _run_background_market_refresh(client: httpx.AsyncClient):
     except Exception as e:
         logger.exception(f"⚠️ [Startup Background] refresh_market_events failed: {e}")
 
+async def _run_stale_catalogs_retry_worker(initial_stale_exchanges: List[str]):
+    """
+    Phase CS3: Startup Retry Worker.
+    If any catalog is stale after startup, re-syncs only those exchanges every
+    5 minutes until healthy, then stop.
+    Logs start / ok / abort lines.
+    """
+    logger.info(f"[CatalogSync] retry start (stale={sorted(initial_stale_exchanges)})")
+    retry_interval = int(os.getenv("CRYPTO_CATALOG_RETRY_INTERVAL_SECONDS", "300"))
+
+    try:
+        while True:
+            await asyncio.sleep(retry_interval)
+
+            from app.markets.crypto_catalog import (
+                get_crypto_catalogs_status,
+                sync_single_exchange_catalog,
+            )
+            status = get_crypto_catalogs_status()
+            current_stale = [
+                ex_id for ex_id, info in status.get("exchanges", {}).items()
+                if info.get("is_stale", True) or not info.get("file_exists", False)
+            ]
+
+            if not current_stale:
+                logger.info("[CatalogSync] retry ok (all exchanges healthy, stopping retry worker)")
+                break
+
+            logger.info(f"[CatalogSync] retry cycle start (stale={sorted(current_stale)})")
+            for ex_id in current_stale:
+                try:
+                    res = await sync_single_exchange_catalog(ex_id)
+                    if res.get("success"):
+                        logger.info(
+                            f"[CatalogSync] retry ok (ex={ex_id}, total={res.get('total_pairs')})"
+                        )
+                    else:
+                        logger.warning(
+                            f"[CatalogSync] retry fail (ex={ex_id}, err={res.get('error_code')} - {res.get('error')})"
+                        )
+                except asyncio.CancelledError:
+                    raise
+                except Exception as ex:
+                    logger.warning(f"[CatalogSync] retry error (ex={ex_id}, exc={ex})")
+
+            # Check if all became healthy after this cycle
+            status_after = get_crypto_catalogs_status()
+            remaining_stale = [
+                ex_id for ex_id, info in status_after.get("exchanges", {}).items()
+                if info.get("is_stale", True) or not info.get("file_exists", False)
+            ]
+            if not remaining_stale:
+                logger.info("[CatalogSync] retry ok (all exchanges healthy, stopping retry worker)")
+                break
+
+    except asyncio.CancelledError:
+        logger.info("[CatalogSync] retry abort (worker cancelled)")
+        raise
+    except Exception as e:
+        logger.error(f"[CatalogSync] retry abort (unexpected error: {e})")
+
 async def _run_background_crypto_catalog_sync():
     logger.info("[CatalogSync] startup start")
     t0 = time.perf_counter()
     try:
-        from app.markets.crypto_catalog import sync_all_crypto_catalogs
+        from app.markets.crypto_catalog import sync_all_crypto_catalogs, get_crypto_catalogs_status
         res = await sync_all_crypto_catalogs()
         ms = round((time.perf_counter() - t0) * 1000.0, 1)
         ok_count = res.get("success_count", 0) if isinstance(res, dict) else 0
         total_count = res.get("total_exchanges", 0) if isinstance(res, dict) else 0
         logger.info(f"[CatalogSync] startup end (ok={ok_count}/{total_count}, {ms}ms)")
+
+        # Phase CS3: After startup, if any catalog is stale, re-sync only those exchanges
+        # every 5 minutes until healthy, then stop.
+        status = get_crypto_catalogs_status()
+        stale_exchanges = [
+            ex_id for ex_id, info in status.get("exchanges", {}).items()
+            if info.get("is_stale", True) or not info.get("file_exists", False)
+        ]
+        if stale_exchanges:
+            retry_task = asyncio.create_task(_run_stale_catalogs_retry_worker(stale_exchanges))
+            _SERVER_BG_TASKS.add(retry_task)
+            retry_task.add_done_callback(_SERVER_BG_TASKS.discard)
     except Exception as e:
         ms = round((time.perf_counter() - t0) * 1000.0, 1)
         logger.warning(f"[CatalogSync] startup error after {ms}ms: {e}")

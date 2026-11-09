@@ -52,7 +52,7 @@ def get_supported_crypto_exchanges() -> List[str]:
 
 # Module-level alias for backward compatibility with existing tests and imports
 SUPPORTED_CRYPTO_EXCHANGES = get_supported_crypto_exchanges()
-DEFAULT_SYNC_HOURS = 6
+DEFAULT_SYNC_HOURS = 2
 
 
 class CryptoCatalogSafetyError(Exception):
