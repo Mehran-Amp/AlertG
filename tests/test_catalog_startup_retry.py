@@ -70,7 +70,7 @@ class TestCatalogStartupRetry(unittest.IsolatedAsyncioTestCase):
         with patch.dict(os.environ, {"CRYPTO_CATALOG_RETRY_INTERVAL_SECONDS": "0"}), \
              patch("app.markets.crypto_catalog.sync_single_exchange_catalog", mock_sync_single), \
              patch("app.markets.crypto_catalog.get_crypto_catalogs_status", side_effect=[status_1, status_2]), \
-             self.assertLogs("signalalert.server", level="INFO") as cm:
+             self.assertLogs(server.logger, level="INFO") as cm:
 
             await server._run_stale_catalogs_retry_worker(["binance"])
 
@@ -86,7 +86,7 @@ class TestCatalogStartupRetry(unittest.IsolatedAsyncioTestCase):
     async def test_03_retry_worker_logs_abort_on_cancellation(self):
         """3. When retry worker is cancelled, logs [CatalogSync] retry abort."""
         with patch.dict(os.environ, {"CRYPTO_CATALOG_RETRY_INTERVAL_SECONDS": "60"}), \
-             self.assertLogs("signalalert.server", level="INFO") as cm:
+             self.assertLogs(server.logger, level="INFO") as cm:
 
             task = asyncio.create_task(server._run_stale_catalogs_retry_worker(["okx"]))
             await asyncio.sleep(0.01)
