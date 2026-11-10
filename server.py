@@ -29,9 +29,16 @@ from app.security import (
     _normalize_sync_item, AccessLogMaskFilter
 )
 import logging
+import sys
 logger = logging.getLogger("signalalert")
+logger.setLevel(logging.INFO)
+if not logger.handlers:
+    _sh = logging.StreamHandler(sys.stdout)
+    _sh.setLevel(logging.INFO)
+    _sh.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S"))
+    logger.addHandler(_sh)
 _mask_filter = AccessLogMaskFilter()
-for _logger_name in ("uvicorn.access", "uvicorn", "fastapi", ""):
+for _logger_name in ("uvicorn.access", "uvicorn", "fastapi", "", "signalalert"):
     logging.getLogger(_logger_name).addFilter(_mask_filter)
 from app.models import (
     AlertCreate, Alert, AlertPublic,
@@ -357,10 +364,21 @@ async def lifespan(app: FastAPI):
             pass
     if bg_market_task and not bg_market_task.done():
         bg_market_task.cancel()
-    if tg_task:
-        tg_task.cancel()
-    outbox_task.cancel()
     scheduler.shutdown(wait=False)
+
+    # Phase H3 / H3b: Cancel and await all active background tasks (including tg_task and outbox_task)
+    # before state.http_client.aclose()
+    tasks_to_cancel = [t for t in list(_SERVER_BG_TASKS) if not t.done()]
+    if tg_task and not tg_task.done() and tg_task not in tasks_to_cancel:
+        tasks_to_cancel.append(tg_task)
+    if outbox_task and not outbox_task.done() and outbox_task not in tasks_to_cancel:
+        tasks_to_cancel.append(outbox_task)
+
+    for task in tasks_to_cancel:
+        task.cancel()
+    if tasks_to_cancel:
+        await asyncio.gather(*tasks_to_cancel, return_exceptions=True)
+
     if state.http_client:
         await state.http_client.aclose()
     print("🛑 [SignalAlert Engine] Gracefully stopped.")

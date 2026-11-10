@@ -64,7 +64,7 @@ start() {
         echo -e "    • FastAPI Application & Web UI"
         echo -e "    • 2-Second Price Alert Checker Scheduler"
         echo -e "    • 24-Hour Macroeconomics Alert Evaluator"
-        echo -e "    • Weekly Catalog Sync Scheduler"
+        echo -e "    • 2-Hour Crypto Catalog Sync Scheduler"
         echo -e "    • Telegram Bot Polling Worker"
         echo -e "    • Outbox FCM, Telegram & Webhook Dispatcher"
     else

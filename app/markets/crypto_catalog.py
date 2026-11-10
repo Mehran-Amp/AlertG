@@ -33,6 +33,7 @@ from app.markets.crypto_registry import (
 )
 
 logger = logging.getLogger("signalalert.crypto_catalog")
+logger.setLevel(logging.INFO)
 
 
 async def _safe_notify_admin(message: str, client: Optional[httpx.AsyncClient] = None):
