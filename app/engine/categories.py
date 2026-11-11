@@ -14,6 +14,7 @@ CATEGORY_CACHE_TTL: Dict[str, float] = {
     'macro': 60.0,
     'bond': 60.0,
     'iran_market': 60.0,
+    'iran_bourse': 3.0,
     'iran_crypto': 5.0,
     'crypto': 2.0,
     'default': 2.0
@@ -37,6 +38,7 @@ CATEGORY_OUTLIER_THRESHOLDS: Dict[str, float] = {
     'crypto': 0.50,
     'iran_crypto': 1.00,
     'iran_market': 0.50,
+    'iran_bourse': 0.50,
     'default': 0.50
 }
 
@@ -89,6 +91,10 @@ def resolve_symbol_category(exchange: str, symbol: Optional[str] = None) -> str:
         exchange = 'global_stocks'
     ex = (exchange or '').lower().strip()
     sym = (symbol or '').upper().strip()
+
+    # Iranian Bourse (TSETMC via tsetmc-gateway) is its own market, separate from iran_market.
+    if ex == 'tsetmc':
+        return 'iran_bourse'
 
     # 0. Registered crypto exchanges immediately classify by their registered category (e.g. 'crypto' or 'iran_crypto')
     try:

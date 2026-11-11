@@ -1,0 +1,20 @@
+{
+  "active_window": true,
+  "age_seconds": 0.0,
+  "h": 180000,
+  "instruments": 1,
+  "ready": true,
+  "refid": 16375067522,
+  "seq": 1,
+  "stale": false,
+  "stats": {
+    "bad_rows": 0,
+    "errors": 0,
+    "init_ok": 1,
+    "last_error": null,
+    "plus_ok": 0,
+    "unknown_ids": 0
+  },
+  "status": "ok",
+  "version": "0.2.2"
+}
