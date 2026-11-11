@@ -139,3 +139,13 @@ CRYPTO_STREAM_OKX = os.getenv("CRYPTO_STREAM_OKX", "false").strip().lower() in (
 
 
 
+
+# Iranian Bourse (TSETMC) via the tsetmc-gateway service. Separate market; OFF by default.
+IRAN_BOURSE_ENABLED = os.getenv("IRAN_BOURSE_ENABLED", "false").strip().lower() in ("1", "true", "yes", "on")
+IRAN_BOURSE_GATEWAY_URL = os.getenv("IRAN_BOURSE_GATEWAY_URL", "").strip()
+IRAN_BOURSE_GATEWAY_KEY = os.getenv("IRAN_BOURSE_GATEWAY_KEY", "").strip()
+IRAN_BOURSE_ALLOWED_VERSIONS = [v.strip() for v in os.getenv("IRAN_BOURSE_ALLOWED_VERSIONS", "0.2.2").split(",") if v.strip()]
+IRAN_BOURSE_POLL_SECONDS = max(3.0, float(os.getenv("IRAN_BOURSE_POLL_SECONDS", "5")))
+IRAN_BOURSE_STALE_SECONDS = float(os.getenv("IRAN_BOURSE_STALE_SECONDS", "60"))
+IRAN_BOURSE_HTTP_TIMEOUT = float(os.getenv("IRAN_BOURSE_HTTP_TIMEOUT", "5"))
+IRAN_BOURSE_ALLOWED_USER_IDS = [u.strip() for u in os.getenv("IRAN_BOURSE_ALLOWED_USER_IDS", "").split(",") if u.strip()]
