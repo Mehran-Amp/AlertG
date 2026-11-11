@@ -88,3 +88,8 @@ device_health.json
 server.pid
 alerts_data.json.empty
 catalog_snapshots/staging/
+
+# Runtime locks & snapshots
+crypto_poller.lock
+catalog_snapshots/
+FETCH_HEAD
