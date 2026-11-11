@@ -18,6 +18,7 @@ Manages per-exchange isolated symbol catalogs:
 import os
 import time
 import json
+import html
 import logging
 import tempfile
 import asyncio
@@ -508,6 +509,12 @@ async def sync_all_crypto_catalogs(
                     "is_stale": True
                 }
 
+        # Phase CS5: Trigger operational staleness alert if any active catalog remains stale > 6h
+        try:
+            await check_and_alert_stale_catalogs(override_dir=override_dir, client=client)
+        except Exception as alert_err:
+            logger.warning(f"[CatalogSync] Staleness alert evaluation notice: {alert_err}")
+
         return {
             "timestamp": int(time.time()),
             "total_exchanges": len(supported),
@@ -519,6 +526,90 @@ async def sync_all_crypto_catalogs(
             res = client.aclose()
             if hasattr(res, "__await__"):
                 await res
+
+
+_STALE_ALERT_COOLDOWN: Dict[str, float] = {}
+
+
+async def check_and_alert_stale_catalogs(
+    override_dir: Optional[str] = None,
+    client: Optional[httpx.AsyncClient] = None,
+    max_stale_hours: Optional[float] = None,
+    cooldown_seconds: Optional[float] = None,
+    force_alert: bool = False
+) -> List[str]:
+    """
+    Phase CS5: Inspects all active global crypto catalogs on disk.
+    If any catalog remains stale for longer than max_stale_hours (default 6.0 hours),
+    dispatches an operational warning to the admin via Telegram with per-exchange cooldown.
+    Returns list of exchange IDs that were alerted.
+    """
+    if max_stale_hours is None:
+        max_stale_hours = float(getattr(config, "CRYPTO_CATALOG_MAX_STALE_HOURS", 6.0))
+    max_stale_sec = max_stale_hours * 3600.0
+
+    if cooldown_seconds is None:
+        cooldown_seconds = float(getattr(config, "CRYPTO_CATALOG_ALERT_COOLDOWN_SECONDS", max_stale_sec))
+
+    now_ts = time.time()
+    alerted: List[str] = []
+    supported = get_supported_crypto_exchanges()  # 16 active global exchanges
+
+    for ex_id in supported:
+        meta = get_crypto_exchange(ex_id)
+        display_name = meta.name if meta else ex_id.upper()
+        path = get_catalog_path(ex_id, override_dir)
+
+        is_stale_over_limit = False
+        age_str = "Never synced"
+        pairs_count = 0
+        last_error = None
+
+        if not os.path.exists(path):
+            is_stale_over_limit = True
+            last_error = "Catalog file does not exist yet"
+        else:
+            cat = load_exchange_catalog(ex_id, override_dir)
+            raw_updated_at = cat.get("updated_at")
+            pairs_count = cat.get("total_pairs", len(cat.get("pairs", [])))
+            last_error = cat.get("error") or cat.get("last_error")
+
+            age_sec = _calc_age_seconds(raw_updated_at, int(now_ts))
+            if age_sec is None or age_sec > max_stale_sec:
+                is_stale_over_limit = True
+                if age_sec is not None:
+                    hrs = round(age_sec / 3600.0, 1)
+                    age_str = f"{hrs}h ago ({int(age_sec)}s)"
+            else:
+                hrs = round(age_sec / 3600.0, 1)
+                age_str = f"{hrs}h ago"
+
+        if is_stale_over_limit:
+            last_alert = _STALE_ALERT_COOLDOWN.get(ex_id, 0.0)
+            if not force_alert and (now_ts - last_alert) < cooldown_seconds:
+                logger.debug(f"[CatalogSync] Stale alert for {ex_id} throttled by cooldown")
+                continue
+
+            _STALE_ALERT_COOLDOWN[ex_id] = now_ts
+            alerted.append(ex_id)
+
+            err_line = f"\n⚠️ آخرین خطا: <code>{html.escape(str(last_error))}</code>" if last_error else ""
+            alert_msg = (
+                f"🚨 <b>[هشدار ماندگاری کاتالوگ کریپتو - Crypto Catalog Staleness]</b>\n"
+                f"━━━━━━━━━━━━━━━━━━\n"
+                f"🏦 صرافی: <b>{html.escape(display_name)}</b> (<code>{ex_id}</code>)\n"
+                f"⏱ سن کاتالوگ: <b>{age_str}</b> (بیش از {max_stale_hours} ساعت!)\n"
+                f"📊 تعداد جفت‌ارزها: <code>{pairs_count}</code>\n"
+                f"⚡ وضعیت: کاتالوگ به‌روزرسانی نشده و منقضی است.{err_line}\n"
+                f"🔄 بررسی وضعیت در اندپوینت /api/admin/crypto-catalog/status"
+            )
+
+            logger.warning(
+                f"[CatalogSync] STALE ALERT triggered for ex={ex_id} (age={age_str}, limit={max_stale_hours}h)"
+            )
+            await _safe_notify_admin(alert_msg, client=client)
+
+    return alerted
 
 
 def _format_iso_timestamp(ts: Any) -> Optional[str]:
