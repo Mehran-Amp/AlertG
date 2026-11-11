@@ -89,7 +89,6 @@ server.pid
 alerts_data.json.empty
 catalog_snapshots/staging/
 
-# Runtime locks & snapshots
+# Runtime locks
 crypto_poller.lock
-catalog_snapshots/
 FETCH_HEAD
