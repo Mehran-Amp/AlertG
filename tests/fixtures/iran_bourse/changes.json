@@ -1,0 +1,56 @@
+{
+  "data": [
+    {
+      "best_ask": {
+        "orders": 1,
+        "price": 693731,
+        "volume": 33526
+      },
+      "best_bid": {
+        "orders": 15,
+        "price": 693730,
+        "volume": 3559
+      },
+      "board": null,
+      "board_code": "QS",
+      "close": 693152,
+      "close_change": 7675,
+      "close_change_pct": 1.12,
+      "eps": null,
+      "first": 688000,
+      "high": 698300,
+      "id": "34144395039913458",
+      "isin": "IRTKMOFD0001",
+      "last": 693731,
+      "last_change": 8254,
+      "last_change_pct": 1.2,
+      "low": 685231,
+      "lower_limit": 616930,
+      "market": null,
+      "market_code": "7",
+      "name": "صندوق طلای عیار مفید",
+      "nav": 699728,
+      "queue": null,
+      "rev": 1,
+      "sector": "صندوق سرمایه‌گذاری قابل معامله",
+      "sector_code": "68",
+      "ticker": "عیار",
+      "traded": true,
+      "trades": 77985,
+      "type": "صندوق کالایی",
+      "type_code": "380",
+      "update_time": "18:00:00",
+      "upper_limit": 754024,
+      "value": 48149551437447,
+      "volume": 69464602,
+      "yesterday": 685477
+    }
+  ],
+  "meta": {
+    "age_seconds": 0.0,
+    "seq": 1,
+    "stale": false,
+    "unit": "IRR",
+    "updated_at": "2026-11-11T21:59:02.077314+00:00"
+  }
+}
