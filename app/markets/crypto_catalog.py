@@ -21,7 +21,8 @@ import json
 import logging
 import tempfile
 import asyncio
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Dict, Any, Optional, List, Tuple, Union
+from datetime import datetime, timezone
 
 import httpx
 
@@ -520,53 +521,149 @@ async def sync_all_crypto_catalogs(
                 await res
 
 
+def _format_iso_timestamp(ts: Any) -> Optional[str]:
+    """Formats epoch timestamp or ISO string to canonical ISO-8601 UTC string (e.g. 2026-11-11T10:15:21Z)."""
+    if ts is None:
+        return None
+    if isinstance(ts, (int, float)):
+        try:
+            return datetime.fromtimestamp(float(ts), timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        except (ValueError, TypeError, OverflowError):
+            return None
+    if isinstance(ts, str):
+        if "T" in ts or "-" in ts:
+            return ts
+        try:
+            val = float(ts)
+            return datetime.fromtimestamp(val, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        except Exception:
+            return ts
+    return None
+
+
+def _calc_age_seconds(ts: Any, now_ts: int) -> Optional[int]:
+    """Computes elapsed seconds since catalog update timestamp."""
+    if ts is None:
+        return None
+    if isinstance(ts, (int, float)):
+        try:
+            return max(0, int(now_ts - float(ts)))
+        except (ValueError, TypeError, OverflowError):
+            return None
+    if isinstance(ts, str):
+        try:
+            val = float(ts)
+            return max(0, int(now_ts - val))
+        except ValueError:
+            pass
+        try:
+            dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+            return max(0, int(now_ts - dt.timestamp()))
+        except Exception:
+            return None
+    return None
+
+
 def get_crypto_catalogs_status(override_dir: Optional[str] = None) -> Dict[str, Any]:
     """
-    Returns high-level health and status of all active exchange catalogs on disk.
-    Enforces Staleness by Age: Catalogs older than 2 sync intervals (12 hours) are flagged is_stale=True.
+    Phase CS4: Returns high-level health and status of all active exchange catalogs on disk.
+    Covers both global (16) and Iranian (2) active exchanges.
+    Enforces Staleness by Age: Catalogs older than CRYPTO_CATALOG_MAX_AGE_SECONDS
+    (default 2 sync intervals = 4 hours) are flagged is_stale=True.
     """
+    from app.markets.crypto_registry import _CRYPTO_EXCHANGES
+
     c_dir = get_catalog_dir(override_dir)
     status_map: Dict[str, Any] = {}
-    supported = get_supported_crypto_exchanges()
+    supported_global = get_supported_crypto_exchanges()  # 16 active global
+    supported_iran = [
+        e.id for e in _CRYPTO_EXCHANGES.values()
+        if e.status == 'active' and e.category == 'iran_crypto'
+    ]  # 2 active iran (tabdeal, kifpool)
+    all_active = supported_global + supported_iran
+
     now_ts = int(time.time())
     max_age_seconds = getattr(config, "CRYPTO_CATALOG_MAX_AGE_SECONDS", DEFAULT_SYNC_HOURS * 2 * 3600)
 
-    for ex_id in supported:
+    for ex_id in all_active:
+        meta = get_crypto_exchange(ex_id)
+        category = meta.category if meta else "unknown"
+        display_name = meta.name if meta else ex_id
         path = get_catalog_path(ex_id, override_dir)
+
         if not os.path.exists(path):
             status_map[ex_id] = {
                 "file_exists": False,
                 "total_pairs": 0,
                 "updated_at": None,
+                "updated_at_raw": None,
+                "updated_at_iso": None,
+                "age_seconds": None,
                 "is_stale": True,
-                "error": "Catalog file does not exist yet"
+                "error": "Catalog file does not exist yet",
+                "last_error": "Catalog file does not exist yet",
+                "category": category,
+                "display_name": display_name,
             }
             continue
 
         cat = load_exchange_catalog(ex_id, override_dir)
-        updated_at = cat.get("updated_at")
+        raw_updated_at = cat.get("updated_at")
+        updated_at_iso = _format_iso_timestamp(raw_updated_at)
+        age_sec = _calc_age_seconds(raw_updated_at, now_ts)
+
         is_stale_flag = cat.get("is_stale", False)
         is_stale_by_age = False
-        if updated_at:
-            try:
-                age_sec = now_ts - int(updated_at)
-                if age_sec > max_age_seconds:
-                    is_stale_by_age = True
-            except (ValueError, TypeError):
-                is_stale_by_age = True
+        if age_sec is not None and age_sec > max_age_seconds:
+            is_stale_by_age = True
+
+        is_stale = bool(is_stale_flag or is_stale_by_age)
+        error_msg = cat.get("error") or cat.get("last_error")
+        if not error_msg and is_stale_by_age:
+            error_msg = f"Catalog data is stale by age (> {int(max_age_seconds / 3600)}h)"
 
         status_map[ex_id] = {
             "file_exists": True,
             "total_pairs": cat.get("total_pairs", len(cat.get("pairs", []))),
-            "updated_at": updated_at,
-            "is_stale": is_stale_flag or is_stale_by_age,
-            "error": cat.get("error") or ("Catalog data is stale by age (> 12h)" if is_stale_by_age else None)
+            "updated_at": updated_at_iso,
+            "updated_at_raw": raw_updated_at,
+            "updated_at_iso": updated_at_iso,
+            "age_seconds": age_sec,
+            "is_stale": is_stale,
+            "error": error_msg,
+            "last_error": error_msg,
+            "category": category,
+            "display_name": display_name,
         }
+
+    # Summary Statistics
+    healthy_count = sum(1 for s in status_map.values() if s.get("file_exists") and not s.get("is_stale"))
+    stale_count = sum(1 for s in status_map.values() if s.get("is_stale") or not s.get("file_exists"))
+    valid_ages = [s["age_seconds"] for s in status_map.values() if s.get("age_seconds") is not None]
+    oldest_catalog_age_minutes = round(max(valid_ages) / 60.0, 1) if valid_ages else None
+
+    summary = {
+        "total_active": len(all_active),
+        "total_global": len(supported_global),
+        "total_iran": len(supported_iran),
+        "healthy_count": healthy_count,
+        "stale_count": stale_count,
+        "oldest_catalog_age_minutes": oldest_catalog_age_minutes,
+    }
 
     return {
         "catalogs_dir": c_dir,
-        "total_exchanges": len(supported),
-        "exchanges": status_map
+        "total_exchanges": len(supported_global),
+        "total_active_exchanges": len(all_active),
+        "total_global_exchanges": len(supported_global),
+        "total_iran_exchanges": len(supported_iran),
+        "healthy_count": healthy_count,
+        "stale_count": stale_count,
+        "oldest_catalog_age_minutes": oldest_catalog_age_minutes,
+        "summary": summary,
+        "exchanges": status_map,
+        "iran_exchanges": {k: v for k, v in status_map.items() if v.get("category") == "iran_crypto"},
+        "global_exchanges": {k: v for k, v in status_map.items() if v.get("category") != "iran_crypto"},
     }
 
 

@@ -225,7 +225,8 @@ async def _run_stale_catalogs_retry_worker(initial_stale_exchanges: List[str]):
             status = get_crypto_catalogs_status()
             current_stale = [
                 ex_id for ex_id, info in status.get("exchanges", {}).items()
-                if info.get("is_stale", True) or not info.get("file_exists", False)
+                if (info.get("is_stale", True) or not info.get("file_exists", False))
+                and info.get("category") != "iran_crypto"
             ]
 
             if not current_stale:
@@ -253,7 +254,8 @@ async def _run_stale_catalogs_retry_worker(initial_stale_exchanges: List[str]):
             status_after = get_crypto_catalogs_status()
             remaining_stale = [
                 ex_id for ex_id, info in status_after.get("exchanges", {}).items()
-                if info.get("is_stale", True) or not info.get("file_exists", False)
+                if (info.get("is_stale", True) or not info.get("file_exists", False))
+                and info.get("category") != "iran_crypto"
             ]
             if not remaining_stale:
                 logger.info("[CatalogSync] retry ok (all exchanges healthy, stopping retry worker)")
@@ -281,7 +283,8 @@ async def _run_background_crypto_catalog_sync():
         status = get_crypto_catalogs_status()
         stale_exchanges = [
             ex_id for ex_id, info in status.get("exchanges", {}).items()
-            if info.get("is_stale", True) or not info.get("file_exists", False)
+            if (info.get("is_stale", True) or not info.get("file_exists", False))
+            and info.get("category") != "iran_crypto"
         ]
         if stale_exchanges:
             retry_task = asyncio.create_task(_run_stale_catalogs_retry_worker(stale_exchanges))

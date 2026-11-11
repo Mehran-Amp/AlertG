@@ -114,6 +114,7 @@ def get_status_dashboard(format: Optional[str] = None, accept: Optional[str] = H
             "providers": providers_status,
             "last_catalog_sync": last_sync,
             "crypto_catalogs": crypto_catalogs_data,
+            "crypto_catalog_health": crypto_catalogs_data.get("summary", {}),
             "crypto_latency": crypto_latency_stats,
             "crypto_poll_p50_ms": crypto_latency_stats.get("p50_ms", 0.0),
             "crypto_poll_p95_ms": crypto_latency_stats.get("p95_ms", 0.0),
@@ -208,6 +209,44 @@ def get_status_dashboard(format: Optional[str] = None, accept: Optional[str] = H
 
     latency_display = f"{latency_stats['avg_ms']}ms / {latency_stats['p95_ms']}ms" if latency_stats.get("avg_ms") is not None else "N/A"
     unacked_color = "#ef4444" if unacked_count > 0 else "#94a3b8"
+
+    # Crypto Exchange Catalogs HTML preparation (Phase CS4)
+    crypto_summary = crypto_catalogs_data.get("summary", {})
+    crypto_exchanges = crypto_catalogs_data.get("exchanges", {})
+    crypto_healthy_cnt = crypto_summary.get("healthy_count", 0)
+    crypto_stale_cnt = crypto_summary.get("stale_count", 0)
+    crypto_total_active = crypto_summary.get("total_active", len(crypto_exchanges))
+    crypto_oldest_age = f"{crypto_summary.get('oldest_catalog_age_minutes', 0)}m" if crypto_summary.get("oldest_catalog_age_minutes") is not None else "N/A"
+    crypto_overall_color = "#10b981" if crypto_stale_cnt == 0 else "#f59e0b"
+
+    crypto_rows = ""
+    for ex_id, c_stat in sorted(crypto_exchanges.items()):
+        is_stale = c_stat.get("is_stale", True)
+        file_exists = c_stat.get("file_exists", False)
+        if file_exists and not is_stale:
+            c_badge = '<span style="background:#10b98125;color:#10b981;padding:3px 8px;border-radius:6px;font-weight:bold;font-size:11px;">HEALTHY</span>'
+        elif file_exists and is_stale:
+            c_badge = '<span style="background:#f59e0b25;color:#f59e0b;padding:3px 8px;border-radius:6px;font-weight:bold;font-size:11px;">STALE</span>'
+        else:
+            c_badge = '<span style="background:#ef444425;color:#ef4444;padding:3px 8px;border-radius:6px;font-weight:bold;font-size:11px;">MISSING</span>'
+
+        cat_badge = '<span style="background:#38bdf820;color:#38bdf8;padding:2px 6px;border-radius:4px;font-size:11px;">Global</span>' if c_stat.get("category") != "iran_crypto" else '<span style="background:#f43f5e20;color:#f43f5e;padding:2px 6px;border-radius:4px;font-size:11px;">Iran</span>'
+        age_str = f"{round(c_stat['age_seconds']/60, 1)}m ago" if c_stat.get("age_seconds") is not None else "Never"
+        err_str = c_stat.get("last_error") or "-"
+        err_color = "#ef4444" if c_stat.get("last_error") else "#64748b"
+
+        crypto_rows += f"""
+        <tr>
+            <td style="font-weight:bold;font-family:monospace;color:#f8fafc;">{html.escape(str(c_stat.get("display_name", ex_id)))} <code style="color:#94a3b8;font-size:11px;">({html.escape(str(ex_id))})</code></td>
+            <td>{cat_badge}</td>
+            <td style="font-family:monospace;font-weight:bold;color:#38bdf8;">{c_stat.get("total_pairs", 0):,}</td>
+            <td>{c_badge}</td>
+            <td style="font-size:12px;color:#94a3b8;font-family:monospace;">{age_str}</td>
+            <td style="font-size:11px;color:#64748b;font-family:monospace;">{html.escape(str(c_stat.get("updated_at") or "-"))}</td>
+            <td style="font-size:11px;color:{err_color};max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{html.escape(str(err_str))}</td>
+        </tr>
+        """
+
 
     page = f"""
     <!DOCTYPE html>
@@ -331,6 +370,50 @@ def get_status_dashboard(format: Optional[str] = None, accept: Optional[str] = H
                 {sync_err_html}
             </div>
 
+            <!-- Dynamic Crypto Exchange Catalogs Health (Phase CS4) -->
+            <div class="section-title">
+                <span>🪙 Crypto Exchange Catalogs Health (وضعیت کاتالوگ صرافی‌های کریپتو)</span>
+                <span style="font-size:12px;color:{crypto_overall_color};font-weight:bold;">● {crypto_healthy_cnt}/{crypto_total_active} Healthy (16 Global + 2 Iran)</span>
+            </div>
+            <div class="card" style="margin-bottom:16px;">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));gap:16px;">
+                    <div>
+                        <div class="card-title">Total Active Exchanges</div>
+                        <div style="font-size:18px;font-weight:bold;color:#38bdf8;">{crypto_total_active} <span style="font-size:12px;color:#94a3b8;">(16 Global / 2 Iran)</span></div>
+                    </div>
+                    <div>
+                        <div class="card-title">Healthy Catalogs</div>
+                        <div style="font-size:18px;font-weight:bold;color:#10b981;">{crypto_healthy_cnt}</div>
+                    </div>
+                    <div>
+                        <div class="card-title">Stale / Missing</div>
+                        <div style="font-size:18px;font-weight:bold;color:{'#10b981' if crypto_stale_cnt == 0 else '#f59e0b'};">{crypto_stale_cnt}</div>
+                    </div>
+                    <div>
+                        <div class="card-title">Oldest Catalog Age</div>
+                        <div style="font-size:18px;font-weight:bold;color:#f8fafc;">{crypto_oldest_age}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Exchange</th>
+                            <th>Market</th>
+                            <th>Pairs</th>
+                            <th>Health</th>
+                            <th>Age</th>
+                            <th>Updated At (UTC)</th>
+                            <th>Last Status / Error</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {crypto_rows}
+                    </tbody>
+                </table>
+            </div>
+
             <!-- Failing Symbols -->
             <div class="section-title">
                 <span>⚠️ Failing Symbols (نمادهای خطادار اخیر)</span>
@@ -389,6 +472,25 @@ def get_status_dashboard(format: Optional[str] = None, accept: Optional[str] = H
     </html>
     """
     return HTMLResponse(content=page)
+ 
+@router.get("/health", dependencies=API_DEP)
+@router.get("/api/health", dependencies=API_DEP)
+def get_health_summary():
+    """
+    Standard health check endpoint exposing uptime, overall engine state,
+    and dynamic crypto catalog health summary.
+    """
+    from app.markets.crypto_catalog import get_crypto_catalogs_status
+    uptime_sec = int(time.time() - METRICS.get("start_time", time.time()))
+    catalogs_status = get_crypto_catalogs_status()
+    summary = catalogs_status.get("summary", {})
+    return {
+        "status": "healthy" if summary.get("stale_count", 0) == 0 else "degraded",
+        "uptime_seconds": uptime_sec,
+        "engine": f"SignalAlert Enterprise Engine v{APP_VERSION}",
+        "crypto_catalogs": catalogs_status,
+        "crypto_catalog_health": summary,
+    }
 
 @router.get("/health/deep", dependencies=API_DEP)
 @router.get("/api/health/deep", dependencies=API_DEP)
