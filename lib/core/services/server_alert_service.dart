@@ -992,6 +992,139 @@ class ServerAlertService {
     return null;
   }
 
+  /// Fetch live price with granular diagnostics and reason breakdown via Python server proxy.
+  ///
+  /// Returns a Map containing:
+  /// - `price`: double? (positive live price, or null if failed / nonpositive)
+  /// - `httpStatus`: int? (HTTP response status code, or null on timeout/network error)
+  /// - `reason`: String? (null on success, or one of: 'http_<code>', 'timeout', 'network', 'bad_body', 'nonpositive')
+  /// - `ms`: int (elapsed request time in milliseconds)
+  /// - `asOf`: int? (server epoch timestamp in seconds, if available)
+  /// - `state`: String? (canonical market state e.g. 'LIVE', if available)
+  /// - `source`: String? (upstream source e.g. 'binance', if available)
+  static Future<Map<String, dynamic>> fetchPriceViaServerDetailed(
+    String exchange,
+    String symbol, {
+    http.Client? client,
+  }) async {
+    final sw = Stopwatch()..start();
+    try {
+      final sanitizedSym = symbol.replaceAll('/', '').replaceAll(' ', '');
+      final url = Uri.parse('$effectiveBaseUrl/api/price/${exchange.toLowerCase()}/$sanitizedSym');
+      final effectiveClient = client ?? httpClientForTesting;
+      final response = effectiveClient != null
+          ? await effectiveClient.get(url, headers: _buildHeaders()).timeout(const Duration(seconds: 8))
+          : await http.get(url, headers: _buildHeaders()).timeout(const Duration(seconds: 8));
+
+      sw.stop();
+      final ms = sw.elapsedMilliseconds;
+
+      if (response.statusCode != 200) {
+        return {
+          'price': null,
+          'httpStatus': response.statusCode,
+          'reason': 'http_${response.statusCode}',
+          'ms': ms,
+          'asOf': null,
+          'state': null,
+          'source': null,
+        };
+      }
+
+      dynamic data;
+      try {
+        data = jsonDecode(utf8.decode(response.bodyBytes));
+      } catch (_) {
+        return {
+          'price': null,
+          'httpStatus': response.statusCode,
+          'reason': 'bad_body',
+          'ms': ms,
+          'asOf': null,
+          'state': null,
+          'source': null,
+        };
+      }
+
+      if (data is! Map) {
+        return {
+          'price': null,
+          'httpStatus': response.statusCode,
+          'reason': 'bad_body',
+          'ms': ms,
+          'asOf': null,
+          'state': null,
+          'source': null,
+        };
+      }
+
+      final asOfVal = data['asOf'];
+      final int? asOf = (asOfVal is num)
+          ? asOfVal.toInt()
+          : (asOfVal is String ? int.tryParse(asOfVal) : null);
+      final String? state = data['state']?.toString();
+      final String? source = data['source']?.toString();
+
+      final rawPrice = data['price'];
+      if (rawPrice == null || rawPrice is! num) {
+        return {
+          'price': null,
+          'httpStatus': response.statusCode,
+          'reason': 'bad_body',
+          'ms': ms,
+          'asOf': asOf,
+          'state': state,
+          'source': source,
+        };
+      }
+
+      final p = rawPrice.toDouble();
+      if (p <= 0) {
+        return {
+          'price': null,
+          'httpStatus': response.statusCode,
+          'reason': 'nonpositive',
+          'ms': ms,
+          'asOf': asOf,
+          'state': state,
+          'source': source,
+        };
+      }
+
+      return {
+        'price': p,
+        'httpStatus': 200,
+        'reason': null,
+        'ms': ms,
+        'asOf': asOf,
+        'state': state,
+        'source': source,
+      };
+    } on TimeoutException {
+      sw.stop();
+      return {
+        'price': null,
+        'httpStatus': null,
+        'reason': 'timeout',
+        'ms': sw.elapsedMilliseconds,
+        'asOf': null,
+        'state': null,
+        'source': null,
+      };
+    } catch (_) {
+      sw.stop();
+      return {
+        'price': null,
+        'httpStatus': null,
+        'reason': 'network',
+        'ms': sw.elapsedMilliseconds,
+        'asOf': null,
+        'state': null,
+        'source': null,
+      };
+    }
+  }
+
   /// Fetch full price details including market status, market_open, carried_over, etc.
   static Future<Map<String, dynamic>?> fetchPriceDetailsViaServer(String exchange, String symbol) async {
     if (!isServerAvailable) return null;
