@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import app.config as config
 from app.markets.iran_bourse.client import BourseError
+from app.markets.iran_bourse.alert_rules import EXTRA_KEYS
 from app.markets.iran_bourse.mapping import quote_to_price_result
 from app.markets.iran_bourse.session import classify
 
@@ -32,6 +33,9 @@ def _trace(ok: bool, latency_ms: float, *, error: Optional[str] = None,
     }
     if result:
         t.update({"parsed_price": result["price"], "asOf": result["asOf"], "state": result["state"]})
+        for k in EXTRA_KEYS:
+            if k in result:
+                t[k] = result[k]
     if error:
         t["error"] = error
     return t

@@ -127,7 +127,12 @@ async def get_cached_price(client: httpx.AsyncClient, exchange: str, symbol: str
             last_p = cached[0]
             dev = abs(price - last_p) / last_p
             floor = 1e-12 if category == 'crypto' and getattr(config, 'CRYPTO_ENGINE_V2', False) else 0.0001
-            if dev > outlier_threshold and last_p > floor:
+            bourse_in_limits = False
+            if category == 'iran_bourse':
+                # IB-8: a price inside the instrument's own daily limits is never held back
+                from app.markets.iran_bourse.alert_rules import within_limits
+                bourse_in_limits = within_limits(price, traces)
+            if dev > outlier_threshold and last_p > floor and not bourse_in_limits:
                 streak = OUTLIER_STREAK.get(cache_key, 0) + 1
                 if streak < 3:
                     OUTLIER_STREAK[cache_key] = streak
@@ -149,6 +154,9 @@ async def get_cached_price(client: httpx.AsyncClient, exchange: str, symbol: str
                 for k in ('unit', 'units', 'data_date', 'date', 'data_frequency', 'is_delayed'):
                     if k in tr:
                         meta[k] = tr[k]
+                if category == 'iran_bourse':
+                    from app.markets.iran_bourse.alert_rules import meta_extras
+                    meta.update(meta_extras(tr))
                 break
         PRICE_CACHE[cache_key] = (price, now, meta)
         return price
@@ -238,6 +246,11 @@ async def evaluate_ready_alerts(client, ready_alerts: List[Any], current_time: f
         upper_t = getattr(alert, 'upper_target_price', None)
         lower_t = getattr(alert, 'lower_target_price', None)
         eff_cond = (alert.condition or 'ABOVE').upper()
+
+        if cached_meta.get('category') == 'iran_bourse':
+            # IB-8: price_field, daily base (yesterday) for percent / absolute change
+            from app.markets.iran_bourse.alert_rules import rule_inputs
+            current_price, cond_type, pct, base_p = rule_inputs(alert, current_price, cached_meta, cond_type, pct, base_p)
 
         eff_target = alert.target_price
         eff_upper = upper_t
