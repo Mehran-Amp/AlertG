@@ -27,6 +27,7 @@ class BourseSnapshotStore:
         self.last_error: Optional[str] = None
         self.gateway_stale: bool = False       # meta.stale of the last response
         self.resets: int = 0                   # gateway-reload resets seen
+        self.seq_changed_at: Optional[float] = None  # when meta.seq last moved (poll path only)
 
     # ---- interest -------------------------------------------------------
     def set_watched(self, ids: Iterable[str]) -> None:
@@ -63,6 +64,8 @@ class BourseSnapshotStore:
                 n += 1
         seq = meta.get("seq")
         if isinstance(seq, int):
+            if seq != self.seq or self.seq_changed_at is None:
+                self.seq_changed_at = now
             self.seq = seq
         self.gateway_stale = bool(meta.get("stale", False))
         self.last_success_at = now
@@ -107,6 +110,11 @@ class BourseSnapshotStore:
         out = dict(entry)
         out["stale"] = self.is_stale()
         return out
+
+    def feed_health(self):
+        """(feed_fresh, seconds since seq last moved or None if never observed)."""
+        age = None if self.seq_changed_at is None else max(0.0, self._clock() - self.seq_changed_at)
+        return (not self.is_stale()), age
 
     def stats(self) -> Dict[str, Any]:
         return {

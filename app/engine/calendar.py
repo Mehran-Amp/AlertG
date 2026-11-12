@@ -200,6 +200,38 @@ def is_tse_market_open(now_dt: Optional[datetime] = None) -> Tuple[bool, str]:
 
 
 # ===================================================================
+# 4b. IRANIAN BOURSE via TSETMC gateway (IB-7). Separate from is_tse_market_open.
+# ===================================================================
+
+IRAN_BOURSE_OPEN_TIME = dtime(8, 30)
+IRAN_BOURSE_CLOSE_TIME = dtime(19, 0)
+IRAN_BOURSE_SEQ_QUIET_SECONDS = 180.0
+
+
+def is_iran_bourse_open(
+    now_dt: Optional[datetime] = None,
+    feed_fresh: Optional[bool] = None,
+    seq_age_seconds: Optional[float] = None,
+) -> Tuple[bool, str]:
+    """
+    Iranian Bourse session (initial rule, tune after rollout data):
+    Tehran Saturday-Wednesday 08:30-19:00, the gateway feed is fresh, and the
+    gateway seq changed within the last 180 s.
+    feed_fresh / seq_age_seconds = None means "unknown": only the schedule is checked
+    (used as the cheap polling gate, which must not depend on the feed it drives).
+    Returns (open, state) with state in OPEN / CLOSED / STALE.
+    """
+    teh = get_tehran_now(now_dt)
+    if teh.weekday() not in (5, 6, 0, 1, 2) or not (IRAN_BOURSE_OPEN_TIME <= teh.time() < IRAN_BOURSE_CLOSE_TIME):
+        return False, 'CLOSED'
+    if feed_fresh is False:
+        return False, 'STALE'
+    if seq_age_seconds is not None and seq_age_seconds > IRAN_BOURSE_SEQ_QUIET_SECONDS:
+        return False, 'CLOSED'
+    return True, 'OPEN'
+
+
+# ===================================================================
 # 5. CRYPTO (24/7 Always Open)
 # ===================================================================
 
@@ -238,11 +270,42 @@ def is_market_open(exchange: str, symbol: str, now_dt: Optional[datetime] = None
             return True
         return is_tse_market_open(now_dt)[0]
 
+    if cat == 'iran_bourse':
+        # Cheap polling gate: schedule only (feed checks would deadlock the poller they gate)
+        return is_iran_bourse_open(now_dt)[0]
+
     if cat in ('macro', 'bond'):
         # Macro indicators / bonds follow US market calendar
         return is_us_market_open(now_dt)[0]
 
     return True
+
+
+def _iran_bourse_status(now_dt: Optional[datetime] = None) -> Dict[str, Any]:
+    """Status entry for the Bourse (IB-7). Feed info is read only when the feature is enabled."""
+    enabled = False
+    fresh = seq_age = None
+    try:
+        import app.config as _cfg
+        enabled = bool(getattr(_cfg, "IRAN_BOURSE_ENABLED", False))
+        if enabled:
+            from app.markets.iran_bourse.session import feed_health
+            fresh, seq_age = feed_health()
+    except Exception:
+        fresh = seq_age = None
+    is_open, state = is_iran_bourse_open(now_dt, fresh, seq_age)
+    return {
+        "name": "بورس ایران (TSETMC)",
+        "status": "open" if is_open else "closed",
+        "status_fa": "باز" if is_open else "بسته",
+        "state": state,
+        "state_fa": "باز" if is_open else ("قدیمی" if state == 'STALE' else "بسته"),
+        "is_open": is_open,
+        "enabled": enabled,
+        "schedule": "Saturday-Wednesday 08:30-19:00 IRST",
+        "schedule_fa": "شنبه تا چهارشنبه ۰۸:۳۰ تا ۱۹:۰۰",
+        "source": "TSETMC gateway",
+    }
 
 
 def get_all_markets_status(now_dt: Optional[datetime] = None) -> Dict[str, Any]:
@@ -312,7 +375,8 @@ def get_all_markets_status(now_dt: Optional[datetime] = None) -> Dict[str, Any]:
             "schedule": "Saturday-Wednesday 09:00-12:30 IRST",
             "schedule_fa": "شنبه تا چهارشنبه ۰۹:۰۰ تا ۱۲:۳۰",
             "source": "Tehran Stock Exchange Official Schedule"
-        }
+        },
+        "iran_bourse": _iran_bourse_status(now_dt),
     }
 
 

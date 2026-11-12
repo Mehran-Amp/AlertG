@@ -16,6 +16,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import app.config as config
 from app.markets.iran_bourse.client import BourseError
 from app.markets.iran_bourse.mapping import quote_to_price_result
+from app.markets.iran_bourse.session import classify
 
 SOURCE = "tsetmc-gateway"
 PROVIDER_KEY = "iran_bourse"
@@ -37,9 +38,13 @@ def _trace(ok: bool, latency_ms: float, *, error: Optional[str] = None,
 
 
 def _finish(result: Dict[str, Any], t0: float, cached: bool) -> Tuple[Optional[float], List[Dict[str, Any]]]:
-    live = result["state"] == "LIVE" and result["price"] is not None
+    from app.markets.iran_bourse.poller import get_poller
+    state, eligible = classify(result, get_poller().store)
+    result = {**result, "state": state}
+    live = eligible and result["price"] is not None
     err = None if live else f"state={result['state']}"
     tr = _trace(live, (time.perf_counter() - t0) * 1000.0, error=err, result=result, cached=cached)
+    tr["alert_eligible"] = bool(live)
     return (float(result["price"]) if live else None), [tr]
 
 

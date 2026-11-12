@@ -3,15 +3,17 @@
 import json
 import os
 import unittest
+from datetime import datetime, timezone
 from unittest.mock import patch, AsyncMock
 
 import httpx
 
 import app.config as config
 from app.markets import base
-from app.markets.iran_bourse import poller as pmod, price as price_mod
+from app.markets.iran_bourse import poller as pmod, price as price_mod, session as session_mod
 from app.markets.iran_bourse.client import BourseTimeout
 from app.markets.iran_bourse.poller import BoursePoller
+from app.markets import limiter as limiter_mod
 from app.markets.iran_bourse.snapshot import BourseSnapshotStore
 
 FIX = os.path.join(os.path.dirname(__file__), "fixtures", "iran_bourse")
@@ -47,7 +49,11 @@ class Base(unittest.IsolatedAsyncioTestCase):
         store = BourseSnapshotStore(60.0, self.clock)
         self.poller = BoursePoller(store=store, client=self.fc, demand_fn=lambda: set(),
                                    poll_seconds=5.0, clock=self.clock)
+        sat_1000 = datetime(2026, 11, 14, 6, 30, tzinfo=timezone.utc)   # Saturday 10:00 Tehran
         for p in (patch.object(config, "IRAN_BOURSE_ENABLED", True),
+                  patch.object(session_mod, "_now", return_value=sat_1000),
+                  patch.dict(limiter_mod.PROVIDER_LIMITERS,
+                             {"iran_bourse": limiter_mod.TokenBucketRateLimiter(1000.0, 1000.0)}),
                   patch.object(pmod, "BOURSE_POLLER", self.poller)):
             p.start(); self.addCleanup(p.stop)
 
