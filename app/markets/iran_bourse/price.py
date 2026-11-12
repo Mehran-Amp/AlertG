@@ -52,6 +52,54 @@ def _finish(result: Dict[str, Any], t0: float, cached: bool) -> Tuple[Optional[f
     return (float(result["price"]) if live else None), [tr]
 
 
+class NoQuote(Exception):
+    """No usable quote: carries the gateway error (if any) and the state to report."""
+    def __init__(self, message: str, state: str = "no_data", cause: Optional[BaseException] = None):
+        super().__init__(message)
+        self.state = state
+        self.cause = cause
+
+
+async def resolve_result(iid: str) -> Tuple[Dict[str, Any], bool]:
+    """
+    Mapped quote result for a valid instrument id: snapshot first, else ONE rate-limited
+    on-demand /v1/quote. Returns (result, from_cache). Raises NoQuote. Shared by the price
+    path and the quote route (which also wants CLOSED/STALE quotes, not only LIVE ones).
+    """
+    from app.markets.iran_bourse.poller import get_poller
+    poller = get_poller()
+    poller.touch([iid])           # keeps the id in the snapshot and the poller awake
+
+    e = poller.store.get(iid)
+    if e is not None and not e["stale"]:
+        return quote_to_price_result(e["quote"], e["meta"]), True
+
+    # miss or stale: one on-demand quote, serialized, rate-limited, never retried
+    async with _ondemand_lock:
+        e = poller.store.get(iid)
+        if e is not None and not e["stale"]:
+            return quote_to_price_result(e["quote"], e["meta"]), True
+        from app.markets.limiter import acquire_provider_slot
+        stale_result = (lambda: quote_to_price_result(e["quote"], {**e["meta"], "stale": True})) if e is not None else None
+        if not await acquire_provider_slot(PROVIDER_KEY, wait=False):
+            if stale_result:
+                return stale_result(), True
+            raise NoQuote("rate limited or provider disabled")
+        try:
+            quote, meta = await poller._get_client().quote(iid)
+        except BourseError as ex:
+            poller.store.record_error(f"{type(ex).__name__}: {ex}")
+            if stale_result:
+                return stale_result(), True
+            raise NoQuote(f"{type(ex).__name__}: {ex}", cause=ex)
+        poller.store.put(quote, meta)
+        return quote_to_price_result(quote, meta), False
+
+
+def valid_instrument_id(iid: str) -> bool:
+    return iid.isdigit() and 15 <= len(iid) <= 18
+
+
 async def fetch_bourse_price(symbol: str) -> Tuple[Optional[float], List[Dict[str, Any]]]:
     t0 = time.perf_counter()
 
@@ -63,37 +111,10 @@ async def fetch_bourse_price(symbol: str) -> Tuple[Optional[float], List[Dict[st
     if not getattr(config, "IRAN_BOURSE_ENABLED", False):
         return fail("Iranian Bourse is disabled (IRAN_BOURSE_ENABLED=false)", "disabled")
     iid = str(symbol or "").strip()
-    if not (iid.isdigit() and 15 <= len(iid) <= 18):
+    if not valid_instrument_id(iid):
         return fail(f"invalid instrument id {iid!r} (must be a 15-18 digit string)")
-
-    from app.markets.iran_bourse.poller import get_poller
-    poller = get_poller()
-    poller.touch([iid])           # keeps the id in the snapshot and the poller awake
-
-    def from_snapshot():
-        e = poller.store.get(iid)
-        return e
-
-    e = from_snapshot()
-    if e is not None and not e["stale"]:
-        return _finish(quote_to_price_result(e["quote"], e["meta"]), t0, True)
-
-    # miss or stale: one on-demand quote, serialized, rate-limited, never retried
-    async with _ondemand_lock:
-        e = from_snapshot()
-        if e is not None and not e["stale"]:
-            return _finish(quote_to_price_result(e["quote"], e["meta"]), t0, True)
-        from app.markets.limiter import acquire_provider_slot
-        if not await acquire_provider_slot(PROVIDER_KEY, wait=False):
-            if e is not None:
-                return _finish(quote_to_price_result(e["quote"], {**e["meta"], "stale": True}), t0, True)
-            return fail("rate limited or provider disabled", "no_data")
-        try:
-            quote, meta = await poller._get_client().quote(iid)
-        except BourseError as ex:
-            poller.store.record_error(f"{type(ex).__name__}: {ex}")
-            if e is not None:
-                return _finish(quote_to_price_result(e["quote"], {**e["meta"], "stale": True}), t0, True)
-            return fail(f"{type(ex).__name__}: {ex}")
-        poller.store.put(quote, meta)
-        return _finish(quote_to_price_result(quote, meta), t0, False)
+    try:
+        result, cached = await resolve_result(iid)
+    except NoQuote as ex:
+        return fail(str(ex), ex.state)
+    return _finish(result, t0, cached)

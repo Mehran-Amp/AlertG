@@ -108,16 +108,21 @@ class BoursePoller:
         try:
             self.store.set_watched(self._demand_fn())
             self.requests_made += 1
-            quotes, meta = await self._get_client().changes(self.store.seq)
+            since = self.store.seq
+            quotes, meta = await self._get_client().changes(since)
             seq = meta.get("seq")
             if isinstance(seq, int) and seq < self.store.seq:
                 # gateway restarted: our cursor is from the future. Refetch everything.
                 logger.warning("[IranBourse] gateway seq went backwards (%s < %s): cursor reset",
                                seq, self.store.seq)
                 self.store.reset_cursor()
+                since = 0
                 quotes, meta = await self._get_client().changes(0)
                 self.requests_made += 1
+            full_ids = {str(q.get("id")) for q in quotes} if since == 0 else None
             self.store.apply(quotes, meta)
+            if full_ids is not None:
+                await self._reconcile_instruments(full_ids)
             self._failures = 0
             return True
         except asyncio.CancelledError:
@@ -129,6 +134,16 @@ class BoursePoller:
             return False
         finally:
             self._in_flight = False
+
+    async def _reconcile_instruments(self, present_ids: Set[str]) -> None:
+        """A full snapshot (since=0) tells us which instruments exist: flag alerts on missing ones."""
+        try:
+            import app.storage as storage
+            from app.markets.iran_bourse.lifecycle import reconcile_missing
+            if reconcile_missing(storage.ALERTS_DB, present_ids):
+                await storage.save_alerts_to_disk_async(storage.ALERTS_DB)
+        except Exception as e:
+            logger.warning("[IranBourse] instrument reconcile failed: %s", e)
 
     # ---- loop / lifecycle -----------------------------------------------
     async def _loop(self) -> None:
