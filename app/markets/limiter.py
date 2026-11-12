@@ -85,6 +85,8 @@ PROVIDER_LIMITERS: Dict[str, TokenBucketRateLimiter] = {
     'crypto_poloniex': TokenBucketRateLimiter(rate_per_second=20.0, capacity=30.0),
     'crypto_coinbase': TokenBucketRateLimiter(rate_per_second=15.0, capacity=25.0),
     'crypto_bitfinex': TokenBucketRateLimiter(rate_per_second=15.0, capacity=25.0),
+    # Iranian Bourse gateway (on-demand quote path only; poller is separately paced)
+    'iran_bourse': TokenBucketRateLimiter(rate_per_second=5.0, capacity=10.0),
     'default': TokenBucketRateLimiter(rate_per_second=20.0, capacity=30.0),
 }
 

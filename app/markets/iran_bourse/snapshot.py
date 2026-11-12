@@ -69,6 +69,20 @@ class BourseSnapshotStore:
         self.last_error = None
         return n
 
+    def put(self, quote: Dict[str, Any], meta: Dict[str, Any]) -> None:
+        """Store one on-demand quote WITHOUT moving the /v1/changes cursor."""
+        qid = str(quote.get("id", ""))
+        self._recent.pop(qid, None)
+        self._recent[qid] = None
+        while len(self._recent) > RECENT_LIMIT:
+            self._recent.popitem(last=False)
+        self._evict()
+        now = self._clock()
+        self._quotes[qid] = {"quote": quote, "meta": dict(meta), "fetched_at": now}
+        self.gateway_stale = bool(meta.get("stale", False))
+        self.last_success_at = now
+        self.last_error = None
+
     def record_error(self, message: str) -> None:
         self.last_error = message
 
