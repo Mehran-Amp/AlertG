@@ -140,7 +140,11 @@ class BoursePoller:
         try:
             import app.storage as storage
             from app.markets.iran_bourse.lifecycle import reconcile_missing
-            if reconcile_missing(storage.ALERTS_DB, present_ids):
+            changed = reconcile_missing(storage.ALERTS_DB, present_ids)
+            if changed:
+                from app.markets.iran_bourse.messages import dispatch_missing_notifications
+                import app.state as state
+                await dispatch_missing_notifications(changed, client=state.http_client)
                 await storage.save_alerts_to_disk_async(storage.ALERTS_DB)
         except Exception as e:
             logger.warning("[IranBourse] instrument reconcile failed: %s", e)

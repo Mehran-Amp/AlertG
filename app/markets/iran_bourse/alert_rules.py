@@ -11,7 +11,7 @@ Iranian Bourse — alert semantics (IB-8). Pure helpers, no I/O, nothing from ot
 from typing import Any, Dict, Optional, Tuple
 
 EXTRA_KEYS = ("last_trade_time", "prev_close", "close", "lower_limit", "upper_limit",
-              "change_pct", "ticker", "alert_eligible")
+              "change_pct", "ticker", "name", "alert_eligible")
 
 
 def meta_extras(trace: Dict[str, Any]) -> Dict[str, Any]:

@@ -364,6 +364,14 @@ async def evaluate_ready_alerts(client, ready_alerts: List[Any], current_time: f
             sign = '+' if is_above else '-'
 
             display_symbol = alert.symbol
+            bourse_display = None
+            bourse_extra = {}
+            if cached_meta.get('category') == 'iran_bourse':
+                # IB-10: Persian name + Rial text; payload carries id, ticker, name
+                from app.markets.iran_bourse.messages import trigger_display, trigger_payload
+                bourse_display = trigger_display(alert, cached_meta, current_price)
+                bourse_extra = trigger_payload(alert, cached_meta)
+                display_symbol = bourse_display[0]
             if triggered_target and triggered_target > 0:
                 diff_pct = abs(((current_price - triggered_target) / triggered_target) * 100.0)
                 if diff_pct >= 0.01:
@@ -378,8 +386,8 @@ async def evaluate_ready_alerts(client, ready_alerts: List[Any], current_time: f
             counter = (getattr(alert, 'counter_currency', '') or '').strip().upper()
             sym_clean = (alert.symbol or '').strip().upper()
             is_tmn_market = counter in ('TMN', 'IRT', 'RLS') or sym_clean.endswith(('TMN', 'IRT', 'RLS')) or getattr(alert, 'exchange', '').lower() in ('tse', 'iran_market')
-            price_formatted = format_display_price(current_price, currency_prefix="$", is_tmn=is_tmn_market, tmn_label="تومان")
-            if '/' not in display_symbol:
+            price_formatted = bourse_display[1] if bourse_display else format_display_price(current_price, currency_prefix="$", is_tmn=is_tmn_market, tmn_label="تومان")
+            if bourse_display is None and '/' not in display_symbol:
                 for quote in ['USDT', 'USDC', 'BUSD', 'FDUSD', 'EUR', 'USD', 'TMN', 'IRT', 'BTC', 'ETH']:
                     if display_symbol.endswith(quote):
                         base = display_symbol[:-len(quote)]
@@ -410,7 +418,7 @@ async def evaluate_ready_alerts(client, ready_alerts: List[Any], current_time: f
                 alert,
                 title,
                 body,
-                {
+                {**{
                     "alert_id": alert.id,
                     "symbol": display_symbol,
                     "price": format_exact_decimal(current_price),
@@ -420,7 +428,7 @@ async def evaluate_ready_alerts(client, ready_alerts: List[Any], current_time: f
                     "flash_enabled": "true" if alert.flash_enabled else "false",
                     "tts_enabled": "true" if alert.tts_enabled else "false",
                     "sound": alert.sound or "alarm_siren"
-                },
+                }, **bourse_extra},
                 fallback_chat_id=effective_chat_id or None
             )
 
@@ -445,7 +453,8 @@ async def evaluate_ready_alerts(client, ready_alerts: List[Any], current_time: f
                     "price": current_price,
                     "target_price": alert.target_price,
                     "condition": alert.condition,
-                    "timestamp": datetime.now(timezone.utc).isoformat()
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    **bourse_extra,
                 }
                 _spawn(send_webhook_alert(client, alert.webhook_url, hook_data))
 
