@@ -388,3 +388,16 @@
    ```
 
 
+
+---
+
+## Iranian Bourse (TSETMC) rollback
+
+The Bourse market is isolated behind `IRAN_BOURSE_ENABLED` (default `false`).
+
+1. Set `IRAN_BOURSE_ENABLED=false` (or remove it) and restart the server (`./run_server.sh`).
+   - The poller does not start, no request goes to the gateway, `/api/iran-bourse/*` returns 503,
+     new `tsetmc` alerts are refused. No other market is affected.
+2. Existing `tsetmc` alerts stay saved; they are not evaluated while the flag is off.
+3. Faster partial stop without restart: the `iran_bourse` category kill switch (see `app/markets/kill_switch.py`).
+4. Full code rollback: revert the Bourse merge commit(s) on `main`; no data migration is needed.
