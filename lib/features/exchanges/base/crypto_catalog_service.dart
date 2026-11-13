@@ -316,4 +316,10 @@ class CryptoCatalogService {
     _memCache.clear();
     _memCacheTimestamps.clear();
   }
+
+  /// Clears recorded diagnostics (for test isolation)
+  @visibleForTesting
+  void clearDiagnosticsForTesting() {
+    _diagnostics.clear();
+  }
 }

@@ -114,6 +114,7 @@ void main() {
   setUp(() {
     CryptoCatalogService.instance.testCacheDir = tempTestDir;
     CryptoCatalogService.instance.clearMemoryCache();
+    CryptoCatalogService.instance.clearDiagnosticsForTesting();
     CryptoCatalogService.instance.testClient = null;
     ServerAlertService.resetCircuitBreakerForTesting();
     ServerAlertService.setBaseUrlForTesting('https://example.invalid');
@@ -123,6 +124,7 @@ void main() {
 
   tearDown(() async {
     CryptoCatalogService.instance.clearMemoryCache();
+    CryptoCatalogService.instance.clearDiagnosticsForTesting();
     CryptoCatalogService.instance.testClient = null;
     ServerAlertService.httpClientForTesting = null;
     // Clean up any leftover catalog files between tests
@@ -419,7 +421,7 @@ void main() {
       final dir = tempTestDir.createTempSync('widget_cache_');
       try {
         final cacheFile = File('${tempTestDir.path}/crypto_catalog_binance.json');
-        await cacheFile.writeAsString(jsonEncode({
+        cacheFile.writeAsStringSync(jsonEncode({
           'status': 'success',
           'exchange': 'binance',
           'symbols': [
@@ -435,7 +437,7 @@ void main() {
           ..register(BinanceExchange(dio: _failingDio(), visionDio: _failingDio()));
         final repo = JsonAlertRuleRepository(dir.path);
         final settings = SettingsService(dir.path);
-        await settings.setLanguage('en');
+        await tester.runAsync(() => settings.setLanguage('en'));
 
         await tester.pumpWidget(
           ChangeNotifierProvider<SettingsService>.value(
@@ -445,17 +447,30 @@ void main() {
             ),
           ),
         );
-        await tester.pumpAndSettle();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
 
         await tester.tap(find.text('Enter International Crypto Exchanges →'));
-        await tester.pumpAndSettle();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
 
         expect(find.text('Binance'), findsOneWidget);
         expect(find.text('Bitvavo'), findsNothing);
         expect(find.text('CoinEx'), findsNothing);
 
         await tester.tap(find.text('Binance'));
-        await tester.pumpAndSettle();
+        await tester.pump();
+
+        await tester.runAsync(() async {
+          final deadline = DateTime.now().add(const Duration(seconds: 3));
+          while (CryptoCatalogService.instance.getDiagnostic('binance') == null &&
+              DateTime.now().isBefore(deadline)) {
+            await Future<void>.delayed(const Duration(milliseconds: 10));
+          }
+          await Future<void>.delayed(const Duration(milliseconds: 20));
+        });
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
 
         expect(find.textContaining('may be outdated'), findsOneWidget);
         expect(find.text('BTC / USDT'), findsOneWidget);
@@ -475,7 +490,7 @@ void main() {
           ..register(BinanceExchange(dio: _failingDio(), visionDio: _failingDio()));
         final repo = JsonAlertRuleRepository(dir.path);
         final settings = SettingsService(dir.path);
-        await settings.setLanguage('en');
+        await tester.runAsync(() => settings.setLanguage('en'));
 
         await tester.pumpWidget(
           ChangeNotifierProvider<SettingsService>.value(
@@ -485,13 +500,26 @@ void main() {
             ),
           ),
         );
-        await tester.pumpAndSettle();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
 
         await tester.tap(find.text('Enter International Crypto Exchanges →'));
-        await tester.pumpAndSettle();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
 
         await tester.tap(find.text('Binance'));
-        await tester.pumpAndSettle();
+        await tester.pump();
+
+        await tester.runAsync(() async {
+          final deadline = DateTime.now().add(const Duration(seconds: 3));
+          while (CryptoCatalogService.instance.getDiagnostic('binance') == null &&
+              DateTime.now().isBefore(deadline)) {
+            await Future<void>.delayed(const Duration(milliseconds: 10));
+          }
+          await Future<void>.delayed(const Duration(milliseconds: 20));
+        });
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
 
         expect(find.text('Exchange catalog unavailable'), findsOneWidget);
         expect(find.text('Retry'), findsOneWidget);
