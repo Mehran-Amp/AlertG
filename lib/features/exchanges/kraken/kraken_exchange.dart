@@ -45,9 +45,8 @@ class KrakenExchange implements Exchange {
         final pairs = <CurrencyPair>[];
         for (final entry in result.entries) {
           final sym = entry.key.toUpperCase();
-          if (sym.endsWith('USDT') || sym.endsWith('USD')) {
-            final isUsdt = sym.endsWith('USDT');
-            final quote = isUsdt ? 'USDT' : 'USD';
+          if (sym.endsWith('USDT')) {
+            const quote = 'USDT';
             var rawBase = sym.substring(0, sym.length - quote.length);
             rawBase = rawBase.replaceAll('XXBT', 'BTC').replaceAll('XBT', 'BTC').replaceAll('XETH', 'ETH');
             if (rawBase.startsWith('X') && rawBase.length == 4) {
@@ -58,7 +57,7 @@ class KrakenExchange implements Exchange {
               final p = double.tryParse(c?.firstOrNull?.toString() ?? '0') ?? 0.0;
               if (p > 0) {
                 _cachedLivePrices[sym] = p;
-                _cachedLivePrices['${rawBase}${quote}'] = p;
+                _cachedLivePrices['$rawBase$quote'] = p;
               }
               pairs.add(CurrencyPair(
                 baseCurrency: rawBase,
@@ -97,7 +96,7 @@ class KrakenExchange implements Exchange {
               base = (val?['base']?.toString() ?? '').replaceAll('XXBT', 'BTC').replaceAll('XETH', 'ETH').replaceAll('ZUSD', 'USD').toUpperCase();
               quote = (val?['quote']?.toString() ?? '').replaceAll('ZUSD', 'USD').replaceAll('ZEUR', 'EUR').toUpperCase();
             }
-            if (base.isNotEmpty && (quote == 'USDT' || quote == 'USD')) {
+            if (base.isNotEmpty && quote == 'USDT') {
               pairs.add(CurrencyPair(
                 baseCurrency: base,
                 counterCurrency: quote,

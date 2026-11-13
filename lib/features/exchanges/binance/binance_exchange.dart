@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import '../base/crypto_catalog_data.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
@@ -10,14 +9,16 @@ import '../base/models/price_snapshot.dart';
 /// Pure REST endpoints for pair discovery, lightweight snapshots, and 24h ticker metrics.
 class BinanceExchange implements Exchange {
   final Dio _dio;
+  final Dio? _visionDio;
 
-  BinanceExchange({Dio? dio})
+  BinanceExchange({Dio? dio, Dio? visionDio})
       : _dio = dio ??
             Dio(BaseOptions(
               baseUrl: 'https://api.binance.com',
               connectTimeout: const Duration(seconds: 8),
               receiveTimeout: const Duration(seconds: 8),
-            ));
+            )),
+        _visionDio = visionDio;
 
   @override
   String get id => 'binance';
@@ -48,11 +49,12 @@ class BinanceExchange implements Exchange {
 
     // 2. Fallback: Binance Vision public data mirror (Unfiltered in Iran)
     try {
-      final visionDio = Dio(BaseOptions(
-        baseUrl: 'https://data-api.binance.vision',
-        connectTimeout: const Duration(seconds: 8),
-        receiveTimeout: const Duration(seconds: 8),
-      ));
+      final visionDio = _visionDio ??
+          Dio(BaseOptions(
+            baseUrl: 'https://data-api.binance.vision',
+            connectTimeout: const Duration(seconds: 8),
+            receiveTimeout: const Duration(seconds: 8),
+          ));
       final response = await visionDio.get('/api/v3/ticker/price');
       final pairs = _parseTickerPriceResponse(response.data);
       if (pairs.isNotEmpty) return pairs;
@@ -82,10 +84,7 @@ class BinanceExchange implements Exchange {
       if (pairs.isNotEmpty) return pairs;
     } catch (_) {}
 
-    return CryptoCatalogData.buildPairs(
-      quoteCurrencies: ['USDT'],
-      symbolFormatter: (b, q) => '$b$q',
-    );
+    return <CurrencyPair>[];
   }
 
   List<CurrencyPair> _parseTickerPriceResponse(dynamic data) {

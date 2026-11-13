@@ -1,6 +1,4 @@
 import 'package:dio/dio.dart';
-import '../base/crypto_catalog_data.dart';
-import '../base/crypto_catalog_service.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
@@ -100,7 +98,7 @@ class StandardRestExchange implements Exchange {
               final target = (item['quoteCurrency'] ?? item['quote_currency'] ?? item['target'] ?? item['quote'] ?? defaultCounterCurrency).toString().toUpperCase();
               final symbol = (item['symbol'] ?? item['id'] ?? (rawBase.isNotEmpty ? '$rawBase$target' : '')).toString();
 
-              if (base.isNotEmpty && target.isNotEmpty) {
+              if (base.isNotEmpty && target == defaultCounterCurrency.toUpperCase()) {
                 pairs.add(CurrencyPair(baseCurrency: base, counterCurrency: target, marketSymbol: symbol.isNotEmpty ? symbol : '$base$target'));
               }
             }
@@ -109,6 +107,7 @@ class StandardRestExchange implements Exchange {
         } else if (data is Map && data['data'] is List) {
           // Handle HTX (data['data'] list with base-currency & quote-currency)
           final pairs = <CurrencyPair>[];
+          final allowedQuote = defaultCounterCurrency.toUpperCase();
           for (final item in data['data']) {
             if (item is Map) {
               final state = item['state']?.toString().toLowerCase();
@@ -116,7 +115,7 @@ class StandardRestExchange implements Exchange {
               final base = (item['base-currency'] ?? item['baseCurrency'] ?? item['base'] ?? '').toString().toUpperCase();
               final target = (item['quote-currency'] ?? item['quoteCurrency'] ?? item['target'] ?? '').toString().toUpperCase();
               final symbol = (item['symbol'] ?? '$base$target').toString();
-              if (base.isNotEmpty && target.isNotEmpty) {
+              if (base.isNotEmpty && target == allowedQuote) {
                 pairs.add(CurrencyPair(baseCurrency: base, counterCurrency: target, marketSymbol: symbol));
               }
             }
@@ -125,11 +124,12 @@ class StandardRestExchange implements Exchange {
         } else if (data is Map && data['result'] is Map) {
           final map = data['result'] as Map<String, dynamic>;
           final pairs = <CurrencyPair>[];
+          final allowedQuote = defaultCounterCurrency.toUpperCase();
           for (final entry in map.entries) {
             final val = entry.value as Map<String, dynamic>?;
             final base = val?['base']?.toString().toUpperCase() ?? '';
             final quote = val?['quote']?.toString().toUpperCase() ?? '';
-            if (base.isNotEmpty && quote.isNotEmpty) {
+            if (base.isNotEmpty && quote == allowedQuote) {
               pairs.add(CurrencyPair(baseCurrency: base, counterCurrency: quote, marketSymbol: entry.key));
             }
           }
@@ -138,22 +138,8 @@ class StandardRestExchange implements Exchange {
       } catch (_) {}
     }
 
-    // Rule R4: The ONLY permitted fallback is the last successfully cached
-    // catalog of THIS EXACT EXCHANGE stored on device disk, never a static list.
-    try {
-      final diskCached = await CryptoCatalogService.instance.fetchPairsForExchange(
-        id,
-        forceRefresh: false,
-      );
-      if (diskCached.isNotEmpty) {
-        return diskCached;
-      }
-    } catch (_) {}
-
-    return CryptoCatalogData.buildPairs(
-      quoteCurrencies: [defaultCounterCurrency, if (defaultCounterCurrency != 'USDT') 'USDT'],
-      symbolFormatter: (b, q) => '$b$q',
-    );
+    // Rule R4: Never return a static fallback list from adapter.
+    return <CurrencyPair>[];
   }
 
   @override

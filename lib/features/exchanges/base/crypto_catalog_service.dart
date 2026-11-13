@@ -4,14 +4,13 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import '../../../core/services/server_alert_service.dart';
-import 'crypto_catalog_data.dart';
 import 'currency_pair.dart';
 import 'exchange.dart';
 
 /// Diagnostics record for catalog origin tracking (CAT-4 / Diagnostics).
 class CatalogDiagnostic {
   final String exchangeId;
-  final String source; // 'server', 'disk_cache', 'direct_exchange', 'static_fallback'
+  final String source; // 'server', 'disk_cache', 'direct_exchange', 'empty'
   final int pairCount;
   final DateTime timestamp;
   final String? error;
@@ -62,6 +61,20 @@ class CryptoCatalogService {
 
   Map<String, CatalogDiagnostic> getAllDiagnostics() =>
       Map.unmodifiable(_diagnostics);
+
+  /// Enforces Spot-only quote rules (TMN/USDT for Iran exchanges, USDT only for global crypto).
+  static bool _isAllowedQuote(String exchangeId, String quote) {
+    final ex = exchangeId.trim().toLowerCase();
+    final q = quote.trim().toUpperCase();
+    if (ex == 'tabdeal' || ex == 'kifpool') {
+      return q == 'TMN' || q == 'USDT';
+    }
+    return q == 'USDT';
+  }
+
+  /// Reads the last saved disk cache for [exchangeId] without performing any network call.
+  Future<List<CurrencyPair>> loadDiskCacheOnly(String exchangeId) =>
+      _loadFromDiskCache(exchangeId.trim().toLowerCase());
 
   /// Fetches the dynamic coin catalog for the specified exchange.
   /// 1. Tries the backend API endpoint (`/api/crypto/exchanges/{exchange}/symbols`).
@@ -133,7 +146,7 @@ class CryptoCatalogService {
                 final quote = (rawQuote == 'IRT' || rawQuote == 'RLS') ? 'TMN' : rawQuote;
                 final marketSym = (item['market_symbol'] ?? item['native_symbol'] ?? item['symbol'] ?? '$base$quote').toString();
 
-                if (base.isNotEmpty && quote.isNotEmpty) {
+                if (base.isNotEmpty && quote.isNotEmpty && _isAllowedQuote(cleanId, quote)) {
                   pairs.add(CurrencyPair(
                     baseCurrency: base,
                     counterCurrency: quote,
@@ -204,7 +217,10 @@ class CryptoCatalogService {
     // 4. Fallback: Direct exchange adapter if available
     if (fallbackExchange != null) {
       try {
-        final directPairs = await fallbackExchange.fetchCurrencyPairs();
+        final rawDirectPairs = await fallbackExchange.fetchCurrencyPairs();
+        final directPairs = rawDirectPairs
+            .where((p) => _isAllowedQuote(cleanId, p.counterCurrency))
+            .toList();
         if (directPairs.isNotEmpty) {
           _memCache[cleanId] = directPairs;
           _memCacheTimestamps[cleanId] = now;
@@ -226,33 +242,16 @@ class CryptoCatalogService {
       }
     }
 
-    // 5. Guaranteed Fallback: Safe static baseline if network and cache failed
-    final defaultQuote = fallbackExchange?.defaultCounterCurrency ??
-        (cleanId == 'tabdeal' || cleanId == 'kifpool' ? 'TMN' : 'USDT');
-    final fallbackList = CryptoCatalogData.buildPairs(
-      quoteCurrencies: [
-        defaultQuote,
-        if (defaultQuote != 'USDT') 'USDT',
-        if (cleanId == 'tabdeal' || cleanId == 'kifpool') 'TMN',
-      ],
-      symbolFormatter: (b, q) {
-        if (cleanId == 'tabdeal') {
-          return '${b.toUpperCase()}_${q == "TMN" ? "IRT" : q.toUpperCase()}';
-        }
-        return '${b.toUpperCase()}${q.toUpperCase()}';
-      },
-    );
-    _memCache[cleanId] = fallbackList;
-    _memCacheTimestamps[cleanId] = now;
+    // 5. Rule R4: No static fallback. Return empty and record empty/offline diagnostic.
     _diagnostics[cleanId] = CatalogDiagnostic(
       exchangeId: cleanId,
-      source: 'static_fallback',
-      pairCount: fallbackList.length,
+      source: 'empty',
+      pairCount: 0,
       timestamp: now,
       error: lastError ?? 'Offline / server unavailable',
     );
-    debugPrint('[CryptoCatalog] ex=$cleanId source=static pairs=${fallbackList.length} ms=${stopwatch.elapsedMilliseconds} pages=$pageCount err=${lastError ?? "none"}');
-    return fallbackList;
+    debugPrint('[CryptoCatalog] ex=$cleanId source=empty pairs=0 ms=${stopwatch.elapsedMilliseconds} pages=$pageCount err=${lastError ?? "none"}');
+    return <CurrencyPair>[];
   }
 
   /// Saves unified pairs list to device disk cache
@@ -296,7 +295,7 @@ class CryptoCatalogService {
               final quote = (rawQuote == 'IRT' || rawQuote == 'RLS') ? 'TMN' : rawQuote;
               final marketSym = (item['market_symbol'] ?? item['native_symbol'] ?? item['symbol'] ?? '$base$quote').toString();
 
-              if (base.isNotEmpty && quote.isNotEmpty) {
+              if (base.isNotEmpty && quote.isNotEmpty && _isAllowedQuote(exchangeId, quote)) {
                 pairs.add(CurrencyPair(
                   baseCurrency: base,
                   counterCurrency: quote,

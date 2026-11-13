@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import '../base/crypto_catalog_service.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
@@ -83,26 +82,7 @@ class KifpoolExchange implements Exchange {
       }
     } catch (_) {}
 
-    // Fallback to disk cache or dynamic server catalog service
-    try {
-      final cached = await CryptoCatalogService.instance.fetchPairsForExchange(
-        id,
-        forceRefresh: false,
-      );
-      if (cached.isNotEmpty) return cached;
-    } catch (_) {}
-
-    // Safe base fallback for primary coins
-    return [
-      CurrencyPair(baseCurrency: 'BTC', counterCurrency: 'TMN', marketSymbol: 'BTCTMN'),
-      CurrencyPair(baseCurrency: 'ETH', counterCurrency: 'TMN', marketSymbol: 'ETHTMN'),
-      CurrencyPair(baseCurrency: 'USDT', counterCurrency: 'TMN', marketSymbol: 'USDTTMN'),
-      CurrencyPair(baseCurrency: 'DOGE', counterCurrency: 'TMN', marketSymbol: 'DOGETMN'),
-      CurrencyPair(baseCurrency: 'SHIB', counterCurrency: 'TMN', marketSymbol: 'SHIBTMN'),
-      CurrencyPair(baseCurrency: 'BTC', counterCurrency: 'USDT', marketSymbol: 'BTCUSDT'),
-      CurrencyPair(baseCurrency: 'ETH', counterCurrency: 'USDT', marketSymbol: 'ETHUSDT'),
-      CurrencyPair(baseCurrency: 'SOL', counterCurrency: 'USDT', marketSymbol: 'SOLUSDT'),
-    ];
+    return <CurrencyPair>[];
   }
 
   @override

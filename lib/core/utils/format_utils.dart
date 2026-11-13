@@ -210,13 +210,6 @@ class FormatUtils {
       }
     }
 
-    if (absVal < 1.0) {
-      final fixed = absVal.toStringAsFixed(12);
-      if (!fixed.toLowerCase().contains('e')) {
-        raw = fixed;
-      }
-    }
-
     if (raw.contains('.')) {
       raw = raw.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
     }

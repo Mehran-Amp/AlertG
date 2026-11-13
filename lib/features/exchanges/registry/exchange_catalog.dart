@@ -6,17 +6,13 @@ import '../bingx/bingx_exchange.dart';
 import '../bitget/bitget_exchange.dart';
 import '../bybit/bybit_exchange.dart';
 import '../coinbase/coinbase_exchange.dart';
-import '../coingecko/coingecko_exchange.dart';
-import '../coinmarketcap/coinmarketcap_exchange.dart';
 import '../gateio/gateio_exchange.dart';
-import '../kcex/kcex_exchange.dart';
 import '../kifpool/kifpool_exchange.dart';
 import '../kraken/kraken_exchange.dart';
 import '../kucoin/kucoin_exchange.dart';
 import '../lbank/lbank_exchange.dart';
 import '../mexc/mexc_exchange.dart';
 import '../okx/okx_exchange.dart';
-import '../ourbit/ourbit_exchange.dart';
 import '../stocks/global_stocks_exchange.dart';
 import '../stocks/iran_domestic_exchange.dart';
 import '../tabdeal/tabdeal_exchange.dart';
@@ -87,49 +83,6 @@ class ExchangeCatalog {
         countryBadge: '🌐 Global',
         defaultCounterCurrency: 'USDT',
         tickerUrlTemplate: 'https://api-pub.bitfinex.com/v2/ticker/t{BASE_UPPER}UST',
-      ),
-      StandardRestExchange(
-        id: 'bitvavo',
-        name: 'Bitvavo',
-        category: ExchangeCategory.tier1,
-        countryBadge: '🇳🇱 Netherlands',
-        defaultCounterCurrency: 'EUR',
-        tickerUrlTemplate: 'https://api.bitvavo.com/v2/ticker/24h?market={BASE_UPPER}-{QUOTE_UPPER}',
-      ),
-      StandardRestExchange(
-        id: 'upbit',
-        name: 'Upbit',
-        category: ExchangeCategory.tier1,
-        countryBadge: '🇰🇷 South Korea',
-        defaultCounterCurrency: 'KRW',
-        tickerUrlTemplate: 'https://api.upbit.com/v1/ticker?markets={QUOTE_UPPER}-{BASE_UPPER}',
-      ),
-      StandardRestExchange(
-        id: 'bitmex',
-        name: 'BitMEX',
-        category: ExchangeCategory.tier1,
-        countryBadge: '🌐 Global',
-        defaultCounterCurrency: 'USD',
-        pairsUrl: 'https://www.bitmex.com/api/v1/instrument?filter=%7B%22typ%22%3A%22FFWCSX%22%7D',
-        tickerUrlTemplate: 'https://www.bitmex.com/api/v1/instrument?symbol={BITMEX_SYMBOL}',
-      ),
-      StandardRestExchange(
-        id: 'bitstamp',
-        name: 'Bitstamp',
-        category: ExchangeCategory.tier1,
-        countryBadge: '🇪🇺 Europe',
-        defaultCounterCurrency: 'USD',
-        pairsUrl: 'https://www.bitstamp.net/api/v2/trading-pairs-info/',
-        tickerUrlTemplate: 'https://www.bitstamp.net/api/v2/ticker/{BASE_LOWER}{QUOTE_LOWER}/',
-      ),
-      StandardRestExchange(
-        id: 'gemini',
-        name: 'Gemini',
-        category: ExchangeCategory.tier1,
-        countryBadge: '🇺🇸 USA',
-        defaultCounterCurrency: 'USD',
-        pairsUrl: 'https://api.gemini.com/v1/symbols',
-        tickerUrlTemplate: 'https://api.gemini.com/v1/pubticker/{BASE_LOWER}{QUOTE_LOWER}',
       ),
     ];
   }

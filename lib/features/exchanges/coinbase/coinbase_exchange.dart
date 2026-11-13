@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import '../base/crypto_catalog_service.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
@@ -33,7 +32,7 @@ class CoinbaseExchange implements Exchange {
   String get countryBadge => '🇺🇸 USA';
 
   @override
-  String get defaultCounterCurrency => 'USD';
+  String get defaultCounterCurrency => 'USDT';
 
   @override
   Future<List<CurrencyPair>> fetchCurrencyPairs() async {
@@ -44,7 +43,7 @@ class CoinbaseExchange implements Exchange {
       for (final item in data) {
         if (item is Map && item['status'] == 'online') {
           final quote = item['quote_currency']?.toString().toUpperCase() ?? '';
-          if (quote == 'USD' || quote == 'USDT') {
+          if (quote == 'USDT') {
             final base = item['base_currency']?.toString().toUpperCase() ?? '';
             final id = item['id']?.toString().toUpperCase() ?? '$base-$quote';
             pairs.add(CurrencyPair(
@@ -58,16 +57,7 @@ class CoinbaseExchange implements Exchange {
       if (pairs.isNotEmpty) return pairs;
     } catch (_) {}
 
-    // Rule R4: Last successfully cached catalog of Coinbase on device disk
-    try {
-      final diskCached = await CryptoCatalogService.instance.fetchPairsForExchange(
-        id,
-        forceRefresh: false,
-      );
-      if (diskCached.isNotEmpty) return diskCached;
-    } catch (_) {}
-
-    return [];
+    return <CurrencyPair>[];
   }
 
   @override
