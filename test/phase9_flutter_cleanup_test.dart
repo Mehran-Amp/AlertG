@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -116,9 +117,8 @@ void main() {
     CryptoCatalogService.instance.clearMemoryCache();
     CryptoCatalogService.instance.clearDiagnosticsForTesting();
     CryptoCatalogService.instance.testClient = null;
-    ServerAlertService.resetCircuitBreakerForTesting();
+    ServerAlertService.resetSyncStateForTesting();
     ServerAlertService.setBaseUrlForTesting('https://example.invalid');
-    ServerAlertService.httpClientForTesting = null;
     ServerAlertService.registerLoadFailedProvider(() => false);
   });
 
@@ -126,7 +126,7 @@ void main() {
     CryptoCatalogService.instance.clearMemoryCache();
     CryptoCatalogService.instance.clearDiagnosticsForTesting();
     CryptoCatalogService.instance.testClient = null;
-    ServerAlertService.httpClientForTesting = null;
+    ServerAlertService.resetSyncStateForTesting();
     // Clean up any leftover catalog files between tests
     if (tempTestDir.existsSync()) {
       for (final entity in tempTestDir.listSync()) {
@@ -365,6 +365,12 @@ void main() {
     test('JsonAlertRuleRepository purges CoinEx rules on load and exposes one-time notice count', () async {
       final dir = tempTestDir.createTempSync('coinex_purge_');
       try {
+        final syncDone = Completer<void>();
+        ServerAlertService.httpClientForTesting = MockClient((_) async {
+          if (!syncDone.isCompleted) syncDone.complete();
+          return http.Response(jsonEncode({'status': 'ok'}), 200);
+        });
+
         final alertsFile = File('${dir.path}/alerts.json');
         await alertsFile.writeAsString(jsonEncode({
           'version': 1,
@@ -377,6 +383,11 @@ void main() {
 
         final repo = JsonAlertRuleRepository(dir.path);
         await repo.load();
+
+        // Wait for the fire-and-forget sync triggered by load()'s _notify()
+        // to complete so _syncInFlight and retry timers are completely clear.
+        await syncDone.future.timeout(const Duration(seconds: 2));
+        await Future<void>.delayed(const Duration(milliseconds: 20));
 
         expect(repo.allRules.map((r) => r.uuid).toList(), equals(['valid-binance-1']));
         expect(repo.consumeRemovedCoinExNoticeCount(), equals(2));

@@ -144,6 +144,23 @@ class ServerAlertService {
     _circuitBreakerUntil = null;
   }
 
+  /// Test-only hook: cancel pending retry timers and reset single-flight flags.
+  @visibleForTesting
+  static void resetSyncStateForTesting() {
+    _retryTimer?.cancel();
+    _retryTimer = null;
+    _retryIndex = 0;
+    _syncInFlight = false;
+    _syncDirty = false;
+    _pendingRules = null;
+    _pendingUserId = null;
+    _syncPending = false;
+    _circuitBreakerUntil = null;
+    _rulesProvider = null;
+    _loadFailedProvider = null;
+    httpClientForTesting = null;
+  }
+
 
 
   static bool get isServerAvailable {
