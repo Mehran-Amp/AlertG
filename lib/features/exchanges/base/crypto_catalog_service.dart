@@ -185,9 +185,7 @@ class CryptoCatalogService {
         );
 
         // Save complete catalog to offline local disk cache
-        _savePairsToDiskCache(cleanId, pairs).catchError((e) {
-          debugPrint('Failed to save crypto catalog disk cache for $cleanId: $e');
-        });
+        await _savePairsToDiskCache(cleanId, pairs);
 
         debugPrint('[CryptoCatalog] ex=$cleanId source=server pairs=${pairs.length} ms=${stopwatch.elapsedMilliseconds} pages=$pageCount err=none');
         return pairs;
@@ -232,7 +230,7 @@ class CryptoCatalogService {
             error: lastError,
           );
           // Persist direct pairs to disk cache as well
-          _savePairsToDiskCache(cleanId, directPairs).catchError((_) {});
+          await _savePairsToDiskCache(cleanId, directPairs);
           debugPrint('[CryptoCatalog] ex=$cleanId source=direct pairs=${directPairs.length} ms=${stopwatch.elapsedMilliseconds} pages=$pageCount err=${lastError ?? "none"}');
           return directPairs;
         }
@@ -257,7 +255,8 @@ class CryptoCatalogService {
   /// Saves unified pairs list to device disk cache
   Future<void> _savePairsToDiskCache(String exchangeId, List<CurrencyPair> pairs) async {
     try {
-      final dir = testCacheDir ?? await getApplicationDocumentsDirectory();
+      final customDir = testCacheDir;
+      final dir = customDir ?? await getApplicationDocumentsDirectory();
       final file = File('${dir.path}/crypto_catalog_$exchangeId.json');
       final payload = {
         'status': 'success',
@@ -273,17 +272,24 @@ class CryptoCatalogService {
                 })
             .toList(),
       };
-      await file.writeAsString(json.encode(payload), flush: true);
+      final encoded = json.encode(payload);
+      if (customDir != null) {
+        file.writeAsStringSync(encoded, flush: true);
+      } else {
+        await file.writeAsString(encoded, flush: true);
+      }
     } catch (_) {}
   }
 
   /// Loads cached catalog from device disk file supporting both field conventions
   Future<List<CurrencyPair>> _loadFromDiskCache(String exchangeId) async {
     try {
-      final dir = testCacheDir ?? await getApplicationDocumentsDirectory();
+      final customDir = testCacheDir;
+      final dir = customDir ?? await getApplicationDocumentsDirectory();
       final file = File('${dir.path}/crypto_catalog_$exchangeId.json');
-      if (await file.exists()) {
-        final raw = await file.readAsString();
+      final exists = customDir != null ? file.existsSync() : await file.exists();
+      if (exists) {
+        final raw = customDir != null ? file.readAsStringSync() : await file.readAsString();
         final decoded = json.decode(raw);
         if (decoded is Map && decoded['symbols'] is List) {
           final symbolList = decoded['symbols'] as List;
