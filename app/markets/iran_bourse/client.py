@@ -131,7 +131,13 @@ class BourseClient:
     def _envelope(body: Dict[str, Any], path: str) -> Tuple[Any, Dict[str, Any]]:
         if "data" not in body or not isinstance(body.get("meta"), dict):
             raise BourseBadResponse(f"missing meta/data in {path}")
-        return body["data"], body["meta"]
+        # The gateway host's clock must never decide our timestamps (a mis-set PC/VPS clock
+        # shifted asOf by hours). Use OUR clock and the gateway's relative age instead.
+        meta = dict(body["meta"])
+        age = meta.get("age_seconds")
+        usable_age = isinstance(age, (int, float)) and not isinstance(age, bool) and 0 <= age < 86400
+        meta["local_as_of"] = int(time.time() - (age if usable_age else 0))
+        return body["data"], meta
 
     # ---- the six calls used by AlertG ------------------------------------
     async def health(self) -> Dict[str, Any]:

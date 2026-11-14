@@ -42,7 +42,14 @@ def validate_quote(quote: Any) -> None:
 
 
 def meta_as_of(meta: Optional[Dict[str, Any]]) -> Optional[int]:
-    """meta.updated_at (UTC ISO) -> epoch seconds of the last successful fetch."""
+    """Epoch seconds of the last successful fetch, on OUR clock.
+
+    The client stamps `local_as_of` (server time minus the gateway's age_seconds), so the
+    gateway host's clock is irrelevant. `updated_at` is only a fallback for hand-built meta.
+    """
+    local = (meta or {}).get("local_as_of")
+    if isinstance(local, int) and not isinstance(local, bool):
+        return local
     raw = (meta or {}).get("updated_at")
     if not raw:
         return None

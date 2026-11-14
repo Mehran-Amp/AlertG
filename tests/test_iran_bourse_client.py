@@ -51,6 +51,40 @@ class ClientTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(quote["name"], "صندوق طلای عیار مفید")
         self.assertEqual(meta["unit"], "IRR")
 
+    async def test_as_of_ignores_a_wrong_gateway_clock(self):
+        """Real incident: gateway PC clock was 10.5 h ahead; asOf must follow OUR clock."""
+        import time
+        from datetime import datetime, timedelta, timezone
+        wrong = (datetime.now(timezone.utc) + timedelta(hours=10, minutes=30)).isoformat()
+
+        def handler(req):
+            body = load("quote_ayar.json")
+            body["meta"] = dict(body["meta"], updated_at=wrong, age_seconds=20.0)
+            return json_response(body)
+
+        c, http = make(handler)
+        async with http:
+            _, meta = await c.quote(AYAR_ID)
+        self.assertLess(abs(meta["local_as_of"] - (time.time() - 20.0)), 3)
+        self.assertEqual(meta["updated_at"], wrong)          # original field is left untouched
+
+    async def test_as_of_without_or_with_bad_age_uses_receive_time(self):
+        import time
+        for bad in (None, "x", -5, 10 ** 9, True):
+            def handler(req, bad=bad):
+                body = load("quote_ayar.json")
+                meta = dict(body["meta"])
+                meta.pop("age_seconds", None)
+                if bad is not None:
+                    meta["age_seconds"] = bad
+                body["meta"] = meta
+                return json_response(body)
+
+            c, http = make(handler)
+            async with http:
+                _, meta = await c.quote(AYAR_ID)
+            self.assertLess(abs(meta["local_as_of"] - time.time()), 3, f"age={bad!r}")
+
     async def test_401(self):
         c, http = make(lambda r: json_response({"error": "x"}, 401))
         async with http:
