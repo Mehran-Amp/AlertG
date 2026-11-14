@@ -108,6 +108,13 @@ class KifpoolExchange implements Exchange {
   static List<dynamic>? _cachedSpotPrices;
   static DateTime? _lastSpotPriceFetch;
 
+  @visibleForTesting
+  static void clearCacheForTesting() {
+    _cachedSpotPrices = null;
+    _lastSpotPriceFetch = null;
+    _lastKnownLiveTickers.clear();
+  }
+
   @override
   Future<MarketTicker> fetchTicker(CurrencyPair pair) async {
     final bool useServerFirst = serverFirstOverrideForTesting ?? (_serverFirst && kKifpoolServerFirst);

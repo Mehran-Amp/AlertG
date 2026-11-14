@@ -98,6 +98,13 @@ class TabdealExchange implements Exchange {
   static List<dynamic>? _cachedMarketInfo;
   static DateTime? _lastMarketInfoFetch;
 
+  @visibleForTesting
+  static void clearCacheForTesting() {
+    _cachedMarketInfo = null;
+    _lastMarketInfoFetch = null;
+    _lastKnownLiveTickers.clear();
+  }
+
   @override
   Future<MarketTicker> fetchTicker(CurrencyPair pair) async {
     final bool useServerFirst = serverFirstOverrideForTesting ?? (_serverFirst && kTabdealServerFirst);

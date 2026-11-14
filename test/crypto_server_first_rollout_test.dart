@@ -112,7 +112,9 @@ void main() {
     CoinbaseExchange.serverFirstOverrideForTesting = null;
     StandardRestExchange.serverFirstOverrideForTesting = null;
     TabdealExchange.serverFirstOverrideForTesting = null;
+    TabdealExchange.clearCacheForTesting();
     KifpoolExchange.serverFirstOverrideForTesting = null;
+    KifpoolExchange.clearCacheForTesting();
   }
 
   setUp(resetAllOverrides);
@@ -409,6 +411,8 @@ void main() {
         expect(ticker2.lastPrice, closeTo(spec.expectedDirectPrice, 1e-6));
 
         // 3. Switch off -> bypasses server and calls direct
+        TabdealExchange.clearCacheForTesting();
+        KifpoolExchange.clearCacheForTesting();
         bool serverCalled3 = false;
         ServerAlertService.httpClientForTesting = MockClient((_) async {
           serverCalled3 = true;
