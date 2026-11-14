@@ -482,17 +482,16 @@ void main() {
         await tester.tap(binanceFinder);
         await tester.pump();
 
-        await tester.runAsync(() async {
-          final deadline = DateTime.now().add(const Duration(seconds: 3));
-          while (CryptoCatalogService.instance.getDiagnostic('binance') == null &&
-              DateTime.now().isBefore(deadline)) {
-            await Future<void>.delayed(const Duration(milliseconds: 10));
-          }
-          await Future<void>.delayed(const Duration(milliseconds: 20));
-        });
+        final deadline = DateTime.now().add(const Duration(seconds: 3));
+        while (CryptoCatalogService.instance.getDiagnostic('binance') == null &&
+            DateTime.now().isBefore(deadline)) {
+          await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+          await tester.pump();
+        }
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 
+        expect(CryptoCatalogService.instance.getDiagnostic('binance')?.source, equals('disk_cache'));
         expect(find.textContaining('may be outdated'), findsOneWidget);
         expect(find.text('BTC / USDT'), findsOneWidget);
       } finally {
@@ -541,17 +540,16 @@ void main() {
         await tester.tap(binanceFinder);
         await tester.pump();
 
-        await tester.runAsync(() async {
-          final deadline = DateTime.now().add(const Duration(seconds: 3));
-          while (CryptoCatalogService.instance.getDiagnostic('binance') == null &&
-              DateTime.now().isBefore(deadline)) {
-            await Future<void>.delayed(const Duration(milliseconds: 10));
-          }
-          await Future<void>.delayed(const Duration(milliseconds: 20));
-        });
+        final deadline = DateTime.now().add(const Duration(seconds: 3));
+        while (CryptoCatalogService.instance.getDiagnostic('binance') == null &&
+            DateTime.now().isBefore(deadline)) {
+          await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+          await tester.pump();
+        }
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 
+        expect(CryptoCatalogService.instance.getDiagnostic('binance')?.source, equals('empty'));
         expect(find.text('Exchange catalog unavailable'), findsOneWidget);
         expect(find.text('Retry'), findsOneWidget);
       } finally {
