@@ -1,21 +1,31 @@
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
 import '../base/models/market_ticker.dart';
 import '../base/models/price_snapshot.dart';
+import '../base/server_price_gateway.dart';
+
+/// Rollback switch for Gate.io server-first pricing.
+const bool kGateioServerFirst = true;
 
 /// Gate.io REST Exchange Adapter (Unrestricted access to 2,000+ crypto pairs)
 class GateioExchange implements Exchange {
   final Dio _dio;
+  final bool _serverFirst;
 
-  GateioExchange({Dio? dio})
+  @visibleForTesting
+  static bool? serverFirstOverrideForTesting;
+
+  GateioExchange({Dio? dio, bool? serverFirst})
       : _dio = dio ??
             Dio(BaseOptions(
               baseUrl: 'https://api.gateio.ws/api/v4',
               connectTimeout: const Duration(seconds: 10),
               receiveTimeout: const Duration(seconds: 10),
-            ));
+            )),
+        _serverFirst = serverFirst ?? kGateioServerFirst;
 
   @override
   String get id => 'gateio';
@@ -108,6 +118,20 @@ class GateioExchange implements Exchange {
 
   @override
   Future<MarketTicker> fetchTicker(CurrencyPair pair) async {
+    final bool useServerFirst = serverFirstOverrideForTesting ?? (_serverFirst && kGateioServerFirst);
+    if (useServerFirst) {
+      final snapshot = await ServerPriceGateway.fetch(id, pair);
+      if (snapshot != null && snapshot.price > 0) {
+        return MarketTicker(
+          exchangeId: id,
+          pair: pair,
+          lastPrice: snapshot.price,
+          volume24h: 0.0,
+          timestamp: DateTime.now(),
+        );
+      }
+    }
+
     final pairId = '${pair.baseCurrency}_${pair.counterCurrency}'.toUpperCase();
     try {
       final response = await _dio.get(

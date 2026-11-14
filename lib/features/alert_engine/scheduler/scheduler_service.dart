@@ -80,8 +80,12 @@ class SchedulerService {
       return cached.$1;
     }
 
-    // 1. If rule was determined to prefer server proxy (during alert creation), try server proxy first!
-    if (rule.preferServerProxy) {
+    final isNonCryptoMarket = rule.exchangeId == ExchangeRegistry.globalStocksId ||
+        rule.exchangeId == ExchangeRegistry.iranMarketId;
+
+    // 1. For non-crypto markets that prefer server proxy, try server proxy first.
+    // (Registered crypto adapters already execute ServerPriceGateway server-first inside fetchTicker.)
+    if (isNonCryptoMarket && rule.preferServerProxy) {
       final serverPrice = await ServerAlertService.fetchPriceViaServer(rule.exchangeId, rule.pair.marketSymbol);
       if (serverPrice != null && serverPrice > 0) {
         BackgroundServiceManager.updatePriceSource(isFromServer: true);
@@ -97,23 +101,23 @@ class SchedulerService {
       }
     }
 
-    // 2. Try direct local fetch (5-second timeout for weak internet)
+    // 2. Fetch via exchange adapter (server-first + direct fallback for crypto; direct for non-crypto)
     final exchange = _exchangeRegistry.get(rule.exchangeId);
     if (exchange != null) {
       try {
-        final localTicker = await exchange.fetchTicker(rule.pair).timeout(const Duration(seconds: 5));
+        final localTicker = await exchange.fetchTicker(rule.pair).timeout(const Duration(seconds: 8));
         if (localTicker.lastPrice > 0) {
-          BackgroundServiceManager.updatePriceSource(isFromServer: false);
+          BackgroundServiceManager.updatePriceSource(isFromServer: !isNonCryptoMarket);
           _recentTickers[cacheKey] = (localTicker, now);
           return localTicker;
         }
       } catch (_) {
-        // Direct local fetch failed or timed out
+        // Adapter fetch failed or timed out
       }
     }
 
-    // 3. Fallback: Query server proxy if not already tried
-    if (!rule.preferServerProxy) {
+    // 3. Fallback: Query server proxy for non-crypto (if not already tried) or if exchange wasn't in registry
+    if (isNonCryptoMarket ? !rule.preferServerProxy : exchange == null) {
       final serverPrice = await ServerAlertService.fetchPriceViaServer(rule.exchangeId, rule.pair.marketSymbol);
       if (serverPrice != null && serverPrice > 0) {
         BackgroundServiceManager.updatePriceSource(isFromServer: true);

@@ -1,16 +1,27 @@
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
 import '../base/models/market_ticker.dart';
 import '../base/models/price_snapshot.dart';
+import '../base/server_price_gateway.dart';
+
+/// Rollback switch for LBank server-first pricing.
+const bool kLbankServerFirst = true;
 
 /// LBank Exchange Adapter (Top Global Crypto Spot & Memecoin Exchange)
 class LBankExchange implements Exchange {
   final Dio _dio;
+  final bool _hasCustomDio;
+  final bool _serverFirst;
 
-  LBankExchange({Dio? dio})
-      : _dio = dio ??
+  @visibleForTesting
+  static bool? serverFirstOverrideForTesting;
+
+  LBankExchange({Dio? dio, bool? serverFirst})
+      : _hasCustomDio = dio != null,
+        _dio = dio ??
             Dio(BaseOptions(
               baseUrl: 'https://api.lbkex.com',
               connectTimeout: const Duration(seconds: 6),
@@ -19,7 +30,8 @@ class LBankExchange implements Exchange {
                 'Accept': 'application/json',
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
               },
-            ));
+            )),
+        _serverFirst = serverFirst ?? kLbankServerFirst;
 
   @override
   String get id => 'lbank';
@@ -95,20 +107,37 @@ class LBankExchange implements Exchange {
 
   @override
   Future<MarketTicker> fetchTicker(CurrencyPair pair) async {
-    final symbol = '${pair.baseCurrency.toLowerCase()}_${pair.counterCurrency.toLowerCase()}';
-    final domains = ['https://api.lbank.info', 'https://api.lbkex.com'];
+    final bool useServerFirst = serverFirstOverrideForTesting ?? (_serverFirst && kLbankServerFirst);
+    if (useServerFirst) {
+      final snapshot = await ServerPriceGateway.fetch(id, pair);
+      if (snapshot != null && snapshot.price > 0) {
+        return MarketTicker(
+          exchangeId: id,
+          pair: pair,
+          lastPrice: snapshot.price,
+          volume24h: 0.0,
+          timestamp: DateTime.now(),
+        );
+      }
+    }
 
-    for (final domain in domains) {
-      try {
-        final client = Dio(BaseOptions(
-          baseUrl: domain,
+    final symbol = '${pair.baseCurrency.toLowerCase()}_${pair.counterCurrency.toLowerCase()}';
+    final clients = <Dio>[
+      _dio,
+      if (!_hasCustomDio)
+        Dio(BaseOptions(
+          baseUrl: 'https://api.lbank.info',
           connectTimeout: const Duration(seconds: 6),
           receiveTimeout: const Duration(seconds: 6),
           headers: {
             'Accept': 'application/json',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
           },
-        ));
+        )),
+    ];
+
+    for (final client in clients) {
+      try {
         final response = await client.get('/v2/ticker/24hr.do', queryParameters: {'symbol': symbol});
         if (response.data is Map && response.data['data'] is List) {
           final list = response.data['data'] as List;

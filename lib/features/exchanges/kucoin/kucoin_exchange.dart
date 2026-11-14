@@ -1,21 +1,31 @@
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
 import '../base/models/market_ticker.dart';
 import '../base/models/price_snapshot.dart';
+import '../base/server_price_gateway.dart';
+
+/// Rollback switch for KuCoin server-first pricing.
+const bool kKucoinServerFirst = true;
 
 /// KuCoin REST Exchange Adapter
 class KuCoinExchange implements Exchange {
   final Dio _dio;
+  final bool _serverFirst;
 
-  KuCoinExchange({Dio? dio})
+  @visibleForTesting
+  static bool? serverFirstOverrideForTesting;
+
+  KuCoinExchange({Dio? dio, bool? serverFirst})
       : _dio = dio ??
             Dio(BaseOptions(
               baseUrl: 'https://api.kucoin.com',
               connectTimeout: const Duration(seconds: 8),
               receiveTimeout: const Duration(seconds: 8),
-            ));
+            )),
+        _serverFirst = serverFirst ?? kKucoinServerFirst;
 
   @override
   String get id => 'kucoin';
@@ -66,6 +76,20 @@ class KuCoinExchange implements Exchange {
 
   @override
   Future<MarketTicker> fetchTicker(CurrencyPair pair) async {
+    final bool useServerFirst = serverFirstOverrideForTesting ?? (_serverFirst && kKucoinServerFirst);
+    if (useServerFirst) {
+      final snapshot = await ServerPriceGateway.fetch(id, pair);
+      if (snapshot != null && snapshot.price > 0) {
+        return MarketTicker(
+          exchangeId: id,
+          pair: pair,
+          lastPrice: snapshot.price,
+          volume24h: 0.0,
+          timestamp: DateTime.now(),
+        );
+      }
+    }
+
     try {
       final symbol = '${pair.baseCurrency}-${pair.counterCurrency}'.toUpperCase();
       final response = await _dio.get('/api/v1/market/orderbook/level1', queryParameters: {'symbol': symbol});

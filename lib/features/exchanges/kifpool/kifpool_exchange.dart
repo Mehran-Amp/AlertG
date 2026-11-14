@@ -1,18 +1,27 @@
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
 import '../base/models/market_ticker.dart';
 import '../base/models/price_snapshot.dart';
+import '../base/server_price_gateway.dart';
+
+/// Rollback switch for Kifpool server-first pricing.
+const bool kKifpoolServerFirst = true;
 
 /// Kifpool Exchange Adapter (Official Iranian Crypto Exchange & Multi-Currency Platform)
 /// Direct REST API integration with official https://api.kifpool.app endpoints.
 /// Supports 1,200+ coins in both TMN (Toman) and USDT quotes.
 class KifpoolExchange implements Exchange {
   final Dio _dio;
+  final bool _serverFirst;
   static final Map<String, MarketTicker> _lastKnownLiveTickers = {};
 
-  KifpoolExchange({Dio? dio})
+  @visibleForTesting
+  static bool? serverFirstOverrideForTesting;
+
+  KifpoolExchange({Dio? dio, bool? serverFirst})
       : _dio = dio ??
             Dio(BaseOptions(
               baseUrl: 'https://api.kifpool.app',
@@ -22,7 +31,8 @@ class KifpoolExchange implements Exchange {
                 'Accept': 'application/json',
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
               },
-            ));
+            )),
+        _serverFirst = serverFirst ?? kKifpoolServerFirst;
 
   @override
   String get id => 'kifpool';
@@ -100,6 +110,20 @@ class KifpoolExchange implements Exchange {
 
   @override
   Future<MarketTicker> fetchTicker(CurrencyPair pair) async {
+    final bool useServerFirst = serverFirstOverrideForTesting ?? (_serverFirst && kKifpoolServerFirst);
+    if (useServerFirst) {
+      final snapshot = await ServerPriceGateway.fetch(id, pair);
+      if (snapshot != null && snapshot.price > 0) {
+        return MarketTicker(
+          exchangeId: id,
+          pair: pair,
+          lastPrice: snapshot.price,
+          volume24h: 0.0,
+          timestamp: DateTime.now(),
+        );
+      }
+    }
+
     final cacheKey = '${pair.baseCurrency}_${pair.counterCurrency}'.toUpperCase();
     final baseSym = pair.baseCurrency.toUpperCase();
     final isTmn = pair.counterCurrency.toUpperCase() == 'TMN' || pair.counterCurrency.toUpperCase() == 'IRT';

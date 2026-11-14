@@ -1,24 +1,34 @@
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
 import '../base/models/market_ticker.dart';
 import '../base/models/price_snapshot.dart';
+import '../base/server_price_gateway.dart';
+
+/// Rollback switch for Binance server-first pricing.
+const bool kBinanceServerFirst = true;
 
 /// Production-grade Binance Exchange Adapter.
 /// Pure REST endpoints for pair discovery, lightweight snapshots, and 24h ticker metrics.
 class BinanceExchange implements Exchange {
   final Dio _dio;
   final Dio? _visionDio;
+  final bool _serverFirst;
 
-  BinanceExchange({Dio? dio, Dio? visionDio})
+  @visibleForTesting
+  static bool? serverFirstOverrideForTesting;
+
+  BinanceExchange({Dio? dio, Dio? visionDio, bool? serverFirst})
       : _dio = dio ??
             Dio(BaseOptions(
               baseUrl: 'https://api.binance.com',
               connectTimeout: const Duration(seconds: 8),
               receiveTimeout: const Duration(seconds: 8),
             )),
-        _visionDio = visionDio;
+        _visionDio = visionDio,
+        _serverFirst = serverFirst ?? kBinanceServerFirst;
 
   @override
   String get id => 'binance';
@@ -125,7 +135,21 @@ class BinanceExchange implements Exchange {
 
   @override
   Future<MarketTicker> fetchTicker(CurrencyPair pair) async {
-    final symbol = pair.marketSymbol.toUpperCase();
+    final bool useServerFirst = serverFirstOverrideForTesting ?? (_serverFirst && kBinanceServerFirst);
+    if (useServerFirst) {
+      final snapshot = await ServerPriceGateway.fetch(id, pair);
+      if (snapshot != null && snapshot.price > 0) {
+        return MarketTicker(
+          exchangeId: id,
+          pair: pair,
+          lastPrice: snapshot.price,
+          volume24h: 0.0,
+          timestamp: DateTime.now(),
+        );
+      }
+    }
+
+    final symbol = (pair.marketSymbol.isNotEmpty ? pair.marketSymbol : '${pair.baseCurrency}${pair.counterCurrency}').toUpperCase();
     try {
       final response = await _dio.get(
         '/api/v3/ticker/24hr',
@@ -152,11 +176,12 @@ class BinanceExchange implements Exchange {
 
     // Fallback: Binance Public Vision Data Mirror (Unfiltered worldwide & highly accessible)
     try {
-      final visionDio = Dio(BaseOptions(
-        baseUrl: 'https://data-api.binance.vision',
-        connectTimeout: const Duration(seconds: 5),
-        receiveTimeout: const Duration(seconds: 5),
-      ));
+      final visionDio = _visionDio ??
+          Dio(BaseOptions(
+            baseUrl: 'https://data-api.binance.vision',
+            connectTimeout: const Duration(seconds: 5),
+            receiveTimeout: const Duration(seconds: 5),
+          ));
       final res = await visionDio.get(
         '/api/v3/ticker/price',
         queryParameters: {'symbol': symbol},

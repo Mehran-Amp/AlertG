@@ -1,9 +1,14 @@
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
 import '../base/models/market_ticker.dart';
 import '../base/models/price_snapshot.dart';
+import '../base/server_price_gateway.dart';
+
+/// Rollback switch for StandardRestExchange server-first pricing (HTX, Poloniex, Bitfinex).
+const bool kStandardRestServerFirst = true;
 
 /// Configurable Standard REST Exchange Adapter (inspired by BitcoinChecker DataModule)
 /// Connects to verified real-time REST endpoints. Never fabricates fake prices.
@@ -20,6 +25,10 @@ class StandardRestExchange implements Exchange {
   final String defaultCounterCurrency;
 
   final bool? _isAlertCapableOverride;
+  final bool _serverFirst;
+
+  @visibleForTesting
+  static bool? serverFirstOverrideForTesting;
 
   bool get isAlertCapable => _isAlertCapableOverride ?? (tickerUrlTemplate != null && tickerUrlTemplate!.isNotEmpty);
 
@@ -39,8 +48,10 @@ class StandardRestExchange implements Exchange {
     this.pairsUrl,
     this.fallbackPairs = const [],
     bool? isAlertCapable,
+    bool? serverFirst,
     Dio? dio,
   })  : _isAlertCapableOverride = isAlertCapable,
+        _serverFirst = serverFirst ?? kStandardRestServerFirst,
         _dio = dio ??
             Dio(BaseOptions(
               connectTimeout: const Duration(seconds: 8),
@@ -158,28 +169,22 @@ class StandardRestExchange implements Exchange {
 
   @override
   Future<MarketTicker> fetchTicker(CurrencyPair pair) async {
+    final bool useServerFirst = serverFirstOverrideForTesting ?? (_serverFirst && kStandardRestServerFirst);
+    if (useServerFirst) {
+      final snapshot = await ServerPriceGateway.fetch(id, pair);
+      if (snapshot != null && snapshot.price > 0) {
+        return MarketTicker(
+          exchangeId: id,
+          pair: pair,
+          lastPrice: snapshot.price,
+          volume24h: 0.0,
+          timestamp: DateTime.now(),
+        );
+      }
+    }
+
     final cacheKey = '${pair.baseCurrency}_${pair.counterCurrency}'.toUpperCase();
     final altKey = (pair.marketSymbol.isNotEmpty ? pair.marketSymbol : '${pair.baseCurrency}${pair.counterCurrency}').toUpperCase();
-
-    // Check memory cache first
-    if (_cachedLivePrices.containsKey(cacheKey) && (_cachedLivePrices[cacheKey] ?? 0) > 0) {
-      return MarketTicker(
-        exchangeId: id,
-        pair: pair,
-        lastPrice: _cachedLivePrices[cacheKey]!,
-        volume24h: 0.0,
-        timestamp: DateTime.now(),
-      );
-    }
-    if (_cachedLivePrices.containsKey(altKey) && (_cachedLivePrices[altKey] ?? 0) > 0) {
-      return MarketTicker(
-        exchangeId: id,
-        pair: pair,
-        lastPrice: _cachedLivePrices[altKey]!,
-        volume24h: 0.0,
-        timestamp: DateTime.now(),
-      );
-    }
 
     // 1. If specific tickerUrlTemplate provided, query official exchange endpoint
     if (tickerUrlTemplate != null) {

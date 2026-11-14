@@ -1,17 +1,25 @@
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
-import '../base/crypto_catalog_service.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
 import '../base/models/market_ticker.dart';
 import '../base/models/price_snapshot.dart';
+import '../base/server_price_gateway.dart';
+
+/// Rollback switch for BingX server-first pricing.
+const bool kBingxServerFirst = true;
 
 /// BingX Exchange Adapter (Global Top Tier Crypto & Derivatives Exchange)
 /// Direct REST API integration with real-time live price endpoints.
 class BingXExchange implements Exchange {
   final Dio _dio;
+  final bool _serverFirst;
 
-  BingXExchange({Dio? dio})
+  @visibleForTesting
+  static bool? serverFirstOverrideForTesting;
+
+  BingXExchange({Dio? dio, bool? serverFirst})
       : _dio = dio ??
             Dio(BaseOptions(
               baseUrl: 'https://open-api.bingx.com',
@@ -21,7 +29,8 @@ class BingXExchange implements Exchange {
                 'Accept': 'application/json',
                 'User-Agent': 'Mozilla/5.0 (Alarmer/1.0)',
               },
-            ));
+            )),
+        _serverFirst = serverFirst ?? kBingxServerFirst;
 
   @override
   String get id => 'bingx';
@@ -120,6 +129,20 @@ class BingXExchange implements Exchange {
 
   @override
   Future<MarketTicker> fetchTicker(CurrencyPair pair) async {
+    final bool useServerFirst = serverFirstOverrideForTesting ?? (_serverFirst && kBingxServerFirst);
+    if (useServerFirst) {
+      final snapshot = await ServerPriceGateway.fetch(id, pair);
+      if (snapshot != null && snapshot.price > 0) {
+        return MarketTicker(
+          exchangeId: id,
+          pair: pair,
+          lastPrice: snapshot.price,
+          volume24h: 0.0,
+          timestamp: DateTime.now(),
+        );
+      }
+    }
+
     final symbol = '${pair.baseCurrency}-${pair.counterCurrency}'.toUpperCase();
 
     try {

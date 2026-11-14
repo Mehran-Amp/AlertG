@@ -5,11 +5,17 @@ import '../../../core/services/server_alert_service.dart';
 import 'currency_pair.dart';
 import 'models/price_snapshot.dart';
 
+/// Master rollback switch for server-first cryptocurrency pricing across all adapters.
+const bool kCryptoServerFirstPricing = true;
+
 /// Gateway service for server-first price resolution for cryptocurrency pairs.
 ///
 /// Bypasses filtered direct mobile connections by delegating price fetching
 /// to the Python server proxy with structured logging and error tolerance.
 class ServerPriceGateway {
+  @visibleForTesting
+  static bool? enabledOverrideForTesting;
+
   /// Fetches a price snapshot via the server proxy for a given exchange and currency pair.
   ///
   /// - `symbol`: uses `pair.marketSymbol` if non-empty, otherwise falls back to `baseCurrency + counterCurrency`.
@@ -23,6 +29,9 @@ class ServerPriceGateway {
     CurrencyPair pair, {
     http.Client? client,
   }) async {
+    if (!(enabledOverrideForTesting ?? kCryptoServerFirstPricing)) {
+      return null;
+    }
     try {
       final symbol = pair.marketSymbol.trim().isNotEmpty
           ? pair.marketSymbol

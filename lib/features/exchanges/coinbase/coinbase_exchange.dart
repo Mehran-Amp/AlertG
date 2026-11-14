@@ -1,21 +1,31 @@
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
 import '../base/models/market_ticker.dart';
 import '../base/models/price_snapshot.dart';
+import '../base/server_price_gateway.dart';
+
+/// Rollback switch for Coinbase server-first pricing.
+const bool kCoinbaseServerFirst = true;
 
 /// Coinbase REST Exchange Adapter
 class CoinbaseExchange implements Exchange {
   final Dio _dio;
+  final bool _serverFirst;
 
-  CoinbaseExchange({Dio? dio})
+  @visibleForTesting
+  static bool? serverFirstOverrideForTesting;
+
+  CoinbaseExchange({Dio? dio, bool? serverFirst})
       : _dio = dio ??
             Dio(BaseOptions(
               baseUrl: 'https://api.exchange.coinbase.com',
               connectTimeout: const Duration(seconds: 8),
               receiveTimeout: const Duration(seconds: 8),
-            ));
+            )),
+        _serverFirst = serverFirst ?? kCoinbaseServerFirst;
 
   final Map<String, double> _cachedLivePrices = {};
 
@@ -72,18 +82,21 @@ class CoinbaseExchange implements Exchange {
 
   @override
   Future<MarketTicker> fetchTicker(CurrencyPair pair) async {
-    final symKey = '${pair.baseCurrency}-${pair.counterCurrency}'.toUpperCase();
-
-    // Check memory cache first
-    if (_cachedLivePrices.containsKey(symKey) && (_cachedLivePrices[symKey] ?? 0) > 0) {
-      return MarketTicker(
-        exchangeId: id,
-        pair: pair,
-        lastPrice: _cachedLivePrices[symKey]!,
-        volume24h: 0.0,
-        timestamp: DateTime.now(),
-      );
+    final bool useServerFirst = serverFirstOverrideForTesting ?? (_serverFirst && kCoinbaseServerFirst);
+    if (useServerFirst) {
+      final snapshot = await ServerPriceGateway.fetch(id, pair);
+      if (snapshot != null && snapshot.price > 0) {
+        return MarketTicker(
+          exchangeId: id,
+          pair: pair,
+          lastPrice: snapshot.price,
+          volume24h: 0.0,
+          timestamp: DateTime.now(),
+        );
+      }
     }
+
+    final symKey = '${pair.baseCurrency}-${pair.counterCurrency}'.toUpperCase();
 
     try {
       final productId = (pair.marketSymbol.isNotEmpty && pair.marketSymbol.contains('-'))

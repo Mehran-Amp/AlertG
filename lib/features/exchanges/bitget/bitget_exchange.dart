@@ -1,16 +1,25 @@
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
 import '../base/models/market_ticker.dart';
 import '../base/models/price_snapshot.dart';
+import '../base/server_price_gateway.dart';
+
+/// Rollback switch for Bitget server-first pricing.
+const bool kBitgetServerFirst = true;
 
 /// Bitget Exchange Adapter (Top Global Crypto Derivatives & Spot Exchange)
 /// Direct REST API integration with real-time live price endpoints.
 class BitgetExchange implements Exchange {
   final Dio _dio;
+  final bool _serverFirst;
 
-  BitgetExchange({Dio? dio})
+  @visibleForTesting
+  static bool? serverFirstOverrideForTesting;
+
+  BitgetExchange({Dio? dio, bool? serverFirst})
       : _dio = dio ??
             Dio(BaseOptions(
               baseUrl: 'https://api.bitget.com',
@@ -20,7 +29,8 @@ class BitgetExchange implements Exchange {
                 'Accept': 'application/json',
                 'User-Agent': 'Mozilla/5.0 (Alarmer/1.0)',
               },
-            ));
+            )),
+        _serverFirst = serverFirst ?? kBitgetServerFirst;
 
   @override
   String get id => 'bitget';
@@ -112,6 +122,20 @@ class BitgetExchange implements Exchange {
 
   @override
   Future<MarketTicker> fetchTicker(CurrencyPair pair) async {
+    final bool useServerFirst = serverFirstOverrideForTesting ?? (_serverFirst && kBitgetServerFirst);
+    if (useServerFirst) {
+      final snapshot = await ServerPriceGateway.fetch(id, pair);
+      if (snapshot != null && snapshot.price > 0) {
+        return MarketTicker(
+          exchangeId: id,
+          pair: pair,
+          lastPrice: snapshot.price,
+          volume24h: 0.0,
+          timestamp: DateTime.now(),
+        );
+      }
+    }
+
     final symbol = '${pair.baseCurrency}${pair.counterCurrency}'.toUpperCase();
 
     try {

@@ -1,16 +1,24 @@
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
-import '../base/crypto_catalog_service.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
 import '../base/models/market_ticker.dart';
 import '../base/models/price_snapshot.dart';
+import '../base/server_price_gateway.dart';
+
+/// Rollback switch for XT.COM server-first pricing.
+const bool kXtServerFirst = true;
 
 /// XT.COM Exchange Adapter (Global Crypto Spot & Web3 Trading Platform)
 class XTExchange implements Exchange {
   final Dio _dio;
+  final bool _serverFirst;
 
-  XTExchange({Dio? dio})
+  @visibleForTesting
+  static bool? serverFirstOverrideForTesting;
+
+  XTExchange({Dio? dio, bool? serverFirst})
       : _dio = dio ??
             Dio(BaseOptions(
               baseUrl: 'https://sapi.xt.com',
@@ -20,7 +28,8 @@ class XTExchange implements Exchange {
                 'Accept': 'application/json',
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
               },
-            ));
+            )),
+        _serverFirst = serverFirst ?? kXtServerFirst;
 
   @override
   String get id => 'xt';
@@ -115,6 +124,20 @@ class XTExchange implements Exchange {
 
   @override
   Future<MarketTicker> fetchTicker(CurrencyPair pair) async {
+    final bool useServerFirst = serverFirstOverrideForTesting ?? (_serverFirst && kXtServerFirst);
+    if (useServerFirst) {
+      final snapshot = await ServerPriceGateway.fetch(id, pair);
+      if (snapshot != null && snapshot.price > 0) {
+        return MarketTicker(
+          exchangeId: id,
+          pair: pair,
+          lastPrice: snapshot.price,
+          volume24h: 0.0,
+          timestamp: DateTime.now(),
+        );
+      }
+    }
+
     final symbol = '${pair.baseCurrency.toLowerCase()}_${pair.counterCurrency.toLowerCase()}';
 
     // 1. Direct XT.COM API

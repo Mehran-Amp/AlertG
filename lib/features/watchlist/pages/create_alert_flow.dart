@@ -417,43 +417,48 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
       _isLoadingPrice = true;
     });
 
-    // 1. Try local direct fetch first with 12-second timeout (accommodates mobile network latency)
-    try {
-      final snapshot = await widget.registry.fetchSnapshotFrom(
-        _selectedExchange!.id,
-        _selectedPair!,
-      ).timeout(const Duration(seconds: 12));
+    final exchangeId = _selectedExchange!.id;
+    final isRegistered = widget.registry.get(exchangeId) != null;
 
-      if (snapshot != null && snapshot.price > 0 && mounted) {
-        setState(() {
-          _currentPrice = snapshot.price;
-          _targetPriceController.text = _formatSmartNumber(snapshot.price);
-          _preferServerProxy = false; // Local direct fetch working
-          _isLoadingPrice = false;
-        });
-        return;
+    // 1. Fetch via registered adapter (server-first via ServerPriceGateway + direct fallback)
+    if (isRegistered) {
+      try {
+        final snapshot = await widget.registry.fetchSnapshotFrom(
+          exchangeId,
+          _selectedPair!,
+        ).timeout(const Duration(seconds: 12));
+
+        if (snapshot != null && snapshot.price > 0 && mounted) {
+          setState(() {
+            _currentPrice = snapshot.price;
+            _targetPriceController.text = _formatSmartNumber(snapshot.price);
+            _preferServerProxy = false;
+            _isLoadingPrice = false;
+          });
+          return;
+        }
+      } catch (_) {
+        // Both server gateway and direct adapter fallback failed
       }
-    } catch (_) {
-      // Local fetch failed (or exchange API is filtered/blocked by ISP)
+    } else {
+      // 2. Fallback if exchange adapter is not registered in registry
+      try {
+        final serverPrice = await ServerAlertService.fetchPriceViaServer(
+          exchangeId,
+          _selectedPair!.marketSymbol,
+        );
+
+        if (serverPrice != null && serverPrice > 0 && mounted) {
+          setState(() {
+            _currentPrice = serverPrice;
+            _targetPriceController.text = _formatSmartNumber(serverPrice);
+            _preferServerProxy = true;
+            _isLoadingPrice = false;
+          });
+          return;
+        }
+      } catch (_) {}
     }
-
-    // 2. Fallback: Query via server proxy (if ISP filtered)
-    try {
-      final serverPrice = await ServerAlertService.fetchPriceViaServer(
-        _selectedExchange!.id,
-        _selectedPair!.marketSymbol,
-      );
-
-      if (serverPrice != null && serverPrice > 0 && mounted) {
-        setState(() {
-          _currentPrice = serverPrice;
-          _targetPriceController.text = _formatSmartNumber(serverPrice);
-          _preferServerProxy = true; // Route marked to use server proxy
-          _isLoadingPrice = false;
-        });
-        return;
-      }
-    } catch (_) {}
 
     if (mounted) {
       setState(() => _isLoadingPrice = false);

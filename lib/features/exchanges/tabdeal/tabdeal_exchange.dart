@@ -1,18 +1,26 @@
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
-import '../base/iran_market_gateway.dart';
 import '../base/models/market_ticker.dart';
 import '../base/models/price_snapshot.dart';
+import '../base/server_price_gateway.dart';
+
+/// Rollback switch for Tabdeal server-first pricing.
+const bool kTabdealServerFirst = true;
 
 /// Tabdeal Exchange Adapter (Leading Iranian Crypto Spot & OTC Exchange)
 /// Direct REST API integration with real-time live price endpoints.
 class TabdealExchange implements Exchange {
   final Dio _dio;
+  final bool _serverFirst;
   static final Map<String, MarketTicker> _lastKnownLiveTickers = {};
 
-  TabdealExchange({Dio? dio})
+  @visibleForTesting
+  static bool? serverFirstOverrideForTesting;
+
+  TabdealExchange({Dio? dio, bool? serverFirst})
       : _dio = dio ??
             Dio(BaseOptions(
               baseUrl: 'https://api1.tabdeal.org',
@@ -22,7 +30,8 @@ class TabdealExchange implements Exchange {
                 'Accept': 'application/json',
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
               },
-            ));
+            )),
+        _serverFirst = serverFirst ?? kTabdealServerFirst;
 
   @override
   String get id => 'tabdeal';
@@ -91,6 +100,20 @@ class TabdealExchange implements Exchange {
 
   @override
   Future<MarketTicker> fetchTicker(CurrencyPair pair) async {
+    final bool useServerFirst = serverFirstOverrideForTesting ?? (_serverFirst && kTabdealServerFirst);
+    if (useServerFirst) {
+      final snapshot = await ServerPriceGateway.fetch(id, pair);
+      if (snapshot != null && snapshot.price > 0) {
+        return MarketTicker(
+          exchangeId: id,
+          pair: pair,
+          lastPrice: snapshot.price,
+          volume24h: 0.0,
+          timestamp: DateTime.now(),
+        );
+      }
+    }
+
     final cacheKey = '${pair.baseCurrency}_${pair.counterCurrency}'.toUpperCase();
     final isTmn = pair.counterCurrency.toUpperCase() == 'TMN' || pair.counterCurrency.toUpperCase() == 'IRT';
     final quoteSymbol = isTmn ? 'IRT' : pair.counterCurrency.toUpperCase();
