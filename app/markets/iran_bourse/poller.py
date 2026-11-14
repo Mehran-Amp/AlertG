@@ -97,6 +97,7 @@ class BoursePoller:
                 config.IRAN_BOURSE_GATEWAY_KEY,
                 timeout=httpx.Timeout(config.IRAN_BOURSE_HTTP_TIMEOUT, connect=3.0),
                 allowed_versions=tuple(config.IRAN_BOURSE_ALLOWED_VERSIONS),
+                verify_version_every=600.0,
             )
         return self._client
 

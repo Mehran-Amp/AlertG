@@ -2,7 +2,7 @@
 """
 Iranian Bourse — alert creation rules (IB-9). Used by the alert routes only for exchange 'tsetmc'.
 
-An alert needs: feature enabled, user allowed (if a rollout list is set), a digit-only 15-18 digit
+An alert needs: feature enabled, user allowed (if a rollout list is set), a digit-only
 instrument id that exists in the gateway, a supported alert type, price_field last/close.
 The ticker is stored in market_symbol. Percent / absolute alerts get the daily base
 (yesterday) filled in so the shared alert filter picks them up.
@@ -49,7 +49,7 @@ async def check_bourse_alert(alert: Any) -> None:
 
     iid = str(_get(alert, "symbol", "") or "").strip()
     if not valid_instrument_id(iid):
-        raise BourseAlertError(400, "Bourse alerts need the numeric instrument id (15-18 digits), not a ticker or name.")
+        raise BourseAlertError(400, "Bourse alerts need the numeric instrument id, not a ticker or name.")
 
     ctype = _get(alert, "condition_type") or "priceThreshold"
     if ctype not in SUPPORTED_TYPES:

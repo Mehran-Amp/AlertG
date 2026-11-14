@@ -184,7 +184,7 @@ class TestRoutes(Base):
         self.assertEqual((j["state"], j["alert_eligible"], j["price"]), ("CLOSED", False, 693731))
 
     def test_quote_errors(self):
-        for bad in ("FOLD", "123", "1" * 19, "abc123456789012345"):
+        for bad in ("FOLD", "123", "1" * 21, "abc123456789012345"):
             self.assertEqual(self.http.get(f"/api/iran-bourse/quote/{bad}", headers=H).status_code, 400)
         self.assertEqual(self.http.get(f"/api/iran-bourse/quote/{UNKNOWN}", headers=H).status_code, 404)
         self.fc.error = BourseTimeout("t")
@@ -219,7 +219,7 @@ class TestAlertCreate(Base):
         cases = [
             (dict(symbol="FOLD"), 400, "numeric"),
             (dict(symbol="123456"), 400, "numeric"),
-            (dict(symbol="1" * 19), 400, "numeric"),
+            (dict(symbol="1" * 21), 400, "numeric"),
             (dict(symbol=UNKNOWN), 400, "Unknown"),
             (dict(condition_type="volumeChange"), 400, "not supported"),
             (dict(alert_nature="timer"), 400, "price alerts only"),

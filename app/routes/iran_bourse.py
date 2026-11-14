@@ -66,7 +66,7 @@ async def bourse_quote(instrument_id: str) -> Dict[str, Any]:
     _enabled()
     iid = (instrument_id or "").strip()
     if not valid_instrument_id(iid):
-        raise HTTPException(status_code=400, detail="instrument_id must be a 15-18 digit string.")
+        raise HTTPException(status_code=400, detail="instrument_id must be a numeric string (12-20 digits).")
     try:
         result, cached = await resolve_result(iid)
     except NoQuote as e:
@@ -97,6 +97,9 @@ async def bourse_status(probe: bool = False) -> Dict[str, Any]:
         out["poller"] = {**p.store.stats(), "leader": p.is_leader, "running": p._running,
                          "requests_made": p.requests_made, "failures": p._failures,
                          "has_demand": p.has_demand()}
+    vs = getattr(getattr(p, "_client", None), "version_state", None)
+    if callable(vs):
+        out["gateway_version"] = vs()
     if probe and out["enabled"]:
         try:
             from app.markets.iran_bourse.poller import get_poller

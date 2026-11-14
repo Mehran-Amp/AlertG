@@ -114,7 +114,7 @@ class TestPricePath(Base):
         self.assertEqual(traces[0]["state"], "NO_TRADE_TODAY")
 
     async def test_invalid_ids_never_hit_gateway(self):
-        for bad in ("", "abc", "123", "1" * 19, "../v1/health"):
+        for bad in ("", "abc", "123", "1" * 21, "../v1/health"):
             price, traces = await self.call(bad)
             self.assertIsNone(price)
         self.assertEqual(self.fc.calls, [])

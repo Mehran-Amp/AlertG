@@ -20,6 +20,9 @@ from app.markets.iran_bourse.mapping import quote_to_price_result
 from app.markets.iran_bourse.session import classify
 
 SOURCE = "tsetmc-gateway"
+# Real gateway data (3,248 instruments, 2026-11-14) has ids of 14-17 digits, so the plan's "15-18" was too tight.
+MIN_ID_LEN = 12
+MAX_ID_LEN = 20
 PROVIDER_KEY = "iran_bourse"
 _ondemand_lock = asyncio.Lock()
 
@@ -97,7 +100,7 @@ async def resolve_result(iid: str) -> Tuple[Dict[str, Any], bool]:
 
 
 def valid_instrument_id(iid: str) -> bool:
-    return iid.isdigit() and 15 <= len(iid) <= 18
+    return iid.isascii() and iid.isdigit() and MIN_ID_LEN <= len(iid) <= MAX_ID_LEN
 
 
 async def fetch_bourse_price(symbol: str) -> Tuple[Optional[float], List[Dict[str, Any]]]:
@@ -112,7 +115,7 @@ async def fetch_bourse_price(symbol: str) -> Tuple[Optional[float], List[Dict[st
         return fail("Iranian Bourse is disabled (IRAN_BOURSE_ENABLED=false)", "disabled")
     iid = str(symbol or "").strip()
     if not valid_instrument_id(iid):
-        return fail(f"invalid instrument id {iid!r} (must be a 15-18 digit string)")
+        return fail(f"invalid instrument id {iid!r} (must be a numeric string)")
     try:
         result, cached = await resolve_result(iid)
     except NoQuote as ex:
