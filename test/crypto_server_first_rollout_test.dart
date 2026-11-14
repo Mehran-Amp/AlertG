@@ -55,43 +55,23 @@ class _MockDioAdapter implements HttpClientAdapter {
 
 class _NoopNotificationService implements NotificationServiceInterface {
   @override
-  Future<void> initialize({void Function(String? payload)? onNotificationTap}) async {}
-
-  @override
-  Future<bool> requestPermissions() async => true;
-
-  @override
-  Future<bool> showCriticalAlert({
-    required int id,
-    required String title,
-    required String body,
-    String? payload,
-    String soundName = 'alarm_siren',
-    double volume = 1.0,
-    bool soundEnabled = true,
-    bool vibrationEnabled = true,
-    bool flashEnabled = false,
-  }) async =>
-      true;
-
-  @override
   Future<AlertDispatchResult> enqueueCriticalAlert({
     required int id,
     required String title,
     required String body,
     String? payload,
-    String soundName = 'alarm_siren',
+    String? soundName,
     double volume = 1.0,
     bool soundEnabled = true,
     bool vibrationEnabled = true,
     bool flashEnabled = false,
     bool ttsEnabled = false,
     String? speechText,
+    bool inAppFeedback = true,
+    bool waitForSpeech = true,
+    Duration maxWait = const Duration(seconds: 25),
   }) async =>
       AlertDispatchResult.shown;
-
-  @override
-  Future<void> stopActiveAlarm() async {}
 }
 
 class _AdapterTestSpec {
