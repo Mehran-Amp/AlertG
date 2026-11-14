@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import '../base/crypto_catalog_data.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
@@ -94,10 +93,7 @@ class GateioExchange implements Exchange {
       }
     } catch (_) {}
 
-    return CryptoCatalogData.buildPairs(
-      quoteCurrencies: ['USDT'],
-      symbolFormatter: (b, q) => '${b}_$q',
-    );
+    return <CurrencyPair>[];
   }
 
   @override

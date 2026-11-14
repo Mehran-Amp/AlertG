@@ -106,10 +106,8 @@ class ExchangeRegistry {
           pairs = await CryptoCatalogService.instance.fetchPairsForExchange(
             exchangeId,
             fallbackExchange: exchange,
+            forceRefresh: true,
           );
-          if (pairs.isEmpty) {
-            pairs = await exchange.fetchCurrencyPairs();
-          }
         } else {
           pairs = await exchange.fetchCurrencyPairs();
         }

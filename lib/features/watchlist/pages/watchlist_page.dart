@@ -212,6 +212,29 @@ class _WatchlistPageState extends State<WatchlistPage> {
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() {});
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      try {
+        final repo = context.read<JsonAlertRuleRepository>();
+        final removedCount = repo.consumeRemovedCoinExNoticeCount();
+        if (removedCount > 0) {
+          final lang = context.read<SettingsService>().settings.language;
+          final isFa = AppStrings.isRtl(lang);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              content: Text(
+                isFa
+                    ? 'صرافی CoinEx دیگر پشتیبانی نمی‌شود و $removedCount هشدار قدیمی آن حذف شد.'
+                    : 'CoinEx is no longer supported; $removedCount legacy CoinEx alert(s) were removed.',
+              ),
+              duration: const Duration(seconds: 5),
+            ),
+          );
+        }
+      } catch (_) {}
+    });
   }
 
   @override
@@ -1436,10 +1459,12 @@ class _WatchlistPageState extends State<WatchlistPage> {
         return 'Bitget';
       case 'kraken':
         return 'Kraken';
-      case 'coinmarketcap':
-        return 'CoinMarketCap';
-      case 'coingecko':
-        return 'CoinGecko';
+      case 'htx':
+        return 'HTX / Huobi';
+      case 'poloniex':
+        return 'Poloniex';
+      case 'bitfinex':
+        return 'Bitfinex';
       default:
         return exchangeId.toUpperCase();
     }

@@ -26,6 +26,16 @@ class JsonAlertRuleRepository {
   /// overwritten with an incomplete list. ServerAlertService uses this to
   /// skip syncing an empty list while the local data is still broken.
   bool get loadFailed => _loadFailed;
+
+  int _removedLegacyCoinExCount = 0;
+
+  /// Returns the count of retired CoinEx alerts purged during load and resets it,
+  /// so the UI can display a one-time notice.
+  int consumeRemovedCoinExNoticeCount() {
+    final count = _removedLegacyCoinExCount;
+    _removedLegacyCoinExCount = 0;
+    return count;
+  }
   
 
   JsonAlertRuleRepository(this._storageDirectoryPath);
@@ -187,9 +197,17 @@ class JsonAlertRuleRepository {
       // 1. Try the main file.
       var parsed = await _tryParse(mainFile);
       if (parsed != null) {
+        final cleaned = parsed
+            .where((r) => r.exchangeId.trim().toLowerCase() != 'coinex')
+            .toList();
+        final purged = parsed.length - cleaned.length;
         _rules
           ..clear()
-          ..addAll(parsed);
+          ..addAll(cleaned);
+        if (purged > 0) {
+          _removedLegacyCoinExCount += purged;
+          await _withFileLock(() => _persistRawLocked());
+        }
         return;
       }
 
@@ -199,9 +217,17 @@ class JsonAlertRuleRepository {
         parsed = await _tryParse(bakFile);
         if (parsed != null) {
           debugPrint('♻️ [Repo] Recovered rules from ${bakFile.path}');
+          final cleaned = parsed
+              .where((r) => r.exchangeId.trim().toLowerCase() != 'coinex')
+              .toList();
+          final purged = parsed.length - cleaned.length;
           _rules
             ..clear()
-            ..addAll(parsed);
+            ..addAll(cleaned);
+          if (purged > 0) {
+            _removedLegacyCoinExCount += purged;
+            await _withFileLock(() => _persistRawLocked());
+          }
           return;
         }
       }
@@ -455,6 +481,9 @@ class JsonAlertRuleRepository {
         if (item is Map<String, dynamic>) {
           try {
             final rule = AlertRule.fromJson(item);
+            if (rule.exchangeId.trim().toLowerCase() == 'coinex') {
+              continue;
+            }
             final index = _rules.indexWhere((r) => r.uuid == rule.uuid);
             if (index >= 0) {
               _rules[index] = rule;

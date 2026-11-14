@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import '../base/crypto_catalog_data.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
@@ -54,7 +53,7 @@ class TabdealExchange implements Exchange {
             final symbol = item['symbol']?.toString().toUpperCase() ?? '';
             final counter = (rawQuote == 'IRT' || rawQuote == 'RLS') ? 'TMN' : rawQuote;
 
-            if (base.isNotEmpty && counter.isNotEmpty) {
+            if (base.isNotEmpty && (counter == 'TMN' || counter == 'USDT')) {
               pairs.add(CurrencyPair(
                 baseCurrency: base,
                 counterCurrency: counter,
@@ -74,11 +73,7 @@ class TabdealExchange implements Exchange {
       }
     } catch (_) {}
 
-    // Fallback static pairs catalog for Tabdeal
-    return CryptoCatalogData.buildPairs(
-      quoteCurrencies: ['TMN', 'USDT'],
-      symbolFormatter: (b, q) => '${b.toUpperCase()}_${q == "TMN" ? "IRT" : q.toUpperCase()}',
-    );
+    return <CurrencyPair>[];
   }
 
   @override

@@ -144,6 +144,23 @@ class ServerAlertService {
     _circuitBreakerUntil = null;
   }
 
+  /// Test-only hook: cancel pending retry timers and reset single-flight flags.
+  @visibleForTesting
+  static void resetSyncStateForTesting() {
+    _retryTimer?.cancel();
+    _retryTimer = null;
+    _retryIndex = 0;
+    _syncInFlight = false;
+    _syncDirty = false;
+    _pendingRules = null;
+    _pendingUserId = null;
+    _syncPending = false;
+    _circuitBreakerUntil = null;
+    _rulesProvider = null;
+    _loadFailedProvider = null;
+    httpClientForTesting = null;
+  }
+
 
 
   static bool get isServerAvailable {
@@ -419,7 +436,8 @@ class ServerAlertService {
           .where((r) =>
               r.isActive &&
               r.exchangeId.toLowerCase() != 'timer' &&
-              r.exchangeId.toLowerCase() != 'local')
+              r.exchangeId.toLowerCase() != 'local' &&
+              r.exchangeId.toLowerCase() != 'coinex')
           .toList();
 
       // Retrieve userEmail & telegram_chat_id from settings.json
@@ -660,6 +678,9 @@ class ServerAlertService {
                 if (item['raw_rule'] is Map) {
                   final rawMap = Map<String, dynamic>.from(item['raw_rule'] as Map);
                   final rule = AlertRule.fromJson(rawMap);
+                  if (rule.exchangeId.trim().toLowerCase() == 'coinex') {
+                    continue;
+                  }
                   await repo.saveRule(rule, syncToServer: false);
                   imported++;
                   continue;
@@ -667,6 +688,9 @@ class ServerAlertService {
 
                 final symbol = item['symbol'] as String? ?? 'BTCUSDT';
                 final exchange = item['exchange'] as String? ?? 'binance';
+                if (exchange.trim().toLowerCase() == 'coinex') {
+                  continue;
+                }
                 final target = (item['target_price'] as num?)?.toDouble() ?? 0.0;
                 final condition = item['condition'] as String? ?? 'ABOVE';
                 final note = item['note'] as String?;

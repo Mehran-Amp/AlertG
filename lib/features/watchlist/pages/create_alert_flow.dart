@@ -6,7 +6,6 @@ import '../../../core/utils/crypto_icons.dart';
 import '../../../core/utils/format_utils.dart';
 import '../../alert_engine/models/alert_rule.dart';
 import '../../alert_engine/repositories/json_alert_rule_repository.dart';
-import '../../exchanges/base/crypto_catalog_data.dart';
 import '../../exchanges/base/crypto_catalog_service.dart';
 import '../../exchanges/base/currency_pair.dart';
 import '../../exchanges/base/exchange.dart';
@@ -292,23 +291,9 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
     if (_selectedExchange == null) return;
     setState(() => _isLoadingPairs = true);
     try {
-      var pairs = forceRefresh
+      final pairs = forceRefresh
           ? await widget.registry.refreshCurrencyPairs(_selectedExchange!.id)
           : await widget.registry.getCurrencyPairs(_selectedExchange!.id);
-      if (pairs.isEmpty) {
-        pairs = await CryptoCatalogService.instance.fetchPairsForExchange(
-          _selectedExchange!.id,
-          fallbackExchange: _selectedExchange,
-          forceRefresh: forceRefresh,
-        );
-      }
-      if (pairs.isEmpty) {
-        pairs = await _selectedExchange!.fetchCurrencyPairs();
-      }
-      // Guaranteed robust catalog fallback: Never show 0 coins
-      if (pairs.isEmpty) {
-        pairs = _getGuaranteedFallbackPairs(_selectedExchange!);
-      }
       if (mounted) {
         setState(() {
           _exchangePairs = pairs;
@@ -316,45 +301,12 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
         });
       }
     } catch (_) {
-      final fallback = _getGuaranteedFallbackPairs(_selectedExchange!);
       if (mounted) {
         setState(() {
-          _exchangePairs = fallback;
+          _exchangePairs = [];
           _isLoadingPairs = false;
         });
       }
-    }
-  }
-
-  List<CurrencyPair> _getGuaranteedFallbackPairs(Exchange ex) {
-    if (ex.id == 'tabdeal') {
-      return CryptoCatalogData.buildPairs(
-        quoteCurrencies: ['TMN', 'USDT'],
-        symbolFormatter: (b, q) => '${b.toUpperCase()}_${q == "TMN" ? "IRT" : q.toUpperCase()}',
-      );
-    } else if (ex.id == 'kifpool') {
-      return CryptoCatalogData.buildPairs(
-        quoteCurrencies: ['TMN', 'USDT'],
-        symbolFormatter: (b, q) => '${b.toUpperCase()}${q.toUpperCase()}',
-      );
-    } else if (ex.id == 'gateio' || ex.id == 'xt' || ex.id == 'poloniex') {
-      final defaultQuote = ex.defaultCounterCurrency.isNotEmpty ? ex.defaultCounterCurrency : 'USDT';
-      return CryptoCatalogData.buildPairs(
-        quoteCurrencies: [defaultQuote, if (defaultQuote != 'USDT') 'USDT'],
-        symbolFormatter: (b, q) => '${b.toUpperCase()}_${q.toUpperCase()}',
-      );
-    } else if (ex.id == 'kucoin' || ex.id == 'okx' || ex.id == 'bingx' || ex.id == 'coinbase') {
-      final defaultQuote = ex.defaultCounterCurrency.isNotEmpty ? ex.defaultCounterCurrency : 'USDT';
-      return CryptoCatalogData.buildPairs(
-        quoteCurrencies: [defaultQuote, if (defaultQuote != 'USDT') 'USDT'],
-        symbolFormatter: (b, q) => '${b.toUpperCase()}-${q.toUpperCase()}',
-      );
-    } else {
-      final defaultQuote = ex.defaultCounterCurrency.isNotEmpty ? ex.defaultCounterCurrency : 'USDT';
-      return CryptoCatalogData.buildPairs(
-        quoteCurrencies: [defaultQuote, if (defaultQuote != 'USDT') 'USDT'],
-        symbolFormatter: (b, q) => '${b.toUpperCase()}${q.toUpperCase()}',
-      );
     }
   }
 
@@ -1319,11 +1271,6 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
     );
   }
   Widget _buildCryptoExchangePicker(ThemeData theme, String lang) {
-    // Iranian domestic exchange ids registry
-    const iranExchangeIds = {
-      'iran_market', 'nobitex', 'wallex', 'ramzinex', 'bitpin', 'tabdeal', 'kifpool', 'bitbarg', 'tetherland', 'abantether', 'sarmayex', 'exir'
-    };
-
     // 18 Canonical Crypto Exchanges (Tabdeal & Kifpool pinned at #1 & #2, plus 16 international)
     const canonicalOrder = [
       'tabdeal',
@@ -1649,10 +1596,10 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
                               badgeLabel = lang == 'fa' ? 'اتصال مستقیم' : 'Direct API';
                               badgeIcon = Icons.swap_horiz_rounded;
                               break;
-                            case 'static_fallback':
-                              badgeColor = Colors.orange;
-                              badgeLabel = lang == 'fa' ? 'لیست پایه' : 'Static Fallback';
-                              badgeIcon = Icons.warning_amber_rounded;
+                            case 'empty':
+                              badgeColor = Colors.redAccent;
+                              badgeLabel = lang == 'fa' ? 'آفلاین / بدون داده' : 'Offline / Empty';
+                              badgeIcon = Icons.cloud_off_rounded;
                               break;
                             default:
                               badgeColor = Colors.grey;
@@ -1755,11 +1702,11 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
   Widget _buildCryptoPairPicker(ThemeData theme, String lang) {
     final filtered = SymbolFilterHelper.filterAndSort(_exchangePairs, _pairSearchQuery);
     final currentDiag = _selectedExchange != null ? CryptoCatalogService.instance.getDiagnostic(_selectedExchange!.id) : null;
-    final isStaticFallback = currentDiag?.source == 'static_fallback';
+    final isDiskCache = currentDiag?.source == 'disk_cache';
 
     return Column(
       children: [
-        if (isStaticFallback)
+        if (isDiskCache)
           Container(
             margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -1770,13 +1717,13 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.info_outline_rounded, size: 16, color: Colors.amber),
+                const Icon(Icons.history_toggle_off_rounded, size: 16, color: Colors.amber),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     lang == 'fa'
-                        ? 'در حال حاضر کاتالوگ پایه آفلاین نمایش داده می‌شود. برای دریافت آخرین فهرست زنده، دکمه تازه‌سازی را بزنید.'
-                        : 'Currently showing offline baseline. Tap refresh to sync live catalog from server.',
+                        ? 'فهرست آفلاین از حافظه دستگاه بارگذاری شده و ممکن است قدیمی باشد. برای دریافت آخرین فهرست زنده، دکمه همگام‌سازی را بزنید.'
+                        : 'Showing cached list from device disk — it may be outdated. Tap refresh to sync live catalog.',
                     style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurface.withValues(alpha: 0.85)),
                   ),
                 ),
@@ -1846,12 +1793,44 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.search_off_rounded, size: 48, color: theme.colorScheme.onSurface.withValues(alpha: 0.3)),
+                            Icon(
+                              _exchangePairs.isEmpty ? Icons.cloud_off_rounded : Icons.search_off_rounded,
+                              size: 48,
+                              color: theme.colorScheme.onSurface.withValues(alpha: 0.35),
+                            ),
                             const SizedBox(height: 12),
                             Text(
-                              'نماد مورد نظر یافت نشد',
+                              _exchangePairs.isEmpty
+                                  ? (lang == 'fa' ? 'کاتالوگ صرافی در دسترس نیست' : 'Exchange catalog unavailable')
+                                  : (lang == 'fa' ? 'نماد مورد نظر یافت نشد' : 'No matching symbol found'),
                               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: theme.colorScheme.onSurface),
+                              textAlign: TextAlign.center,
                             ),
+                            if (_exchangePairs.isEmpty) ...[
+                              const SizedBox(height: 8),
+                              Text(
+                                lang == 'fa'
+                                    ? 'اتصال به سرور و حافظه کش محلی برای این صرافی برقرار نشد. لطفاً دوباره تلاش کنید.'
+                                    : 'Unable to reach server and no offline cache exists for this exchange. Please retry.',
+                                style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurface.withValues(alpha: 0.65)),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton.icon(
+                                onPressed: () => _fetchPairsForSelectedExchange(forceRefresh: true),
+                                icon: const Icon(Icons.refresh_rounded, size: 18),
+                                label: Text(
+                                  lang == 'fa' ? 'تلاش مجدد' : 'Retry',
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: theme.colorScheme.primary,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
+                              ),
+                            ],
                             if (_pairSearchQuery.trim().isNotEmpty) ...[
                               const SizedBox(height: 16),
                               ElevatedButton.icon(
