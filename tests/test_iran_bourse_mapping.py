@@ -54,6 +54,11 @@ class MappingTests(unittest.TestCase):
         self.assertEqual(r["asOf"], 1794391200)
         self.assertEqual(r["last_trade_time"], self.quote["update_time"])
 
+    def test_as_of_prefers_local_clock_over_gateway_clock(self):
+        meta = dict(self.meta, updated_at="2099-01-01T00:00:00+00:00", local_as_of=1794391200)
+        self.assertEqual(quote_to_price_result(self.quote, meta)["asOf"], 1794391200)
+        self.assertEqual(meta_as_of({"local_as_of": True, "updated_at": "2026-11-11T10:00:00+00:00"}), 1794391200)
+
     def test_meta_as_of_bad_values(self):
         self.assertIsNone(meta_as_of({}))
         self.assertIsNone(meta_as_of({"updated_at": "garbage"}))
