@@ -418,6 +418,11 @@ void main() {
 
   group('Phase 9 — CreateAlertFlow UI States (Offline & Disk Cache)', () {
     testWidgets('shows disk_cache outdated banner when cached pairs are loaded offline', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       final dir = tempTestDir.createTempSync('widget_cache_');
       try {
         final cacheFile = File('${tempTestDir.path}/crypto_catalog_binance.json');
@@ -450,15 +455,20 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 
-        await tester.tap(find.text('Enter International Crypto Exchanges →'));
+        final cryptoCta = find.text('Enter International Crypto Exchanges →');
+        await tester.ensureVisible(cryptoCta);
+        await tester.tap(cryptoCta);
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 
+        expect(find.text('Tabdeal'), findsOneWidget);
         expect(find.text('Binance'), findsOneWidget);
         expect(find.text('Bitvavo'), findsNothing);
         expect(find.text('CoinEx'), findsNothing);
 
-        await tester.tap(find.text('Binance'));
+        final binanceFinder = find.text('Binance');
+        await tester.ensureVisible(binanceFinder);
+        await tester.tap(binanceFinder);
         await tester.pump();
 
         await tester.runAsync(() async {
@@ -480,6 +490,11 @@ void main() {
     });
 
     testWidgets('shows empty offline catalog UI with Retry button when server and disk cache fail', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       final dir = tempTestDir.createTempSync('widget_empty_');
       try {
         CryptoCatalogService.instance.testClient = MockClient((_) async {
@@ -503,11 +518,16 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 
-        await tester.tap(find.text('Enter International Crypto Exchanges →'));
+        final cryptoCta = find.text('Enter International Crypto Exchanges →');
+        await tester.ensureVisible(cryptoCta);
+        await tester.tap(cryptoCta);
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 
-        await tester.tap(find.text('Binance'));
+        expect(find.text('Tabdeal'), findsOneWidget);
+        final binanceFinder = find.text('Binance');
+        await tester.ensureVisible(binanceFinder);
+        await tester.tap(binanceFinder);
         await tester.pump();
 
         await tester.runAsync(() async {
