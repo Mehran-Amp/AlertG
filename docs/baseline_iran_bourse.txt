@@ -1,0 +1,26 @@
+AlertG x Iranian Bourse (TSETMC) - Phase 0 baseline
+====================================================
+
+Clean checkout (main at 45fd2cd, before any Bourse work), `python -m pytest tests -q`:
+    680 passed, 0 failed, 0 errors, 48 subtests passed, 6 warnings
+    Pre-existing failures: none.
+
+Branch feature/iran-bourse at IB-10 (9099a69), same command:
+    840 passed, 0 failed, 0 errors, 48 subtests passed, 6 warnings
+    = 680 baseline + 160 new tests in tests/test_iran_bourse_*.py
+
+CI: .github/workflows/ci.yml runs `python -m pytest tests -q` (with and without dummy env),
+so every tests/test_iran_bourse_*.py file is picked up with no CI change.
+
+Existing Iran tests that must stay green (all pass on the branch):
+    tests/test_phase7_iran_market_separation.py
+    tests/test_iranian_crypto_binding.py
+    tests/test_phase11_tabdeal_and_iran_crypto.py
+    tests/test_phase5_mappings_and_alerts.py
+
+Live baseline (needs the running server, run it on the server from MAIN code before enabling):
+    API_KEY=<key> python3 scripts/make_baseline.py --base-url http://127.0.0.1:8000 --phase iran_bourse_p0
+    python3 scripts/compare_golden.py --verify-manifest docs/MD5_MANIFEST.txt
+Keep the snapshots/baseline_iran_bourse_p0_<UTC>.json file it creates.
+
+Rollback: set IRAN_BOURSE_ENABLED=false and restart. See ROLLBACK_PLAN.md.

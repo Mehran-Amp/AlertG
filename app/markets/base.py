@@ -115,6 +115,11 @@ async def fetch_price_with_trace(
         })
         return None, traces
 
+    # Iranian Bourse (TSETMC gateway): fully isolated path, never falls through to other markets.
+    if category == 'iran_bourse':
+        from app.markets.iran_bourse.price import fetch_bourse_price
+        return await fetch_bourse_price(symbol)
+
     # Helper function for tracing with Bulk Response Caching, Rate Limiting and metadata extraction
     async def _try_fetch(source_name: str, url: str, extractor_func, headers=None, timeout_sec: float = 3.5) -> Optional[float]:
         nonlocal final_price, final_meta

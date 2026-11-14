@@ -102,6 +102,11 @@ async def create_alert(alert_in: AlertCreate, response: Response = None):
     if alert_in.webhook_url and not await is_safe_webhook_url_async(alert_in.webhook_url):
         raise HTTPException(status_code=400, detail="Unsafe or unresolvable webhook_url (https + public host required).")
 
+    if alert_in.exchange == 'tsetmc':
+        # IB-9: Iranian Bourse alerts need a known numeric instrument id (feature-flagged)
+        from app.markets.iran_bourse.validation import validate_bourse_alert
+        await validate_bourse_alert(alert_in)
+
     # Phase 4: Crypto Alert Validation ('enforce' / 'warn')
     val_mode = str(getattr(config, "CRYPTO_VALIDATE_ALERTS", "false")).strip().lower()
     validation_warning = None
@@ -289,6 +294,12 @@ async def sync_user_alerts(payload: dict):
             else:
                 print(f"⚠️ [API] Dropped unsafe webhook_url from synced alert {item.get('id')}")
                 item['webhook_url'] = None
+
+    bourse_warnings = []
+    if any(str(i.get('exchange') or '').strip().lower() == 'tsetmc' for i in alerts_data):
+        # IB-9: validate only new/changed Bourse items; invalid ones are dropped with a warning
+        from app.markets.iran_bourse.validation import prevalidate_sync_items
+        alerts_data, bourse_warnings = await prevalidate_sync_items(alerts_data, user_id)
 
     val_mode = str(getattr(config, "CRYPTO_VALIDATE_ALERTS", "false")).strip().lower()
     backup_snapshot = None
@@ -494,6 +505,8 @@ async def sync_user_alerts(payload: dict):
                 pass
 
     res = {"status": "synced", "count": added_count, "total_active": active_remaining, "mode": sync_mode}
+    if bourse_warnings:
+        sync_warnings = list(sync_warnings) + bourse_warnings
     if sync_warnings:
         res["warnings"] = sync_warnings
     return res

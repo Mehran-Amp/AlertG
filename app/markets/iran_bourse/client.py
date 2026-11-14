@@ -6,6 +6,7 @@ no hidden retries, typed errors. Only the six calls of the plan are exposed.
 """
 import asyncio
 import json
+import time
 from typing import Any, Dict, Iterable, Optional, Tuple
 from urllib.parse import quote as url_quote
 
@@ -58,6 +59,8 @@ class BourseClient:
         *,
         timeout: httpx.Timeout = DEFAULT_TIMEOUT,
         allowed_versions: Iterable[str] = DEFAULT_ALLOWED_VERSIONS,
+        verify_version_every: Optional[float] = None,
+        clock=time.monotonic,
     ):
         self._http = http
         self._base = base_url.rstrip("/")
@@ -65,9 +68,38 @@ class BourseClient:
         self._timeout = timeout
         self._allowed = tuple(allowed_versions)
         self._lock = asyncio.Lock()  # one request in flight (rules N12 / Phase 4)
+        # Version gate (IB-2c): when set, the first data call and then every N seconds checks /health.version.
+        # A bad version is remembered for 60 s so a wrong gateway is not hammered with /health calls.
+        self._verify_every = verify_version_every
+        self._clock = clock
+        self._ver_checked_at: Optional[float] = None
+        self._ver_error: Optional[str] = None
+
+    def version_state(self) -> Dict[str, Any]:
+        return {"gate": self._verify_every is not None, "ok": self._ver_checked_at is not None and self._ver_error is None,
+                "error": self._ver_error, "allowed": list(self._allowed)}
+
+    async def _gate(self) -> None:
+        now = self._clock()
+        if self._ver_checked_at is not None:
+            age = now - self._ver_checked_at
+            if self._ver_error is None and age < self._verify_every:
+                return
+            if self._ver_error is not None and age < 60.0:
+                raise BourseBadVersion(self._ver_error)
+        try:
+            await self.check_version()
+            self._ver_error = None
+        except BourseBadVersion as exc:
+            self._ver_error = str(exc)
+            self._ver_checked_at = now
+            raise
+        self._ver_checked_at = now
 
     async def _get(self, path: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         url = self._base + path
+        if self._verify_every is not None and path != "/health":
+            await self._gate()
         async with self._lock:
             try:
                 resp = await self._http.get(

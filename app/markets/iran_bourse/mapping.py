@@ -84,6 +84,7 @@ def quote_to_price_result(
         "price_field": price_field,
         "last_trade_time": quote["update_time"],
         "prev_close": quote["yesterday"],
+        "close": quote["close"],
         "change_pct": quote["last_change_pct" if price_field == "last" else "close_change_pct"],
         "high": quote["high"],
         "low": quote["low"],

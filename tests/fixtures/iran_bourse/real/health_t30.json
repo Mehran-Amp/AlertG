@@ -1,0 +1,1 @@
+{"status": "ok", "version": "0.2.2", "ready": true, "stale": false, "age_seconds": 26.9, "instruments": 3248, "seq": 3, "refid": 16445500340, "h": 113805, "active_window": false, "stats": {"init_ok": 2, "plus_ok": 1, "bad_rows": 0, "unknown_ids": 11, "errors": 0, "last_error": null}}

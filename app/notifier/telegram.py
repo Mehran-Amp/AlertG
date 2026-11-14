@@ -34,6 +34,7 @@ def get_exchange_display_name(exchange_id: str) -> str:
         'bitbarg': 'BitBarg', 'tetherland': 'Tetherland', 'abantether': 'AbanTether',
         'global_stocks': 'Global Stocks', 'stocks': 'Stocks', 'forex': 'Forex',
         'macro': 'Macro', 'bonds': 'Bonds', 'wallstreet': 'Wall Street', 'iran_market': 'IR_M',
+        'tsetmc': 'بورس ایران',
         # Catalog exchanges that need explicit casing (capitalize() would
         # lowercase internal letters like "ö" in "Deutsche börse").
         'deutsche börse': 'Deutsche Börse',
@@ -174,6 +175,9 @@ async def notify_admin_telegram(message: str, client: Optional[httpx.AsyncClient
 
 def format_alert_registered_telegram_msg(alert: Any) -> str:
     """Formats a sleek confirmation message when an alert is added to the server using quotes."""
+    if str(getattr(alert, 'exchange', '') or '').lower() == 'tsetmc':
+        from app.markets.iran_bourse.messages import telegram_registered
+        return telegram_registered(alert)
     display_symbol = getattr(alert, 'symbol', '') or ''
     if '/' not in display_symbol and len(display_symbol) > 3:
         for q in ['USDT', 'USDC', 'BUSD', 'FDUSD', 'EUR', 'USD', 'TMN', 'IRT', 'BTC', 'ETH']:
@@ -245,6 +249,9 @@ def format_telegram_history_card(
     Formats a rich Telegram notification matching the exact structure and visual fields
     of the app's History card in English, using native Telegram <blockquote> quotes instead of line dividers.
     """
+    if str(getattr(alert, 'exchange', '') or '').lower() == 'tsetmc':
+        from app.markets.iran_bourse.messages import telegram_history_card
+        return telegram_history_card(alert, current_price, triggered_target, previous_price, cached_meta, custom_note)
     from datetime import datetime, timezone
 
     # 1. Symbol & Market

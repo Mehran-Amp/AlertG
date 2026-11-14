@@ -127,7 +127,12 @@ async def get_cached_price(client: httpx.AsyncClient, exchange: str, symbol: str
             last_p = cached[0]
             dev = abs(price - last_p) / last_p
             floor = 1e-12 if category == 'crypto' and getattr(config, 'CRYPTO_ENGINE_V2', False) else 0.0001
-            if dev > outlier_threshold and last_p > floor:
+            bourse_in_limits = False
+            if category == 'iran_bourse':
+                # IB-8: a price inside the instrument's own daily limits is never held back
+                from app.markets.iran_bourse.alert_rules import within_limits
+                bourse_in_limits = within_limits(price, traces)
+            if dev > outlier_threshold and last_p > floor and not bourse_in_limits:
                 streak = OUTLIER_STREAK.get(cache_key, 0) + 1
                 if streak < 3:
                     OUTLIER_STREAK[cache_key] = streak
@@ -149,6 +154,9 @@ async def get_cached_price(client: httpx.AsyncClient, exchange: str, symbol: str
                 for k in ('unit', 'units', 'data_date', 'date', 'data_frequency', 'is_delayed'):
                     if k in tr:
                         meta[k] = tr[k]
+                if category == 'iran_bourse':
+                    from app.markets.iran_bourse.alert_rules import meta_extras
+                    meta.update(meta_extras(tr))
                 break
         PRICE_CACHE[cache_key] = (price, now, meta)
         return price
@@ -238,6 +246,11 @@ async def evaluate_ready_alerts(client, ready_alerts: List[Any], current_time: f
         upper_t = getattr(alert, 'upper_target_price', None)
         lower_t = getattr(alert, 'lower_target_price', None)
         eff_cond = (alert.condition or 'ABOVE').upper()
+
+        if cached_meta.get('category') == 'iran_bourse':
+            # IB-8: price_field, daily base (yesterday) for percent / absolute change
+            from app.markets.iran_bourse.alert_rules import rule_inputs
+            current_price, cond_type, pct, base_p = rule_inputs(alert, current_price, cached_meta, cond_type, pct, base_p)
 
         eff_target = alert.target_price
         eff_upper = upper_t
@@ -351,6 +364,14 @@ async def evaluate_ready_alerts(client, ready_alerts: List[Any], current_time: f
             sign = '+' if is_above else '-'
 
             display_symbol = alert.symbol
+            bourse_display = None
+            bourse_extra = {}
+            if cached_meta.get('category') == 'iran_bourse':
+                # IB-10: Persian name + Rial text; payload carries id, ticker, name
+                from app.markets.iran_bourse.messages import trigger_display, trigger_payload
+                bourse_display = trigger_display(alert, cached_meta, current_price)
+                bourse_extra = trigger_payload(alert, cached_meta)
+                display_symbol = bourse_display[0]
             if triggered_target and triggered_target > 0:
                 diff_pct = abs(((current_price - triggered_target) / triggered_target) * 100.0)
                 if diff_pct >= 0.01:
@@ -365,8 +386,8 @@ async def evaluate_ready_alerts(client, ready_alerts: List[Any], current_time: f
             counter = (getattr(alert, 'counter_currency', '') or '').strip().upper()
             sym_clean = (alert.symbol or '').strip().upper()
             is_tmn_market = counter in ('TMN', 'IRT', 'RLS') or sym_clean.endswith(('TMN', 'IRT', 'RLS')) or getattr(alert, 'exchange', '').lower() in ('tse', 'iran_market')
-            price_formatted = format_display_price(current_price, currency_prefix="$", is_tmn=is_tmn_market, tmn_label="تومان")
-            if '/' not in display_symbol:
+            price_formatted = bourse_display[1] if bourse_display else format_display_price(current_price, currency_prefix="$", is_tmn=is_tmn_market, tmn_label="تومان")
+            if bourse_display is None and '/' not in display_symbol:
                 for quote in ['USDT', 'USDC', 'BUSD', 'FDUSD', 'EUR', 'USD', 'TMN', 'IRT', 'BTC', 'ETH']:
                     if display_symbol.endswith(quote):
                         base = display_symbol[:-len(quote)]
@@ -397,7 +418,7 @@ async def evaluate_ready_alerts(client, ready_alerts: List[Any], current_time: f
                 alert,
                 title,
                 body,
-                {
+                {**{
                     "alert_id": alert.id,
                     "symbol": display_symbol,
                     "price": format_exact_decimal(current_price),
@@ -407,7 +428,7 @@ async def evaluate_ready_alerts(client, ready_alerts: List[Any], current_time: f
                     "flash_enabled": "true" if alert.flash_enabled else "false",
                     "tts_enabled": "true" if alert.tts_enabled else "false",
                     "sound": alert.sound or "alarm_siren"
-                },
+                }, **bourse_extra},
                 fallback_chat_id=effective_chat_id or None
             )
 
@@ -432,7 +453,8 @@ async def evaluate_ready_alerts(client, ready_alerts: List[Any], current_time: f
                     "price": current_price,
                     "target_price": alert.target_price,
                     "condition": alert.condition,
-                    "timestamp": datetime.now(timezone.utc).isoformat()
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    **bourse_extra,
                 }
                 _spawn(send_webhook_alert(client, alert.webhook_url, hook_data))
 
