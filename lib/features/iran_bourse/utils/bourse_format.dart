@@ -47,6 +47,15 @@ class BourseFormat {
     return _digits('$l تا $h', persianDigits);
   }
 
+  /// Time of day in Tehran (UTC+03:30, no daylight saving) as `HH:mm:ss`, from a UTC moment.
+  /// Returns [dash] for null.
+  static String tehranTime(DateTime? utc, {bool persianDigits = false}) {
+    if (utc == null) return dash;
+    final t = utc.toUtc().add(const Duration(hours: 3, minutes: 30));
+    String two(int v) => v.toString().padLeft(2, '0');
+    return _digits('${two(t.hour)}:${two(t.minute)}:${two(t.second)}', persianDigits);
+  }
+
   /// Converts Latin digits and separators to Persian ones: `1,234.5` -> `۱٬۲۳۴٫۵`.
   static String toPersianDigits(String input) {
     const latin = '0123456789';
