@@ -13,6 +13,12 @@ class BourseStrings {
   static const String searchStaleNote = 'فهرست نمادها ممکن است کمی قدیمی باشد.';
   static const String retry = 'تلاش دوباره';
 
+  // ---- market picker card -----------------------------------------------------------
+  static const String marketCardTitle = 'بورس و فرابورس ایران';
+  static const String marketCardDescription =
+      'هشدار قیمت سهام، صندوق‌ها و حق تقدم بازار سرمایه به ریال؛ فقط در ساعات باز بودن بازار بررسی می‌شود.';
+  static const String marketCardCta = 'جستجوی نماد';
+
   // ---- filters ----------------------------------------------------------------------
   static const String filterMarket = 'بازار';
   static const String filterType = 'نوع ابزار';
