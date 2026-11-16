@@ -82,6 +82,10 @@ class BourseStrings {
   static const String alertNoteLabel = 'یادداشت (اختیاری)';
   static const String alertSubmit = 'ثبت هشدار';
   static const String alertRecurring = 'پس از هر بار فعال شدن دوباره فعال بماند';
+  static const String alertCreated = 'هشدار ساخته شد.';
+  static const String alertSaveFailed =
+      'هشدار ساخته نشد چون ذخیره آن روی دستگاه ناموفق بود. دوباره تلاش کنید.';
+  static const String alertAmountHintRial = 'مثلاً ۷۰۰٬۰۰۰';
 
   static String alertKindLabel(BourseAlertKind kind) {
     switch (kind) {
