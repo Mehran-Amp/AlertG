@@ -7,6 +7,8 @@ import '../../../core/theme/tokens.dart';
 import '../../../core/utils/crypto_icons.dart';
 import '../../../core/utils/format_utils.dart';
 import '../../../core/services/asset_naming_service.dart';
+import '../../iran_bourse/alerts/bourse_alert_draft.dart' show bourseExchangeId;
+import '../../iran_bourse/alerts/bourse_alert_text.dart';
 import '../../settings/services/settings_service.dart';
 import '../models/alert_rule.dart';
 import 'cooldown_timer.dart';
@@ -748,6 +750,10 @@ class AlertRow extends StatelessWidget {
   }
 
   String _buildConditionDescription(AlertRule rule, String lang) {
+    // Iranian Bourse: Rial amounts and "versus yesterday's close" wording (see iran_bourse/alerts).
+    if (rule.exchangeId.toLowerCase() == bourseExchangeId) {
+      return bourseAlertDescription(rule, persianDigits: lang == 'fa');
+    }
     switch (rule.conditionType) {
       case AlertConditionType.priceThreshold:
         if (rule.direction == AlertDirection.bothSides && rule.upperTargetPrice != null && rule.lowerTargetPrice != null) {
