@@ -1,3 +1,5 @@
+import '../../iran_bourse/alerts/bourse_alert_draft.dart' show bourseExchangeId;
+import '../../iran_bourse/alerts/bourse_alert_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' hide TextDirection;
@@ -748,6 +750,10 @@ class AlertRow extends StatelessWidget {
   }
 
   String _buildConditionDescription(AlertRule rule, String lang) {
+    // Iranian Bourse: Rial amounts and "versus yesterday's close" wording (see iran_bourse/alerts).
+    if (rule.exchangeId.toLowerCase() == bourseExchangeId) {
+      return bourseAlertDescription(rule, persianDigits: lang == 'fa');
+    }
     switch (rule.conditionType) {
       case AlertConditionType.priceThreshold:
         if (rule.direction == AlertDirection.bothSides && rule.upperTargetPrice != null && rule.lowerTargetPrice != null) {
