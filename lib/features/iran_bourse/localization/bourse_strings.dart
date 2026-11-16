@@ -1,3 +1,4 @@
+import '../alerts/bourse_alert_draft.dart';
 import '../models/bourse_quote.dart';
 import '../services/iran_bourse_service.dart';
 
@@ -43,6 +44,55 @@ class BourseStrings {
       'هشدار فقط وقتی بازار باز و قیمت زنده است بررسی می‌شود.';
   static const String alertDailyBaseNote =
       'درصد تغییر نسبت به قیمت دیروز همین نماد حساب می‌شود.';
+
+  /// Why the alert form cannot be submitted yet.
+  static String alertProblem(BourseAlertProblem problem) {
+    switch (problem) {
+      case BourseAlertProblem.invalidInstrument:
+        return 'شناسه نماد معتبر نیست. نماد را دوباره انتخاب کنید.';
+      case BourseAlertProblem.directionNotSupported:
+        return 'برای بورس فقط «بالاتر از» و «پایین‌تر از» پشتیبانی می‌شود.';
+      case BourseAlertProblem.amountMissing:
+        return 'مقدار را وارد کنید.';
+      case BourseAlertProblem.amountNotPositive:
+        return 'مقدار باید بزرگ‌تر از صفر باشد.';
+      case BourseAlertProblem.noPreviousClose:
+        return 'قیمت دیروز این نماد هنوز مشخص نیست؛ هشدار قیمت هدف بسازید.';
+    }
+  }
+
+  /// A hint shown under the amount field; never blocks creating the alert.
+  static String alertWarning(BourseAlertWarning warning) {
+    switch (warning) {
+      case BourseAlertWarning.unreachableToday:
+        return 'این مقدار خارج از محدوده مجاز نوسان امروز است و امروز فعال نمی‌شود.';
+      case BourseAlertWarning.alreadyReached:
+        return 'شرط هم‌اکنون برقرار است؛ هشدار بلافاصله فعال می‌شود.';
+    }
+  }
+
+  // ---- alert kinds ------------------------------------------------------------------
+  static const String kindPrice = 'رسیدن به قیمت';
+  static const String kindPercent = 'درصد تغییر نسبت به دیروز';
+  static const String kindAbsolute = 'مقدار تغییر (ریال) نسبت به دیروز';
+  static const String directionAbove = 'بالاتر از';
+  static const String directionBelow = 'پایین‌تر از';
+  static const String alertAmountPercent = 'درصد تغییر';
+  static const String alertAmountAbsolute = 'مقدار تغییر (ریال)';
+  static const String alertNoteLabel = 'یادداشت (اختیاری)';
+  static const String alertSubmit = 'ثبت هشدار';
+  static const String alertRecurring = 'پس از هر بار فعال شدن دوباره فعال بماند';
+
+  static String alertKindLabel(BourseAlertKind kind) {
+    switch (kind) {
+      case BourseAlertKind.price:
+        return kindPrice;
+      case BourseAlertKind.percentChange:
+        return kindPercent;
+      case BourseAlertKind.absoluteChange:
+        return kindAbsolute;
+    }
+  }
 
   /// Short title for a quote state (badge text).
   static String stateLabel(BourseState state) {
