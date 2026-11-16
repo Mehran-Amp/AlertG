@@ -14,6 +14,8 @@ import '../../exchanges/registry/exchange_catalog.dart';
 import '../../exchanges/registry/exchange_registry.dart';
 import '../../exchanges/stocks/global_stocks_exchange.dart';
 import '../../exchanges/stocks/iran_domestic_exchange.dart';
+import '../../iran_bourse/alerts/bourse_alert_flow.dart';
+import '../../iran_bourse/localization/bourse_strings.dart';
 import '../../settings/services/settings_service.dart';
 import '../../settings/services/sound_manager.dart';
 import '../../../core/services/tts_service.dart';
@@ -1160,6 +1162,35 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
             });
             _loadIranMarketOverview();
           },
+        ),
+
+        const SizedBox(height: 18),
+
+        // CARD 4: IRANIAN BOURSE (TSETMC) - self-contained flow, see iran_bourse/alerts
+        Directionality(
+          textDirection: TextDirection.rtl,
+          child: _buildMarketCard(
+            theme: theme,
+            icon: Icons.candlestick_chart_rounded,
+            iconBg: const Color(0xFF26A69A).withValues(alpha: 0.15),
+            iconColor: const Color(0xFF26A69A),
+            borderColor: const Color(0xFF26A69A).withValues(alpha: 0.4),
+            badgeText: BourseStrings.title,
+            title: BourseStrings.marketCardTitle,
+            description: BourseStrings.marketCardDescription,
+            tags: const ['فولاد', 'وبملت', 'شپنا', 'عیار', 'خودرو', 'صندوق‌ها'],
+            buttonText: BourseStrings.marketCardCta,
+            buttonColor: const Color(0xFF26A69A),
+            onTap: () async {
+              final created = await BourseAlertFlow.open(
+                context,
+                saveRule: (rule) => widget.repository.saveRule(rule, syncToServer: false),
+              );
+              if (created == true && mounted) {
+                Navigator.of(context).pop(true);
+              }
+            },
+          ),
         ),
       ],
     );
