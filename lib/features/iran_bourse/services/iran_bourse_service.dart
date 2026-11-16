@@ -29,6 +29,15 @@ enum BourseFailure {
 
   /// The server answered but the body was not what this app version understands.
   badResponse,
+
+  /// Alert creation: this user is not on the Bourse rollout list yet (HTTP 403).
+  notAllowed,
+
+  /// Alert creation: the instrument has no previous close, so a change alert is impossible.
+  noPreviousClose,
+
+  /// Alert creation: the server refused the alert for another reason (HTTP 400).
+  rejected,
 }
 
 /// Result of one call. Exactly one of [data] / [failure] is set. Calls never throw.
