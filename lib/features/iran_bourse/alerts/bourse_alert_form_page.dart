@@ -163,9 +163,11 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(title: Text('${BourseStrings.createAlert} · ${draft.displayName}')),
-        body: ListView(
+        body: SingleChildScrollView(
           padding: const EdgeInsets.all(AppTokens.space16),
-          children: [
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
             Text(
               '${BourseStrings.lastPrice}: ${BourseFormat.rial(widget.quote.price, persianDigits: widget.persianDigits)}',
               key: const Key('bourse_form_last_price'),
@@ -283,7 +285,8 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
                     )
                   : const Text(BourseStrings.alertSubmit),
             ),
-          ],
+            ],
+          ),
         ),
       ),
     );
