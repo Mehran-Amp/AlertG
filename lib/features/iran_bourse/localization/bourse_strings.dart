@@ -143,6 +143,12 @@ class BourseStrings {
         return 'اتصال به اینترنت یا سرور برقرار نشد.';
       case BourseFailure.badResponse:
         return 'پاسخ سرور قابل فهم نبود؛ برنامه را به‌روزرسانی کنید.';
+      case BourseFailure.notAllowed:
+        return 'ساخت هشدار بورس هنوز برای حساب شما فعال نشده است.';
+      case BourseFailure.noPreviousClose:
+        return 'قیمت دیروز این نماد هنوز مشخص نیست؛ هشدار قیمت هدف بسازید.';
+      case BourseFailure.rejected:
+        return 'سرور این هشدار را نپذیرفت. مقادیر را بررسی کنید.';
     }
   }
 }
