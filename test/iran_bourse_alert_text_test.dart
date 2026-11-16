@@ -45,6 +45,6 @@ void main() {
     expect(bourseAlertDescription(rule(BourseAlertKind.percentChange, AlertDirection.above, 3)),
         'تغییر قیمت +۳٪ نسبت به قیمت دیروز');
     expect(bourseAlertDescription(rule(BourseAlertKind.price, AlertDirection.above, 700000)),
-        'عبور قیمت به بالاتر از ۷۰۰,۰۰۰ ریال');
+        'عبور قیمت به بالاتر از ۷۰۰٬۰۰۰ ریال');
   });
 }
