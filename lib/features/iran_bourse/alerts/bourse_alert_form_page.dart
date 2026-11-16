@@ -5,7 +5,6 @@ import '../../../core/theme/tokens.dart';
 import '../../alert_engine/models/alert_rule.dart';
 import '../localization/bourse_strings.dart';
 import '../models/bourse_quote.dart';
-import '../services/iran_bourse_service.dart';
 import '../utils/bourse_format.dart';
 import 'bourse_alert_api.dart';
 import 'bourse_alert_draft.dart';
