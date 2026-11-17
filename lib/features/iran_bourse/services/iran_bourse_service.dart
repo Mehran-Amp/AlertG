@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../../../core/services/server_alert_service.dart';
+import '../models/bourse_board.dart';
 import '../models/bourse_instrument.dart';
 import '../models/bourse_quote.dart';
 
@@ -144,6 +145,53 @@ class IranBourseService {
     ));
   }
 
+  /// One page of the categorized browse list (IB-16). Without [group] the server returns
+  /// everything except options and futures. The first call after a server start can take a
+  /// few seconds because the server loads the whole market once, hence the longer timeout.
+  Future<BourseResult<BourseBoardPage>> board({
+    BourseGroup? group,
+    String? market,
+    String? sector,
+    String? type,
+    bool? traded,
+    String? q,
+    BourseSort sort = BourseSort.value,
+    bool? ascending,
+    int offset = 0,
+    int limit = 50,
+    Duration boardTimeout = const Duration(seconds: 30),
+  }) async {
+    final params = <String, String>{
+      'sort': sort.key,
+      'limit': '${limit < 1 ? 1 : (limit > 100 ? 100 : limit)}',
+      'offset': '${offset < 0 ? 0 : (offset > 100000 ? 100000 : offset)}',
+    };
+    void add(String key, String? value) {
+      final v = value?.trim();
+      if (v != null && v.isNotEmpty) params[key] = v;
+    }
+
+    if (group != null) params['group'] = group.key;
+    add('market', market);
+    add('sector', sector);
+    add('type', type);
+    var query = q?.trim();
+    if (query != null && query.length > maxQueryLength) query = query.substring(0, maxQueryLength);
+    add('q', query);
+    if (traded != null) params['traded'] = traded ? 'true' : 'false';
+    if (ascending != null) params['order'] = ascending ? 'asc' : 'desc';
+
+    final res = await _get('/api/iran-bourse/board', params, boardTimeout);
+    if (!res.isOk) {
+      return BourseResult<BourseBoardPage>.fail(res.failure!, message: res.message, httpStatus: res.httpStatus);
+    }
+    final page = BourseBoardPage.tryParse(res.data);
+    if (page == null) {
+      return const BourseResult<BourseBoardPage>.fail(BourseFailure.badResponse, message: 'not a board answer');
+    }
+    return BourseResult<BourseBoardPage>.ok(page);
+  }
+
   /// The gateway's classification tables (market / board / type / sector codes), as raw JSON.
   /// The filter UI (IB-11c) builds its options from this.
   Future<BourseResult<Map<String, dynamic>>> classification() async {
@@ -173,7 +221,7 @@ class IranBourseService {
 
   // ---- transport -------------------------------------------------------------------------
 
-  Future<BourseResult<Map<String, dynamic>>> _get(String path, [Map<String, String>? query]) async {
+  Future<BourseResult<Map<String, dynamic>>> _get(String path, [Map<String, String>? query, Duration? timeoutOverride]) async {
     try {
       var base = _baseUrl().trim();
       while (base.endsWith('/')) {
@@ -190,7 +238,7 @@ class IranBourseService {
       final response = await (client != null
               ? client.get(uri, headers: headers)
               : http.get(uri, headers: headers))
-          .timeout(timeout);
+          .timeout(timeoutOverride ?? timeout);
       return _decode(response);
     } on TimeoutException {
       return const BourseResult<Map<String, dynamic>>.fail(BourseFailure.network, message: 'timeout');
