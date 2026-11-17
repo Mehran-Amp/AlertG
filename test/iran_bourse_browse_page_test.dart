@@ -89,16 +89,17 @@ void main() {
   });
 
   testWidgets('choosing a tab asks for that group', (t) async {
+    t.view.physicalSize = const Size(2400, 1200); // wide enough that every tab chip is on screen
+    t.view.devicePixelRatio = 1.0;
+    addTearDown(t.view.resetPhysicalSize);
+    addTearDown(t.view.resetDevicePixelRatio);
     final f = Fake();
     await t.pumpWidget(host(f));
     await t.pumpAndSettle();
     await t.tap(find.byKey(const Key('bourse_tab_funds')));
     await t.pumpAndSettle();
     expect(f.calls.last.queryParameters['group'], 'funds');
-    final derivatives = find.byKey(const Key('bourse_tab_derivatives'));
-    await t.scrollUntilVisible(derivatives, 100,
-        scrollable: find.descendant(of: find.byKey(const Key('bourse_group_tabs')), matching: find.byType(Scrollable)));
-    await t.tap(derivatives);
+    await t.tap(find.byKey(const Key('bourse_tab_derivatives')));
     await t.pumpAndSettle();
     expect(f.calls.last.queryParameters['group'], 'derivatives');
   });
