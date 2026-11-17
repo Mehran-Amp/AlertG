@@ -10,7 +10,7 @@ import 'package:bitcoin_checker/features/iran_bourse/alerts/bourse_alert_api.dar
 import 'package:bitcoin_checker/features/iran_bourse/alerts/bourse_alert_flow.dart';
 import 'package:bitcoin_checker/features/iran_bourse/services/iran_bourse_service.dart';
 
-/// IB-11e: the whole Bourse flow (search -> detail -> form -> save) against a fake server.
+/// IB-11e / IB-16e: the whole Bourse flow (browse list -> detail -> form -> save) against a fake server.
 const String ayarId = '34144395039913458';
 
 http.Response jsonOk(Object body, [int status = 200]) => http.Response.bytes(
@@ -23,19 +23,41 @@ class Rig {
   final List<http.Request> alertRequests = [];
   final List<AlertRule> saved = [];
   bool serverRefuses = false;
+  bool boardFails = false;
+  int boardCalls = 0;
   bool? result;
   bool finished = false;
 
   IranBourseService get service => IranBourseService(
         client: MockClient((req) async {
           final path = req.url.path;
-          if (path == '/api/iran-bourse/symbols') {
+          if (path == '/api/iran-bourse/board') {
+            boardCalls++;
+            if (boardFails) return jsonOk({'detail': 'down'}, 503);
             return jsonOk({
-              'query': 'ayar',
-              'count': 1,
+              'unit': 'IRR',
+              'session': 'OPEN',
               'stale': false,
+              'as_of': 1794726798,
+              'total': 1,
+              'offset': 0,
+              'limit': 50,
+              'sort': 'value',
+              'order': 'desc',
+              'groups': {'stocks': 0, 'funds': 1, 'bonds': 0, 'rights': 0, 'derivatives': 0, 'other': 0},
+              'other_types': {},
               'items': [
-                {'id': ayarId, 'ticker': 'عیار', 'name': 'صندوق طلای عیار مفید', 'last': 668761, 'type': 'صندوق کالایی'},
+                {
+                  'id': ayarId,
+                  'ticker': 'عیار',
+                  'name': 'صندوق طلای عیار مفید',
+                  'price': 668761,
+                  'price_source': 'last',
+                  'change_pct': -0.4,
+                  'traded': true,
+                  'group': 'funds',
+                  'type': 'صندوق کالایی',
+                },
               ],
             });
           }
@@ -101,16 +123,15 @@ Future<void> goToForm(WidgetTester t, Rig rig) async {
   await t.pumpWidget(rig.app());
   await t.tap(find.byKey(const Key('open_flow')));
   await t.pumpAndSettle();
-  await t.enterText(find.byKey(const Key('bourse_search_field')), 'عیار');
-  await t.pumpAndSettle(const Duration(milliseconds: 500));
-  await t.tap(find.text('عیار').last);
+  // the browse list is the first screen: the symbol is already there, no typing needed
+  await t.tap(find.byKey(const ValueKey('bourse_board_row_$ayarId')));
   await t.pumpAndSettle();
   await t.tap(find.byKey(const Key('bourse_create_alert')));
   await t.pumpAndSettle();
 }
 
 void main() {
-  testWidgets('search, pick, create: alert is saved and the whole flow closes with true', (t) async {
+  testWidgets('list, pick, create: alert is saved and the whole flow closes with true', (t) async {
     final rig = Rig();
     await goToForm(t, rig);
     expect(find.byKey(const Key('bourse_form_amount')), findsOneWidget);
@@ -127,9 +148,38 @@ void main() {
     expect(rig.saved.single.marketSymbol, ayarId);
     expect(rig.finished, isTrue);
     expect(rig.result, isTrue);
-    expect(find.byKey(const Key('bourse_search_field')), findsNothing);
+    expect(find.byKey(const Key('bourse_board_search')), findsNothing);
     expect(find.byKey(const Key('bourse_form_amount')), findsNothing);
     expect(find.byKey(const Key('open_flow')), findsOneWidget);
+  });
+
+  testWidgets('the browse list opens first and shows the symbol without any search', (t) async {
+    final rig = Rig();
+    await t.pumpWidget(rig.app());
+    await t.tap(find.byKey(const Key('open_flow')));
+    await t.pumpAndSettle();
+    expect(find.byKey(const Key('bourse_board_search')), findsOneWidget);
+    expect(find.byKey(const ValueKey('bourse_board_row_$ayarId')), findsOneWidget);
+    expect(rig.boardCalls, 1);
+  });
+
+  testWidgets('if the list fails to load the user sees a message and can retry into the flow', (t) async {
+    final rig = Rig()..boardFails = true;
+    await t.pumpWidget(rig.app());
+    await t.tap(find.byKey(const Key('open_flow')));
+    await t.pumpAndSettle();
+    expect(find.byKey(const Key('bourse_failure_text')), findsOneWidget);
+    expect(find.byKey(const Key('bourse_retry')), findsOneWidget);
+
+    rig.boardFails = false;
+    await t.tap(find.byKey(const Key('bourse_retry')));
+    await t.pumpAndSettle();
+    expect(find.byKey(const ValueKey('bourse_board_row_$ayarId')), findsOneWidget);
+    await t.tap(find.byKey(const ValueKey('bourse_board_row_$ayarId')));
+    await t.pumpAndSettle();
+    await t.tap(find.byKey(const Key('bourse_create_alert')));
+    await t.pumpAndSettle();
+    expect(find.byKey(const Key('bourse_form_amount')), findsOneWidget);
   });
 
   testWidgets('a server refusal keeps the user on the form and saves nothing', (t) async {
