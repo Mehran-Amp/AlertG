@@ -89,6 +89,22 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
         recurring: _recurring,
       );
 
+  /// The price is not a live one: market closed, no trade today or a stale feed.
+  bool get _marketNotLive {
+    final st = widget.quote.state;
+    return st != BourseState.live && st != BourseState.unknown;
+  }
+
+  /// How far the alert price is from the last price, e.g. `+4.7% بالاتر از آخرین قیمت`.
+  String? _distanceText(double? target) {
+    final last = widget.quote.price;
+    if (target == null || last == null || last <= 0 || target <= 0) return null;
+    final pct = (target - last) / last * 100;
+    if (pct.isNaN || pct.isInfinite) return null;
+    final text = BourseFormat.signedPercent(pct.abs(), persianDigits: widget.persianDigits).replaceFirst('+', '');
+    return pct >= 0 ? BourseStrings.alertDistanceAbove(text) : BourseStrings.alertDistanceBelow(text);
+  }
+
   String get _amountLabel {
     switch (_kind) {
       case BourseAlertKind.price:
@@ -158,6 +174,7 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
             : BourseFormat.rial(amount, persianDigits: widget.persianDigits))
         : null;
     final target = draft.triggerPrice;
+    final distance = _distanceText(target);
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -173,6 +190,23 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
               key: const Key('bourse_form_last_price'),
               style: AppTokens.bodySecondary,
             ),
+            if (_marketNotLive)
+              Padding(
+                padding: const EdgeInsets.only(top: AppTokens.space8),
+                child: Container(
+                  key: const Key('bourse_form_closed_note'),
+                  padding: const EdgeInsets.all(AppTokens.space12),
+                  decoration: BoxDecoration(
+                    color: AppTokens.warningSubtle,
+                    borderRadius: AppTokens.borderSmall,
+                  ),
+                  child: Text(
+                    BourseStrings.alertClosedNote(
+                        BourseFormat.rial(widget.quote.price, persianDigits: widget.persianDigits)),
+                    style: AppTokens.bodySecondary,
+                  ),
+                ),
+              ),
             const SizedBox(height: AppTokens.space16),
             Wrap(
               key: const Key('bourse_form_kind'),
@@ -229,6 +263,11 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
                   key: const Key('bourse_form_target'),
                   style: AppTokens.bodySecondary,
                 ),
+              ),
+            if (distance != null)
+              Padding(
+                padding: const EdgeInsets.only(top: AppTokens.space4),
+                child: Text(distance, key: const Key('bourse_form_distance'), style: AppTokens.bodySecondary),
               ),
             if (warning != null)
               Padding(
