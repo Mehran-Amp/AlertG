@@ -1,4 +1,5 @@
 import '../alerts/bourse_alert_draft.dart';
+import '../models/bourse_board.dart';
 import '../models/bourse_quote.dart';
 import '../services/iran_bourse_service.dart';
 
@@ -12,6 +13,53 @@ class BourseStrings {
   static const String searchNoResults = 'نمادی پیدا نشد. املای دیگری را امتحان کنید.';
   static const String searchStaleNote = 'فهرست نمادها ممکن است کمی قدیمی باشد.';
   static const String retry = 'تلاش دوباره';
+
+  // ---- browse list (IB-16c) ----------------------------------------------------------
+  static const String browseSearchHint = 'جستجوی نماد یا نام در همین فهرست';
+  static const String browseEmpty = 'نمادی در این دسته پیدا نشد.';
+  static const String browseLoadMoreFailed = 'دریافت ادامه فهرست ناموفق بود.';
+  static const String tagLastPrice = 'آخرین قیمت';
+  static const String tagNotTradedToday = 'امروز معامله نشده';
+  static const String sortTitle = 'مرتب‌سازی';
+  static const String bannerClosed =
+      'بازار بسته است؛ قیمت‌ها آخرین قیمت معامله هستند. هشدار را همین حالا هم می‌توانید بسازید؛ '
+      'از زمان باز شدن بازار بر اساس قیمت زنده بررسی می‌شود.';
+  static const String bannerStale =
+      'اتصال به منبع داده قطع یا کند است؛ قیمت‌ها ممکن است قدیمی باشند.';
+  static const String bannerUnknown = 'وضعیت بازار مشخص نیست؛ قیمت‌ها ممکن است زنده نباشند.';
+  static const String tabAll = 'همه';
+
+  static String groupLabel(BourseGroup group) {
+    switch (group) {
+      case BourseGroup.stocks:
+        return 'سهام';
+      case BourseGroup.funds:
+        return 'صندوق‌ها';
+      case BourseGroup.bonds:
+        return 'اوراق';
+      case BourseGroup.rights:
+        return 'حق تقدم';
+      case BourseGroup.derivatives:
+        return 'اختیار و آتی';
+      case BourseGroup.other:
+        return 'سایر';
+    }
+  }
+
+  static String sortLabel(BourseSort sort) {
+    switch (sort) {
+      case BourseSort.value:
+        return 'بیشترین ارزش معامله';
+      case BourseSort.volume:
+        return 'بیشترین حجم';
+      case BourseSort.change:
+        return 'بیشترین تغییر قیمت';
+      case BourseSort.price:
+        return 'بیشترین قیمت';
+      case BourseSort.name:
+        return 'نام (الفبا)';
+    }
+  }
 
   // ---- market picker card -----------------------------------------------------------
   static const String marketCardTitle = 'بورس و فرابورس ایران';
