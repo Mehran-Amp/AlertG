@@ -95,6 +95,13 @@ class BourseStrings {
   // ---- alert ------------------------------------------------------------------------
   static const String createAlert = 'ساخت هشدار';
   static const String alertPriceLabel = 'قیمت هدف (ریال)';
+  // ---- alert form when the market is closed (IB-16d) ----
+  static String alertClosedNote(String priceText) =>
+      'بازار بسته است؛ این هشدار بر اساس آخرین قیمت ($priceText) ساخته می‌شود و '
+      'از زمان باز شدن بازار بررسی می‌شود.';
+  static String alertDistanceAbove(String pct) => '$pct بالاتر از آخرین قیمت';
+  static String alertDistanceBelow(String pct) => '$pct پایین‌تر از آخرین قیمت';
+
   static const String alertOnlyLiveNote =
       'هشدار فقط وقتی بازار باز و قیمت زنده است بررسی می‌شود.';
   static const String alertDailyBaseNote =

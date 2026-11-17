@@ -16,9 +16,9 @@ import 'package:bitcoin_checker/features/iran_bourse/services/iran_bourse_servic
 /// IB-11d-3: the alert form, against a fake server (no network).
 const String ayarId = '34144395039913458';
 
-BourseQuote quote() => BourseQuote.tryParse({
+BourseQuote quote({String state = 'LIVE'}) => BourseQuote.tryParse({
       'price': 668761,
-      'state': 'LIVE',
+      'state': state,
       'alert_eligible': true,
       'asOf': 1794726798,
       'symbol': ayarId,
@@ -53,9 +53,9 @@ class Harness {
         fcmToken: () async => 'tok',
       );
 
-  Widget page() => MaterialApp(
+  Widget page({String state = 'LIVE'}) => MaterialApp(
         home: BourseAlertFormPage(
-          quote: quote(),
+          quote: quote(state: state),
           api: api,
           onCreated: (rule) async {
             if (saveFails) throw StateError('disk full');
@@ -220,6 +220,54 @@ void main() {
       await t.pumpWidget(h.page());
       await enter(t, '675000');
       expect(find.byKey(const Key('bourse_form_warning')), findsNothing);
+    });
+  });
+
+  group('closed market and distance (IB-16d)', () {
+    testWidgets('live market: no closed note', (t) async {
+      await t.pumpWidget(Harness().page());
+      expect(find.byKey(const Key('bourse_form_closed_note')), findsNothing);
+    });
+
+    testWidgets('closed / no trade / stale: the note names the last price', (t) async {
+      for (final st in ['CLOSED', 'NO_TRADE_TODAY', 'STALE']) {
+        await t.pumpWidget(Harness().page(state: st));
+        expect(find.byKey(const Key('bourse_form_closed_note')), findsOneWidget, reason: st);
+        expect(find.text(BourseStrings.alertClosedNote('668,761 ریال')), findsOneWidget, reason: st);
+      }
+    });
+
+    testWidgets('unknown state shows no note', (t) async {
+      await t.pumpWidget(Harness().page(state: 'WHATEVER'));
+      expect(find.byKey(const Key('bourse_form_closed_note')), findsNothing);
+    });
+
+    testWidgets('a closed-market alert can still be created', (t) async {
+      final h = Harness();
+      await t.pumpWidget(h.page(state: 'CLOSED'));
+      await enter(t, '675000');
+      await submit(t);
+      expect(h.requests.length, 1);
+      expect(h.saved.length, 1);
+    });
+
+    testWidgets('distance shows above / below the last price', (t) async {
+      final h = Harness();
+      await t.pumpWidget(h.page());
+      expect(find.byKey(const Key('bourse_form_distance')), findsNothing);
+      await enter(t, '700000'); // (700000-668761)/668761 = +4.67%
+      expect(find.text(BourseStrings.alertDistanceAbove('4.67%')), findsOneWidget);
+      await enter(t, '600000'); // -10.28%
+      expect(find.text(BourseStrings.alertDistanceBelow('10.28%')), findsOneWidget);
+    });
+
+    testWidgets('distance also works for a percent alert (uses the price it needs)', (t) async {
+      final h = Harness();
+      await t.pumpWidget(h.page());
+      await t.tap(find.byKey(const Key('bourse_kind_percentChange')));
+      await t.pump();
+      await enter(t, '3'); // target 688,611 vs last 668,761 -> +2.97%
+      expect(find.byKey(const Key('bourse_form_distance')), findsOneWidget);
     });
   });
 
