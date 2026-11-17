@@ -95,7 +95,10 @@ void main() {
     await t.tap(find.byKey(const Key('bourse_tab_funds')));
     await t.pumpAndSettle();
     expect(f.calls.last.queryParameters['group'], 'funds');
-    await t.tap(find.byKey(const Key('bourse_tab_derivatives')));
+    final derivatives = find.byKey(const Key('bourse_tab_derivatives'));
+    await t.scrollUntilVisible(derivatives, 100,
+        scrollable: find.descendant(of: find.byKey(const Key('bourse_group_tabs')), matching: find.byType(Scrollable)));
+    await t.tap(derivatives);
     await t.pumpAndSettle();
     expect(f.calls.last.queryParameters['group'], 'derivatives');
   });
