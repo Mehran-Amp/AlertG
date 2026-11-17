@@ -110,7 +110,8 @@ async def create_alert(alert_in: AlertCreate, response: Response = None):
     # Phase 4: Crypto Alert Validation ('enforce' / 'warn')
     val_mode = str(getattr(config, "CRYPTO_VALIDATE_ALERTS", "false")).strip().lower()
     validation_warning = None
-    if val_mode in ("true", "1", "yes", "on", "enforce", "warn"):
+    # IB-9b: the crypto validator knows nothing about the Iranian Bourse (it has its own, above)
+    if val_mode in ("true", "1", "yes", "on", "enforce", "warn") and alert_in.exchange != 'tsetmc':
         from app.markets.crypto_validation import validate_crypto_alert
         is_val, err_code, err_msg = validate_crypto_alert(
             exchange=alert_in.exchange,
@@ -319,7 +320,9 @@ async def sync_user_alerts(payload: dict):
             # Phase 4: Per-item Crypto Alert Validation (applies ONLY to new or changed items)
             # Alerts already on the server pass through untouched
             item_warning = None
-            if not sig_matches and val_mode in ("true", "1", "yes", "on", "enforce", "warn"):
+            # IB-9b: Bourse items were already validated by prevalidate_sync_items above
+            is_bourse_item = str(item.get('exchange') or '').strip().lower() == 'tsetmc'
+            if not sig_matches and not is_bourse_item and val_mode in ("true", "1", "yes", "on", "enforce", "warn"):
                 from app.markets.crypto_validation import validate_crypto_alert
                 ex = str(item.get('exchange') or 'tabdeal').strip().lower()
                 sym = str(item.get('symbol') or 'USDTIRT').strip()
