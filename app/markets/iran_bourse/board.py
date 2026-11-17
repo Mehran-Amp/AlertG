@@ -49,9 +49,24 @@ def norm(text: Any) -> str:
     return " ".join(str(text or "").translate(_LETTERS).split())
 
 
+# Type codes seen on the live feed for rows that arrive WITHOUT a type name (IB-16a2).
+CODE_GROUPS = {"315": GROUP_FUNDS,      # commodity-backed / project funds (sector: tradable fund)
+               "206": GROUP_BONDS,      # bank "gam" securities
+               "403": GROUP_RIGHTS, "404": GROUP_RIGHTS}   # rights issues (tickers start with "ح.")
+
+
 def group_of(row: Dict[str, Any]) -> str:
-    """Category group from the instrument type name (the gateway's own Persian label)."""
+    """Category group from the instrument type name (the gateway's own Persian label).
+    Rows without a type name fall back to the type code, then to the sector / name."""
     t = norm(row.get("type"))
+    if not t:
+        by_code = CODE_GROUPS.get(str(row.get("type_code") or "").strip())
+        if by_code:
+            return by_code
+        if "صندوق" in norm(row.get("sector")):
+            return GROUP_FUNDS
+        if norm(row.get("name")).startswith("ح."):
+            return GROUP_RIGHTS
     if "اختیار" in t or "آتی" in t:
         return GROUP_DERIVATIVES
     if "حق تقدم" in t:

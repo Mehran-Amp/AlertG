@@ -79,6 +79,15 @@ class TestGrouping(unittest.TestCase):
         for typ, want in cases.items():
             self.assertEqual(group_of({"type": typ}), want, typ)
 
+    def test_rows_without_a_type_name_use_code_sector_or_name(self):
+        self.assertEqual(group_of({"type": None, "type_code": "315", "sector": "صندوق سرمایه‌گذاری قابل معامله"}), "funds")
+        self.assertEqual(group_of({"type": None, "type_code": "206", "sector": None, "name": "گام بانک ملت0607"}), "bonds")
+        self.assertEqual(group_of({"type": None, "type_code": 404, "name": "ح. پتروشیمی اصفهان"}), "rights")
+        self.assertEqual(group_of({"type": None, "type_code": "999", "sector": "صندوق X"}), "funds")
+        self.assertEqual(group_of({"type": None, "type_code": "999", "name": "ح. جهان فولاد"}), "rights")
+        self.assertEqual(group_of({"type": None, "type_code": "999", "name": "چیز"}), "other")
+        self.assertEqual(group_of({"type": "زعفران (کالا)", "type_code": "315"}), "other")   # a named type wins over the code
+
     def test_arabic_letters_and_half_space_are_normalized(self):
         self.assertEqual(norm("صندوق  كالايي"), "صندوق کالایی")
         self.assertEqual(group_of({"type": "اختيار خرید"}), "derivatives")  # Arabic yeh
