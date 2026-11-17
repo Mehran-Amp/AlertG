@@ -11,6 +11,7 @@ from fastapi import APIRouter, HTTPException, Query
 
 import app.config as config
 from app.security import API_DEP, ADMIN_DEP
+from app.markets.iran_bourse.board import GROUPS, MAX_LIMIT, DEFAULT_LIMIT, SORT_KEYS, get_board
 from app.markets.iran_bourse.client import BourseError, BourseNotFound, BourseUnauthorized
 from app.markets.iran_bourse.directory import DIRECTORY, normalize_query
 from app.markets.iran_bourse.price import NoQuote, resolve_result, valid_instrument_id
@@ -49,6 +50,40 @@ async def bourse_symbols(
         raise _unavailable(e)
     return {"query": normalize_query(q), "count": len(rows), "limit": limit, "unit": "IRR",
             "stale": bool(meta.get("stale", False)), "items": rows}
+
+
+@router.get("/api/iran-bourse/board", dependencies=API_DEP)
+async def bourse_board(
+    group: str = Query("", max_length=16),
+    market: str = Query("", max_length=32),
+    sector: str = Query("", max_length=32),
+    type: str = Query("", max_length=32),
+    traded: Optional[bool] = None,
+    q: str = Query("", max_length=64),
+    sort: str = Query("value", max_length=16),
+    order: str = Query("", max_length=4),
+    offset: int = Query(0, ge=0, le=100000),
+    limit: int = Query(DEFAULT_LIMIT, ge=1, le=MAX_LIMIT),
+) -> Dict[str, Any]:
+    """Browse lists: every symbol with its last price, by category, sorted and paged (IB-16a).
+
+    No group means everything except options/futures (group=derivatives shows those).
+    Prices are the last traded price, also when the market is closed: `session` tells the app
+    which one it is looking at (OPEN = live, CLOSED / STALE = last known price)."""
+    _enabled()
+    if group and group not in GROUPS:
+        raise HTTPException(status_code=400, detail=f"group must be one of {', '.join(GROUPS)}.")
+    if sort not in SORT_KEYS:
+        raise HTTPException(status_code=400, detail=f"sort must be one of {', '.join(SORT_KEYS)}.")
+    if order and order.lower() not in ("asc", "desc"):
+        raise HTTPException(status_code=400, detail="order must be asc or desc.")
+    board = get_board()
+    try:
+        await board.ensure_fresh()
+    except BourseError as e:
+        raise _unavailable(e)
+    return board.query(group=group, market=market, sector=sector, type_code=type, traded=traded,
+                       q=q, sort=sort, order=order, offset=offset, limit=limit)
 
 
 @router.get("/api/iran-bourse/classification", dependencies=API_DEP)
