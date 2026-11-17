@@ -16,14 +16,14 @@ import 'bourse_symbol_detail_page.dart';
 /// Prices are the last known ones when the market is closed; the banner says so.
 /// Nothing here creates alerts: tapping a row calls [onSelected] (the alert flow, IB-16e) or,
 /// without it, opens the symbol's detail page.
-class BourseBoardPage extends StatefulWidget {
+class BourseBrowsePage extends StatefulWidget {
   final IranBourseService? service;
   final void Function(BourseBoardItem item)? onSelected;
   final Duration debounce;
   final int pageSize;
   final bool persianDigits;
 
-  const BourseBoardPage({
+  const BourseBrowsePage({
     super.key,
     this.service,
     this.onSelected,
@@ -33,10 +33,10 @@ class BourseBoardPage extends StatefulWidget {
   });
 
   @override
-  State<BourseBoardPage> createState() => _BourseBoardPageState();
+  State<BourseBrowsePage> createState() => _BourseBrowsePageState();
 }
 
-class _BourseBoardPageState extends State<BourseBoardPage> {
+class _BourseBrowsePageState extends State<BourseBrowsePage> {
   late final IranBourseService _service = widget.service ?? IranBourseService();
   final TextEditingController _search = TextEditingController();
   final ScrollController _scroll = ScrollController();

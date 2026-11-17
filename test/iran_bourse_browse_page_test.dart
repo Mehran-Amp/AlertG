@@ -7,7 +7,7 @@ import 'package:http/testing.dart';
 
 import 'package:bitcoin_checker/features/iran_bourse/localization/bourse_strings.dart';
 import 'package:bitcoin_checker/features/iran_bourse/models/bourse_board.dart';
-import 'package:bitcoin_checker/features/iran_bourse/pages/bourse_board_page.dart';
+import 'package:bitcoin_checker/features/iran_bourse/pages/bourse_browse_page.dart';
 import 'package:bitcoin_checker/features/iran_bourse/services/iran_bourse_service.dart';
 
 /// IB-16c-2: the browse list page against a fake server (no network).
@@ -65,7 +65,7 @@ class Fake {
 }
 
 Widget host(Fake f, {void Function(BourseBoardItem)? onSelected, int pageSize = 50}) =>
-    MaterialApp(home: BourseBoardPage(service: f.service, onSelected: onSelected, debounce: Duration.zero, pageSize: pageSize));
+    MaterialApp(home: BourseBrowsePage(service: f.service, onSelected: onSelected, debounce: Duration.zero, pageSize: pageSize));
 
 void main() {
   testWidgets('loads the first page and shows rows, tabs with counts', (t) async {
