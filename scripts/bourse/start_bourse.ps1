@@ -31,6 +31,15 @@ function Log([string]$msg) {
     Add-Content -Path $file -Value $line -Encoding UTF8
 }
 
+# PID listening on a local TCP port, or $null
+function Get-PortOwner([int]$port) {
+    try {
+        $c = Get-NetTCPConnection -State Listen -LocalPort $port -ErrorAction Stop | Select-Object -First 1
+        if ($c) { return $c.OwningProcess }
+    } catch { }
+    return $null
+}
+
 # ---- validate configuration (no secrets printed) ----
 $problems = @()
 if (-not (Test-Path $GatewayDir))  { $problems += "GatewayDir not found: $GatewayDir" }
@@ -39,6 +48,15 @@ if (-not (Test-Path $SshKeyFile))  { $problems += "SshKeyFile not found: $SshKey
 if (-not (Get-Command ssh -ErrorAction SilentlyContinue)) { $problems += 'ssh not found in PATH' }
 if (-not (Get-Command $GatewayExe -ErrorAction SilentlyContinue)) { $problems += "GatewayExe not found: $GatewayExe" }
 if ($SshHost -like '*example.com') { $problems += 'SshHost is still the example value' }
+$firstArg = (($GatewayArgs -split '\s+') | Where-Object { $_ })[0]
+if ($firstArg -match '\.py$' -and (Test-Path $GatewayDir) -and -not (Test-Path (Join-Path $GatewayDir $firstArg))) {
+    $problems += "Gateway script not found: $(Join-Path $GatewayDir $firstArg) (fix GatewayArgs; files in the folder: $((Get-ChildItem $GatewayDir -Name | Select-Object -First 12) -join ', '))"
+}
+
+$busyPid = Get-PortOwner $GatewayPort
+if ($busyPid) { $problems += "Port $GatewayPort is already used by PID $busyPid (an old gateway is still running? close it first)" }
+$oldSsh = @(Get-Process ssh -ErrorAction SilentlyContinue)
+if ($oldSsh.Count -gt 0) { $problems += "ssh is already running (PID $(($oldSsh | ForEach-Object { $_.Id }) -join ', ')): an old tunnel would hold the server port; close it first" }
 
 if ($Check) {
     Write-Host "Gateway : $GatewayExe $GatewayArgs   (in $GatewayDir, port $GatewayPort)"
@@ -72,6 +90,7 @@ function Start-Gateway {
     $out = Join-Path $LogDir 'gateway.out.log'; $err = Join-Path $LogDir 'gateway.err.log'
     $script:gw = Start-Process -FilePath $GatewayExe -ArgumentList $GatewayArgs -WorkingDirectory $GatewayDir `
         -PassThru -WindowStyle Hidden -RedirectStandardOutput $out -RedirectStandardError $err
+    $null = $script:gw.Handle   # keeps the exit code readable after the process ends
     $script:gwFails = 0
 }
 
@@ -84,6 +103,7 @@ function Start-Tunnel {
         '-R', "127.0.0.1:${RemotePort}:127.0.0.1:${GatewayPort}", "$SshUser@$SshHost")
     $err = Join-Path $LogDir 'tunnel.err.log'
     $script:tn = Start-Process -FilePath 'ssh' -ArgumentList $sshArgs -PassThru -WindowStyle Hidden -RedirectStandardError $err
+    $null = $script:tn.Handle
 }
 
 # 'ok' (answers), 'warming' (503: gateway up but data not loaded yet), or 'down'
@@ -99,6 +119,10 @@ function Test-Gateway {
     }
 }
 
+function Last-Line([string]$file) {
+    try { return (Get-Content $file -Tail 1 -ErrorAction Stop) } catch { return '' }
+}
+
 function Next-Delay([int]$d) { return [Math]::Min($MaxBackoff, $d * 2) }
 
 Log 'supervisor started (Ctrl+C to stop)'
@@ -109,7 +133,7 @@ try {
         # --- gateway ---
         if (-not $script:gw -or $script:gw.HasExited) {
             if ($now -ge $script:gwNext) {
-                if ($script:gw) { Log "gateway exited (code $($script:gw.ExitCode))" }
+                if ($script:gw) { Log "gateway exited (code $($script:gw.ExitCode)): $(Last-Line (Join-Path $LogDir 'gateway.err.log'))" }
                 Start-Gateway
                 $script:gwNext = (Get-Date).AddSeconds($script:gwDelay)
                 $script:gwDelay = Next-Delay $script:gwDelay
@@ -134,7 +158,7 @@ try {
         # --- tunnel ---
         if (-not $script:tn -or $script:tn.HasExited) {
             if ($now -ge $script:tnNext) {
-                if ($script:tn) { Log "tunnel exited (code $($script:tn.ExitCode)); see tunnel.err.log" }
+                if ($script:tn) { Log "tunnel exited (code $($script:tn.ExitCode)): $(Last-Line (Join-Path $LogDir 'tunnel.err.log'))" }
                 Start-Tunnel
                 $script:tnNext = (Get-Date).AddSeconds($script:tnDelay)
                 $script:tnDelay = Next-Delay $script:tnDelay

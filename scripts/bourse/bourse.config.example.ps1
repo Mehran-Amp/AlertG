@@ -4,7 +4,7 @@
 # ---- Gateway (tsetmc-gateway) ----
 $GatewayDir      = 'C:\tsetmc-gateway'                 # folder the gateway starts in
 $GatewayExe      = 'python'                            # program to run (python, or a full path to an .exe)
-$GatewayArgs     = 'tsetmc_gateway.py'                 # its arguments (adjust to how you start it today)
+$GatewayArgs     = 'tsetmc_gateway.py'                 # its arguments: the REAL script name in the gateway folder (-Check verifies the file exists)
 $GatewayPort     = 8099
 $ApiKeyFile      = 'C:\tsetmc-gateway\api_key.txt'     # one line: the gateway key (= TSETMC_API_KEY); never commit it
 
