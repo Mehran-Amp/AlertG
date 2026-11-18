@@ -25,11 +25,11 @@ curl -s -H "X-Admin-Key: $A" "http://127.0.0.1:8000/api/iran-bourse/status?probe
 
 **ب) از سرور، آیا تونل و گیت‌وی جواب می‌دهند؟** (server360)
 ```
-ss -ltn | grep 8099
+(echo > /dev/tcp/127.0.0.1/8099) 2>/dev/null && echo "port 8099: open" || echo "port 8099: CLOSED"
 K=$(grep '^IRAN_BOURSE_GATEWAY_KEY=' .env | cut -d= -f2-)
 curl -s -m 8 -o /dev/null -w "%{http_code}\n" -H "X-API-Key: $K" http://127.0.0.1:8099/health
 ```
-- خطی از `ss` نمی‌آید ← تونل برپا نیست (بخش ۳).
+- `port 8099: CLOSED` ← تونل برپا نیست (بخش ۳). (روی این سرور `ss` نصب نیست؛ دستور بالا بدون ابزار اضافه کار می‌کند.)
 - کد `200` ← همه‌چیز سالم است. `401` ← کلید سرور و PC یکی نیست. `503` ← گیت‌وی هنوز داده‌ی بازار را نگرفته (۱–۲ دقیقه صبر کن). خالی یا `000` ← تونل هست ولی گیت‌وی جواب نمی‌دهد.
 
 **پ) روی خود PC** (PC)
@@ -56,9 +56,9 @@ curl.exe -s -m 8 -H "X-API-Key: 333333" http://127.0.0.1:8099/health
 
 اگر نگهبان `scripts/bourse/start_bourse.ps1` اجرا است، خودش تونل را دوباره می‌زند (با فاصله‌ی افزایشی، حداکثر ۲ دقیقه)؛ علت را در `scripts\bourse\logs\tunnel.err.log` ببین. بدون نگهبان: پنجره‌ی تونل را ببین و دستور را دوباره بزن. بعد از برقراری، در سرور:
 ```
-ss -ltn | grep 8099
+(echo > /dev/tcp/127.0.0.1/8099) 2>/dev/null && echo "port 8099: open" || echo "port 8099: CLOSED"
 ```
-باید یک خط ببینی. تونل بدون رمز و با کلید SSH بالا می‌آید (`BatchMode`)؛ اگر `Permission denied` دیدی، کلید روی سرور نصب نیست.
+باید `open` ببینی. تونل بدون رمز و با کلید SSH بالا می‌آید (`BatchMode`)؛ اگر `Permission denied` دیدی، کلید روی سرور نصب نیست.
 
 ## ۴. گیت‌وی روی PC مشکل دارد
 
