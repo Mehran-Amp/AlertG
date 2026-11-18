@@ -7,6 +7,7 @@ import '../localization/bourse_strings.dart';
 import '../models/bourse_filters.dart';
 import '../models/bourse_instrument.dart';
 import '../services/iran_bourse_service.dart';
+import '../theme/bourse_text.dart';
 import '../utils/bourse_format.dart';
 import 'bourse_symbol_detail_page.dart';
 
@@ -263,11 +264,11 @@ class _BourseSearchPageState extends State<BourseSearchPage> {
     final result = _result;
     if (result == null) {
       if (_loading) return const Center(child: CircularProgressIndicator());
-      return const Center(
+      return Center(
         child: Text(
           BourseStrings.searchEmptyPrompt,
-          key: Key('bourse_prompt'),
-          style: AppTokens.bodySecondary,
+          key: const Key('bourse_prompt'),
+          style: BourseText.secondary(context),
         ),
       );
     }
@@ -285,12 +286,12 @@ class _BourseSearchPageState extends State<BourseSearchPage> {
             padding: EdgeInsets.all(AppTokens.space12),
             child: Text(BourseStrings.searchStaleNote, key: Key('bourse_stale_note')),
           ),
-        for (final item in result.items) _tile(item),
+        for (final item in result.items) _tile(context, item),
       ],
     );
   }
 
-  Widget _tile(BourseInstrument i) {
+  Widget _tile(BuildContext context, BourseInstrument i) {
     final d = widget.persianDigits;
     final subtitleParts = <String>[
       if (i.name.isNotEmpty && i.name != i.displayTicker) i.name,
@@ -299,7 +300,7 @@ class _BourseSearchPageState extends State<BourseSearchPage> {
     final hasPrice = i.last != null && i.last! > 0;
     final pct = i.lastChangePct;
     final pctColor = (pct == null || pct == 0)
-        ? AppTokens.textSecondary
+        ? BourseText.secondaryColor(context)
         : (pct > 0 ? AppTokens.positive : AppTokens.negative);
 
     return ListTile(

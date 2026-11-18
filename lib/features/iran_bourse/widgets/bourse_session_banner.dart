@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/tokens.dart';
 import '../localization/bourse_strings.dart';
 import '../models/bourse_board.dart';
+import '../theme/bourse_text.dart';
 
 /// Tells the user that the prices on screen are the last known ones, not live (IB-16c).
 ///
@@ -52,7 +53,7 @@ class BourseSessionBanner extends StatelessWidget {
         children: [
           const Icon(Icons.info_outline, size: 18, color: AppTokens.warning),
           const SizedBox(width: AppTokens.space8),
-          Expanded(child: Text(text, style: AppTokens.bodySecondary)),
+          Expanded(child: Text(text, style: BourseText.secondary(context))),
         ],
       ),
     );
