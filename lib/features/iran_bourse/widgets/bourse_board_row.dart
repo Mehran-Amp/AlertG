@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/tokens.dart';
 import '../localization/bourse_strings.dart';
 import '../models/bourse_board.dart';
+import '../theme/bourse_text.dart';
 import '../utils/bourse_format.dart';
 
 /// One symbol in the browse list: ticker, name, last price (Rial), change % and a small tag
@@ -38,7 +39,7 @@ class BourseBoardRow extends StatelessWidget {
     ].join(' · ');
     final pct = item.changePct;
     final pctColor = (pct == null || pct == 0)
-        ? AppTokens.textSecondary
+        ? BourseText.secondaryColor(context)
         : (pct > 0 ? AppTokens.positive : AppTokens.negative);
     final tag = tagFor(item, session);
 
@@ -61,7 +62,7 @@ class BourseBoardRow extends StatelessWidget {
             Text(
               tag,
               key: const Key('bourse_row_tag'),
-              style: const TextStyle(color: AppTokens.textMuted, fontSize: 10),
+              style: TextStyle(color: BourseText.mutedColor(context), fontSize: 10),
             ),
         ],
       ),

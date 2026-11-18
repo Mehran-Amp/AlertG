@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/tokens.dart';
 import '../localization/bourse_strings.dart';
 import '../models/bourse_quote.dart';
+import '../theme/bourse_text.dart';
 import '../utils/bourse_format.dart';
 import 'bourse_state_badge.dart';
 
@@ -15,21 +16,21 @@ class BourseQuoteCard extends StatelessWidget {
 
   const BourseQuoteCard({super.key, required this.quote, this.persianDigits = false});
 
-  Color _changeColor(double? pct) {
-    if (pct == null || pct == 0) return AppTokens.textSecondary;
+  Color _changeColor(BuildContext context, double? pct) {
+    if (pct == null || pct == 0) return BourseText.secondaryColor(context);
     return pct > 0 ? AppTokens.positive : AppTokens.negative;
   }
 
-  Widget _row(String label, String value, {Key? key}) {
+  Widget _row(BuildContext context, String label, String value, {Key? key}) {
     return Padding(
       key: key,
       padding: const EdgeInsets.symmetric(vertical: AppTokens.space4),
       child: Row(
         children: [
           Expanded(
-            child: Text(label, style: AppTokens.bodySecondary),
+            child: Text(label, style: BourseText.secondary(context)),
           ),
-          Text(value, style: AppTokens.body),
+          Text(value, style: BourseText.body(context)),
         ],
       ),
     );
@@ -55,9 +56,9 @@ class BourseQuoteCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: AppTokens.sectionHeader),
+                      Text(title, style: BourseText.header(context)),
                       if (q.name.isNotEmpty && q.name != title)
-                        Text(q.name, style: AppTokens.bodySecondary),
+                        Text(q.name, style: BourseText.secondary(context)),
                     ],
                   ),
                 ),
@@ -69,46 +70,46 @@ class BourseQuoteCard extends StatelessWidget {
               BourseFormat.rial(q.hasPrice ? q.price : null, persianDigits: d),
               key: const Key('bourse_price'),
               textDirection: TextDirection.ltr,
-              style: AppTokens.monoNumbers.copyWith(fontSize: 24),
+              style: BourseText.price(context),
             ),
             const SizedBox(height: AppTokens.space4),
             Text(
               BourseFormat.signedPercent(q.changePct, persianDigits: d),
               key: const Key('bourse_change_pct'),
               textDirection: TextDirection.ltr,
-              style: AppTokens.body.copyWith(color: _changeColor(q.changePct)),
+              style: BourseText.body(context).copyWith(color: _changeColor(context, q.changePct)),
             ),
             const SizedBox(height: AppTokens.space8),
             Text(
               BourseStrings.stateDescription(q.state),
               key: const Key('bourse_state_description'),
-              style: AppTokens.bodySecondary,
+              style: BourseText.secondary(context),
             ),
             const Divider(height: AppTokens.space24),
-            _row(BourseStrings.prevClose, BourseFormat.rial(q.prevClose, persianDigits: d)),
-            _row(BourseStrings.closePrice, BourseFormat.rial(q.close, persianDigits: d)),
-            _row(BourseStrings.dayRange, BourseFormat.range(q.low, q.high, persianDigits: d)),
-            _row(BourseStrings.upperLimit, BourseFormat.rial(q.upperLimit, persianDigits: d)),
-            _row(BourseStrings.lowerLimit, BourseFormat.rial(q.lowerLimit, persianDigits: d)),
-            _row(BourseStrings.volume, BourseFormat.number(q.volume, persianDigits: d)),
+            _row(context, BourseStrings.prevClose, BourseFormat.rial(q.prevClose, persianDigits: d)),
+            _row(context, BourseStrings.closePrice, BourseFormat.rial(q.close, persianDigits: d)),
+            _row(context, BourseStrings.dayRange, BourseFormat.range(q.low, q.high, persianDigits: d)),
+            _row(context, BourseStrings.upperLimit, BourseFormat.rial(q.upperLimit, persianDigits: d)),
+            _row(context, BourseStrings.lowerLimit, BourseFormat.rial(q.lowerLimit, persianDigits: d)),
+            _row(context, BourseStrings.volume, BourseFormat.number(q.volume, persianDigits: d)),
             if (q.nav != null)
-              _row(BourseStrings.nav, BourseFormat.rial(q.nav, persianDigits: d),
+              _row(context, BourseStrings.nav, BourseFormat.rial(q.nav, persianDigits: d),
                   key: const Key('bourse_row_nav')),
             if (queue != null)
-              _row(BourseStrings.queue, queue, key: const Key('bourse_row_queue')),
-            _row(BourseStrings.lastTradeTime,
+              _row(context, BourseStrings.queue, queue, key: const Key('bourse_row_queue')),
+            _row(context, BourseStrings.lastTradeTime,
                 q.lastTradeTime == null
                     ? BourseFormat.dash
                     : (d ? BourseFormat.toPersianDigits(q.lastTradeTime!) : q.lastTradeTime!)),
-            _row(BourseStrings.updatedAt, BourseFormat.tehranTime(q.asOf, persianDigits: d)),
+            _row(context, BourseStrings.updatedAt, BourseFormat.tehranTime(q.asOf, persianDigits: d)),
             if (q.marketLabel != null)
-              _row(BourseStrings.market, q.marketLabel!, key: const Key('bourse_row_market')),
+              _row(context, BourseStrings.market, q.marketLabel!, key: const Key('bourse_row_market')),
             if (q.typeLabel != null)
-              _row(BourseStrings.type, q.typeLabel!, key: const Key('bourse_row_type')),
+              _row(context, BourseStrings.type, q.typeLabel!, key: const Key('bourse_row_type')),
             if (q.sector != null)
-              _row(BourseStrings.sector, q.sector!, key: const Key('bourse_row_sector')),
+              _row(context, BourseStrings.sector, q.sector!, key: const Key('bourse_row_sector')),
             const SizedBox(height: AppTokens.space8),
-            Text(BourseStrings.unitNote, style: AppTokens.caption),
+            Text(BourseStrings.unitNote, style: BourseText.caption(context)),
           ],
         ),
       ),

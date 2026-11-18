@@ -6,6 +6,7 @@ import '../../../core/theme/tokens.dart';
 import '../localization/bourse_strings.dart';
 import '../models/bourse_quote.dart';
 import '../services/iran_bourse_service.dart';
+import '../theme/bourse_text.dart';
 import '../widgets/bourse_quote_card.dart';
 
 /// Detail page of one Bourse instrument (a [BourseQuoteCard] with loading and error states).
@@ -123,7 +124,7 @@ class _BourseSymbolDetailPageState extends State<BourseSymbolDetailPage> {
                 child: Text(
                   BourseStrings.failureMessage(refreshFailure),
                   key: const Key('bourse_refresh_failure'),
-                  style: AppTokens.bodySecondary.copyWith(color: AppTokens.warning),
+                  style: BourseText.secondary(context).copyWith(color: BourseText.warningColor(context)),
                 ),
               ),
             BourseQuoteCard(quote: quote, persianDigits: widget.persianDigits),

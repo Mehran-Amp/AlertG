@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/tokens.dart';
 import '../localization/bourse_strings.dart';
 import '../models/bourse_quote.dart';
+import '../theme/bourse_text.dart';
 
 /// Small coloured label for a quote state: live, closed, no trade today, stale, unknown.
 class BourseStateBadge extends StatelessWidget {
@@ -23,9 +24,23 @@ class BourseStateBadge extends StatelessWidget {
     }
   }
 
+  /// Like [colorOf], but the neutral states follow the app theme (visible on light and dark).
+  static Color colorFor(BuildContext context, BourseState state) {
+    switch (state) {
+      case BourseState.closed:
+      case BourseState.noTradeToday:
+      case BourseState.unknown:
+        return BourseText.secondaryColor(context);
+      case BourseState.stale:
+        return BourseText.warningColor(context);
+      case BourseState.live:
+        return colorOf(state);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final color = colorOf(state);
+    final color = colorFor(context, state);
     return Container(
       key: const Key('bourse_state_badge'),
       padding: const EdgeInsets.symmetric(

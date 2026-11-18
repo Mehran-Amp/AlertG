@@ -5,6 +5,7 @@ import '../../../core/theme/tokens.dart';
 import '../../alert_engine/models/alert_rule.dart';
 import '../localization/bourse_strings.dart';
 import '../models/bourse_quote.dart';
+import '../theme/bourse_text.dart';
 import '../utils/bourse_format.dart';
 import 'bourse_alert_api.dart';
 import 'bourse_alert_draft.dart';
@@ -188,7 +189,7 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
             Text(
               '${BourseStrings.lastPrice}: ${BourseFormat.rial(widget.quote.price, persianDigits: widget.persianDigits)}',
               key: const Key('bourse_form_last_price'),
-              style: AppTokens.bodySecondary,
+              style: BourseText.secondary(context),
             ),
             if (_marketNotLive)
               Padding(
@@ -203,7 +204,7 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
                   child: Text(
                     BourseStrings.alertClosedNote(
                         BourseFormat.rial(widget.quote.price, persianDigits: widget.persianDigits)),
-                    style: AppTokens.bodySecondary,
+                    style: BourseText.secondary(context),
                   ),
                 ),
               ),
@@ -253,7 +254,7 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
             if (preview != null)
               Padding(
                 padding: const EdgeInsets.only(top: AppTokens.space6),
-                child: Text(preview, key: const Key('bourse_form_preview'), style: AppTokens.bodySecondary),
+                child: Text(preview, key: const Key('bourse_form_preview'), style: BourseText.secondary(context)),
               ),
             if (isChange && target != null)
               Padding(
@@ -261,13 +262,13 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
                 child: Text(
                   '≈ ${BourseFormat.rial(target.round(), persianDigits: widget.persianDigits)}',
                   key: const Key('bourse_form_target'),
-                  style: AppTokens.bodySecondary,
+                  style: BourseText.secondary(context),
                 ),
               ),
             if (distance != null)
               Padding(
                 padding: const EdgeInsets.only(top: AppTokens.space4),
-                child: Text(distance, key: const Key('bourse_form_distance'), style: AppTokens.bodySecondary),
+                child: Text(distance, key: const Key('bourse_form_distance'), style: BourseText.secondary(context)),
               ),
             if (warning != null)
               Padding(
@@ -275,13 +276,13 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
                 child: Text(
                   BourseStrings.alertWarning(warning),
                   key: const Key('bourse_form_warning'),
-                  style: AppTokens.bodySecondary.copyWith(color: AppTokens.warning),
+                  style: BourseText.secondary(context).copyWith(color: BourseText.warningColor(context)),
                 ),
               ),
             if (isChange)
               Padding(
                 padding: const EdgeInsets.only(top: AppTokens.space8),
-                child: Text(BourseStrings.alertDailyBaseNote, style: AppTokens.bodySecondary),
+                child: Text(BourseStrings.alertDailyBaseNote, style: BourseText.secondary(context)),
               ),
             const SizedBox(height: AppTokens.space16),
             TextField(
@@ -302,14 +303,14 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
               onChanged: _submitting ? null : (v) => setState(() => _recurring = v),
             ),
             const SizedBox(height: AppTokens.space4),
-            Text(BourseStrings.alertOnlyLiveNote, style: AppTokens.bodySecondary),
+            Text(BourseStrings.alertOnlyLiveNote, style: BourseText.secondary(context)),
             if (_error != null && _triedSubmit)
               Padding(
                 padding: const EdgeInsets.only(top: AppTokens.space12),
                 child: Text(
                   _error!,
                   key: const Key('bourse_form_error'),
-                  style: AppTokens.bodySecondary.copyWith(color: AppTokens.negative),
+                  style: BourseText.secondary(context).copyWith(color: AppTokens.negative),
                 ),
               ),
             const SizedBox(height: AppTokens.space16),
