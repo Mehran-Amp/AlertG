@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/tokens.dart';
+
 /// Text colours for the Iranian Bourse screens that follow the active app theme (light or dark).
 ///
 /// `AppTokens.body / bodySecondary / caption ...` have fixed dark-theme colours (near-white text),
@@ -14,6 +16,11 @@ abstract class BourseText {
 
   static Color mutedColor(BuildContext context) =>
       Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5);
+
+  /// Amber for warnings: the normal amber is too pale on the light themes, so those get a darker one.
+  static Color warningColor(BuildContext context) => Theme.of(context).brightness == Brightness.light
+      ? const Color(0xFFB45309)
+      : AppTokens.warning;
 
   static TextStyle body(BuildContext context) =>
       TextStyle(fontSize: 13, height: 1.4, color: primaryColor(context));

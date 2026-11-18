@@ -124,7 +124,7 @@ class _BourseSymbolDetailPageState extends State<BourseSymbolDetailPage> {
                 child: Text(
                   BourseStrings.failureMessage(refreshFailure),
                   key: const Key('bourse_refresh_failure'),
-                  style: BourseText.secondary(context).copyWith(color: AppTokens.warning),
+                  style: BourseText.secondary(context).copyWith(color: BourseText.warningColor(context)),
                 ),
               ),
             BourseQuoteCard(quote: quote, persianDigits: widget.persianDigits),

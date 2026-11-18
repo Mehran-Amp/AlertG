@@ -276,7 +276,7 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
                 child: Text(
                   BourseStrings.alertWarning(warning),
                   key: const Key('bourse_form_warning'),
-                  style: BourseText.secondary(context).copyWith(color: AppTokens.warning),
+                  style: BourseText.secondary(context).copyWith(color: BourseText.warningColor(context)),
                 ),
               ),
             if (isChange)

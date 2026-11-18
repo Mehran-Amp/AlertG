@@ -31,8 +31,9 @@ class BourseStateBadge extends StatelessWidget {
       case BourseState.noTradeToday:
       case BourseState.unknown:
         return BourseText.secondaryColor(context);
-      case BourseState.live:
       case BourseState.stale:
+        return BourseText.warningColor(context);
+      case BourseState.live:
         return colorOf(state);
     }
   }
