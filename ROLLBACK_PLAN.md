@@ -401,3 +401,41 @@ The Bourse market is isolated behind `IRAN_BOURSE_ENABLED` (default `false`).
 2. Existing `tsetmc` alerts stay saved; they are not evaluated while the flag is off.
 3. Faster partial stop without restart: the `iran_bourse` category kill switch (see `app/markets/kill_switch.py`).
 4. Full code rollback: revert the Bourse merge commit(s) on `main`; no data migration is needed.
+
+---
+
+## ۲۱. دستورالعمل رول‌بک کلاینت فلاتر — درگاه قیمت Server-First و فاز ۹ (Flutter Client Server-First Pricing & Phase 9 Rollback)
+
+تمامی ۱۸ صرافی کریپتو در اپلیکیشن فلاتر (۱۶ صرافی بین‌المللی + `tabdeal` و `kifpool`) ابتدا قیمت لحظه‌ای را با تایم‌اوت ۳ ثانیه از سرور (`GET /api/price/{exchange}/{symbol}`) از طریق `ServerPriceGateway` دریافت می‌کنند و فقط در صورت خطا یا عدم پاسخ سرور به صورت خودکار به API مستقیم همان صرافی (Direct Fallback) مراجعه می‌کنند.
+
+1. **خاموش کردن سراسری Server-First برای تمام ۱۸ صرافی کریپتو در اپ (Master Switch)**:
+   - در فایل `lib/features/exchanges/base/server_price_gateway.dart` مقدار ثابت زیر را به `false` تغییر دهید:
+   ```dart
+   const bool kCryptoServerFirstPricing = false;
+   ```
+   - با این کار، بدون نیاز به تغییر در هیچ‌یک از ۱۸ آداپتور، تمام درخواست‌های قیمت کریپتو مستقیماً به API خود صرافی ارسال می‌شوند.
+
+2. **خاموش کردن Server-First برای یک صرافی خاص (Per-Exchange Switch)**:
+   - هر صرافی دارای یک سوئیچ مستقل در بالای فایل آداپتور خود است که می‌توان آن را به `false` تغییر داد:
+     - `lib/features/exchanges/binance/binance_exchange.dart` → `kBinanceServerFirst = false;`
+     - `lib/features/exchanges/mexc/mexc_exchange.dart` → `kMexcServerFirst = false;`
+     - `lib/features/exchanges/kucoin/kucoin_exchange.dart` → `kKucoinServerFirst = false;`
+     - `lib/features/exchanges/gateio/gateio_exchange.dart` → `kGateioServerFirst = false;`
+     - `lib/features/exchanges/lbank/lbank_exchange.dart` → `kLbankServerFirst = false;`
+     - `lib/features/exchanges/okx/okx_exchange.dart` → `kOkxServerFirst = false;`
+     - `lib/features/exchanges/kraken/kraken_exchange.dart` → `kKrakenServerFirst = false;`
+     - `lib/features/exchanges/bybit/bybit_exchange.dart` → `kBybitServerFirst = false;`
+     - `lib/features/exchanges/bitget/bitget_exchange.dart` → `kBitgetServerFirst = false;`
+     - `lib/features/exchanges/bingx/bingx_exchange.dart` → `kBingxServerFirst = false;`
+     - `lib/features/exchanges/xt/xt_exchange.dart` → `kXtServerFirst = false;`
+     - `lib/features/exchanges/toobit/toobit_exchange.dart` → `kToobitServerFirst = false;`
+     - `lib/features/exchanges/coinbase/coinbase_exchange.dart` → `kCoinbaseServerFirst = false;`
+     - `lib/features/exchanges/base/standard_rest_exchange.dart` (`htx`, `poloniex`, `bitfinex`) → `kStandardRestServerFirst = false;`
+     - `lib/features/exchanges/tabdeal/tabdeal_exchange.dart` → `kTabdealServerFirst = false;`
+     - `lib/features/exchanges/kifpool/kifpool_exchange.dart` → `kKifpoolServerFirst = false;`
+
+3. **اعتبارسنجی تست‌های کلاینت پس از تغییر سوئیچ یا رول‌بک**:
+   ```bash
+   flutter test test/crypto_server_first_rollout_test.dart test/phase9_flutter_cleanup_test.dart
+   ```
+

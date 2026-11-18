@@ -2,6 +2,14 @@
 
 ## [Unreleased] — Phase 3-5 completion
 
+### Crypto V2 Flutter Client & Server-First Pricing Gateway (feat/server-price-gateway)
+
+- **Server-First Pricing (Phase F1–F3)**: Added `ServerPriceGateway` (`GET /api/price/{exchange}/{symbol}`, 3s timeout, automatic fallback to direct exchange REST API) across all 18 canonical crypto exchanges (`binance`, `mexc`, `kucoin`, `gateio`, `lbank`, `okx`, `kraken`, `bybit`, `bitget`, `htx`, `bingx`, `xt`, `toobit`, `poloniex`, `coinbase`, `bitfinex`, `tabdeal`, `kifpool`) with master switch `kCryptoServerFirstPricing` and per-exchange `k<Exchange>ServerFirst` rollback switches.
+- **Deduplicated Price Fetch**: `SchedulerService._getLiveTicker` and `CreateAlertFlow._fetchLivePriceForSelectedAsset` delegate directly to the registered crypto exchange adapter (server-first then direct fallback) without duplicate server calls on failure.
+- **No Static Fallbacks & Spot USDT-Only (Phase 9)**: Removed all static coin list fallbacks (`CryptoCatalogData.buildPairs` / hardcoded lists) across active exchange adapters and `CreateAlertFlow`; enforced Spot `USDT` pairs for global crypto exchanges (`TMN`/`USDT` for `tabdeal` and `kifpool`).
+- **Offline Disk Cache & Outdated Banner**: Added `disk_cache` "may be outdated" banner and offline empty-catalog retry UI in `CreateAlertFlow`; synchronous test-cache support in `CryptoCatalogService`.
+- **Exact Sub-Satoshi Formatting & Legacy CoinEx Purge**: Fixed `FormatUtils.formatExactDecimal` for values `< 1e-12` (no truncation to `0` or scientific notation); purged legacy local `coinex` rules on load/import with a one-time `SnackBar` notice and excluded `coinex` from server sync.
+
 ### NTF — Permanent notification shows the date (feature/ntf-calendar-notification)
 
 - Notification 777 title is now `weekday · date` in the calendar chosen in Settings
