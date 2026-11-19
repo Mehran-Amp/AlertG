@@ -92,3 +92,7 @@ catalog_snapshots/staging/
 # Runtime locks
 crypto_poller.lock
 FETCH_HEAD
+
+# Iranian Bourse PC supervisor: local config, logs and key files stay on the PC
+scripts/bourse/bourse.config.ps1
+scripts/bourse/logs/
