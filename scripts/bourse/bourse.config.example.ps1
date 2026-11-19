@@ -6,6 +6,11 @@ $GatewayDir      = 'C:\tsetmc-gateway'                 # folder the gateway star
 $GatewayExe      = 'python'                            # program to run (python, or a full path to an .exe)
 $GatewayArgs     = 'tsetmc_gateway.py'                 # its arguments: the REAL script name in the gateway folder (-Check verifies the file exists)
 $GatewayPort     = 8099
+# Extra environment variables for the gateway process, for example the variable that sets its listen port.
+# The gateway listens on 8080 unless told otherwise, but the tunnel and the server expect $GatewayPort.
+# Use the REAL variable name from the gateway's README / .env.example, e.g.  @{ SOME_PORT_VARIABLE = '8099' }
+$GatewayEnv      = @{ }
+
 $ApiKeyFile      = 'C:\tsetmc-gateway\api_key.txt'     # one line: the gateway key (= TSETMC_API_KEY); never commit it
 
 # ---- SSH reverse tunnel to server360 ----

@@ -60,6 +60,8 @@ if ($oldSsh.Count -gt 0) { $problems += "ssh is already running (PID $(($oldSsh 
 
 if ($Check) {
     Write-Host "Gateway : $GatewayExe $GatewayArgs   (in $GatewayDir, port $GatewayPort)"
+    if ($GatewayEnv -and $GatewayEnv.Count -gt 0) { Write-Host "Gateway env vars set: $(($GatewayEnv.Keys | ForEach-Object { $_ }) -join ', ')" }
+    else { Write-Host 'Gateway env vars set: (none)  - the gateway must listen on the port in $GatewayPort by itself' }
     Write-Host "Tunnel  : ssh -N -R 127.0.0.1:${RemotePort}:127.0.0.1:${GatewayPort} $SshUser@$SshHost -p $SshPort -i <key file>"
     Write-Host "Logs    : $LogDir"
     if ($problems.Count -eq 0) { Write-Host 'Check OK: nothing was started.' -ForegroundColor Green; exit 0 }
@@ -76,6 +78,10 @@ if (-not $created) { Write-Host 'Another start_bourse.ps1 is already running. Ex
 $key = (Get-Content -Raw $ApiKeyFile).Trim()
 if (-not $key) { Write-Host 'ApiKeyFile is empty.' -ForegroundColor Red; exit 1 }
 $env:TSETMC_API_KEY = $key            # inherited by the gateway process only
+# Extra environment variables for the gateway (for example its port), from $GatewayEnv in the config.
+if ($GatewayEnv) {
+    foreach ($name in $GatewayEnv.Keys) { Set-Item -Path "Env:$name" -Value ([string]$GatewayEnv[$name]) }
+}
 
 $script:gw = $null; $script:tn = $null
 $script:gwFails = 0; $script:gwDelay = 5; $script:tnDelay = 5
