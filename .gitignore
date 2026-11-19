@@ -92,3 +92,7 @@ catalog_snapshots/staging/
 # Runtime locks
 crypto_poller.lock
 FETCH_HEAD
+
+# IB-18: real tokens stay on the host
+scripts/aegkala/*.config.php
+!scripts/aegkala/*.config.example.php
