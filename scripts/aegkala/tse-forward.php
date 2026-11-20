@@ -17,7 +17,7 @@
  *   <?php return ['token' => '<random, >= 24 chars, letters/digits>', 'allow_ips' => ['5.9.73.60']];
  */
 
-const BRIDGE_NAME    = 'tse-forward/1.0';
+const BRIDGE_NAME    = 'tse-forward/1.1';
 const DEFAULT_BASE   = 'https://old.tsetmc.com/tsev2/data';
 const ALLOWED_FILES  = ['MarketWatchInit.aspx', 'MarketWatchPlus.aspx'];
 const CACHE_SECONDS  = 2;
@@ -69,7 +69,7 @@ if (!in_array($file, ALLOWED_FILES, true)) fail(404, 'not found');
 // ---- parameters: digits only ----
 $h = (string)($_GET['h'] ?? '0');
 $r = (string)($_GET['r'] ?? '0');
-if (!preg_match('/^\d{1,10}$/', $h) || !preg_match('/^\d{1,10}$/', $r)) fail(400, 'bad parameters');
+if (!preg_match('/^\d{1,18}$/', $h) || !preg_match('/^\d{1,18}$/', $r)) fail(400, 'bad parameters');
 $url = $base . '/' . $file . '?h=' . $h . '&r=' . $r;
 
 $wantsGzip = stripos($_SERVER['HTTP_ACCEPT_ENCODING'] ?? '', 'gzip') !== false;

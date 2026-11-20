@@ -222,11 +222,32 @@ def test_only_the_two_feed_files_are_reachable(bridge, up, path):
     assert up.hits == []
 
 
-@pytest.mark.parametrize("q", ["h=abc&r=0", "h=0&r=1;2", "h=-1&r=0", "h=0&r=", "h=%27&r=0", "h=99999999999&r=0"])
+@pytest.mark.parametrize("q", [
+    "h=abc&r=0",
+    "h=0&r=1;2",
+    "h=-1&r=0",
+    "h=0&r=",
+    "h=%27&r=0",
+    "h=9999999999999999999&r=0",
+    "h=0&r=9999999999999999999",
+])
 def test_parameters_must_be_digits(bridge, up, q):
     st, _, _ = bridge.get(f"/{TOKEN}/MarketWatchPlus.aspx?{q}")
     assert st == 400
     assert up.hits == []
+
+
+@pytest.mark.parametrize("q", [
+    "h=182939&r=16498993143",
+    "h=0&r=999999999999999999",
+])
+def test_large_refid_up_to_18_digits_is_forwarded(bridge, up, q):
+    st, hdr, body = bridge.get(f"/{TOKEN}/MarketWatchPlus.aspx?{q}")
+    assert st == 200
+    assert body == PAYLOAD
+    assert hdr.get("x-bridge") == "tse-forward/1.1"
+    assert up.hits[0][0] == "/tsev2/data/MarketWatchPlus.aspx"
+    assert up.hits[0][1] == q
 
 
 def test_missing_parameters_default_to_zero(bridge, up):
