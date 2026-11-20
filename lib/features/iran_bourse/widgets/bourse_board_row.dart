@@ -30,8 +30,26 @@ class BourseBoardRow extends StatelessWidget {
     return null;
   }
 
+  static IconData _iconForGroup(BourseGroup group) {
+    switch (group) {
+      case BourseGroup.stocks:
+        return Icons.show_chart_rounded;
+      case BourseGroup.funds:
+        return Icons.pie_chart_rounded;
+      case BourseGroup.bonds:
+        return Icons.account_balance_rounded;
+      case BourseGroup.rights:
+        return Icons.receipt_long_rounded;
+      case BourseGroup.derivatives:
+        return Icons.swap_vert_rounded;
+      case BourseGroup.other:
+        return Icons.candlestick_chart_rounded;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final d = persianDigits;
     final subtitle = <String>[
       if (item.name.isNotEmpty && item.name != item.displayTicker) item.name,
@@ -43,30 +61,103 @@ class BourseBoardRow extends StatelessWidget {
         : (pct > 0 ? AppTokens.positive : AppTokens.negative);
     final tag = tagFor(item, session);
 
-    return ListTile(
-      key: ValueKey('bourse_board_row_${item.id}'),
-      title: Text(item.displayTicker, maxLines: 1, overflow: TextOverflow.ellipsis),
-      subtitle: subtitle.isEmpty ? null : Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis),
-      trailing: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(BourseFormat.rial(item.price, persianDigits: d), textDirection: TextDirection.ltr),
-          Text(
-            BourseFormat.signedPercent(pct, persianDigits: d),
-            textDirection: TextDirection.ltr,
-            style: TextStyle(color: pctColor, fontSize: 12),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        key: ValueKey('bourse_board_row_${item.id}'),
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(BourseText.cardRadius),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: BourseText.cardColor(context),
+            borderRadius: BorderRadius.circular(BourseText.cardRadius),
+            border: Border.all(color: BourseText.borderColor(context)),
           ),
-          if (tag != null)
-            Text(
-              tag,
-              key: const Key('bourse_row_tag'),
-              style: TextStyle(color: BourseText.mutedColor(context), fontSize: 10),
-            ),
-        ],
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: Icon(
+                  _iconForGroup(item.group),
+                  size: 20,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.displayTicker,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: BourseText.primaryColor(context),
+                      ),
+                    ),
+                    if (subtitle.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: BourseText.secondaryColor(context),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    BourseFormat.rial(item.price, persianDigits: d),
+                    textDirection: TextDirection.ltr,
+                    style: BourseText.rowPrice(context),
+                  ),
+                  const SizedBox(height: 3),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: pctColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      BourseFormat.signedPercent(pct, persianDigits: d),
+                      textDirection: TextDirection.ltr,
+                      style: TextStyle(color: pctColor, fontSize: 11, fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                  if (tag != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      tag,
+                      key: const Key('bourse_row_tag'),
+                      style: TextStyle(color: BourseText.mutedColor(context), fontSize: 10),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
-      onTap: onTap,
     );
   }
 }

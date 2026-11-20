@@ -98,10 +98,18 @@ class _BourseSymbolDetailPageState extends State<BourseSymbolDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        appBar: AppBar(title: Text(widget.title ?? BourseStrings.title)),
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(
+          backgroundColor: theme.colorScheme.surface,
+          elevation: 0,
+          surfaceTintColor: Colors.transparent,
+          iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
+          title: Text(widget.title ?? BourseStrings.title, style: BourseText.appBarTitle(context)),
+        ),
         body: _buildBody(),
       ),
     );
@@ -132,8 +140,24 @@ class _BourseSymbolDetailPageState extends State<BourseSymbolDetailPage> {
               const SizedBox(height: AppTokens.space16),
               FilledButton(
                 key: const Key('bourse_create_alert'),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size.fromHeight(50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(BourseText.inputRadius),
+                  ),
+                ),
                 onPressed: () => widget.onCreateAlert!(quote),
-                child: const Text(BourseStrings.createAlert),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.notifications_active_rounded, size: 18),
+                    SizedBox(width: 8),
+                    Text(
+                      BourseStrings.createAlert,
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
               ),
             ],
           ],
@@ -160,6 +184,11 @@ class _BourseSymbolDetailPageState extends State<BourseSymbolDetailPage> {
             const SizedBox(height: AppTokens.space16),
             FilledButton(
               key: const Key('bourse_retry'),
+              style: FilledButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(BourseText.inputRadius),
+                ),
+              ),
               onPressed: _retry,
               child: const Text(BourseStrings.retry),
             ),

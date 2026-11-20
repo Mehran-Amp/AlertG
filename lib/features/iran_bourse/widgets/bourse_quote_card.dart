@@ -45,6 +45,13 @@ class BourseQuoteCard extends StatelessWidget {
 
     return Card(
       key: const Key('bourse_quote_card'),
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      color: BourseText.cardColor(context),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(BourseText.cardRadius),
+        side: BorderSide(color: BourseText.borderColor(context)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(AppTokens.space16),
         child: Column(

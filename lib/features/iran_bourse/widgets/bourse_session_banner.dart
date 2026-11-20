@@ -41,19 +41,19 @@ class BourseSessionBanner extends StatelessWidget {
     return Container(
       key: const Key('bourse_session_banner'),
       width: double.infinity,
-      margin: const EdgeInsets.fromLTRB(AppTokens.space16, 0, AppTokens.space16, AppTokens.space8),
-      padding: const EdgeInsets.all(AppTokens.space12),
+      margin: const EdgeInsets.fromLTRB(AppTokens.space16, AppTokens.space4, AppTokens.space16, AppTokens.space8),
+      padding: const EdgeInsets.symmetric(horizontal: AppTokens.space12, vertical: 10),
       decoration: BoxDecoration(
         color: AppTokens.warningSubtle,
-        borderRadius: AppTokens.borderSmall,
+        borderRadius: BorderRadius.circular(BourseText.inputRadius),
         border: Border.all(color: AppTokens.warning.withAlpha(120)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.info_outline, size: 18, color: AppTokens.warning),
+          Icon(Icons.info_outline_rounded, size: 18, color: BourseText.warningColor(context)),
           const SizedBox(width: AppTokens.space8),
-          Expanded(child: Text(text, style: BourseText.secondary(context))),
+          Expanded(child: Text(text, style: BourseText.secondary(context).copyWith(fontSize: 12))),
         ],
       ),
     );

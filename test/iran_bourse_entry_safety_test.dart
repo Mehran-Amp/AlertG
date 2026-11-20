@@ -95,7 +95,7 @@ void main() {
       }
     });
 
-    testWidgets('Iranian hub shows the prominent Tehran Bourse tile and hides the 4 legacy TSE chips',
+    testWidgets('Iranian hub shows 2-tab segmented switcher (Gold/FX & Tehran Bourse) and hides legacy TSE chips',
         (WidgetTester tester) async {
       final runDir = await pumpCreateAlertFlow(tester);
       try {
@@ -105,10 +105,11 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 
-        // Prominent first tile for live BourseAlertFlow.
-        expect(find.byKey(const Key('iran_hub_bourse_tile')), findsOneWidget);
+        // Model 1 segmented switcher with both tabs visible.
+        expect(find.byKey(const Key('iran_hub_tab_domestic')), findsOneWidget);
+        expect(find.byKey(const Key('iran_hub_tab_bourse')), findsOneWidget);
+        expect(find.text('طلا و ارز'), findsOneWidget);
         expect(find.text('بورس تهران'), findsOneWidget);
-        expect(find.text(BourseStrings.marketCardCta), findsOneWidget);
 
         // Kept non-TSE domestic chips (Iran hub is always pure Persian 'fa').
         expect(find.text(AppStrings.get('iran_cat_all', 'fa')), findsOneWidget);
@@ -118,7 +119,7 @@ void main() {
         expect(find.text(AppStrings.get('iran_cat_tether', 'fa')), findsOneWidget);
         expect(find.text(AppStrings.get('iran_cat_digital_gold', 'fa')), findsOneWidget);
 
-        // Legacy TSE chips must be hidden in Phase 22c.
+        // Legacy TSE chips must be hidden.
         expect(find.text(AppStrings.get('iran_cat_gold_funds', 'fa')), findsNothing);
         expect(find.text(AppStrings.get('iran_cat_leveraged', 'fa')), findsNothing);
         expect(find.text(AppStrings.get('iran_cat_top_stocks', 'fa')), findsNothing);
@@ -126,6 +127,14 @@ void main() {
 
         // Legacy TSE rows must not duplicate Bourse entries in the 'all' list either.
         expect(find.text('فولاد مبارکه اصفهان (فولاد)'), findsNothing);
+
+        // Switching to the Tehran Bourse tab mounts the embedded BourseBrowsePage.
+        await tester.tap(find.byKey(const Key('iran_hub_tab_bourse')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(find.byKey(const Key('bourse_board_search')), findsOneWidget);
+        expect(find.byKey(const Key('bourse_sort_menu')), findsOneWidget);
+        expect(find.text(AppStrings.get('iran_cat_gold', 'fa')), findsNothing);
       } finally {
         if (runDir.existsSync()) runDir.deleteSync(recursive: true);
       }

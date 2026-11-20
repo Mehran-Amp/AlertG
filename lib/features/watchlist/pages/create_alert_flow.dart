@@ -15,7 +15,7 @@ import '../../exchanges/registry/exchange_registry.dart';
 import '../../exchanges/stocks/global_stocks_exchange.dart';
 import '../../exchanges/stocks/iran_domestic_exchange.dart';
 import '../../iran_bourse/alerts/bourse_alert_flow.dart';
-import '../../iran_bourse/localization/bourse_strings.dart';
+import '../../iran_bourse/pages/bourse_browse_page.dart';
 import '../../settings/services/settings_service.dart';
 import '../../settings/services/sound_manager.dart';
 import '../../../core/services/tts_service.dart';
@@ -2125,152 +2125,108 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
 
     return Column(
       children: [
-        // Prominent first entry: Tehran Bourse (live TSETMC flow)
+        // Model 1: Clean two-part segmented switcher ('طلا و ارز' | 'بورس تهران')
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-          child: InkWell(
-            key: const Key('iran_hub_bourse_tile'),
-            borderRadius: BorderRadius.circular(16),
-            onTap: () async {
-              final created = await BourseAlertFlow.open(
-                context,
-                saveRule: (rule) => widget.repository.saveRule(rule, syncToServer: false),
-              );
-              if (created == true && mounted) {
-                Navigator.of(context).pop(true);
-              }
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.45),
-                  width: 1.5,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: theme.dividerColor),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildIranSegmentButton(
+                    key: const Key('iran_hub_tab_domestic'),
+                    theme: theme,
+                    icon: Icons.monetization_on_rounded,
+                    label: 'طلا و ارز',
+                    selected: _iranSubTab == 0,
+                    onTap: () {
+                      if (_iranSubTab != 0) {
+                        setState(() => _iranSubTab = 0);
+                      }
+                    },
+                  ),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.08),
-                    blurRadius: 12,
-                    offset: const Offset(0, 3),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: _buildIranSegmentButton(
+                    key: const Key('iran_hub_tab_bourse'),
+                    theme: theme,
+                    icon: Icons.candlestick_chart_rounded,
+                    label: 'بورس تهران',
+                    selected: _iranSubTab == 1,
+                    onTap: () {
+                      if (_iranSubTab != 1) {
+                        setState(() => _iranSubTab = 1);
+                      }
+                    },
                   ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.14),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    alignment: Alignment.center,
-                    child: Icon(
-                      Icons.candlestick_chart_rounded,
-                      size: 24,
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'بورس تهران',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            color: theme.colorScheme.onSurface,
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          BourseStrings.marketCardDescription,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 11,
-                            height: 1.35,
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.68),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          BourseStrings.marketCardCta,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.onPrimary,
-                          ),
-                        ),
-                        const SizedBox(width: 2),
-                        Icon(
-                          Icons.chevron_left_rounded,
-                          size: 16,
-                          color: theme.colorScheme.onPrimary,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
 
-        // Search Bar in Persian
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-          child: TextField(
-            onChanged: (val) => setState(() => _iranSearchQuery = val),
-            style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurface),
-            decoration: InputDecoration(
-              hintText: 'جستجوی نماد (دلار، طلای ۱۸، سکه، تتر نوبیتکس، طلای دیجیتال، درهم)...',
-              prefixIcon: Icon(Icons.search, size: 20, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
-              filled: true,
-              fillColor: theme.colorScheme.surface,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.dividerColor)),
+        if (_iranSubTab == 1)
+          Expanded(
+            child: BourseBrowsePage(
+              embedded: true,
+              onSelected: (item) async {
+                final created = await BourseAlertFlow.openDetail(
+                  context,
+                  item: item,
+                  saveRule: (rule) => widget.repository.saveRule(rule, syncToServer: false),
+                );
+                if (created == true && mounted) {
+                  Navigator.of(context).pop(true);
+                }
+              },
+            ),
+          )
+        else ...[
+          // Search Bar in Persian (Gold, Coins, FX, Tether, Digital Gold)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+            child: TextField(
+              onChanged: (val) => setState(() => _iranSearchQuery = val),
+              style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurface),
+              decoration: InputDecoration(
+                hintText: 'جستجوی نماد (دلار، طلای ۱۸، سکه، تتر نوبیتکس، طلای دیجیتال، درهم)...',
+                prefixIcon: Icon(Icons.search, size: 20, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+                filled: true,
+                fillColor: theme.colorScheme.surface,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.dividerColor)),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.dividerColor)),
+              ),
             ),
           ),
-        ),
 
-        // Category Filter Chips in Persian (domestic non-TSE categories only)
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              _buildIranChip(AppStrings.get('iran_cat_all', lang), 'all', theme),
-              _buildIranChip(AppStrings.get('iran_cat_gold', lang), 'Gold', theme),
-              _buildIranChip(AppStrings.get('iran_cat_coins', lang), 'Coins', theme),
-              _buildIranChip(AppStrings.get('iran_cat_currencies', lang), 'Currencies', theme),
-              _buildIranChip(AppStrings.get('iran_cat_tether', lang), 'Tether', theme),
-              _buildIranChip(AppStrings.get('iran_cat_digital_gold', lang), 'DigitalGold', theme),
-            ],
+          // Category Filter Chips in Persian (domestic non-TSE categories only)
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                _buildIranChip(AppStrings.get('iran_cat_all', lang), 'all', theme),
+                _buildIranChip(AppStrings.get('iran_cat_gold', lang), 'Gold', theme),
+                _buildIranChip(AppStrings.get('iran_cat_coins', lang), 'Coins', theme),
+                _buildIranChip(AppStrings.get('iran_cat_currencies', lang), 'Currencies', theme),
+                _buildIranChip(AppStrings.get('iran_cat_tether', lang), 'Tether', theme),
+                _buildIranChip(AppStrings.get('iran_cat_digital_gold', lang), 'DigitalGold', theme),
+              ],
+            ),
           ),
-        ),
 
-        Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: filtered.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              itemCount: filtered.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
               final asset = filtered[index];
               final sym = asset['symbol'] as String;
@@ -2385,7 +2341,57 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
             },
           ),
         ),
+        ],
       ],
+    );
+  }
+
+  Widget _buildIranSegmentButton({
+    required Key key,
+    required ThemeData theme,
+    required IconData icon,
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    final fg = selected
+        ? theme.colorScheme.onPrimary
+        : theme.colorScheme.onSurface.withValues(alpha: 0.72);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        key: key,
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          height: 40,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            color: selected ? theme.colorScheme.primary : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 17, color: fg),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                    color: fg,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

@@ -36,6 +36,28 @@ class BourseAlertFlow {
     );
   }
 
+  /// Opens the detail -> alert form sub-flow for a symbol chosen from an embedded browse list.
+  /// Completes with `true` when an alert was created, otherwise `null`.
+  static Future<bool?> openDetail(
+    BuildContext context, {
+    required BourseBoardItem item,
+    required Future<void> Function(AlertRule rule) saveRule,
+    IranBourseService? service,
+    BourseAlertApi? api,
+  }) {
+    return Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        settings: const RouteSettings(name: bourseFlowRootRoute),
+        builder: (detailContext) => BourseSymbolDetailPage(
+          instrumentId: item.id,
+          title: item.displayTicker,
+          service: service,
+          onCreateAlert: (quote) => _openForm(detailContext, quote, saveRule, api),
+        ),
+      ),
+    );
+  }
+
   static void _openDetail(
     BuildContext context,
     BourseBoardItem item,

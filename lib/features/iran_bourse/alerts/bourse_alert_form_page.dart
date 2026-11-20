@@ -162,8 +162,22 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
     Navigator.of(context).maybePop(rule);
   }
 
+  Widget _sectionCard(BuildContext context, {required Widget child}) {
+    return Container(
+      padding: const EdgeInsets.all(AppTokens.space16),
+      decoration: BoxDecoration(
+        color: BourseText.cardColor(context),
+        borderRadius: BorderRadius.circular(BourseText.cardRadius),
+        border: Border.all(color: BourseText.borderColor(context)),
+      ),
+      child: child,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final accent = BourseText.accentColor(context);
     final draft = _draft;
     final amount = parseBourseAmount(_amount.text);
     final warning = draft.warning();
@@ -176,155 +190,303 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
         : null;
     final target = draft.triggerPrice;
     final distance = _distanceText(target);
+    final fullName = widget.quote.name.trim();
 
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        appBar: AppBar(title: Text('${BourseStrings.createAlert} · ${draft.displayName}')),
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(
+          backgroundColor: theme.colorScheme.surface,
+          elevation: 0,
+          surfaceTintColor: Colors.transparent,
+          iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
+          title: Text(
+            '${BourseStrings.createAlert} · ${draft.displayName}',
+            style: BourseText.appBarTitle(context),
+          ),
+        ),
         body: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppTokens.space16),
+          padding: const EdgeInsets.all(AppTokens.space20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-            Text(
-              '${BourseStrings.lastPrice}: ${BourseFormat.rial(widget.quote.price, persianDigits: widget.persianDigits)}',
-              key: const Key('bourse_form_last_price'),
-              style: BourseText.secondary(context),
-            ),
-            if (_marketNotLive)
-              Padding(
-                padding: const EdgeInsets.only(top: AppTokens.space8),
-                child: Container(
-                  key: const Key('bourse_form_closed_note'),
-                  padding: const EdgeInsets.all(AppTokens.space12),
-                  decoration: BoxDecoration(
-                    color: AppTokens.warningSubtle,
-                    borderRadius: AppTokens.borderSmall,
+              // Section 1: Selected Symbol Summary Card
+              _sectionCard(
+                context,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: accent.withValues(alpha: 0.14),
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: Icon(Icons.candlestick_chart_rounded, size: 20, color: accent),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                draft.displayName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: BourseText.header(context),
+                              ),
+                              if (fullName.isNotEmpty && fullName != draft.displayName) ...[
+                                const SizedBox(height: 2),
+                                Text(
+                                  fullName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: BourseText.caption(context),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppTokens.space12),
+                    Text(
+                      '${BourseStrings.lastPrice}: ${BourseFormat.rial(widget.quote.price, persianDigits: widget.persianDigits)}',
+                      key: const Key('bourse_form_last_price'),
+                      style: BourseText.secondary(context).copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    if (_marketNotLive)
+                      Padding(
+                        padding: const EdgeInsets.only(top: AppTokens.space12),
+                        child: Container(
+                          key: const Key('bourse_form_closed_note'),
+                          padding: const EdgeInsets.all(AppTokens.space12),
+                          decoration: BoxDecoration(
+                            color: AppTokens.warningSubtle,
+                            borderRadius: BorderRadius.circular(BourseText.inputRadius),
+                            border: Border.all(color: AppTokens.warning.withAlpha(120)),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(Icons.info_outline_rounded, size: 18, color: BourseText.warningColor(context)),
+                              const SizedBox(width: AppTokens.space8),
+                              Expanded(
+                                child: Text(
+                                  BourseStrings.alertClosedNote(
+                                      BourseFormat.rial(widget.quote.price, persianDigits: widget.persianDigits)),
+                                  style: BourseText.secondary(context).copyWith(fontSize: 12),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: AppTokens.space16),
+
+              // Section 2: Condition, Direction & Amount
+              _sectionCard(
+                context,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Wrap(
+                      key: const Key('bourse_form_kind'),
+                      spacing: AppTokens.space8,
+                      runSpacing: AppTokens.space8,
+                      children: [
+                        for (final k in BourseAlertKind.values)
+                          ChoiceChip(
+                            key: Key('bourse_kind_${k.name}'),
+                            label: Text(BourseStrings.alertKindLabel(k)),
+                            selected: _kind == k,
+                            showCheckmark: false,
+                            labelStyle: TextStyle(
+                              fontSize: 12,
+                              fontWeight: _kind == k ? FontWeight.bold : FontWeight.normal,
+                              color: _kind == k ? accent : BourseText.secondaryColor(context),
+                            ),
+                            selectedColor: accent.withValues(alpha: 0.15),
+                            backgroundColor: theme.scaffoldBackgroundColor,
+                            side: BorderSide(color: _kind == k ? accent : BourseText.borderColor(context)),
+                            onSelected: _submitting ? null : (_) => setState(() => _kind = k),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: AppTokens.space12),
+                    SegmentedButton<AlertDirection>(
+                      key: const Key('bourse_form_direction'),
+                      showSelectedIcon: false,
+                      style: ButtonStyle(
+                        shape: WidgetStatePropertyAll(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(BourseText.inputRadius),
+                          ),
+                        ),
+                        side: WidgetStatePropertyAll(BorderSide(color: BourseText.borderColor(context))),
+                      ),
+                      segments: const [
+                        ButtonSegment<AlertDirection>(
+                            value: AlertDirection.above, label: Text(BourseStrings.directionAbove)),
+                        ButtonSegment<AlertDirection>(
+                            value: AlertDirection.below, label: Text(BourseStrings.directionBelow)),
+                      ],
+                      selected: {_direction},
+                      onSelectionChanged: _submitting ? null : (s) => setState(() => _direction = s.first),
+                    ),
+                    const SizedBox(height: AppTokens.space16),
+                    TextField(
+                      key: const Key('bourse_form_amount'),
+                      controller: _amount,
+                      enabled: !_submitting,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      textDirection: TextDirection.ltr,
+                      style: TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: BourseText.primaryColor(context),
+                      ),
+                      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9۰-۹٠-٩.,٬٫،]'))],
+                      decoration: BourseText.inputDecoration(
+                        context,
+                        labelText: _amountLabel,
+                        hintText: isPercent ? null : BourseStrings.alertAmountHintRial,
+                      ).copyWith(fillColor: theme.scaffoldBackgroundColor),
+                      onChanged: (_) => setState(() => _error = null),
+                    ),
+                    if (preview != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: AppTokens.space8),
+                        child: Text(
+                          preview,
+                          key: const Key('bourse_form_preview'),
+                          style: BourseText.secondary(context).copyWith(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    if (isChange && target != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: AppTokens.space4),
+                        child: Text(
+                          '≈ ${BourseFormat.rial(target.round(), persianDigits: widget.persianDigits)}',
+                          key: const Key('bourse_form_target'),
+                          style: BourseText.secondary(context),
+                        ),
+                      ),
+                    if (distance != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: AppTokens.space4),
+                        child: Text(
+                          distance,
+                          key: const Key('bourse_form_distance'),
+                          style: BourseText.secondary(context),
+                        ),
+                      ),
+                    if (warning != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: AppTokens.space8),
+                        child: Text(
+                          BourseStrings.alertWarning(warning),
+                          key: const Key('bourse_form_warning'),
+                          style: BourseText.secondary(context).copyWith(color: BourseText.warningColor(context)),
+                        ),
+                      ),
+                    if (isChange)
+                      Padding(
+                        padding: const EdgeInsets.only(top: AppTokens.space8),
+                        child: Text(BourseStrings.alertDailyBaseNote, style: BourseText.caption(context)),
+                      ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: AppTokens.space16),
+
+              // Section 3: Note & Repeat Options
+              _sectionCard(
+                context,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextField(
+                      key: const Key('bourse_form_note'),
+                      controller: _note,
+                      enabled: !_submitting,
+                      maxLength: 120,
+                      style: BourseText.body(context),
+                      decoration: BourseText.inputDecoration(
+                        context,
+                        labelText: BourseStrings.alertNoteLabel,
+                        prefixIcon: Icon(
+                          Icons.sticky_note_2_outlined,
+                          size: 18,
+                          color: BourseText.mutedColor(context),
+                        ),
+                      ).copyWith(fillColor: theme.scaffoldBackgroundColor),
+                    ),
+                    const SizedBox(height: AppTokens.space4),
+                    SwitchListTile(
+                      key: const Key('bourse_form_recurring'),
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(BourseStrings.alertRecurring, style: BourseText.body(context)),
+                      value: _recurring,
+                      onChanged: _submitting ? null : (v) => setState(() => _recurring = v),
+                    ),
+                    const SizedBox(height: AppTokens.space4),
+                    Text(BourseStrings.alertOnlyLiveNote, style: BourseText.caption(context)),
+                  ],
+                ),
+              ),
+
+              if (_error != null && _triedSubmit)
+                Padding(
+                  padding: const EdgeInsets.only(top: AppTokens.space12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: AppTokens.negative.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(BourseText.inputRadius),
+                      border: Border.all(color: AppTokens.negative.withValues(alpha: 0.35)),
+                    ),
+                    child: Text(
+                      _error!,
+                      key: const Key('bourse_form_error'),
+                      style: BourseText.secondary(context).copyWith(color: AppTokens.negative),
+                    ),
                   ),
-                  child: Text(
-                    BourseStrings.alertClosedNote(
-                        BourseFormat.rial(widget.quote.price, persianDigits: widget.persianDigits)),
-                    style: BourseText.secondary(context),
+                ),
+
+              const SizedBox(height: AppTokens.space20),
+
+              FilledButton(
+                key: const Key('bourse_form_submit'),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size.fromHeight(50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(BourseText.inputRadius),
                   ),
                 ),
+                onPressed: _submitting ? null : _submit,
+                child: _submitting
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2, key: Key('bourse_form_busy')),
+                      )
+                    : const Text(
+                        BourseStrings.alertSubmit,
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
               ),
-            const SizedBox(height: AppTokens.space16),
-            Wrap(
-              key: const Key('bourse_form_kind'),
-              spacing: AppTokens.space8,
-              runSpacing: AppTokens.space8,
-              children: [
-                for (final k in BourseAlertKind.values)
-                  ChoiceChip(
-                    key: Key('bourse_kind_${k.name}'),
-                    label: Text(BourseStrings.alertKindLabel(k)),
-                    selected: _kind == k,
-                    onSelected: _submitting ? null : (_) => setState(() => _kind = k),
-                  ),
-              ],
-            ),
-            const SizedBox(height: AppTokens.space12),
-            SegmentedButton<AlertDirection>(
-              key: const Key('bourse_form_direction'),
-              showSelectedIcon: false,
-              segments: const [
-                ButtonSegment<AlertDirection>(
-                    value: AlertDirection.above, label: Text(BourseStrings.directionAbove)),
-                ButtonSegment<AlertDirection>(
-                    value: AlertDirection.below, label: Text(BourseStrings.directionBelow)),
-              ],
-              selected: {_direction},
-              onSelectionChanged: _submitting ? null : (s) => setState(() => _direction = s.first),
-            ),
-            const SizedBox(height: AppTokens.space16),
-            TextField(
-              key: const Key('bourse_form_amount'),
-              controller: _amount,
-              enabled: !_submitting,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              textDirection: TextDirection.ltr,
-              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9۰-۹٠-٩.,٬٫،]'))],
-              decoration: InputDecoration(
-                labelText: _amountLabel,
-                hintText: isPercent ? null : BourseStrings.alertAmountHintRial,
-                border: const OutlineInputBorder(),
-              ),
-              onChanged: (_) => setState(() => _error = null),
-            ),
-            if (preview != null)
-              Padding(
-                padding: const EdgeInsets.only(top: AppTokens.space6),
-                child: Text(preview, key: const Key('bourse_form_preview'), style: BourseText.secondary(context)),
-              ),
-            if (isChange && target != null)
-              Padding(
-                padding: const EdgeInsets.only(top: AppTokens.space4),
-                child: Text(
-                  '≈ ${BourseFormat.rial(target.round(), persianDigits: widget.persianDigits)}',
-                  key: const Key('bourse_form_target'),
-                  style: BourseText.secondary(context),
-                ),
-              ),
-            if (distance != null)
-              Padding(
-                padding: const EdgeInsets.only(top: AppTokens.space4),
-                child: Text(distance, key: const Key('bourse_form_distance'), style: BourseText.secondary(context)),
-              ),
-            if (warning != null)
-              Padding(
-                padding: const EdgeInsets.only(top: AppTokens.space8),
-                child: Text(
-                  BourseStrings.alertWarning(warning),
-                  key: const Key('bourse_form_warning'),
-                  style: BourseText.secondary(context).copyWith(color: BourseText.warningColor(context)),
-                ),
-              ),
-            if (isChange)
-              Padding(
-                padding: const EdgeInsets.only(top: AppTokens.space8),
-                child: Text(BourseStrings.alertDailyBaseNote, style: BourseText.secondary(context)),
-              ),
-            const SizedBox(height: AppTokens.space16),
-            TextField(
-              key: const Key('bourse_form_note'),
-              controller: _note,
-              enabled: !_submitting,
-              maxLength: 120,
-              decoration: const InputDecoration(
-                labelText: BourseStrings.alertNoteLabel,
-                border: OutlineInputBorder(),
-              ),
-            ),
-            SwitchListTile(
-              key: const Key('bourse_form_recurring'),
-              contentPadding: EdgeInsets.zero,
-              title: const Text(BourseStrings.alertRecurring),
-              value: _recurring,
-              onChanged: _submitting ? null : (v) => setState(() => _recurring = v),
-            ),
-            const SizedBox(height: AppTokens.space4),
-            Text(BourseStrings.alertOnlyLiveNote, style: BourseText.secondary(context)),
-            if (_error != null && _triedSubmit)
-              Padding(
-                padding: const EdgeInsets.only(top: AppTokens.space12),
-                child: Text(
-                  _error!,
-                  key: const Key('bourse_form_error'),
-                  style: BourseText.secondary(context).copyWith(color: AppTokens.negative),
-                ),
-              ),
-            const SizedBox(height: AppTokens.space16),
-            FilledButton(
-              key: const Key('bourse_form_submit'),
-              onPressed: _submitting ? null : _submit,
-              child: _submitting
-                  ? const SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2, key: Key('bourse_form_busy')),
-                    )
-                  : const Text(BourseStrings.alertSubmit),
-            ),
             ],
           ),
         ),
