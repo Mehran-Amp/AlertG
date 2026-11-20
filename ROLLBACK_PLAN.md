@@ -439,3 +439,23 @@ The Bourse market is isolated behind `IRAN_BOURSE_ENABLED` (default `false`).
    flutter test test/crypto_server_first_rollout_test.dart test/phase9_flutter_cleanup_test.dart
    ```
 
+---
+
+## ۲۲. دستورالعمل رول‌بک حذف آداپتورهای تجمیع‌کننده (Category 1 Aggregator Cleanup Rollback)
+
+فقط دو فایل بدون ارجاع دسته ۱ (`lib/features/exchanges/coingecko/coingecko_exchange.dart` و `lib/features/exchanges/coinmarketcap/coinmarketcap_exchange.dart`) به همراه پوشه‌های خالی آن‌ها حذف شدند. ۵ آداپتور فریز شده ایرانی (`nobitex`, `wallex`, `ramzinex`, `bitbarg`, `tetherland` به همراه `crypto_catalog_data.dart`, `iranian_exchange_adapter.dart`, `iran_market_gateway.dart`) و ۲ آداپتور دارای تست (`kcex`, `ourbit`) **عمداً دست‌نخورده باقی مانده‌اند**.
+
+1. **بازگردانی یک‌دستوری فایل‌های حذف‌شده از تگ `pre-crypto-cleanup`**:
+   ```bash
+   git checkout pre-crypto-cleanup -- lib/features/exchanges/coingecko lib/features/exchanges/coinmarketcap
+   ```
+2. **یا رول‌بک کامل کامیت پاکسازی**:
+   ```bash
+   git revert <CLEANUP_COMMIT_HASH>
+   ```
+3. **اعتبارسنجی پس از رول‌بک**:
+   ```bash
+   flutter analyze && flutter test
+   ```
+
+
