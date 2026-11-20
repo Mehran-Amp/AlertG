@@ -22,7 +22,7 @@ Facts you need:
 - Gateway source: `C:\tsetmc-gateway\tsetmc_gateway\` on the owner's PC (python >= 3.10, **no dependencies**). Run as `python -m tsetmc_gateway`.
   Config only through environment: `TSETMC_HOST`, `TSETMC_PORT` (default 8080), `TSETMC_API_KEY`, `TSETMC_BASE_URL`, `TSETMC_HTTP_TIMEOUT` (default 20), `TSETMC_POLL_INTERVAL` (5), `TSETMC_IDLE_INTERVAL` (60).
   It requests `<BASE_URL>/MarketWatchInit.aspx?h=0&r=0` and `<BASE_URL>/MarketWatchPlus.aspx?h=<n>&r=<n>`.
-- server360: user `aisocial`, SSH port **8443**, host `aisocialfeed.com`; Python 3.11.11 (pyenv shim `~/.pyenv/shims/python3`); AlertG in `~/AlertG1/AlertG`
+- server360: user `aisocial`, SSH port **8443**, host `aisocialfeed.com`; Python 3.11.11 whose real path is `~/.pyenv/versions/miniconda3-3.11-24.11.1-0/bin/python3` (the path `~/.pyenv/versions/3.11.11/...` does NOT exist; cron has no shims; disk is small, about 1 GB free of 2.9 GB); AlertG in `~/AlertG1/AlertG`
   on branch `feat/server-price-gateway` (update with `git pull origin main` then `./run_server.sh restart`; **never `git checkout main` there**).
 - Gateway endpoints (header `X-API-Key`): `/health`, `/v1/market`, `/v1/symbols?q=...`, `/v1/changes?since=0`.
 - Server endpoints: `/api/iran-bourse/status?probe=true` (header `X-Admin-Key`), `/api/iran-bourse/board`.
@@ -36,7 +36,7 @@ Facts you need:
    On the server read keys from files, e.g. `K=$(grep '^IRAN_BOURSE_GATEWAY_KEY=' ~/AlertG1/AlertG/.env | cut -d= -f2-)`.
 3. **Label every command** with where it runs: **(server360)**, **(PC)** or **(aegkala)**.
 4. **One concern per step.** Stop at the first failing acceptance test and report it; do not improvise around it.
-5. Python changes need tests (pytest); the full suite must equal the baseline: 921 passed and 4 known failures (the other developer's `test_phase4_*`, `test_phase5_*`, `test_phase7_*`).
+5. Python changes need tests (pytest); the full suite must equal the baseline measured on server360 with `IRAN_BOURSE_ENABLED=0`: 925 passed, 0 failed, 1 skipped (the 4 old catalog tests were updated for Crypto V2; the skipped test checks the default of `IRAN_BOURSE_ENABLED`, which is 1 in the live `.env`).
 6. Commit trailers: `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>` and `Claude-Session: https://claude.ai/code/session_01ERrcorqWhpefRndpxyTR3w`. One PR per phase, never merge without the owner saying "merge".
 7. Bourse gateway = black box: do not change its source. Anything it needs is configured through environment variables.
 
@@ -47,10 +47,11 @@ Facts you need:
 ### 18c-1 Copy the gateway code to the server
 - Goal: `~/tsetmc-gateway/tsetmc_gateway/` exists on server360.
 - Touches: nothing in the repo.
+- Pre-existing: `~/tsetmc-gateway` already exists (version 0.2.2, 13 Nov, only `.env.example` and `.github`). First **(server360)** `mv ~/tsetmc-gateway ~/tsetmc-gateway.bak-0.2.2`, then `mkdir -p ~/tsetmc-gateway`. Compare the PC version with 0.2.2 and report if they differ (the PC copy is the one to use). Run `du -sh ~/* 2>/dev/null | sort -h | tail` and report the biggest folders (disk is tight).
 - PROMPT: "Create `~/tsetmc-gateway` on server360 and copy the folder `C:\tsetmc-gateway\tsetmc_gateway` into it with scp, using key `%USERPROFILE%\.ssh\bourse_tunnel` and port 8443. Do not copy `.env`, `api_key.txt`, `fixtures_real*` or `.github`."
 - Commands: **(server360)** `mkdir -p ~/tsetmc-gateway`; **(PC)** `scp -P 8443 -i "$env:USERPROFILE\.ssh\bourse_tunnel" -r C:\tsetmc-gateway\tsetmc_gateway aisocial@aisocialfeed.com:~/tsetmc-gateway/`
-- Acceptance: **(server360)** `cd ~/tsetmc-gateway && ~/.pyenv/shims/python3 -c "import tsetmc_gateway; print('import ok')"` prints `import ok`;
-  `ls ~/tsetmc-gateway/tsetmc_gateway | head` shows `__main__.py`, `config.py`, `client.py`; `find ~/tsetmc-gateway -name "*.env*" -o -name "api_key*"` prints nothing.
+- Acceptance: **(server360)** `cd ~/tsetmc-gateway && ~/.pyenv/versions/miniconda3-3.11-24.11.1-0/bin/python3 -c "import tsetmc_gateway; print('import ok')"` prints `import ok`;
+  `ls ~/tsetmc-gateway/tsetmc_gateway | head` shows `__main__.py`, `config.py`, `client.py`; `find ~/tsetmc-gateway \( -name ".env" -o -name "gateway.env" -o -name "api_key*" \) ` prints nothing (`.env.example` is allowed).
 - If it fails: `Permission denied` -> key not installed on the server (it was installed on 2026-11-18, test `ssh -p 8443 -i <key> -o BatchMode=yes aisocial@aisocialfeed.com echo ok`).
 
 ### 18c-2 Create the gateway environment file
@@ -66,10 +67,10 @@ Facts you need:
 ### 18c-3 `scripts/bourse/run_gateway.sh`
 - Goal: a small supervisor script in the repo (new file, plus `tests/test_run_gateway_script.py`).
 - Behaviour: `start | stop | restart | status | ensure`. Reads `~/tsetmc-gateway/gateway.env` (override with `GATEWAY_DIR`). Pid file `~/tsetmc-gateway/gateway.pid`, log `~/tsetmc-gateway/gateway.log` (rotate at 5 MB).
-  `start` refuses if already running or if the port is busy; `ensure` = start only if not running (idempotent, quiet when running; for cron). Uses an absolute python path (`PYTHON` env, default `$HOME/.pyenv/versions/3.11.11/bin/python3`, fall back to `python3`), because cron has no pyenv shims.
+  `start` refuses if already running or if the port is busy; `ensure` = start only if not running (idempotent, quiet when running; for cron). Uses an absolute python path (`PYTHON` env, default `$HOME/.pyenv/versions/miniconda3-3.11-24.11.1-0/bin/python3`, fall back to `python3`), because cron has no pyenv shims.
   Never prints env values; `status` prints pid, port, uptime and `running`/`stopped`, exit code 0/3.
 - PROMPT: "Write `scripts/bourse/run_gateway.sh` as described (POSIX sh, `set -eu`), and pytest tests that run it against a fake gateway module in a temp dir (start, double start refused, status, stop, ensure revives a killed process, no secret in the output)."
-- Acceptance: `python3 -m pytest tests/test_run_gateway_script.py -q` all pass; `shellcheck scripts/bourse/run_gateway.sh` clean if shellcheck exists; full suite = baseline (921 + new tests passed, 4 known failures).
+- Acceptance: `python3 -m pytest tests/test_run_gateway_script.py -q` all pass; `shellcheck scripts/bourse/run_gateway.sh` clean if shellcheck exists; full suite = baseline (925 + the new tests passed, 0 failed, 1 skipped).
 - Deploy to the server with the normal flow (PR -> owner says merge -> **(server360)** `git pull origin main`; no server restart needed).
 
 ### 18c-4 Start on port 8098 and compare with the PC gateway
@@ -79,7 +80,7 @@ Facts you need:
   3. `curl -s -m 10 -H "X-API-Key: $K" http://127.0.0.1:8098/health | python3 -m json.tool` shows about **3700+ instruments** (PC gateway showed 3778-3882) and not stale.
   4. `curl -s -m 20 -H "X-API-Key: $K" "http://127.0.0.1:8098/v1/symbols?q=%D8%B9%DB%8C%D8%A7%D8%B1"` (q = عیار) returns an instrument with id `34144395039913458` (a String).
   5. `curl -s -m 30 -H "X-API-Key: $K" "http://127.0.0.1:8098/v1/changes?since=0" | python3 -c "import sys,json; d=json.load(sys.stdin); print(len(d.get('quotes') or d.get('rows') or d))"` prints a number >= 3500.
-  6. Compare with the PC gateway through the tunnel (still on 8099): the same `/v1/symbols?q=` call returns the same id, and `/health` instrument counts differ by less than 1%.
+  6. Optional (the PC tunnel is currently off, so port 8099 is closed): if the owner starts the PC chain, the same `/v1/symbols?q=` call on 8099 returns the same id and instrument counts differ by less than 1%. Skip if steps 1-5 and 7 pass.
   7. `tail -20 ~/tsetmc-gateway/gateway.log` has no tracebacks; `grep -c -i "timed out\|error" ~/tsetmc-gateway/gateway.log` is small (< 5) after 5 minutes.
 - If it fails: `502` from the bridge (log line `upstream ...`) -> check the bridge (`curl` the bridge URL by hand); `401` in the gateway log -> wrong bridge token in `gateway.env`; `403` -> the bridge IP allow-list does not contain `5.9.73.60`.
 
@@ -201,7 +202,7 @@ Acceptance tests that FAILED or were skipped: <list + exact output, secrets remo
 Gateway on server360: running? <status output> port <8098/8099> uptime <...>
 Bridge check: code=<200> size=<...> time=<...>
 Duplicate-notification test: phone <X>, Telegram <Y>
-Python suite: <passed>/<failed>  (baseline: 921 passed, 4 known failures)
+Python suite: <passed>/<failed>/<skipped>  (baseline: 925 passed, 0 failed, 1 skipped, with IRAN_BOURSE_ENABLED=0)
 Anything surprising: <free text>
 Next phase proposed: <...>
 ```
