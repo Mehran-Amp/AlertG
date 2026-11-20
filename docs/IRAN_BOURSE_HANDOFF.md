@@ -153,13 +153,48 @@ All of these were exposed in chat during development and must be considered comp
 
 ---
 
+## Phase 21 - Iranian-market alert types (only after 18d is stable for two market days)
+
+What the code already has (checked 2026-11-20 in `app/markets/iran_bourse/`): the gateway quote contains `best_bid`, `best_ask`, `queue`,
+`volume`, `value`, `upper_limit`, `lower_limit`, `yesterday`, `last_change_pct`. `alert_rules.py` (IB-8) **already implements**
+`percentChange` and `absolutePriceChange` against **yesterday's close** (`prev_close`), with `price_field` last/close.
+Not available from the gateway: any volume history (only today's volume).
+Shared-code rule: `app/engine/checker.py` is shared by all markets. Put all Bourse logic in `alert_rules.py`; the hook in `checker.py` must be a
+few lines guarded by the Bourse market and needs the owner's explicit approval before it is written.
+
+### 21a Inventory (read-only, no code)
+- PROMPT: "On server360 read 10 symbols from `/v1/quote/{id}` (one that is at its upper limit, one at its lower limit if any today, three normal, three funds). Write the real values of `queue`, `best_bid`, `best_ask`, `upper_limit`, `lower_limit`, `volume`, `last` into `docs/IRAN_BOURSE_ALERT_TYPES.md` (new file, a table plus the exact JSON shape of `queue`). No keys or tokens in the file."
+- Acceptance: the file exists; it states for a symbol at its upper limit what `best_ask` and `queue` look like (this defines "buy queue"); `git diff --stat` shows only that file.
+
+### 21b Percent change vs yesterday: verify, do not rebuild
+- PROMPT: "Check end to end that a `percentChange` alert (e.g. +3% from yesterday) on a Bourse symbol works: unit test with a fake quote in `tests/`, and report whether the Flutter alert form for Bourse exposes it. Do not change the checker."
+- Acceptance: test passes; the report says YES/NO for the app form. If NO, 21b-ui becomes a Flutter micro-phase (form option plus strings in `BourseStrings`, widget test) for the owner to approve.
+
+### 21c Buy-queue / sell-queue alert (server, `alert_rules.py`)
+- Definition (confirm with 21a data before coding): buy queue = last or best bid equals `upper_limit` and there are no sell offers; sell queue is the mirror at `lower_limit`. Optional minimum queue volume.
+- PROMPT: "Add pure helpers `is_buy_queue(meta)` / `is_sell_queue(meta)` and a new condition type `queueBuy` / `queueSell` for Bourse only, edge-triggered (fires when entering the queue, re-arms after leaving), one-shot like other Bourse alerts. Tests with fake quotes: entering, staying, leaving, limits missing, symbol not traded, market closed."
+- Acceptance: new tests pass; full suite equals baseline; the other markets' tests are unchanged and green.
+
+### 21d Queue alert in the app (Flutter)
+- PROMPT: "Add the two options to the Bourse alert form with Persian strings in `BourseStrings`, keep RTL and theme tokens, widget tests."
+- Acceptance: `flutter analyze lib/features/iran_bourse test/<file>` clean; the new widget tests pass.
+
+### 21e Volume alert, absolute first
+- PROMPT: "Add `volumeAbove`: fires when today's `volume` crosses a number the user typed. Same structure as 21c."
+- Acceptance: tests as 21c.
+- Later, optional (21f): "unusual volume" needs history. Store each symbol's daily volume at 19:00 Tehran in a small table, then compare to the 20-day average. This is a larger design, so it gets its own plan and the owner's approval before any code.
+
+Legal note before any public release: the data source is unofficial; check TSETMC / Securities and Exchange Organization terms before showing Bourse data to many users.
+
+---
+
 ## Final report (send this to the project owner / Claude)
 
 Copy, fill and send:
 
 ```
 PHASE REPORT
-Phases finished: <18c-1 ... 18d-5, 18e-x>
+Phases finished: <18c-1 ... 18d-5, 18e-x, 19, 21x>
 PRs: <numbers and merge state>
 Acceptance tests that PASSED: <list>
 Acceptance tests that FAILED or were skipped: <list + exact output, secrets removed>
