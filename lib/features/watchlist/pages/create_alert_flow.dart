@@ -1151,7 +1151,7 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
           badgeText: AppStrings.get('iran_market_badge', lang),
           title: AppStrings.get('iran_market_title', lang),
           description: AppStrings.get('iran_market_desc', lang),
-          tags: ['دلار آزاد', 'طلای ۱۸ عیار', 'سکه امامی', 'تبدیل', 'کیف پول من', 'صندوق‌های طلا'],
+          tags: ['دلار آزاد', 'طلای ۱۸ عیار', 'سکه امامی', 'تبدیل', 'کیف پول من', 'بورس تهران'],
           buttonText: AppStrings.get('iran_market_cta', lang),
           buttonColor: const Color(0xFFFFB300),
           onTap: () {
@@ -1162,35 +1162,6 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
             });
             _loadIranMarketOverview();
           },
-        ),
-
-        const SizedBox(height: 18),
-
-        // CARD 4: IRANIAN BOURSE (TSETMC) - self-contained flow, see iran_bourse/alerts
-        Directionality(
-          textDirection: TextDirection.rtl,
-          child: _buildMarketCard(
-            theme: theme,
-            icon: Icons.candlestick_chart_rounded,
-            iconBg: const Color(0xFF26A69A).withValues(alpha: 0.15),
-            iconColor: const Color(0xFF26A69A),
-            borderColor: const Color(0xFF26A69A).withValues(alpha: 0.4),
-            badgeText: BourseStrings.title,
-            title: BourseStrings.marketCardTitle,
-            description: BourseStrings.marketCardDescription,
-            tags: const ['فولاد', 'وبملت', 'شپنا', 'عیار', 'خودرو', 'صندوق‌ها'],
-            buttonText: BourseStrings.marketCardCta,
-            buttonColor: const Color(0xFF26A69A),
-            onTap: () async {
-              final created = await BourseAlertFlow.open(
-                context,
-                saveRule: (rule) => widget.repository.saveRule(rule, syncToServer: false),
-              );
-              if (created == true && mounted) {
-                Navigator.of(context).pop(true);
-              }
-            },
-          ),
         ),
       ],
     );
@@ -2129,8 +2100,18 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
   // IRAN DOMESTIC & TOMAN MARKET HUB (UNIFIED SINGLE-LIST SCREEN)
   // =========================================================================
   Widget _buildIranMarketPicker(ThemeData theme, String lang) {
+    // Legacy TSE categories remain in IranDomesticExchange.predefinedAssets for editing old saved alerts,
+    // but are hidden from the hub picker now that 'بورس تهران' opens the live BourseAlertFlow (Phase 22c).
+    const legacyTseCategories = {
+      'Bourse',
+      'GoldFunds',
+      'LeveragedFunds',
+      'IndexFunds',
+      'TopStocks',
+    };
     final allAssets = IranDomesticExchange.predefinedAssets;
     final filtered = allAssets.where((a) {
+      if (legacyTseCategories.contains(a['cat'])) return false;
       if (_iranCategoryFilter != 'all') {
         if (a['cat'] != _iranCategoryFilter) return false;
       }
@@ -2144,14 +2125,122 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
 
     return Column(
       children: [
+        // Prominent first entry: Tehran Bourse (live TSETMC flow)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: InkWell(
+            key: const Key('iran_hub_bourse_tile'),
+            borderRadius: BorderRadius.circular(16),
+            onTap: () async {
+              final created = await BourseAlertFlow.open(
+                context,
+                saveRule: (rule) => widget.repository.saveRule(rule, syncToServer: false),
+              );
+              if (created == true && mounted) {
+                Navigator.of(context).pop(true);
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.45),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                    blurRadius: 12,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.candlestick_chart_rounded,
+                      size: 24,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'بورس تهران',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          BourseStrings.marketCardDescription,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            height: 1.35,
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.68),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          BourseStrings.marketCardCta,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onPrimary,
+                          ),
+                        ),
+                        const SizedBox(width: 2),
+                        Icon(
+                          Icons.chevron_left_rounded,
+                          size: 16,
+                          color: theme.colorScheme.onPrimary,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+
         // Search Bar in Persian
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
           child: TextField(
             onChanged: (val) => setState(() => _iranSearchQuery = val),
             style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurface),
             decoration: InputDecoration(
-              hintText: 'جستجوی نماد (دلار، طلای ۱۸، سکه، عیار، طلا، تتر نوبیتکس، درهم، بورس)...',
+              hintText: 'جستجوی نماد (دلار، طلای ۱۸، سکه، تتر نوبیتکس، طلای دیجیتال، درهم)...',
               prefixIcon: Icon(Icons.search, size: 20, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
               filled: true,
               fillColor: theme.colorScheme.surface,
@@ -2161,7 +2250,7 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
           ),
         ),
 
-        // Category Filter Chips in Persian
+        // Category Filter Chips in Persian (domestic non-TSE categories only)
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -2173,81 +2262,8 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
               _buildIranChip(AppStrings.get('iran_cat_currencies', lang), 'Currencies', theme),
               _buildIranChip(AppStrings.get('iran_cat_tether', lang), 'Tether', theme),
               _buildIranChip(AppStrings.get('iran_cat_digital_gold', lang), 'DigitalGold', theme),
-              _buildIranChip(AppStrings.get('iran_cat_gold_funds', lang), 'GoldFunds', theme),
-              _buildIranChip(AppStrings.get('iran_cat_leveraged', lang), 'LeveragedFunds', theme),
-              _buildIranChip(AppStrings.get('iran_cat_top_stocks', lang), 'TopStocks', theme),
-              _buildIranChip(AppStrings.get('iran_cat_bourse', lang), 'Bourse', theme),
             ],
           ),
-        ),
-
-        // Market Closed Notice Banner (Rule 6: Show TSE status, schedule_fa, next_open)
-        Builder(
-          builder: (context) {
-            final tseInfo = _iranMarketsStatus?['tse'] as Map<String, dynamic>?;
-            final isTseClosed = tseInfo != null ? (tseInfo['status'] == 'closed') : true;
-            final scheduleFa = tseInfo?['schedule_fa'] as String? ?? 'شنبه تا چهارشنبه، ۰۹:۰۰ تا ۱۲:۳۰ (وقت تهران)';
-            final nextOpenFa = tseInfo?['next_open_fa'] as String? ?? tseInfo?['next_open'] as String?;
-            final exchangeStateFa = tseInfo?['exchange_state_fa'] as String?;
-
-            if (!isTseClosed) return const SizedBox(height: 4);
-
-            return Container(
-              margin: const EdgeInsets.fromLTRB(16, 6, 16, 4),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE65100).withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFE65100).withValues(alpha: 0.25)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
-                    decoration: BoxDecoration(
-                      color: Colors.red.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.lock_clock, size: 12, color: Colors.redAccent),
-                        SizedBox(width: 4),
-                        Text(
-                          'بسته',
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.redAccent),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          scheduleFa,
-                          style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface.withValues(alpha: 0.9)),
-                        ),
-                        if (nextOpenFa != null || exchangeStateFa != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 2),
-                            child: Text(
-                              [
-                                if (nextOpenFa != null) 'بازگشایی: $nextOpenFa',
-                                if (exchangeStateFa != null) 'وضعیت: $exchangeStateFa',
-                              ].join(' · '),
-                              style: TextStyle(fontSize: 9.5, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
         ),
 
         Expanded(

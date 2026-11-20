@@ -13,13 +13,12 @@ import 'package:bitcoin_checker/features/iran_bourse/localization/bourse_strings
 import 'package:bitcoin_checker/features/settings/services/settings_service.dart';
 import 'package:bitcoin_checker/features/watchlist/pages/create_alert_flow.dart';
 
-/// Phase 22b safety net: pins the CURRENT CreateAlertFlow behaviour before Phase 22c merges
-/// the Iranian entries (Option A).
+/// Phase 22c safety net: verifies the unified Iranian entry (Option A) and backward compatibility.
 ///
-/// 1. Market chooser renders all 4 cards (Crypto, Macro, Iran Domestic, Bourse).
-/// 2. Iranian hub renders the 4 legacy TSE chips (GoldFunds, LeveragedFunds, TopStocks, Bourse).
-/// 3. Editing a saved rule with `exchangeId == 'iran_market'` and a `TopStocks` asset opens step 2
-///    directly with that asset resolved (must keep passing unchanged after 22c).
+/// 1. Market chooser renders 3 cards (Crypto, Macro, Iran Domestic) with no standalone 4th Bourse card.
+/// 2. Iranian hub shows the prominent 'بورس تهران' tile and hides the 4 legacy TSE chips & rows.
+/// 3. Editing a saved rule with `exchangeId == 'iran_market'` and a `TopStocks` asset still opens
+///    step 2 directly with that asset resolved.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -76,27 +75,27 @@ void main() {
     return runDir;
   }
 
-  group('Phase 22b — CreateAlertFlow current behaviour safety net', () {
-    testWidgets('market chooser currently renders 4 cards (Crypto, Macro, Iran Domestic, Bourse)',
+  group('Phase 22c — Unified Iranian entry & saved-rule safety net', () {
+    testWidgets('market chooser renders 3 cards (Crypto, Macro, Iran Domestic) without standalone Bourse card',
         (WidgetTester tester) async {
       final runDir = await pumpCreateAlertFlow(tester);
       try {
-        // Default SettingsService language is 'en'; Card 4 uses pure-Persian BourseStrings.
+        // Default SettingsService language is 'en'.
         expect(find.text(AppStrings.get('crypto_market_title', 'en')), findsOneWidget);
         expect(find.text(AppStrings.get('macro_market_title', 'en')), findsOneWidget);
         expect(find.text(AppStrings.get('iran_market_title', 'en')), findsOneWidget);
-        expect(find.text(BourseStrings.marketCardTitle), findsOneWidget);
+        expect(find.text(BourseStrings.marketCardTitle), findsNothing);
 
         expect(find.text(AppStrings.get('crypto_market_cta', 'en')), findsOneWidget);
         expect(find.text(AppStrings.get('macro_market_cta', 'en')), findsOneWidget);
         expect(find.text(AppStrings.get('iran_market_cta', 'en')), findsOneWidget);
-        expect(find.text(BourseStrings.marketCardCta), findsOneWidget);
+        expect(find.text(BourseStrings.marketCardCta), findsNothing);
       } finally {
         if (runDir.existsSync()) runDir.deleteSync(recursive: true);
       }
     });
 
-    testWidgets('Iranian hub currently shows the 4 legacy TSE chips alongside domestic chips',
+    testWidgets('Iranian hub shows the prominent Tehran Bourse tile and hides the 4 legacy TSE chips',
         (WidgetTester tester) async {
       final runDir = await pumpCreateAlertFlow(tester);
       try {
@@ -106,6 +105,11 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 
+        // Prominent first tile for live BourseAlertFlow.
+        expect(find.byKey(const Key('iran_hub_bourse_tile')), findsOneWidget);
+        expect(find.text('بورس تهران'), findsOneWidget);
+        expect(find.text(BourseStrings.marketCardCta), findsOneWidget);
+
         // Kept non-TSE domestic chips (Iran hub is always pure Persian 'fa').
         expect(find.text(AppStrings.get('iran_cat_all', 'fa')), findsOneWidget);
         expect(find.text(AppStrings.get('iran_cat_gold', 'fa')), findsOneWidget);
@@ -114,11 +118,14 @@ void main() {
         expect(find.text(AppStrings.get('iran_cat_tether', 'fa')), findsOneWidget);
         expect(find.text(AppStrings.get('iran_cat_digital_gold', 'fa')), findsOneWidget);
 
-        // Legacy TSE chips pinned before Phase 22c hides them.
-        expect(find.text(AppStrings.get('iran_cat_gold_funds', 'fa')), findsOneWidget);
-        expect(find.text(AppStrings.get('iran_cat_leveraged', 'fa')), findsOneWidget);
-        expect(find.text(AppStrings.get('iran_cat_top_stocks', 'fa')), findsOneWidget);
-        expect(find.text(AppStrings.get('iran_cat_bourse', 'fa')), findsOneWidget);
+        // Legacy TSE chips must be hidden in Phase 22c.
+        expect(find.text(AppStrings.get('iran_cat_gold_funds', 'fa')), findsNothing);
+        expect(find.text(AppStrings.get('iran_cat_leveraged', 'fa')), findsNothing);
+        expect(find.text(AppStrings.get('iran_cat_top_stocks', 'fa')), findsNothing);
+        expect(find.text(AppStrings.get('iran_cat_bourse', 'fa')), findsNothing);
+
+        // Legacy TSE rows must not duplicate Bourse entries in the 'all' list either.
+        expect(find.text('فولاد مبارکه اصفهان (فولاد)'), findsNothing);
       } finally {
         if (runDir.existsSync()) runDir.deleteSync(recursive: true);
       }
