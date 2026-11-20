@@ -189,6 +189,46 @@ Legal note before any public release: the data source is unofficial; check TSETM
 
 ---
 
+## Phase 22 - one consistent Iranian entry in the app (Flutter, owner chose option A on 2026-11-20)
+
+Problem found in `lib/features/watchlist/pages/create_alert_flow.dart` (3,730 lines, shared by all markets):
+- The market chooser has **4 cards**: crypto, global stocks/forex, "Iran and Toman" (card 3), and the new Bourse (card 4). Two cards are Iranian.
+- Card 3 (`MarketFlowType.iran`, `IranDomesticExchange.predefinedAssets`, static list) still has the legacy chips `GoldFunds`, `LeveragedFunds`, `TopStocks`, `Bourse` (see `_buildIranMarketPicker`). They overlap with the new Bourse (funds, stocks, "عیار"), and their data is the old static source.
+- Crypto/stocks run as steps inside one wizard. The Bourse opens separate pages (`BourseAlertFlow`: browse, detail, form) with its own header and a hard-coded colour `0xFF26A69A`.
+- Note: card 3 is already pure Persian/RTL by design (see the comment near line 1050), so "language" is not a difference; the differences are structure, header, colours and the duplicate entry.
+- The legacy "market closed" banner has a fallback schedule string (09:00-12:30). Check it against the real session rules in `app/markets/iran_bourse/session.py` in 22a.
+
+Target (option A): **one Iranian entry**. Card 4 is removed. Inside the Iranian hub the first and most prominent item is "بورس تهران" (opens the existing `BourseAlertFlow`). The four legacy TSE chips are hidden from the hub. The remaining hub (dollar, gold 18k, coins, tether, digital gold) is unchanged.
+Hard rule: **old saved alerts must keep working.** Do not delete `IranDomesticExchange`, its asset list or the `iran_market` exchange id; only the chips are hidden. Editing an old alert whose asset category is `TopStocks`/`Bourse`/`GoldFunds`/`LeveragedFunds` must still open (`_step = 2` path, around lines 200-215).
+Approval: 22c edits the shared `create_alert_flow.dart`. The owner approves 22c explicitly (reply "approve 22c") before it is written. No other market's code changes.
+
+### 22a Audit (no code)
+- PROMPT: "Run the app, take screenshots of: market chooser, Iranian hub, hub with each legacy chip, Bourse list, Bourse form, crypto pair list and crypto form. Write `docs/IRAN_BOURSE_UI_UNIFY.md` with: the screens, the differences (header, spacing, radius, colours, row style, form fields), the number of `predefinedAssets` per category, and where saved alerts with those categories are read. Change no code."
+- Acceptance: the file exists, contains the screenshot list, the category counts and the banner-hours check; `git diff --stat` shows only that file.
+
+### 22b Safety net first
+- PROMPT: "Add widget tests in `test/` that pin the CURRENT behaviour before changes: the chooser shows 4 cards; the hub shows the legacy chips; editing a saved rule with `exchangeId == 'iran_market'` and a `TopStocks` asset opens step 2. Tests only."
+- Acceptance: `flutter test <the new file>` green on the unchanged code.
+
+### 22c Merge the entries (needs "approve 22c")
+- PROMPT: "Remove card 4 from `_buildMarketTypeChooser`. In the Iranian hub add a first tile 'بورس تهران' that calls `BourseAlertFlow.open(...)` exactly as card 4 did. Hide the chips `GoldFunds`, `LeveragedFunds`, `TopStocks`, `Bourse`. Do not touch the exchange class, asset list or saved-rule loading. Update the 22b tests: chooser shows 3 cards, the hub has the Bourse tile and no legacy chips, the old-rule edit test still passes unchanged."
+- Acceptance: `flutter analyze lib test` clean; the full `flutter test` (all files) green; the owner creates a Bourse alert from the new tile and edits one old alert on the phone.
+- Rollback: revert the PR; nothing else depends on it.
+
+### 22d Same look and feel
+- PROMPT: "Give the Bourse screens the same header/step pill, card radius, paddings and typography tokens as the rest of the wizard. Replace the hard-coded `0xFF26A69A` with a token from the theme (add it in `BourseText`/AppTokens, not in other markets' files). Keep behaviour and keys unchanged."
+- Acceptance: all existing `iran_bourse_*` tests still green (keys unchanged); `iran_bourse_theme_test.dart` still green on all 10 palettes; the owner compares the screenshots with 22a.
+
+### 22e Same form feel
+- PROMPT: "Style the Bourse alert form fields (target, percent, interval, notify options) like the other markets' form. Styling only; no logic, no new fields."
+- Acceptance: `iran_bourse_alert_form_test.dart` (23 tests) unchanged and green; screenshots match the other forms.
+
+### 22f Visual regression guard
+- PROMPT: "Add golden tests for the market chooser and the hub (light and dark palette) so later changes that break the unified look fail in `flutter test`."
+- Acceptance: golden files committed; `flutter test` green twice in a row (no flakiness).
+
+---
+
 ## Final report (send this to the project owner / Claude)
 
 Copy, fill and send:
