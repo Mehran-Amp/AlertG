@@ -241,7 +241,7 @@ e5e9e9774ebb8f1105b9fae44642e251  scripts/probe_catalog.py
 68587741d5ee2fa853bdabc69cabaf31  scripts/remove_coinex_alerts.py
 0bff58d2849d70442fdee105b2b99007  scripts/run_catalog_sync.py
 dcf88aac3a9efdf171181a2563781fdb  scripts/soak_delivery.py
-57e9bce46bee529a8c4e90e8c8d99d02  scripts/soak_test_48h.py
+6b533db0e54ab1c7988f2ddaae83ebd8  scripts/soak_test_48h.py
 7e921b29d6eff58ba2e2840770c44c48  scripts/validate_catalog_offline.py
 f150293f1c74f6050b34a296dd4ecdce  scripts/verify_alerts_real_data.py
 4c3d7f1909709621a18121e2ce0bfb1d  scripts/verify_all_18_exchanges.py

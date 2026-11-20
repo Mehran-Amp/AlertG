@@ -198,6 +198,7 @@ async def run_soak_test(
     skip_bonbast: bool = False,
     crypto_symbols: Optional[List[str]] = None,
     suppress_admin_alerts: bool = True,
+    enforce_duration: bool = True,
 ) -> Dict[str, Any]:
     global _STOP_REQUESTED
     _STOP_REQUESTED = False
@@ -337,7 +338,7 @@ async def run_soak_test(
     try:
         while not _STOP_REQUESTED:
             elapsed_total = time.time() - start_time
-            if total_target_seconds and elapsed_total >= total_target_seconds:
+            if enforce_duration and total_target_seconds and elapsed_total >= total_target_seconds:
                 print(f"\n🎯 Reached target duration of {total_target_seconds:.1f}s ({duration_hours:.2f}h)!")
                 break
             if max_cycles and completed_cycles >= max_cycles:
@@ -608,6 +609,9 @@ def main():
     args = parser.parse_args()
 
     # Determine total seconds
+    has_explicit_duration = any(
+        v is not None for v in (args.duration_seconds, args.duration_minutes, args.duration_hours)
+    )
     if args.duration_seconds is not None:
         total_seconds = args.duration_seconds
         hours = total_seconds / 3600.0
@@ -623,6 +627,8 @@ def main():
     else:
         hours = 48.0
         total_seconds = 48.0 * 3600.0
+
+    enforce_duration = has_explicit_duration or (args.cycles is None)
 
     suppress_admin = not args.allow_admin_alerts
     if suppress_admin:
@@ -660,6 +666,7 @@ def main():
         skip_bonbast=args.skip_bonbast,
         crypto_symbols=crypto_syms or ["BTC", "ETH"],
         suppress_admin_alerts=suppress_admin,
+        enforce_duration=enforce_duration,
     ))
 
 
