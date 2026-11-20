@@ -16,14 +16,24 @@ class TestIranMarketSeparation(unittest.TestCase):
 
     @unittest.skipIf(not os.path.isdir('lib'), "Flutter client code (lib/) not present in backend deployment")
     def test_international_crypto_excludes_iranian_exchanges(self):
-        with open('lib/features/watchlist/pages/create_alert_flow.dart', 'r', encoding='utf-8') as f:
-            content = f.read()
+        with open('lib/features/exchanges/registry/exchange_catalog.dart', 'r', encoding='utf-8') as f:
+            catalog_content = f.read()
 
-        # Check international crypto picker filters out Iranian exchanges
-        self.assertIn('iranExchangeIds', content)
-        # Ensure official and legacy Iranian crypto exchanges are excluded from global list
-        self.assertTrue('tabdeal' in content or 'kifpool' in content or 'nobitex' in content,
-                        "Iranian crypto exchanges must be present in exclusion list")
+        # Verify ExchangeCatalog cleanly separates Iranian crypto exchanges from international ones
+        self.assertIn('buildIranCryptoExchanges()', catalog_content)
+        self.assertIn('buildInternationalCryptoExchanges()', catalog_content)
+        intl_block = catalog_content.split('buildInternationalCryptoExchanges()')[1].split('buildCryptoExchanges()')[0]
+        for iran_cls in ('TabdealExchange', 'KifpoolExchange', 'NobitexExchange', 'WallexExchange', 'RamzinexExchange'):
+            self.assertNotIn(
+                iran_cls,
+                intl_block,
+                f"Iranian exchange {iran_cls} must not appear in buildInternationalCryptoExchanges()",
+            )
+
+        # Ensure CreateAlertFlow still routes Iranian crypto exchanges (tabdeal/kifpool) into the Iran market sub-tab
+        with open('lib/features/watchlist/pages/create_alert_flow.dart', 'r', encoding='utf-8') as f:
+            flow_content = f.read()
+        self.assertIn("['tabdeal', 'kifpool'].contains(rule.exchangeId)", flow_content)
 
     @unittest.skipIf(not os.path.isdir('lib'), "Flutter client code (lib/) not present in backend deployment")
     def test_iran_domestic_exchange_symbols(self):

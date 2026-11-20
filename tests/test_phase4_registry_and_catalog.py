@@ -83,17 +83,17 @@ class TestPhase4RegistryAndCatalog(unittest.TestCase):
         self.assertIn('...buildMarketsProviders()', self.catalog_code)
         self.assertIn('...buildCryptoExchanges()', self.catalog_code)
 
-    def test_06_bitvavo_and_upbit_dynamic_quote_templates(self):
-        """Verify Bitvavo uses {BASE_UPPER}-{QUOTE_UPPER} and Upbit uses {QUOTE_UPPER}-{BASE_UPPER}"""
-        self.assertIn('market={BASE_UPPER}-{QUOTE_UPPER}', self.catalog_code)
+    def test_06_bitvavo_and_upbit_removed_in_crypto_v2(self):
+        """Crypto V2 (Phase 9): non-USDT / Tier B/X exchanges (Bitvavo, Upbit) are excluded from ExchangeCatalog"""
         self.assertNotIn('market={BASE_UPPER}-EUR', self.catalog_code)
-
-        self.assertIn('markets={QUOTE_UPPER}-{BASE_UPPER}', self.catalog_code)
         self.assertNotIn('markets=USDT-{BASE_UPPER}', self.catalog_code)
+        self.assertNotIn("id: 'bitvavo'", self.catalog_code)
+        self.assertNotIn("id: 'upbit'", self.catalog_code)
 
-    def test_07_bitmex_symbol_handling(self):
-        """Verify BitMEX uses {BITMEX_SYMBOL} and StandardRestExchange formats XBT/USD"""
-        self.assertIn('symbol={BITMEX_SYMBOL}', self.catalog_code)
+    def test_07_bitmex_derivatives_removed_in_crypto_v2(self):
+        """Crypto V2 (Phase 9 / G-4): derivatives exchange BitMEX (Tier X) is excluded from ExchangeCatalog"""
+        self.assertNotIn("id: 'bitmex'", self.catalog_code)
+        self.assertNotIn('symbol={BITMEX_SYMBOL}', self.catalog_code)
         self.assertIn('{BITMEX_SYMBOL}', self.standard_rest_code)
         self.assertIn("'XBT'", self.standard_rest_code)
 

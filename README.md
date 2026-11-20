@@ -4,7 +4,7 @@ A production-grade, local-first real-time financial market alert app in Flutter.
 
 ## Architecture Highlights
 - **State Management**: BLoC pattern (`flutter_bloc`) with strict event-driven state transitions.
-- **Data Ingestion**: Modular Multi-Exchange Adapter pattern inspired by `aneonex/BitcoinChecker` (Binance, Coinbase, Kraken, OKX, CoinGecko).
+- **Data Ingestion**: Modular Multi-Exchange Adapter pattern inspired by `aneonex/BitcoinChecker` covering 18 canonical Crypto V2 spot exchanges (16 global USDT exchanges + 2 approved Iranian exchanges: Tabdeal & Kifpool), plus global equities/forex/macro and Iranian domestic markets.
 - **Rule Evaluator**: Dedicated Dart background isolate using a fixed-size `CircularTickBuffer` (RingBuffer) for sub-35MB RAM footprint across variable time windows.
 - **Persistence**: Local-first `Isar` NoSQL database; opened independently per isolate.
 - **Alert Cooldown**: Strict 3-minute suppression window preventing notification storms.
@@ -85,3 +85,44 @@ curl -s -H "X-API-Key: <API_KEY>" "http://127.0.0.1:8000/api/symbols/catalog?sin
 python3 scripts/make_baseline.py --skip-api
 md5sum -c docs/MD5_MANIFEST.txt
 ```
+
+## Crypto Version 2 (Exchange-Bound Real-Time Architecture)
+
+AlertG Crypto V2 enforces strict single-exchange binding (Rule R1), dynamic per-exchange catalogs (Rule R4), and exact decimal formatting down to `< 1e-12` (Rule R3) across **18 canonical spot exchanges**:
+- **16 Global Spot USDT Exchanges**: `binance`, `mexc`, `kucoin`, `gateio`, `lbank`, `okx`, `kraken`, `bybit`, `bitget`, `htx`, `bingx`, `xt`, `toobit`, `poloniex`, `coinbase`, `bitfinex`.
+- **2 Approved Iranian Spot Exchanges (TMN & USDT)**: `tabdeal`, `kifpool` (other Iranian exchanges remain frozen per `docs/iran_exchanges_compliance.md`).
+- **Discontinued / Removed**: `coinex` (replaced by `lbank`), aggregators (`coingecko`, `coinmarketcap`), and derivatives (`bitmex`, `deribit`).
+
+### Architecture Layers
+- **Registry**: `app/markets/crypto_registry.py` (single source of truth for all 18 exchanges, provider keys, and source labels).
+- **Dynamic Catalogs**: `DATA_DIR/crypto_catalog/<exchange>.json` built by `app/markets/crypto_catalog.py`, served via `GET /api/crypto/exchanges` and `GET /api/crypto/exchanges/{exchange}/symbols` (ETag/304, paging, search ranking).
+- **Price Engine**:
+  - **Stage A**: In-memory `crypto_snapshot.py` fed by demand-driven singleton bulk REST poller (`crypto_poller.py`, `flock` leader lock) and on-demand refresh (`crypto_ondemand.py`).
+  - **Stage B**: Dedicated 1s crypto alert evaluation job (`CRYPTO_STAGE_B_ENABLED`) reusing the shared evaluation logic.
+  - **Stage C**: Public WebSocket ticker streams (`crypto_stream.py`) for `binance`, `bybit`, and `okx` with automatic REST fallback.
+- **Health & Lifecycle**: Delisted coin flagging (`needs_attention` without auto-deletion) via `crypto_lifecycle.py` and daily read-only self-test via `crypto_selftest.py` (`/api/admin/crypto/selftest`).
+- **Flutter Server-First Pricing**: All 18 crypto adapters query `GET /api/price/{exchange}/{symbol}` first via `ServerPriceGateway` (3s timeout, automatic fallback to the exchange's direct public REST API), controlled by `kCryptoServerFirstPricing` and per-exchange `k<Exchange>ServerFirst` switches.
+
+### Feature Flags (All Behavior Flags Default OFF)
+| Variable | Default | Purpose |
+|---|---|---|
+| `CRYPTO_STRICT_V2` | `false` | Enforce strict single-exchange resolution (`crypto_strict.py`), zero cross-exchange fallback |
+| `CRYPTO_ENGINE_V2` | `false` | Enable Stage A snapshot store + demand-driven bulk REST poller + 1s crypto interval + 100% / `1e-12` outlier bounds |
+| `CRYPTO_VALIDATE_ALERTS` | `false` | Validate crypto exchange & catalog membership on create/sync (`warn` or `enforce`) |
+| `CRYPTO_STAGE_B_ENABLED` | `false` | Enable dedicated 1s crypto alert checker job |
+| `CRYPTO_STREAM_ENABLED` | `false` | Master switch for Stage C WebSocket producers |
+| `CRYPTO_STREAM_BINANCE` / `_BYBIT` / `_OKX` | `false` | Per-exchange Stage C WebSocket stream switches |
+| `CRYPTO_SNAPSHOT_MAX_AGE_SECONDS` | `10.0` | Maximum snapshot age before `STALE_PRICE` |
+| `CRYPTO_MIN_CHECK_INTERVAL_SECONDS` | `1` | Minimum check interval for registered crypto exchanges (non-crypto stays `180`) |
+
+### Verification, Migration & Rollback
+```bash
+# Live rollout check across all 18 exchanges (on server):
+python3 scripts/verify_crypto_rollout.py
+python3 scripts/verify_all_18_exchanges.py
+
+# CoinEx alert audit (dry-run by default; requires --apply after backup & approval):
+python3 scripts/remove_coinex_alerts.py
+```
+Full rollback instructions for backend flags (Stage A/B/C, CoinEx migration) and Flutter client switches (`kCryptoServerFirstPricing`, per-exchange switches, and tag `pre-crypto-cleanup`) are documented in `ROLLBACK_PLAN.md` (Sections 17–22). Obsolete legacy per-symbol fallback code in `app/markets/crypto.py` and `app/markets/crypto_strict.py` is intentionally retained until 14 stable production days per Phase 12.
+

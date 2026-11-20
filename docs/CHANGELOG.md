@@ -10,6 +10,8 @@
 - **Offline Disk Cache & Outdated Banner**: Added `disk_cache` "may be outdated" banner and offline empty-catalog retry UI in `CreateAlertFlow`; synchronous test-cache support in `CryptoCatalogService`.
 - **Exact Sub-Satoshi Formatting & Legacy CoinEx Purge**: Fixed `FormatUtils.formatExactDecimal` for values `< 1e-12` (no truncation to `0` or scientific notation); purged legacy local `coinex` rules on load/import with a one-time `SnackBar` notice and excluded `coinex` from server sync.
 - **Aggregator Dead-Code Cleanup (Category 1 Only)**: Removed unreferenced `lib/features/exchanges/coingecko/coingecko_exchange.dart` and `lib/features/exchanges/coinmarketcap/coinmarketcap_exchange.dart` (along with their empty directories). Deliberately kept the 5 frozen Iranian exchange adapters (`nobitex`, `wallex`, `ramzinex`, `bitbarg`, `tetherland` + `iranian_exchange_adapter.dart`, `iran_market_gateway.dart`, `crypto_catalog_data.dart`) and the 2 tested non-picker adapters (`kcex`, `ourbit`) untouched.
+- **Phase 12 Documentation, Legacy Test Alignment & Manifest Refresh**: Documented Crypto V2 architecture, 18 canonical exchanges, feature flags, verification scripts, and rollback pointers in `README.md`; updated 4 obsolete Crypto V1 assertions (`tests/test_phase4_registry_and_catalog.py`, `tests/test_phase5_official_pairs_and_tickers.py`, `tests/test_phase7_iran_market_separation.py`) to match the approved Crypto V2 `ExchangeCatalog`; regenerated `docs/MD5_MANIFEST.txt` cleanly without deleted `coinex`/`coingecko`/`coinmarketcap` entries.
+
 
 
 ### NTF — Permanent notification shows the date (feature/ntf-calendar-notification)

@@ -42,11 +42,11 @@ class TestPhase5OfficialPairsAndTickers(unittest.TestCase):
         self.assertIn("throw Exception('Connection error: Unable to fetch live price", self.standard_rest_code)
 
     def test_02_official_pairs_url_configured_in_catalog(self):
-        """Verify pairsUrl is properly configured for Bitstamp, Gemini, HTX, and BitMEX"""
-        self.assertIn("pairsUrl: 'https://www.bitstamp.net/api/v2/trading-pairs-info/'", self.catalog_code)
-        self.assertIn("pairsUrl: 'https://api.gemini.com/v1/symbols'", self.catalog_code)
+        """Crypto V2 (Phase 9): HTX pairsUrl is configured; removed Tier B/X exchanges (Bitstamp, Gemini, BitMEX) are excluded"""
         self.assertIn("pairsUrl: 'https://api.huobi.pro/v1/common/symbols'", self.catalog_code)
-        self.assertIn("pairsUrl: 'https://www.bitmex.com/api/v1/instrument?filter=%7B%22typ%22%3A%22FFWCSX%22%7D'", self.catalog_code)
+        self.assertNotIn("id: 'bitstamp'", self.catalog_code)
+        self.assertNotIn("id: 'gemini'", self.catalog_code)
+        self.assertNotIn("id: 'bitmex'", self.catalog_code)
 
     def test_03_htx_tick_object_parser(self):
         """Verify StandardRestExchange checks data['tick'] for HTX ticker responses"""
