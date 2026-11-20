@@ -241,7 +241,7 @@ e5e9e9774ebb8f1105b9fae44642e251  scripts/probe_catalog.py
 68587741d5ee2fa853bdabc69cabaf31  scripts/remove_coinex_alerts.py
 0bff58d2849d70442fdee105b2b99007  scripts/run_catalog_sync.py
 dcf88aac3a9efdf171181a2563781fdb  scripts/soak_delivery.py
-8e080905fcec9330ac17116d65638fc5  scripts/soak_test_48h.py
+57e9bce46bee529a8c4e90e8c8d99d02  scripts/soak_test_48h.py
 7e921b29d6eff58ba2e2840770c44c48  scripts/validate_catalog_offline.py
 f150293f1c74f6050b34a296dd4ecdce  scripts/verify_alerts_real_data.py
 4c3d7f1909709621a18121e2ce0bfb1d  scripts/verify_all_18_exchanges.py
@@ -359,7 +359,7 @@ cf6fc41a129df22c325de64a9888d180  tests/test_release_gate.py
 be23d5de25156fc780fd4462e5363dee  tests/test_server_phase1.py
 9b8c827ba9f1629948f8a66184ccfb8c  tests/test_server_startup_catalog_sync.py
 5c50d525ae03b4f6cbbd3c4c2e0a13c4  tests/test_soak_delivery.py
-819b455ec86e983c59f150bca3b9d634  tests/test_stage_soak_safety.py
+7ae16350b54c9b6d181e74c7064d7572  tests/test_stage_soak_safety.py
 5b0ffe323889a560a833c8999c336aec  tests/test_sync_backup.py
 09b2c6195bc1e7cab7cdf2d0483221e9  tests/test_sync_mode.py
 fb8bd4bba710696a3e6183698dede10c  tests/test_telegram_retry.py

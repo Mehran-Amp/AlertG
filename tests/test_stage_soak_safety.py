@@ -241,6 +241,26 @@ class TestDataIsolation(unittest.TestCase):
             self.assertEqual(server["pid"], os.getpid())
             self.assertGreater(server["final"], 0)
 
+    def test_crypto_only_mode_and_admin_alert_suppression(self):
+        with tempfile.TemporaryDirectory() as folder:
+            report_path = os.path.join(folder, "r_crypto.json")
+            res = self._run(
+                "soak_test_48h.py",
+                ["--crypto-only", "--cycles", "2", "--interval-seconds", "0.05", "--mock", "--export", report_path],
+                folder,
+                extra_env={"TELEGRAM_ADMIN_CHAT_ID": "999999", "TELEGRAM_BOT_TOKEN": "fake_token"},
+            )
+            self.assertEqual(res.returncode, 0, res.stdout + res.stderr)
+            with open(report_path, encoding="utf-8") as f:
+                report = json.load(f)
+            self.assertEqual(report["soak_profile"], "crypto_only")
+            self.assertTrue(report["admin_alerts_suppressed"])
+            crypto_m = report["crypto_metrics"]
+            self.assertIsNotNone(crypto_m)
+            self.assertEqual(crypto_m["exchanges_count"], 18)
+            self.assertEqual(crypto_m["healthy_snapshots"], 18)
+            self.assertGreaterEqual(crypto_m["total_crypto_checks"], 2)
+
 
 if __name__ == "__main__":
     unittest.main()
