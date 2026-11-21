@@ -163,14 +163,17 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
   }
 
   Widget _sectionCard(BuildContext context, {required Widget child}) {
-    return Container(
-      padding: const EdgeInsets.all(AppTokens.space16),
-      decoration: BoxDecoration(
-        color: BourseText.cardColor(context),
+    return Material(
+      color: BourseText.cardColor(context),
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(BourseText.cardRadius),
-        border: Border.all(color: BourseText.borderColor(context)),
+        side: BorderSide(color: BourseText.borderColor(context)),
       ),
-      child: child,
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.all(AppTokens.space16),
+        child: child,
+      ),
     );
   }
 
