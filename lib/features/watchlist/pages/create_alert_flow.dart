@@ -2173,17 +2173,28 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
 
         if (_iranSubTab == 1)
           Expanded(
-            child: BourseBrowsePage(
-              embedded: true,
-              onSelected: (item) async {
-                final created = await BourseAlertFlow.openDetail(
-                  context,
-                  item: item,
-                  saveRule: (rule) => widget.repository.saveRule(rule, syncToServer: false),
-                );
-                if (created == true && mounted) {
-                  Navigator.of(context).pop(true);
+            child: Builder(
+              builder: (context) {
+                final bourseAlertCounts = <String, int>{};
+                for (final r in widget.repository.allRules) {
+                  if (r.isActive && r.exchangeId.toLowerCase() == 'tsetmc') {
+                    bourseAlertCounts[r.marketSymbol] = (bourseAlertCounts[r.marketSymbol] ?? 0) + 1;
+                  }
                 }
+                return BourseBrowsePage(
+                  embedded: true,
+                  alertCounts: bourseAlertCounts,
+                  onSelected: (item) async {
+                    final created = await BourseAlertFlow.openDetail(
+                      context,
+                      item: item,
+                      saveRule: (rule) => widget.repository.saveRule(rule, syncToServer: false),
+                    );
+                    if (created == true && mounted) {
+                      Navigator.of(context).pop(true);
+                    }
+                  },
+                );
               },
             ),
           )

@@ -28,7 +28,9 @@ class BourseStrings {
       'اتصال به منبع داده قطع یا کند است؛ قیمت‌ها ممکن است قدیمی باشند.';
   static const String bannerUnknown = 'وضعیت بازار مشخص نیست؛ قیمت‌ها ممکن است زنده نباشند.';
   static const String tabAll = 'همه';
+  static const String tabTopMovers = 'پرتغییرترین‌ها';
   static const String filterTradedOnly = 'فقط نمادهای معامله‌شده امروز';
+  static String rowAlertBadge(String countText) => '$countText هشدار';
 
   static String groupLabel(BourseGroup group) {
     switch (group) {

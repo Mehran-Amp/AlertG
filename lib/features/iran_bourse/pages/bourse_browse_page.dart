@@ -28,6 +28,9 @@ class BourseBrowsePage extends StatefulWidget {
   final bool persianDigits;
   final bool embedded;
 
+  /// Optional map of `instrumentId -> active alert count` for displaying row alert badges.
+  final Map<String, int> alertCounts;
+
   const BourseBrowsePage({
     super.key,
     this.service,
@@ -36,6 +39,7 @@ class BourseBrowsePage extends StatefulWidget {
     this.pageSize = 50,
     this.persianDigits = false,
     this.embedded = false,
+    this.alertCounts = const {},
   });
 
   @override
@@ -51,6 +55,8 @@ class _BourseBrowsePageState extends State<BourseBrowsePage> {
 
   BourseGroup? _group; // null = default list (everything but options/futures)
   BourseSort _sort = BourseSort.value;
+  BourseSort _nonMoversSort = BourseSort.value;
+  bool _topMovers = false;
   bool _tradedOnly = false;
 
   final List<BourseBoardItem> _items = [];
@@ -139,8 +145,21 @@ class _BourseBrowsePageState extends State<BourseBrowsePage> {
   }
 
   void _setGroup(BourseGroup? g) {
-    if (g == _group) return;
+    if (!_topMovers && g == _group) return;
+    if (_topMovers) {
+      _topMovers = false;
+      _sort = _nonMoversSort;
+    }
     _group = g;
+    _reload();
+  }
+
+  void _selectTopMovers() {
+    if (_topMovers) return;
+    _nonMoversSort = _sort;
+    _topMovers = true;
+    _group = null;
+    _sort = BourseSort.change;
     _reload();
   }
 
@@ -180,8 +199,12 @@ class _BourseBrowsePageState extends State<BourseBrowsePage> {
       icon: Icon(Icons.sort_rounded, color: theme.colorScheme.onSurface),
       initialValue: _sort,
       onSelected: (s) {
-        if (s == _sort) return;
+        if (s == _sort && !_topMovers) return;
         _sort = s;
+        if (s != BourseSort.change) {
+          _topMovers = false;
+          _nonMoversSort = s;
+        }
         _reload();
       },
       itemBuilder: (_) => [
@@ -251,22 +274,69 @@ class _BourseBrowsePageState extends State<BourseBrowsePage> {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: AppTokens.space16),
             children: [
-              for (final g in <BourseGroup?>[null, ...BourseGroup.values])
+              Padding(
+                padding: const EdgeInsets.only(left: 6),
+                child: ChoiceChip(
+                  key: const Key('bourse_tab_all'),
+                  label: Text(_tabLabel(null)),
+                  selected: !_topMovers && _group == null,
+                  showCheckmark: false,
+                  labelStyle: TextStyle(
+                    fontSize: 11,
+                    fontWeight: (!_topMovers && _group == null) ? FontWeight.bold : FontWeight.normal,
+                    color: (!_topMovers && _group == null) ? accent : BourseText.secondaryColor(context),
+                  ),
+                  selectedColor: accent.withValues(alpha: 0.15),
+                  backgroundColor: BourseText.cardColor(context),
+                  side: BorderSide(color: (!_topMovers && _group == null) ? accent : BourseText.borderColor(context)),
+                  onSelected: (_) => _setGroup(null),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 6),
+                child: ChoiceChip(
+                  key: const Key('bourse_tab_top_movers'),
+                  label: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.trending_up_rounded,
+                        size: 14,
+                        color: _topMovers ? accent : BourseText.secondaryColor(context),
+                      ),
+                      const SizedBox(width: 4),
+                      const Text(BourseStrings.tabTopMovers),
+                    ],
+                  ),
+                  selected: _topMovers,
+                  showCheckmark: false,
+                  labelStyle: TextStyle(
+                    fontSize: 11,
+                    fontWeight: _topMovers ? FontWeight.bold : FontWeight.normal,
+                    color: _topMovers ? accent : BourseText.secondaryColor(context),
+                  ),
+                  selectedColor: accent.withValues(alpha: 0.15),
+                  backgroundColor: BourseText.cardColor(context),
+                  side: BorderSide(color: _topMovers ? accent : BourseText.borderColor(context)),
+                  onSelected: (_) => _selectTopMovers(),
+                ),
+              ),
+              for (final g in BourseGroup.values)
                 Padding(
                   padding: const EdgeInsets.only(left: 6),
                   child: ChoiceChip(
-                    key: Key('bourse_tab_${g?.key ?? 'all'}'),
+                    key: Key('bourse_tab_${g.key}'),
                     label: Text(_tabLabel(g)),
-                    selected: _group == g,
+                    selected: !_topMovers && _group == g,
                     showCheckmark: false,
                     labelStyle: TextStyle(
                       fontSize: 11,
-                      fontWeight: _group == g ? FontWeight.bold : FontWeight.normal,
-                      color: _group == g ? accent : BourseText.secondaryColor(context),
+                      fontWeight: (!_topMovers && _group == g) ? FontWeight.bold : FontWeight.normal,
+                      color: (!_topMovers && _group == g) ? accent : BourseText.secondaryColor(context),
                     ),
                     selectedColor: accent.withValues(alpha: 0.15),
                     backgroundColor: BourseText.cardColor(context),
-                    side: BorderSide(color: _group == g ? accent : BourseText.borderColor(context)),
+                    side: BorderSide(color: (!_topMovers && _group == g) ? accent : BourseText.borderColor(context)),
                     onSelected: (_) => _setGroup(g),
                   ),
                 ),
@@ -393,6 +463,7 @@ class _BourseBrowsePageState extends State<BourseBrowsePage> {
             item: item,
             session: session,
             persianDigits: widget.persianDigits,
+            alertCount: widget.alertCounts[item.id] ?? 0,
             onTap: () => _open(item),
           );
         },

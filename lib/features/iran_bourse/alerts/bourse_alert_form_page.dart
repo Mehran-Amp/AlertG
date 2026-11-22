@@ -444,8 +444,14 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
                       value: _recurring,
                       onChanged: _submitting ? null : (v) => setState(() => _recurring = v),
                     ),
-                    const SizedBox(height: AppTokens.space4),
-                    Text(BourseStrings.alertOnlyLiveNote, style: BourseText.caption(context)),
+                    if (!_marketNotLive) ...[
+                      const SizedBox(height: AppTokens.space4),
+                      Text(
+                        BourseStrings.alertOnlyLiveNote,
+                        key: const Key('bourse_form_only_live_note'),
+                        style: BourseText.caption(context),
+                      ),
+                    ],
                   ],
                 ),
               ),

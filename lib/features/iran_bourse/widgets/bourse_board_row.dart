@@ -13,6 +13,7 @@ class BourseBoardRow extends StatelessWidget {
   final BourseSession session;
   final VoidCallback? onTap;
   final bool persianDigits;
+  final int alertCount;
 
   const BourseBoardRow({
     super.key,
@@ -20,6 +21,7 @@ class BourseBoardRow extends StatelessWidget {
     required this.session,
     this.onTap,
     this.persianDigits = false,
+    this.alertCount = 0,
   });
 
   /// The small tag under the price, or null when the price is live and fresh.
@@ -95,15 +97,56 @@ class BourseBoardRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      item.displayTicker,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        color: BourseText.primaryColor(context),
-                      ),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            item.displayTicker,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: BourseText.primaryColor(context),
+                            ),
+                          ),
+                        ),
+                        if (alertCount > 0) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            key: const Key('bourse_row_alert_badge'),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary.withValues(alpha: 0.14),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: theme.colorScheme.primary.withValues(alpha: 0.35),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.notifications_active_rounded,
+                                  size: 11,
+                                  color: BourseText.primaryColor(context),
+                                ),
+                                const SizedBox(width: 3),
+                                Text(
+                                  BourseStrings.rowAlertBadge(
+                                    BourseFormat.number(alertCount, persianDigits: d),
+                                  ),
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: BourseText.primaryColor(context),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     if (subtitle.isNotEmpty) ...[
                       const SizedBox(height: 2),
