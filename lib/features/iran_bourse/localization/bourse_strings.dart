@@ -115,13 +115,17 @@ class BourseStrings {
       case BourseAlertProblem.invalidInstrument:
         return 'شناسه نماد معتبر نیست. نماد را دوباره انتخاب کنید.';
       case BourseAlertProblem.directionNotSupported:
-        return 'برای بورس فقط «بالاتر از» و «پایین‌تر از» پشتیبانی می‌شود.';
+        return 'جهت انتخاب‌شده پشتیبانی نمی‌شود.';
       case BourseAlertProblem.amountMissing:
         return 'مقدار را وارد کنید.';
       case BourseAlertProblem.amountNotPositive:
         return 'مقدار باید بزرگ‌تر از صفر باشد.';
       case BourseAlertProblem.noPreviousClose:
         return 'قیمت دیروز این نماد هنوز مشخص نیست؛ هشدار قیمت هدف بسازید.';
+      case BourseAlertProblem.bothSidesTargetsMissing:
+        return 'برای حالت دوطرفه، هر دو قیمت حد بالا و حد پایین را وارد کنید.';
+      case BourseAlertProblem.invalidRange:
+        return 'قیمت حد بالا باید بزرگ‌تر از قیمت حد پایین باشد.';
     }
   }
 
@@ -135,12 +139,13 @@ class BourseStrings {
     }
   }
 
-  // ---- alert kinds ------------------------------------------------------------------
+  // ---- alert kinds & sections -------------------------------------------------------
   static const String kindPrice = 'رسیدن به قیمت';
   static const String kindPercent = 'درصد تغییر نسبت به دیروز';
   static const String kindAbsolute = 'مقدار تغییر (ریال) نسبت به دیروز';
   static const String directionAbove = 'بالاتر از';
   static const String directionBelow = 'پایین‌تر از';
+  static const String directionBothSides = 'هر دو جهت';
   static const String alertAmountPercent = 'درصد تغییر';
   static const String alertAmountAbsolute = 'مقدار تغییر (ریال)';
   static const String alertNoteLabel = 'یادداشت (اختیاری)';
@@ -150,6 +155,49 @@ class BourseStrings {
   static const String alertSaveFailed =
       'هشدار ساخته نشد چون ذخیره آن روی دستگاه ناموفق بود. دوباره تلاش کنید.';
   static const String alertAmountHintRial = 'مثلاً ۷۰۰٬۰۰۰';
+
+  static const String alertSectionCondition = 'شرط و جهت هشدار';
+  static const String alertSectionBehavior = 'رفتار هشدار و یادداشت';
+  static const String alertSectionNotification = 'شیوهٔ اطلاع‌رسانی و آلارم';
+
+  static const String dailyBandLabel = 'دامنه مجاز امروز';
+  static const String shortcutUpperLimit = 'سقف مجاز امروز';
+  static const String shortcutLowerLimit = 'کف مجاز امروز';
+  static const String priceFieldLabel = 'مبنای بررسی قیمت';
+  static const String priceFieldLast = 'آخرین معامله';
+  static const String priceFieldClose = 'قیمت پایانی';
+
+  // ---- two-way price target ---------------------------------------------------------
+  static const String bothWayBehaviorLabel = 'رفتار پس از اولین برخورد قیمت';
+  static const String bothWayOcoTitle = 'خروج با اولین تارگت';
+  static const String bothWayOcoDesc = 'پس از برخورد غیرفعال شود';
+  static const String bothWayDualTitle = 'پایش دائمی کانال';
+  static const String bothWayDualDesc = 'کانال همچنان فعال بماند';
+  static const String upperTargetTitle = 'حد بالا (مقاومت)';
+  static const String upperPriceLabel = 'قیمت حد بالا (ریال)';
+  static const String upperNoteLabel = 'یادداشت حد بالا (اختیاری)';
+  static const String lowerTargetTitle = 'حد پایین (حمایت)';
+  static const String lowerPriceLabel = 'قیمت حد پایین (ریال)';
+  static const String lowerNoteLabel = 'یادداشت حد پایین (اختیاری)';
+  static String bothSidesPreviewUpper(String priceText) => '▲ سقف: $priceText';
+  static String bothSidesPreviewLower(String priceText) => '▼ کف: $priceText';
+
+  // ---- notification options ---------------------------------------------------------
+  static const String notifPresetStandard = 'صدا و ویبره';
+  static const String notifPresetSoundOnly = 'فقط صدا';
+  static const String notifPresetVibrateOnly = 'فقط ویبره';
+  static const String notifPresetSilent = 'فقط نوتیف';
+  static const String notifSoundTitle = 'صدای زنگ آلارم';
+  static const String notifSoundMuted = 'پخش صدا خاموش است';
+  static const String notifChangeSound = 'تغییر';
+  static const String notifSelectSoundTitle = 'انتخاب صدای آلارم';
+  static const String notifConfirmSound = 'تأیید صدا';
+  static const String notifSoundToggle = 'پخش صدای آلارم';
+  static const String notifVibrateToggle = 'لرزش گوشی (ویبره)';
+  static const String notifFlashToggle = 'فلاش دوربین (SOS)';
+  static const String notifTtsTitle = 'اعلام صوتی (TTS)';
+  static const String notifTtsSubtitle = 'خواندن نام نماد و قیمت هنگام فعال شدن هشدار';
+  static const String notifTtsTest = 'تست صدا';
 
   static String alertKindLabel(BourseAlertKind kind) {
     switch (kind) {

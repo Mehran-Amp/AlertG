@@ -21,6 +21,15 @@ enum BourseAlertKind {
   absoluteChange,
 }
 
+/// Which Bourse price field the server evaluates against (IB-8 `raw_rule.price_field`).
+enum BoursePriceField {
+  /// Last trade price (server default).
+  last,
+
+  /// Daily closing price (قیمت پایانی).
+  close,
+}
+
 /// Why a draft cannot become an alert yet.
 enum BourseAlertProblem {
   invalidInstrument,
@@ -28,6 +37,8 @@ enum BourseAlertProblem {
   amountMissing,
   amountNotPositive,
   noPreviousClose,
+  bothSidesTargetsMissing,
+  invalidRange,
 }
 
 /// A softer hint: the alert can be created but may never (or immediately) fire.
@@ -42,8 +53,8 @@ enum BourseAlertWarning {
 /// The user's choices for one Bourse alert, before it becomes an [AlertRule].
 ///
 /// Rules: the instrument id is a String (N6); every price is Rial (D1); percent and Rial
-/// changes are measured against **yesterday's close** (same as the server); only
-/// above / below directions are offered in v1.
+/// changes are measured against **yesterday's close** (same as the server); above, below
+/// and both-sides directions are all supported.
 class BourseAlertDraft {
   final String instrumentId;
   final String ticker;
@@ -51,9 +62,24 @@ class BourseAlertDraft {
   final BourseAlertKind kind;
   final AlertDirection direction;
 
-  /// Rial for [BourseAlertKind.price] and [BourseAlertKind.absoluteChange];
+  /// Rial for single-direction [BourseAlertKind.price] and for [BourseAlertKind.absoluteChange];
   /// percent (e.g. 3.0 for 3 %) for [BourseAlertKind.percentChange]. Null while empty.
   final double? amount;
+
+  /// Upper target price in Rial for two-way [BourseAlertKind.price] alerts.
+  final double? upperAmount;
+
+  /// Lower target price in Rial for two-way [BourseAlertKind.price] alerts.
+  final double? lowerAmount;
+
+  /// Optional dedicated note when the upper target is hit (two-way price alerts).
+  final String? upperNote;
+
+  /// Optional dedicated note when the lower target is hit (two-way price alerts).
+  final String? lowerNote;
+
+  /// Behavior after the first trigger on two-way price alerts (OCO vs Dual-Active).
+  final BothWayBehavior bothWayBehavior;
 
   /// Yesterday's close (Rial): the daily base for change alerts.
   final num? prevClose;
@@ -70,6 +96,9 @@ class BourseAlertDraft {
   /// Fire again after each trigger. Default false: fire once, then wait to be re-armed.
   final bool recurring;
 
+  /// Which price field the server checks (`last` by default, or `close`).
+  final BoursePriceField priceField;
+
   const BourseAlertDraft({
     required this.instrumentId,
     required this.ticker,
@@ -77,12 +106,18 @@ class BourseAlertDraft {
     required this.kind,
     required this.direction,
     required this.amount,
+    this.upperAmount,
+    this.lowerAmount,
+    this.upperNote,
+    this.lowerNote,
+    this.bothWayBehavior = BothWayBehavior.oco,
     this.prevClose,
     this.lastPrice,
     this.upperLimit,
     this.lowerLimit,
     this.note,
     this.recurring = false,
+    this.priceField = BoursePriceField.last,
   });
 
   /// Draft for the instrument of a loaded quote (the detail page's "create alert" callback).
@@ -91,8 +126,14 @@ class BourseAlertDraft {
     required BourseAlertKind kind,
     required AlertDirection direction,
     required double? amount,
+    double? upperAmount,
+    double? lowerAmount,
+    String? upperNote,
+    String? lowerNote,
+    BothWayBehavior bothWayBehavior = BothWayBehavior.oco,
     String? note,
     bool recurring = false,
+    BoursePriceField priceField = BoursePriceField.last,
   }) {
     return BourseAlertDraft(
       instrumentId: quote.symbol,
@@ -101,14 +142,22 @@ class BourseAlertDraft {
       kind: kind,
       direction: direction,
       amount: amount,
+      upperAmount: upperAmount,
+      lowerAmount: lowerAmount,
+      upperNote: upperNote,
+      lowerNote: lowerNote,
+      bothWayBehavior: bothWayBehavior,
       prevClose: quote.prevClose,
       lastPrice: quote.price,
       upperLimit: quote.upperLimit,
       lowerLimit: quote.lowerLimit,
       note: note,
       recurring: recurring,
+      priceField: priceField,
     );
   }
+
+  bool get isTwoWayPrice => kind == BourseAlertKind.price && direction == AlertDirection.bothSides;
 
   /// Name shown in lists: the ticker, falling back to the full name, then the id.
   String get displayName {
@@ -117,23 +166,37 @@ class BourseAlertDraft {
     return instrumentId;
   }
 
+  static bool _isFiniteNum(double? v) => v != null && !v.isNaN && !v.isInfinite;
+
   /// `null` when the draft can be turned into an alert.
   BourseAlertProblem? validate() {
     if (!BourseInstrument.isValidId(instrumentId)) return BourseAlertProblem.invalidInstrument;
-    if (direction == AlertDirection.bothSides) return BourseAlertProblem.directionNotSupported;
+
+    if (isTwoWayPrice) {
+      final up = upperAmount;
+      final low = lowerAmount;
+      if (!_isFiniteNum(up) || !_isFiniteNum(low)) {
+        return BourseAlertProblem.bothSidesTargetsMissing;
+      }
+      if (up! <= 0 || low! <= 0) return BourseAlertProblem.amountNotPositive;
+      if (up <= low) return BourseAlertProblem.invalidRange;
+      return null;
+    }
+
     final a = amount;
-    if (a == null || a.isNaN || a.isInfinite) return BourseAlertProblem.amountMissing;
-    if (a <= 0) return BourseAlertProblem.amountNotPositive;
+    if (!_isFiniteNum(a)) return BourseAlertProblem.amountMissing;
+    if (a! <= 0) return BourseAlertProblem.amountNotPositive;
     if (kind != BourseAlertKind.price && !(prevClose != null && prevClose! > 0)) {
       return BourseAlertProblem.noPreviousClose;
     }
     return null;
   }
 
-  /// The price this alert would need, in Rial, when it can be worked out (used for the hints).
+  /// The single trigger price in Rial for one-way alerts (null for both-sides alerts).
   double? get triggerPrice {
+    if (direction == AlertDirection.bothSides) return null;
     final a = amount;
-    if (a == null || a.isNaN || a.isInfinite || a <= 0) return null;
+    if (!_isFiniteNum(a) || a! <= 0) return null;
     if (kind == BourseAlertKind.price) return a;
     final base = prevClose;
     if (base == null || base <= 0) return null;
@@ -142,21 +205,72 @@ class BourseAlertDraft {
     return base + sign * a; // absoluteChange
   }
 
+  /// Upper trigger price in Rial when scanning upward or both sides.
+  double? get upperTriggerPrice {
+    if (isTwoWayPrice) {
+      return (_isFiniteNum(upperAmount) && upperAmount! > 0) ? upperAmount : null;
+    }
+    if (direction == AlertDirection.below) return null;
+    final a = amount;
+    if (!_isFiniteNum(a) || a! <= 0) return null;
+    if (kind == BourseAlertKind.price) return a;
+    final base = prevClose;
+    if (base == null || base <= 0) return null;
+    if (kind == BourseAlertKind.percentChange) return base * (1 + a / 100.0);
+    return base + a;
+  }
+
+  /// Lower trigger price in Rial when scanning downward or both sides.
+  double? get lowerTriggerPrice {
+    if (isTwoWayPrice) {
+      return (_isFiniteNum(lowerAmount) && lowerAmount! > 0) ? lowerAmount : null;
+    }
+    if (direction == AlertDirection.above) return null;
+    final a = amount;
+    if (!_isFiniteNum(a) || a! <= 0) return null;
+    if (kind == BourseAlertKind.price) return a;
+    final base = prevClose;
+    if (base == null || base <= 0) return null;
+    final v = kind == BourseAlertKind.percentChange ? base * (1 - a / 100.0) : base - a;
+    return v > 0 ? v : null;
+  }
+
   /// A hint about the target, or null. Never blocks creating the alert.
   BourseAlertWarning? warning() {
-    final target = triggerPrice;
-    if (target == null || direction == AlertDirection.bothSides) return null;
-    final up = upperLimit;
-    final low = lowerLimit;
+    final upLimit = upperLimit;
+    final lowLimit = lowerLimit;
     final last = lastPrice;
+
+    if (direction == AlertDirection.bothSides) {
+      final upTarget = upperTriggerPrice;
+      final lowTarget = lowerTriggerPrice;
+      if (upTarget == null && lowTarget == null) return null;
+
+      final upOut = upTarget != null && upLimit != null && upLimit > 0 && upTarget > upLimit;
+      final lowOut = lowTarget != null && lowLimit != null && lowLimit > 0 && lowTarget < lowLimit;
+      if (upOut && lowOut) return BourseAlertWarning.unreachableToday;
+
+      final upHit = upTarget != null && last != null && last > 0 && last >= upTarget;
+      final lowHit = lowTarget != null && last != null && last > 0 && last <= lowTarget;
+      if (upHit || lowHit) return BourseAlertWarning.alreadyReached;
+      return null;
+    }
+
+    final target = triggerPrice;
+    if (target == null) return null;
     if (direction == AlertDirection.above) {
-      if (up != null && up > 0 && target > up) return BourseAlertWarning.unreachableToday;
+      if (upLimit != null && upLimit > 0 && target > upLimit) return BourseAlertWarning.unreachableToday;
       if (last != null && last > 0 && last >= target) return BourseAlertWarning.alreadyReached;
     } else {
-      if (low != null && low > 0 && target < low) return BourseAlertWarning.unreachableToday;
+      if (lowLimit != null && lowLimit > 0 && target < lowLimit) return BourseAlertWarning.unreachableToday;
       if (last != null && last > 0 && last <= target) return BourseAlertWarning.alreadyReached;
     }
     return null;
+  }
+
+  static String? _cleanNote(String? raw) {
+    final t = raw?.trim();
+    return (t == null || t.isEmpty) ? null : t;
   }
 
   /// Builds the alert rule. Throws [ArgumentError] when [validate] reports a problem.
@@ -176,7 +290,7 @@ class BourseAlertDraft {
     if (problem != null) {
       throw ArgumentError('Bourse alert draft is not valid: ${problem.name}');
     }
-    final a = amount!;
+
     final AlertConditionType type;
     switch (kind) {
       case BourseAlertKind.price:
@@ -190,7 +304,10 @@ class BourseAlertDraft {
         break;
     }
 
-    final trimmedNote = note?.trim();
+    final cleanedNote = _cleanNote(note);
+    final cleanedUpperNote = isTwoWayPrice ? _cleanNote(upperNote) : null;
+    final cleanedLowerNote = isTwoWayPrice ? _cleanNote(lowerNote) : null;
+
     final rule = AlertRule.create(
       pair: CurrencyPair(
         baseCurrency: displayName,
@@ -201,13 +318,18 @@ class BourseAlertDraft {
       checkIntervalSeconds: checkIntervalSeconds,
       conditionType: type,
       direction: direction,
-      targetPrice: kind == BourseAlertKind.price ? a : null,
-      percent: kind == BourseAlertKind.percentChange ? a : null,
-      deltaAbsolute: kind == BourseAlertKind.absoluteChange ? a : null,
+      bothWayBehavior: isTwoWayPrice ? bothWayBehavior : BothWayBehavior.oco,
+      targetPrice: (kind == BourseAlertKind.price && !isTwoWayPrice) ? amount : null,
+      upperTargetPrice: isTwoWayPrice ? upperAmount : null,
+      upperNote: cleanedUpperNote,
+      lowerTargetPrice: isTwoWayPrice ? lowerAmount : null,
+      lowerNote: cleanedLowerNote,
+      percent: kind == BourseAlertKind.percentChange ? amount : null,
+      deltaAbsolute: kind == BourseAlertKind.absoluteChange ? amount : null,
       // Change alerts start from yesterday's close (the server's daily base);
       // a price-level alert starts from the last known price.
       currentPrice: (kind == BourseAlertKind.price ? lastPrice : prevClose)?.toDouble(),
-      customNote: (trimmedNote == null || trimmedNote.isEmpty) ? null : trimmedNote,
+      customNote: isTwoWayPrice ? (cleanedNote ?? cleanedUpperNote ?? cleanedLowerNote) : cleanedNote,
       customSound: customSound,
       language: language,
       soundEnabled: soundEnabled,
@@ -215,8 +337,14 @@ class BourseAlertDraft {
       vibrationEnabled: vibrationEnabled,
       flashEnabled: flashEnabled,
       preferServerProxy: true,
+      priceField: priceField == BoursePriceField.close ? 'close' : null,
     );
-    // AlertRule.create makes absolute-change alerts recurring; the Bourse default is "fire once".
-    return rule.copyWith(triggerMode: recurring ? TriggerMode.recurring : TriggerMode.oneShot);
+
+    final effectiveRecurring = isTwoWayPrice
+        ? bothWayBehavior == BothWayBehavior.dualActive
+        : recurring;
+    // AlertRule.create makes absolute-change and bothSides percent alerts recurring;
+    // the Bourse default is "fire once" unless recurring / dualActive is selected.
+    return rule.copyWith(triggerMode: effectiveRecurring ? TriggerMode.recurring : TriggerMode.oneShot);
   }
 }

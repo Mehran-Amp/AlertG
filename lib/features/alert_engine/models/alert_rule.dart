@@ -116,6 +116,9 @@ class AlertRule extends Equatable {
   /// Whether to prefer server proxy over direct local fetch (determined during creation)
   final bool preferServerProxy;
 
+  /// Optional Bourse price basis ('last' or 'close'); null omits the key so server defaults to 'last'.
+  final String? priceField;
+
   /// Whether this alert is actively checked by the scheduler
   final bool isActive;
 
@@ -238,6 +241,7 @@ class AlertRule extends Equatable {
     this.vibrationEnabled = true,
     this.flashEnabled = false,
     this.preferServerProxy = false,
+    this.priceField,
     this.isActive = true,
     this.isTriggered = false,
     this.cooldownUntil,
@@ -274,6 +278,7 @@ class AlertRule extends Equatable {
     bool vibrationEnabled = true,
     bool flashEnabled = false,
     bool preferServerProxy = false,
+    String? priceField,
     DateTime? cooldownUntil,
     int triggerCount = 0,
   }) {
@@ -314,6 +319,7 @@ class AlertRule extends Equatable {
       vibrationEnabled: vibrationEnabled,
       flashEnabled: flashEnabled,
       preferServerProxy: preferServerProxy,
+      priceField: priceField,
       isActive: true,
       isTriggered: false,
       cooldownUntil: cooldownUntil,
@@ -357,6 +363,7 @@ class AlertRule extends Equatable {
     bool? vibrationEnabled,
     bool? flashEnabled,
     bool? preferServerProxy,
+    String? priceField,
     bool? isActive,
     bool? isTriggered,
     DateTime? cooldownUntil,
@@ -395,6 +402,7 @@ class AlertRule extends Equatable {
       vibrationEnabled: vibrationEnabled ?? this.vibrationEnabled,
       flashEnabled: flashEnabled ?? this.flashEnabled,
       preferServerProxy: preferServerProxy ?? this.preferServerProxy,
+      priceField: priceField ?? this.priceField,
       basePrice: basePrice ?? this.basePrice,
       lastCheckedPrice: lastCheckedPrice ?? this.lastCheckedPrice,
       previousPrice: previousPrice ?? this.previousPrice,
@@ -440,6 +448,7 @@ class AlertRule extends Equatable {
         'vibrationEnabled': vibrationEnabled,
         'flashEnabled': flashEnabled,
         'preferServerProxy': preferServerProxy,
+        if (priceField != null) 'price_field': priceField,
         'isActive': isActive,
         'isTriggered': isTriggered,
         'cooldownUntil': cooldownUntil?.toIso8601String(),
@@ -488,6 +497,7 @@ class AlertRule extends Equatable {
         vibrationEnabled: json['vibrationEnabled'] as bool? ?? true,
         flashEnabled: json['flashEnabled'] as bool? ?? false,
         preferServerProxy: json['preferServerProxy'] as bool? ?? false,
+        priceField: json['price_field'] as String?,
         isActive: json['isActive'] as bool? ?? true,
         isTriggered: json['isTriggered'] as bool? ?? false,
         cooldownUntil: json['cooldownUntil'] != null
@@ -537,6 +547,7 @@ class AlertRule extends Equatable {
         vibrationEnabled,
         flashEnabled,
         preferServerProxy,
+        priceField,
         isActive,
         isTriggered,
         cooldownUntil,

@@ -7,8 +7,9 @@ import '../utils/bourse_format.dart';
 /// <check interval>" and "dollar change >= $X". Both are wrong for the Bourse, where the
 /// base is **yesterday's close** and every amount is Rial. Prices use [BourseFormat] (Rial).
 String bourseAlertDescription(AlertRule rule, {bool persianDigits = true}) {
+  final isBoth = rule.direction == AlertDirection.bothSides;
   final up = rule.direction != AlertDirection.below;
-  final sign = up ? '+' : '-';
+  final sign = isBoth ? '±' : (up ? '+' : '-');
 
   String num(double v) {
     final text = v == v.roundToDouble() ? v.toInt().toString() : v.toString();
@@ -17,6 +18,11 @@ String bourseAlertDescription(AlertRule rule, {bool persianDigits = true}) {
 
   switch (rule.conditionType) {
     case AlertConditionType.priceThreshold:
+      if (isBoth && (rule.upperTargetPrice != null || rule.lowerTargetPrice != null)) {
+        final low = BourseFormat.rial(rule.lowerTargetPrice, persianDigits: persianDigits);
+        final high = BourseFormat.rial(rule.upperTargetPrice, persianDigits: persianDigits);
+        return 'کانال قیمت: پایین‌تر از $low یا بالاتر از $high';
+      }
       final target = BourseFormat.rial(rule.targetPrice, persianDigits: persianDigits);
       return 'عبور قیمت ${up ? 'به بالاتر از' : 'به پایین‌تر از'} $target';
     case AlertConditionType.percentChange:

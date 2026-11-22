@@ -88,7 +88,7 @@ class BourseAlertApi {
     final condition = rule.direction == AlertDirection.below
         ? 'BELOW'
         : (rule.direction == AlertDirection.bothSides ? 'BOTHSIDES' : 'ABOVE');
-    final note = rule.customNote;
+    final note = rule.customNote ?? rule.upperNote ?? rule.lowerNote;
     return {
       'id': rule.uuid,
       'user_id': userId,
@@ -99,6 +99,10 @@ class BourseAlertApi {
       'condition_type': rule.conditionType.name,
       'direction': rule.direction.name,
       'both_way_behavior': rule.bothWayBehavior.name,
+      if (rule.upperTargetPrice != null) 'upper_target_price': rule.upperTargetPrice,
+      if (rule.lowerTargetPrice != null) 'lower_target_price': rule.lowerTargetPrice,
+      if (rule.upperNote != null && rule.upperNote!.isNotEmpty) 'upper_note': rule.upperNote,
+      if (rule.lowerNote != null && rule.lowerNote!.isNotEmpty) 'lower_note': rule.lowerNote,
       if (rule.percent != null) 'percent': rule.percent,
       if (rule.deltaAbsolute != null) 'delta_absolute': rule.deltaAbsolute,
       if (rule.basePrice != null) 'base_price': rule.basePrice,

@@ -66,8 +66,10 @@ void main() {
       }
     });
 
-    test('both-sides is not offered in v1', () {
-      expect(draft(direction: AlertDirection.bothSides).validate(), BourseAlertProblem.directionNotSupported);
+    test('both-sides works for percent/absolute and requires valid upper > lower for price', () {
+      expect(draft(kind: BourseAlertKind.percentChange, direction: AlertDirection.bothSides, amount: 3).validate(), isNull);
+      expect(draft(kind: BourseAlertKind.absoluteChange, direction: AlertDirection.bothSides, amount: 5000).validate(), isNull);
+      expect(draft(direction: AlertDirection.bothSides).validate(), BourseAlertProblem.bothSidesTargetsMissing);
     });
 
     test('the amount must be a positive, finite number', () {
