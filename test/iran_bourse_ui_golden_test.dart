@@ -43,8 +43,8 @@ void main() {
     WidgetTester tester, {
     required AppThemePalette palette,
   }) async {
-    // Fixed mobile phone viewport (390x844 logical @ 2x DPR) for deterministic golden snapshots.
-    tester.view.physicalSize = const Size(780, 1688);
+    // Fixed deterministic viewport (540x1100 logical @ 2x DPR) wide enough for Flutter's Ahem test font.
+    tester.view.physicalSize = const Size(1080, 2200);
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
