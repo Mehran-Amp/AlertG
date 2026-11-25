@@ -58,6 +58,9 @@ class SchedulerService {
     final activeRules = _alertRuleRepository.allRules.where((r) => r.isActive).toList();
 
     for (final rule in activeRules) {
+      // Iranian Bourse (tsetmc) rules are evaluated exclusively on the server against
+      // live alert_eligible quotes, order book & daily band state (IB-17b).
+      if (rule.exchangeId.toLowerCase() == 'tsetmc') continue;
       if (_evaluatingRuleUuids.contains(rule.uuid)) continue;
       if (rule.isInCooldown) continue;
 
@@ -142,6 +145,9 @@ class SchedulerService {
   }
 
   Future<bool> _evaluateSingleRule(AlertRule rule, DateTime now) async {
+    // Never evaluate Iranian Bourse (tsetmc) locally: prevents duplicate notifications
+    // alongside server FCM/WS and prevents closed-market false triggers (IB-17b).
+    if (rule.exchangeId.toLowerCase() == 'tsetmc') return false;
     try {
       // 1. Fetch current price & volume via smart dual-route (Server proxy for filtered exchanges, local for domestic)
       final ticker = await _getLiveTicker(rule, now);
