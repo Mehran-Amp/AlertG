@@ -18,7 +18,7 @@
 
 ### Current production host (updated 2026-11-20, verified 2026-11-25)
 
-- **Autonomous hosting on `server360`**: `tsetmc-gateway v0.2.2` now runs directly on `server360` (`http://127.0.0.1:8099`), managed by `~/tsetmc-gateway/run_gateway.sh` with 2 cron entries (`@reboot` + `*/5` watchdog).
+- **Autonomous hosting on `server360`**: `tsetmc-gateway v0.2.2` now runs directly on `server360` (`http://127.0.0.1:8099`), managed by `~/AlertG1/AlertG/scripts/bourse/run_gateway.sh` (config in `~/tsetmc-gateway/gateway.env`, mode `600`) with 2 cron entries (`@reboot` + `* * * * *` ensure watchdog).
 - **Upstream Iranian reachability**: Upstream TSETMC calls go through the authenticated HTTPS bridge on an Iranian host (`aegkala.com/tse-forward.php` v1.1, token-authenticated + restricted to `server360`'s outbound IP). No developer PC or reverse SSH tunnel is required.
 - **Stability verification (2026-11-25)**: After **4 days, 15 hours, 55 minutes** of continuous uptime (`pid 3409527`):
   - `poller.requests_made`: `81,282`, **`poller.failures`: `0`**, `poller.resets`: `0`, `stale`: `false`
@@ -26,7 +26,7 @@
   - `blocked|timed out` in `gateway.log`: `8` total across 4.5+ days
   - Process RSS memory: `53,696 KB` (`52.4 MB`, well under the `200 MB` budget)
   - Live trading-hours alert end-to-end test (`عیار` / Ayar, IB-17): passed with **1 phone push + 1 Telegram card** (no duplicate delivery).
-- **Rollback**: Stop the local gateway (`~/tsetmc-gateway/run_gateway.sh stop`), bring back the Iranian-IP PC + SSH reverse tunnel on `server360:8099` (see `IRAN_BOURSE_RUNBOOK.md` Appendix A). `IRAN_BOURSE_GATEWAY_URL` (`http://127.0.0.1:8099`) remains identical.
+- **Rollback**: Stop the local gateway (`~/AlertG1/AlertG/scripts/bourse/run_gateway.sh stop`, temporarily comment its 2 cron lines), and bring back the Iranian-IP PC + SSH reverse tunnel on `server360:8099` (see `IRAN_BOURSE_RUNBOOK.md` Appendix A). `IRAN_BOURSE_GATEWAY_URL` (`http://127.0.0.1:8099`) remains identical.
 
 ### Historical pilot host (2026-11-13 – 2026-11-20, superseded)
 
