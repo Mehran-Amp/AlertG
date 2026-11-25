@@ -89,6 +89,30 @@ class BourseStrings {
   static const String volume = 'حجم معاملات';
   static const String nav = 'ارزش خالص دارایی (NAV)';
   static const String queue = 'صف';
+  static const String queueBuyBadge = 'صف خرید';
+  static const String queueSellBadge = 'صف فروش';
+
+  /// Localized short badge text for a queue label (`buy` -> `صف خرید`, `sell` -> `صف فروش`).
+  static String? queueBadgeLabel(String? raw) {
+    if (raw == null) return null;
+    final t = raw.trim();
+    if (t.isEmpty) return null;
+    final lower = t.toLowerCase();
+    if (lower == 'buy' || lower == 'buy_queue' || t.contains('خرید')) {
+      return queueBuyBadge;
+    }
+    if (lower == 'sell' || lower == 'sell_queue' || t.contains('فروش')) {
+      return queueSellBadge;
+    }
+    return t;
+  }
+
+  /// True when a queue label represents a buy queue.
+  static bool isBuyQueueLabel(String? label) {
+    if (label == null) return false;
+    final lower = label.trim().toLowerCase();
+    return lower == 'buy' || lower == 'buy_queue' || label.contains('خرید');
+  }
   static const String lastTradeTime = 'زمان آخرین معامله';
   static const String updatedAt = 'آخرین بروزرسانی';
   static const String market = 'بازار';

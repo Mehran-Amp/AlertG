@@ -271,7 +271,8 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
     final theme = Theme.of(context);
     final d = widget.persianDigits;
     final pct = widget.quote.changePct;
-    final queueLabel = widget.quote.queueLabel;
+    final queueLabel = BourseStrings.queueBadgeLabel(widget.quote.queueLabel);
+    final isBuyQueue = BourseStrings.isBuyQueueLabel(queueLabel);
 
     final Color pctColor;
     if (pct != null && pct > 0) {
@@ -319,7 +320,7 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
                   key: const Key('bourse_workspace_queue_badge'),
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(
-                    color: (queueLabel.contains('خرید') ? AppTokens.positive : AppTokens.negative)
+                    color: (isBuyQueue ? AppTokens.positive : AppTokens.negative)
                         .withValues(alpha: 0.14),
                     borderRadius: BorderRadius.circular(6),
                   ),
@@ -328,7 +329,7 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
                     style: TextStyle(
                       fontSize: 10.5,
                       fontWeight: FontWeight.bold,
-                      color: queueLabel.contains('خرید') ? AppTokens.positive : AppTokens.negative,
+                      color: isBuyQueue ? AppTokens.positive : AppTokens.negative,
                     ),
                   ),
                 ),

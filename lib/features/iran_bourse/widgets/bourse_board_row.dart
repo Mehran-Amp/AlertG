@@ -64,8 +64,9 @@ class BourseBoardRow extends StatelessWidget {
         ? BourseText.secondaryColor(context)
         : (pct > 0 ? AppTokens.positive : AppTokens.negative);
     final tag = tagFor(item, session);
-    final queueLabel = item.traded ? item.queueLabel : null;
-    final isBuyQueue = queueLabel != null && queueLabel.contains('خرید');
+    final queueLabel =
+        item.traded ? BourseStrings.queueBadgeLabel(item.queueLabel) : null;
+    final isBuyQueue = BourseStrings.isBuyQueueLabel(queueLabel);
 
     return Material(
       color: Colors.transparent,

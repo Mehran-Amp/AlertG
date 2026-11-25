@@ -41,7 +41,7 @@ class BourseQuoteCard extends StatelessWidget {
     final q = quote;
     final d = persianDigits;
     final title = q.ticker.isNotEmpty ? q.ticker : q.name;
-    final queue = q.queueLabel;
+    final queue = BourseStrings.queueBadgeLabel(q.queueLabel);
 
     return Card(
       key: const Key('bourse_quote_card'),
