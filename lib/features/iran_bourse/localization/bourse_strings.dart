@@ -42,6 +42,8 @@ class BourseStrings {
         return 'اوراق';
       case BourseGroup.rights:
         return 'حق تقدم';
+      case BourseGroup.commodities:
+        return 'کالا و گواهی';
       case BourseGroup.derivatives:
         return 'اختیار و آتی';
       case BourseGroup.other:

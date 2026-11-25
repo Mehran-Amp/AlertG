@@ -6,6 +6,7 @@ enum BourseGroup {
   funds('funds'),
   bonds('bonds'),
   rights('rights'),
+  commodities('commodities'),
   derivatives('derivatives'),
   other('other');
 
@@ -100,6 +101,7 @@ class BourseBoardItem {
   final String? sectorCode;
   final String? sector;
   final String? updateTime;
+  final Object? queueRaw;
 
   const BourseBoardItem({
     required this.id,
@@ -118,10 +120,14 @@ class BourseBoardItem {
     this.sectorCode,
     this.sector,
     this.updateTime,
+    this.queueRaw,
   });
 
   /// Shown name: the ticker, or the full name when the ticker is empty.
   String get displayTicker => ticker.isNotEmpty ? ticker : name;
+
+  /// Short Persian queue label (`صف خرید` / `صف فروش`) when queued, else null.
+  String? get queueLabel => queueLabelOf(queueRaw);
 
   /// Returns `null` for an unusable row (no string id of 12-20 digits). Never throws.
   static BourseBoardItem? tryParse(Object? json) {
@@ -145,6 +151,7 @@ class BourseBoardItem {
       sectorCode: _str(json['sector_code']),
       sector: _str(json['sector']),
       updateTime: _str(json['update_time']),
+      queueRaw: json['queue'],
     );
   }
 }

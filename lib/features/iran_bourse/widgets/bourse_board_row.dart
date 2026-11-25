@@ -42,6 +42,8 @@ class BourseBoardRow extends StatelessWidget {
         return Icons.account_balance_rounded;
       case BourseGroup.rights:
         return Icons.receipt_long_rounded;
+      case BourseGroup.commodities:
+        return Icons.grain_rounded;
       case BourseGroup.derivatives:
         return Icons.swap_vert_rounded;
       case BourseGroup.other:
@@ -62,6 +64,8 @@ class BourseBoardRow extends StatelessWidget {
         ? BourseText.secondaryColor(context)
         : (pct > 0 ? AppTokens.positive : AppTokens.negative);
     final tag = tagFor(item, session);
+    final queueLabel = item.traded ? item.queueLabel : null;
+    final isBuyQueue = queueLabel != null && queueLabel.contains('خرید');
 
     return Material(
       color: Colors.transparent,
@@ -111,6 +115,30 @@ class BourseBoardRow extends StatelessWidget {
                             ),
                           ),
                         ),
+                        if (queueLabel != null) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            key: const Key('bourse_row_queue_badge'),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: (isBuyQueue ? AppTokens.positive : AppTokens.negative)
+                                  .withValues(alpha: 0.14),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: (isBuyQueue ? AppTokens.positive : AppTokens.negative)
+                                    .withValues(alpha: 0.4),
+                              ),
+                            ),
+                            child: Text(
+                              queueLabel,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: isBuyQueue ? AppTokens.positive : AppTokens.negative,
+                              ),
+                            ),
+                          ),
+                        ],
                         if (alertCount > 0) ...[
                           const SizedBox(width: 6),
                           Container(

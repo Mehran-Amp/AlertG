@@ -173,5 +173,116 @@ void main() {
       expect(find.byKey(const Key('bourse_form_only_live_note')), findsNothing);
       expect(find.text(BourseStrings.alertOnlyLiveNote), findsNothing);
     });
+
+    testWidgets('BourseBoardRow shows queue badge only when traded and queued', (t) async {
+      const queuedBuy = BourseBoardItem(
+        id: _fooladId,
+        ticker: 'فولاد',
+        name: 'فولاد مبارکه اصفهان',
+        price: 4820,
+        priceSource: BoursePriceSource.last,
+        changePct: 3.0,
+        traded: true,
+        group: BourseGroup.stocks,
+        queueRaw: 'buy',
+      );
+      await t.pumpWidget(
+        const MaterialApp(
+          home: Directionality(
+            textDirection: TextDirection.rtl,
+            child: Scaffold(
+              body: BourseBoardRow(item: queuedBuy, session: BourseSession.open),
+            ),
+          ),
+        ),
+      );
+      expect(find.byKey(const Key('bourse_row_queue_badge')), findsOneWidget);
+      expect(find.text('صف خرید'), findsOneWidget);
+
+      // Untraded symbol with stale queue flag must NOT show a queue badge
+      const untradedQueued = BourseBoardItem(
+        id: _fooladId,
+        ticker: 'ضسپا8090',
+        name: 'اختیار خرید',
+        price: 1,
+        priceSource: BoursePriceSource.last,
+        traded: false,
+        group: BourseGroup.derivatives,
+        queueRaw: 'sell',
+      );
+      await t.pumpWidget(
+        const MaterialApp(
+          home: Directionality(
+            textDirection: TextDirection.rtl,
+            child: Scaffold(
+              body: BourseBoardRow(item: untradedQueued, session: BourseSession.open),
+            ),
+          ),
+        ),
+      );
+      expect(find.byKey(const Key('bourse_row_queue_badge')), findsNothing);
+    });
+
+    testWidgets('BourseBrowsePage exposes commodities tab and requests group=commodities', (t) async {
+      t.view.physicalSize = const Size(2400, 1200);
+      t.view.devicePixelRatio = 1.0;
+      addTearDown(t.view.resetPhysicalSize);
+      addTearDown(t.view.resetDevicePixelRatio);
+
+      final calls = <Uri>[];
+      final service = IranBourseService(
+        client: MockClient((req) async {
+          calls.add(req.url);
+          return _jsonOk({
+            'unit': 'IRR',
+            'session': 'OPEN',
+            'stale': false,
+            'as_of': 1794726798,
+            'total': 1,
+            'offset': 0,
+            'limit': 50,
+            'sort': 'value',
+            'order': 'desc',
+            'groups': {
+              'stocks': 0,
+              'funds': 0,
+              'bonds': 0,
+              'rights': 0,
+              'commodities': 13,
+              'derivatives': 0,
+              'other': 0,
+            },
+            'other_types': {},
+            'items': [
+              {
+                'id': _ayarId,
+                'ticker': 'زعف0510پ19',
+                'name': 'زعفران نگین قاینات',
+                'price': 910000,
+                'price_source': 'last',
+                'change_pct': 1.5,
+                'traded': true,
+                'group': 'commodities',
+                'type': 'زعفران (کالا)',
+              },
+            ],
+          });
+        }),
+        baseUrl: () => 'https://srv.test',
+        apiKey: () => 'k',
+      );
+
+      await t.pumpWidget(
+        MaterialApp(
+          home: BourseBrowsePage(service: service, debounce: Duration.zero),
+        ),
+      );
+      await t.pumpAndSettle();
+
+      expect(find.byKey(const Key('bourse_tab_commodities')), findsOneWidget);
+      await t.tap(find.byKey(const Key('bourse_tab_commodities')));
+      await t.pumpAndSettle();
+      expect(calls.last.queryParameters['group'], 'commodities');
+    });
   });
 }

@@ -29,9 +29,18 @@ GROUP_STOCKS = "stocks"
 GROUP_FUNDS = "funds"
 GROUP_BONDS = "bonds"
 GROUP_RIGHTS = "rights"
+GROUP_COMMODITIES = "commodities"
 GROUP_DERIVATIVES = "derivatives"
 GROUP_OTHER = "other"
-GROUPS = (GROUP_STOCKS, GROUP_FUNDS, GROUP_BONDS, GROUP_RIGHTS, GROUP_DERIVATIVES, GROUP_OTHER)
+GROUPS = (
+    GROUP_STOCKS,
+    GROUP_FUNDS,
+    GROUP_BONDS,
+    GROUP_RIGHTS,
+    GROUP_COMMODITIES,
+    GROUP_DERIVATIVES,
+    GROUP_OTHER,
+)
 
 SORT_KEYS = ("value", "volume", "change", "price", "name")
 
@@ -40,7 +49,7 @@ _LETTERS = str.maketrans({"ي": "ی", "ك": "ک", "ى": "ی", "‌": " "})
 # Fields kept per instrument (everything else the gateway sends is dropped).
 KEEP = ("id", "isin", "ticker", "name", "last", "close", "yesterday", "last_change_pct",
         "close_change_pct", "high", "low", "volume", "value", "trades", "traded", "upper_limit",
-        "lower_limit", "nav", "update_time", "market_code", "market", "board_code", "board",
+        "lower_limit", "nav", "queue", "update_time", "market_code", "market", "board_code", "board",
         "type_code", "type", "sector_code", "sector")
 
 
@@ -49,10 +58,21 @@ def norm(text: Any) -> str:
     return " ".join(str(text or "").translate(_LETTERS).split())
 
 
-# Type codes seen on the live feed for rows that arrive WITHOUT a type name (IB-16a2).
-CODE_GROUPS = {"315": GROUP_FUNDS,      # commodity-backed / project funds (sector: tradable fund)
-               "206": GROUP_BONDS,      # bank "gam" securities
-               "403": GROUP_RIGHTS, "404": GROUP_RIGHTS}   # rights issues (tickers start with "ح.")
+# Type codes seen on the live feed for rows that arrive WITHOUT a type name (IB-16a2, Phase 20).
+CODE_GROUPS = {
+    "313": GROUP_STOCKS,        # base/small market equities (e.g., رهیاب)
+    "315": GROUP_FUNDS,         # commodity-backed / project funds (sector: tradable fund)
+    "206": GROUP_BONDS,         # bank "gam" securities
+    "307": GROUP_BONDS,         # housing facility certificates (تسهیلات مسکن)
+    "403": GROUP_RIGHTS,
+    "404": GROUP_RIGHTS,        # rights issues (tickers start with "ح.")
+    "701": GROUP_COMMODITIES,   # saffron & commodity deposit certificates
+    "201": GROUP_COMMODITIES,   # electricity capacity certificates (گواهی ظرفیت)
+    "801": GROUP_COMMODITIES,   # energy exchange base-load daily contracts
+    "802": GROUP_COMMODITIES,   # energy exchange base-load weekly contracts
+    "803": GROUP_COMMODITIES,   # energy exchange base-load monthly contracts
+    "804": GROUP_COMMODITIES,   # energy exchange base-load seasonal contracts
+}
 
 
 def group_of(row: Dict[str, Any]) -> str:
@@ -65,16 +85,23 @@ def group_of(row: Dict[str, Any]) -> str:
             return by_code
         if "صندوق" in norm(row.get("sector")):
             return GROUP_FUNDS
-        if norm(row.get("name")).startswith("ح."):
+        n = norm(row.get("name"))
+        if n.startswith("ح."):
             return GROUP_RIGHTS
+        if "تسهیلات مسکن" in n:
+            return GROUP_BONDS
+        if any(k in n for k in ("زعفران", "گواهی سپرده", "گواهی ظرفیت", "بار پایه")):
+            return GROUP_COMMODITIES
     if "اختیار" in t or "آتی" in t:
         return GROUP_DERIVATIVES
     if "حق تقدم" in t:
         return GROUP_RIGHTS
     if "صندوق" in t:
         return GROUP_FUNDS
-    if any(k in t for k in ("اوراق", "صکوک", "مرابحه", "اجاره", "مشارکت", "سلف", "منفعت")):
+    if any(k in t for k in ("اوراق", "صکوک", "مرابحه", "اجاره", "مشارکت", "سلف", "منفعت", "تسهیلات")):
         return GROUP_BONDS
+    if any(k in t for k in ("زعفران", "گواهی سپرده", "گواهی ظرفیت", "کالا", "بار پایه")):
+        return GROUP_COMMODITIES
     if "سهام" in t or "سهم" in t:
         return GROUP_STOCKS
     return GROUP_OTHER
@@ -110,6 +137,7 @@ def project(row: Dict[str, Any]) -> Dict[str, Any]:
         "volume": row.get("volume"),
         "value": row.get("value"),
         "traded": bool(row.get("traded")),
+        "queue": row.get("queue"),
         "group": group_of(row),
         "market_code": row.get("market_code"),
         "type_code": row.get("type_code"),

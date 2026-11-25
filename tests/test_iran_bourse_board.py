@@ -82,11 +82,24 @@ class TestGrouping(unittest.TestCase):
     def test_rows_without_a_type_name_use_code_sector_or_name(self):
         self.assertEqual(group_of({"type": None, "type_code": "315", "sector": "صندوق سرمایه‌گذاری قابل معامله"}), "funds")
         self.assertEqual(group_of({"type": None, "type_code": "206", "sector": None, "name": "گام بانک ملت0607"}), "bonds")
+        self.assertEqual(group_of({"type": None, "type_code": "307", "name": "امتیاز تسهیلات مسکن سال1405"}), "bonds")
+        self.assertEqual(group_of({"type": None, "type_code": "313", "name": "رهیاب پیام گستران"}), "stocks")
         self.assertEqual(group_of({"type": None, "type_code": 404, "name": "ح. پتروشیمی اصفهان"}), "rights")
+        self.assertEqual(group_of({"type": None, "type_code": "701", "name": "زعفران0510"}), "commodities")
+        self.assertEqual(group_of({"type": None, "type_code": "803", "name": "بار پایه آذر"}), "commodities")
+        self.assertEqual(group_of({"type": None, "type_code": "201", "name": "گواهی ظرفیت نقدی"}), "commodities")
         self.assertEqual(group_of({"type": None, "type_code": "999", "sector": "صندوق X"}), "funds")
         self.assertEqual(group_of({"type": None, "type_code": "999", "name": "ح. جهان فولاد"}), "rights")
         self.assertEqual(group_of({"type": None, "type_code": "999", "name": "چیز"}), "other")
-        self.assertEqual(group_of({"type": "زعفران (کالا)", "type_code": "315"}), "other")   # a named type wins over the code
+        self.assertEqual(group_of({"type": "زعفران (کالا)", "type_code": "315"}), "commodities")   # named type wins over code 315 (funds)
+        self.assertEqual(group_of({"type": "گواهی سپرده طلا"}), "commodities")
+        self.assertEqual(group_of({"type": "صندوق کالایی"}), "funds")  # commodity ETF stays in funds
+
+    def test_project_exposes_queue_field(self):
+        out_buy = bmod.project(row(10, "توریل", "سهام", queue="buy"))
+        out_none = bmod.project(row(11, "فولاد", "سهام"))
+        self.assertEqual(out_buy["queue"], "buy")
+        self.assertIsNone(out_none["queue"])
 
     def test_arabic_letters_and_half_space_are_normalized(self):
         self.assertEqual(norm("صندوق  كالايي"), "صندوق کالایی")
