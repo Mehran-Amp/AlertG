@@ -51,7 +51,7 @@ class _Harness {
         fcmToken: () async => 'tok',
       );
 
-  Widget page({AppThemePalette palette = AppThemePalette.darkNavy}) => MaterialApp(
+  Widget page({AppThemePalette palette = AppThemePalette.darkSapphire}) => MaterialApp(
         theme: AppSettings(themePalette: palette).buildThemeData(),
         home: BourseAlertFormPage(
           quote: _quote(),
