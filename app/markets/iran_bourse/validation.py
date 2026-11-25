@@ -7,6 +7,7 @@ instrument id that exists in the gateway, a supported alert type, price_field la
 The ticker is stored in market_symbol. Percent / absolute alerts get the daily base
 (yesterday) filled in so the shared alert filter picks them up.
 """
+import math
 from typing import Any, Dict, List, Tuple
 
 from fastapi import HTTPException
@@ -17,7 +18,10 @@ from app.markets.iran_bourse.directory import DIRECTORY
 from app.markets.iran_bourse.price import valid_instrument_id
 
 BOURSE = "tsetmc"
-SUPPORTED_TYPES = ("priceThreshold", "percentChange", "absolutePriceChange")
+SUPPORTED_TYPES = (
+    "priceThreshold", "percentChange", "absolutePriceChange",
+    "queueBuy", "queueSell", "volumeAbove",
+)
 
 
 class BourseAlertError(Exception):
@@ -85,6 +89,15 @@ async def check_bourse_alert(alert: Any) -> None:
             pct = _get(alert, "percent")
             if not isinstance(pct, (int, float)) or pct <= 0:
                 raise BourseAlertError(400, "percent must be a positive number.")
+    elif ctype in ("queueBuy", "queueSell"):
+        min_q = (raw or {}).get("min_queue_volume")
+        if min_q is not None:
+            if isinstance(min_q, bool) or not isinstance(min_q, (int, float)) or not math.isfinite(float(min_q)) or min_q < 0:
+                raise BourseAlertError(400, "raw_rule.min_queue_volume must be a non-negative number.")
+    elif ctype == "volumeAbove":
+        vol_thresh = _get(alert, "target_price")
+        if isinstance(vol_thresh, bool) or not isinstance(vol_thresh, (int, float)) or not math.isfinite(float(vol_thresh)) or vol_thresh <= 0:
+            raise BourseAlertError(400, "volumeAbove requires a positive share volume in target_price.")
 
 
 async def validate_bourse_alert(alert: Any) -> None:

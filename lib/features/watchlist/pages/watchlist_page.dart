@@ -177,8 +177,19 @@ TargetProgressState _computeTargetProgressState(AlertRule rule) {
       break;
 
     case AlertConditionType.volumeChange:
+    case AlertConditionType.volumeAbove:
       activeColor = tvGreen;
       progress = 0.5;
+      break;
+
+    case AlertConditionType.queueBuy:
+      activeColor = tvGreen;
+      progress = 0.0;
+      break;
+
+    case AlertConditionType.queueSell:
+      activeColor = tvRed;
+      progress = 0.0;
       break;
   }
 
@@ -1506,6 +1517,16 @@ class _WatchlistPageState extends State<WatchlistPage> {
 
       case AlertConditionType.volumeChange:
         return '${lang == 'ckb' ? "هەڵکشانی قەبارە" : (isFa ? "جهش حجم" : "Volume jump")} ${(rule.volumePercent ?? 0).toStringAsFixed(1)}%';
+
+      case AlertConditionType.queueBuy:
+        return isFa ? 'صف خرید' : 'Buy queue';
+
+      case AlertConditionType.queueSell:
+        return isFa ? 'صف فروش' : 'Sell queue';
+
+      case AlertConditionType.volumeAbove:
+        final v = (rule.targetPrice ?? 0).round();
+        return isFa ? 'حجم ≥ $v سهم' : 'Volume >= $v';
     }
   }
 }

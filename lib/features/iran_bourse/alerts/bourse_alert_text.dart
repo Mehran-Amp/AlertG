@@ -32,5 +32,22 @@ String bourseAlertDescription(AlertRule rule, {bool persianDigits = true}) {
       return 'تغییر قیمت $sign$amount نسبت به قیمت دیروز';
     case AlertConditionType.volumeChange:
       return 'هشدار حجم معاملات (برای بورس پشتیبانی نمی‌شود)';
+    case AlertConditionType.queueBuy:
+      final minVol = rule.minQueueVolume;
+      if (minVol != null && minVol > 0) {
+        final vol = BourseFormat.number(minVol.round(), persianDigits: persianDigits);
+        return 'ورود به صف خرید (حداقل $vol سهم)';
+      }
+      return 'ورود به صف خرید';
+    case AlertConditionType.queueSell:
+      final minVol = rule.minQueueVolume;
+      if (minVol != null && minVol > 0) {
+        final vol = BourseFormat.number(minVol.round(), persianDigits: persianDigits);
+        return 'ورود به صف فروش (حداقل $vol سهم)';
+      }
+      return 'ورود به صف فروش';
+    case AlertConditionType.volumeAbove:
+      final vol = BourseFormat.number((rule.targetPrice ?? 0).round(), persianDigits: persianDigits);
+      return 'حجم معاملات امروز ≥ $vol سهم';
   }
 }

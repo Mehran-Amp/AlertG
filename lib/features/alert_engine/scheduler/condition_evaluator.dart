@@ -47,6 +47,10 @@ abstract class ConditionEvaluator {
         return _evaluateAbsolutePriceChange(rule, currentPrice);
       case AlertConditionType.volumeChange:
         return _evaluateVolumeChange(rule, currentVolume ?? 0.0);
+      case AlertConditionType.queueBuy:
+      case AlertConditionType.queueSell:
+      case AlertConditionType.volumeAbove:
+        return EvaluationResult.notTriggered;
     }
   }
 

@@ -19,6 +19,15 @@ enum BourseAlertKind {
 
   /// Price moves by an amount in Rial versus yesterday's close.
   absoluteChange,
+
+  /// Instrument enters a buy queue at today's upper limit.
+  queueBuy,
+
+  /// Instrument enters a sell queue at today's lower limit.
+  queueSell,
+
+  /// Today's cumulative traded share volume reaches a threshold.
+  volumeAbove,
 }
 
 /// Which Bourse price field the server evaluates against (IB-8 `raw_rule.price_field`).
@@ -63,8 +72,12 @@ class BourseAlertDraft {
   final AlertDirection direction;
 
   /// Rial for single-direction [BourseAlertKind.price] and for [BourseAlertKind.absoluteChange];
-  /// percent (e.g. 3.0 for 3 %) for [BourseAlertKind.percentChange]. Null while empty.
+  /// percent (e.g. 3.0 for 3 %) for [BourseAlertKind.percentChange];
+  /// share count for [BourseAlertKind.volumeAbove]. Null while empty or for queue alerts.
   final double? amount;
+
+  /// Optional minimum queue volume (shares) for [BourseAlertKind.queueBuy] / [BourseAlertKind.queueSell].
+  final double? minQueueVolume;
 
   /// Upper target price in Rial for two-way [BourseAlertKind.price] alerts.
   final double? upperAmount;
@@ -106,6 +119,7 @@ class BourseAlertDraft {
     required this.kind,
     required this.direction,
     required this.amount,
+    this.minQueueVolume,
     this.upperAmount,
     this.lowerAmount,
     this.upperNote,
@@ -126,6 +140,7 @@ class BourseAlertDraft {
     required BourseAlertKind kind,
     required AlertDirection direction,
     required double? amount,
+    double? minQueueVolume,
     double? upperAmount,
     double? lowerAmount,
     String? upperNote,
@@ -142,6 +157,7 @@ class BourseAlertDraft {
       kind: kind,
       direction: direction,
       amount: amount,
+      minQueueVolume: minQueueVolume,
       upperAmount: upperAmount,
       lowerAmount: lowerAmount,
       upperNote: upperNote,
@@ -157,6 +173,12 @@ class BourseAlertDraft {
     );
   }
 
+  bool get isQueue => kind == BourseAlertKind.queueBuy || kind == BourseAlertKind.queueSell;
+  bool get isVolume => kind == BourseAlertKind.volumeAbove;
+  bool get isPriceBased =>
+      kind == BourseAlertKind.price ||
+      kind == BourseAlertKind.percentChange ||
+      kind == BourseAlertKind.absoluteChange;
   bool get isTwoWayPrice => kind == BourseAlertKind.price && direction == AlertDirection.bothSides;
 
   /// Name shown in lists: the ticker, falling back to the full name, then the id.
@@ -171,6 +193,21 @@ class BourseAlertDraft {
   /// `null` when the draft can be turned into an alert.
   BourseAlertProblem? validate() {
     if (!BourseInstrument.isValidId(instrumentId)) return BourseAlertProblem.invalidInstrument;
+
+    if (isQueue) {
+      final minVol = minQueueVolume;
+      if (minVol != null && (!_isFiniteNum(minVol) || minVol < 0)) {
+        return BourseAlertProblem.amountNotPositive;
+      }
+      return null;
+    }
+
+    if (isVolume) {
+      final a = amount;
+      if (!_isFiniteNum(a)) return BourseAlertProblem.amountMissing;
+      if (a! <= 0) return BourseAlertProblem.amountNotPositive;
+      return null;
+    }
 
     if (isTwoWayPrice) {
       final up = upperAmount;
@@ -192,9 +229,9 @@ class BourseAlertDraft {
     return null;
   }
 
-  /// The single trigger price in Rial for one-way alerts (null for both-sides alerts).
+  /// The single trigger price in Rial for one-way alerts (null for both-sides / queue / volume alerts).
   double? get triggerPrice {
-    if (direction == AlertDirection.bothSides) return null;
+    if (!isPriceBased || direction == AlertDirection.bothSides) return null;
     final a = amount;
     if (!_isFiniteNum(a) || a! <= 0) return null;
     if (kind == BourseAlertKind.price) return a;
@@ -207,6 +244,7 @@ class BourseAlertDraft {
 
   /// Upper trigger price in Rial when scanning upward or both sides.
   double? get upperTriggerPrice {
+    if (!isPriceBased) return null;
     if (isTwoWayPrice) {
       return (_isFiniteNum(upperAmount) && upperAmount! > 0) ? upperAmount : null;
     }
@@ -222,6 +260,7 @@ class BourseAlertDraft {
 
   /// Lower trigger price in Rial when scanning downward or both sides.
   double? get lowerTriggerPrice {
+    if (!isPriceBased) return null;
     if (isTwoWayPrice) {
       return (_isFiniteNum(lowerAmount) && lowerAmount! > 0) ? lowerAmount : null;
     }
@@ -237,6 +276,7 @@ class BourseAlertDraft {
 
   /// A hint about the target, or null. Never blocks creating the alert.
   BourseAlertWarning? warning() {
+    if (!isPriceBased) return null;
     final upLimit = upperLimit;
     final lowLimit = lowerLimit;
     final last = lastPrice;
@@ -292,21 +332,38 @@ class BourseAlertDraft {
     }
 
     final AlertConditionType type;
+    final AlertDirection effectiveDirection;
     switch (kind) {
       case BourseAlertKind.price:
         type = AlertConditionType.priceThreshold;
+        effectiveDirection = direction;
         break;
       case BourseAlertKind.percentChange:
         type = AlertConditionType.percentChange;
+        effectiveDirection = direction;
         break;
       case BourseAlertKind.absoluteChange:
         type = AlertConditionType.absolutePriceChange;
+        effectiveDirection = direction;
+        break;
+      case BourseAlertKind.queueBuy:
+        type = AlertConditionType.queueBuy;
+        effectiveDirection = AlertDirection.above;
+        break;
+      case BourseAlertKind.queueSell:
+        type = AlertConditionType.queueSell;
+        effectiveDirection = AlertDirection.below;
+        break;
+      case BourseAlertKind.volumeAbove:
+        type = AlertConditionType.volumeAbove;
+        effectiveDirection = AlertDirection.above;
         break;
     }
 
     final cleanedNote = _cleanNote(note);
     final cleanedUpperNote = isTwoWayPrice ? _cleanNote(upperNote) : null;
     final cleanedLowerNote = isTwoWayPrice ? _cleanNote(lowerNote) : null;
+    final effectiveMinQueue = (isQueue && minQueueVolume != null && minQueueVolume! > 0) ? minQueueVolume : null;
 
     final rule = AlertRule.create(
       pair: CurrencyPair(
@@ -317,9 +374,9 @@ class BourseAlertDraft {
       exchangeId: bourseExchangeId,
       checkIntervalSeconds: checkIntervalSeconds,
       conditionType: type,
-      direction: direction,
+      direction: effectiveDirection,
       bothWayBehavior: isTwoWayPrice ? bothWayBehavior : BothWayBehavior.oco,
-      targetPrice: (kind == BourseAlertKind.price && !isTwoWayPrice) ? amount : null,
+      targetPrice: (kind == BourseAlertKind.price && !isTwoWayPrice) || isVolume ? amount : null,
       upperTargetPrice: isTwoWayPrice ? upperAmount : null,
       upperNote: cleanedUpperNote,
       lowerTargetPrice: isTwoWayPrice ? lowerAmount : null,
@@ -327,8 +384,11 @@ class BourseAlertDraft {
       percent: kind == BourseAlertKind.percentChange ? amount : null,
       deltaAbsolute: kind == BourseAlertKind.absoluteChange ? amount : null,
       // Change alerts start from yesterday's close (the server's daily base);
-      // a price-level alert starts from the last known price.
-      currentPrice: (kind == BourseAlertKind.price ? lastPrice : prevClose)?.toDouble(),
+      // price-level, queue, and volume alerts store the last known price.
+      currentPrice: ((kind == BourseAlertKind.percentChange || kind == BourseAlertKind.absoluteChange)
+              ? prevClose
+              : lastPrice)
+          ?.toDouble(),
       customNote: isTwoWayPrice ? (cleanedNote ?? cleanedUpperNote ?? cleanedLowerNote) : cleanedNote,
       customSound: customSound,
       language: language,
@@ -337,7 +397,8 @@ class BourseAlertDraft {
       vibrationEnabled: vibrationEnabled,
       flashEnabled: flashEnabled,
       preferServerProxy: true,
-      priceField: priceField == BoursePriceField.close ? 'close' : null,
+      priceField: (isPriceBased && priceField == BoursePriceField.close) ? 'close' : null,
+      minQueueVolume: effectiveMinQueue,
     );
 
     final effectiveRecurring = isTwoWayPrice

@@ -247,96 +247,108 @@ async def evaluate_ready_alerts(client, ready_alerts: List[Any], current_time: f
         lower_t = getattr(alert, 'lower_target_price', None)
         eff_cond = (alert.condition or 'ABOVE').upper()
 
+        special_bourse_result = None
         if cached_meta.get('category') == 'iran_bourse':
-            # IB-8: price_field, daily base (yesterday) for percent / absolute change
-            from app.markets.iran_bourse.alert_rules import rule_inputs
-            current_price, cond_type, pct, base_p = rule_inputs(alert, current_price, cached_meta, cond_type, pct, base_p)
-
-        eff_target = alert.target_price
-        eff_upper = upper_t
-        eff_lower = lower_t
-
-        if cond_type == 'percentChange' and pct is not None and pct > 0 and base_p and base_p > 0:
-            eff_upper = base_p * (1.0 + pct / 100.0)
-            eff_lower = base_p * (1.0 - pct / 100.0)
-            if eff_cond in ['BOTHSIDES', 'BOTH']:
-                eff_target = eff_upper if current_price >= base_p else eff_lower
-            elif eff_cond == 'BELOW':
-                eff_target = eff_lower
+            # IB-8 & Phase 21: price_field, daily base (yesterday), and queue/volume alerts
+            from app.markets.iran_bourse.alert_rules import (
+                evaluate_special_alert,
+                is_bourse_special_alert,
+                rule_inputs,
+            )
+            if is_bourse_special_alert(alert):
+                special_bourse_result = evaluate_special_alert(alert, current_price, cached_meta)
             else:
-                eff_target = eff_upper
-        elif eff_upper is not None and eff_lower is not None:
-            eff_target = eff_upper if current_price >= ((eff_upper + eff_lower) / 2.0) else eff_lower
+                current_price, cond_type, pct, base_p = rule_inputs(alert, current_price, cached_meta, cond_type, pct, base_p)
 
-        # 2. Level-Crossing Guard (Edge-Trigger Hysteresis across ALL markets):
-        is_fresh_alert = (getattr(alert, 'last_eval_price', None) is None)
-        if is_fresh_alert:
-            alert.last_eval_price = current_price
-            is_initially_triggered = False
-            if eff_upper is not None and eff_lower is not None and eff_cond in ['BOTHSIDES', 'BOTH']:
-                is_initially_triggered = (current_price >= eff_upper or current_price <= eff_lower)
-            elif eff_cond == 'ABOVE' and current_price >= eff_target:
-                is_initially_triggered = True
-            elif eff_cond == 'BELOW' and current_price <= eff_target:
-                is_initially_triggered = True
+        if special_bourse_result is not None:
+            triggered, is_above, triggered_target = special_bourse_result
+            triggered_note = alert.note
+        else:
+            eff_target = alert.target_price
+            eff_upper = upper_t
+            eff_lower = lower_t
 
-            if is_initially_triggered:
-                # Edge Guard: only arm for crossing if the alert was restored
-                # from a previous session (last_eval_price was not None) or
-                # explicitly synced with waiting_for_cross=True. For a freshly
-                # created alert (is_fresh_alert is True and waiting_for_cross
-                # is False), trigger immediately instead of waiting for a cross.
-                if is_fresh_alert and not getattr(alert, 'waiting_for_cross', False):
-                    # Fresh alert: fall through to trigger below.
-                    pass
+            if cond_type == 'percentChange' and pct is not None and pct > 0 and base_p and base_p > 0:
+                eff_upper = base_p * (1.0 + pct / 100.0)
+                eff_lower = base_p * (1.0 - pct / 100.0)
+                if eff_cond in ['BOTHSIDES', 'BOTH']:
+                    eff_target = eff_upper if current_price >= base_p else eff_lower
+                elif eff_cond == 'BELOW':
+                    eff_target = eff_lower
                 else:
-                    alert.waiting_for_cross = True
-                    print(f"🛡️ [Edge Guard] {alert.symbol} ({alert.exchange}): initial price {current_price} already meets target {eff_target}. Armed for crossing.")
-                    return
+                    eff_target = eff_upper
+            elif eff_upper is not None and eff_lower is not None:
+                eff_target = eff_upper if current_price >= ((eff_upper + eff_lower) / 2.0) else eff_lower
 
-        # If waiting for price to cross to the non-triggered side first:
-        if getattr(alert, 'waiting_for_cross', False):
-            if eff_upper is not None and eff_lower is not None and eff_cond in ['BOTHSIDES', 'BOTH']:
-                if current_price < eff_upper and current_price > eff_lower:
+            # 2. Level-Crossing Guard (Edge-Trigger Hysteresis across ALL markets):
+            is_fresh_alert = (getattr(alert, 'last_eval_price', None) is None)
+            if is_fresh_alert:
+                alert.last_eval_price = current_price
+                is_initially_triggered = False
+                if eff_upper is not None and eff_lower is not None and eff_cond in ['BOTHSIDES', 'BOTH']:
+                    is_initially_triggered = (current_price >= eff_upper or current_price <= eff_lower)
+                elif eff_cond == 'ABOVE' and current_price >= eff_target:
+                    is_initially_triggered = True
+                elif eff_cond == 'BELOW' and current_price <= eff_target:
+                    is_initially_triggered = True
+
+                if is_initially_triggered:
+                    # Edge Guard: only arm for crossing if the alert was restored
+                    # from a previous session (last_eval_price was not None) or
+                    # explicitly synced with waiting_for_cross=True. For a freshly
+                    # created alert (is_fresh_alert is True and waiting_for_cross
+                    # is False), trigger immediately instead of waiting for a cross.
+                    if is_fresh_alert and not getattr(alert, 'waiting_for_cross', False):
+                        # Fresh alert: fall through to trigger below.
+                        pass
+                    else:
+                        alert.waiting_for_cross = True
+                        print(f"🛡️ [Edge Guard] {alert.symbol} ({alert.exchange}): initial price {current_price} already meets target {eff_target}. Armed for crossing.")
+                        return
+
+            # If waiting for price to cross to the non-triggered side first:
+            if getattr(alert, 'waiting_for_cross', False):
+                if eff_upper is not None and eff_lower is not None and eff_cond in ['BOTHSIDES', 'BOTH']:
+                    if current_price < eff_upper and current_price > eff_lower:
+                        alert.waiting_for_cross = False
+                        print(f"🎯 [Edge Armed] {alert.symbol} entered corridor between {eff_lower} and {eff_upper} ({current_price}).")
+                elif eff_cond == 'ABOVE' and current_price < eff_target:
                     alert.waiting_for_cross = False
-                    print(f"🎯 [Edge Armed] {alert.symbol} entered corridor between {eff_lower} and {eff_upper} ({current_price}).")
-            elif eff_cond == 'ABOVE' and current_price < eff_target:
-                alert.waiting_for_cross = False
-                print(f"🎯 [Edge Armed] {alert.symbol} dipped below {eff_target} ({current_price}). Ready to trigger on upward crossing.")
-            elif eff_cond == 'BELOW' and current_price > eff_target:
-                alert.waiting_for_cross = False
-                print(f"🎯 [Edge Armed] {alert.symbol} rose above {eff_target} ({current_price}). Ready to trigger on downward crossing.")
+                    print(f"🎯 [Edge Armed] {alert.symbol} dipped below {eff_target} ({current_price}). Ready to trigger on upward crossing.")
+                elif eff_cond == 'BELOW' and current_price > eff_target:
+                    alert.waiting_for_cross = False
+                    print(f"🎯 [Edge Armed] {alert.symbol} rose above {eff_target} ({current_price}). Ready to trigger on downward crossing.")
+                alert.last_eval_price = current_price
+                return
+
             alert.last_eval_price = current_price
-            return
 
-        alert.last_eval_price = current_price
-
-        triggered = False
-        is_above = True
-        triggered_target = eff_target
-        triggered_note = alert.note
-
-        if eff_upper is not None and eff_lower is not None and eff_cond in ['BOTHSIDES', 'BOTH']:
-            if current_price >= eff_upper:
-                triggered = True
-                is_above = True
-                triggered_target = eff_upper
-                triggered_note = getattr(alert, 'upper_note', None) or alert.note
-            elif current_price <= eff_lower:
-                triggered = True
-                is_above = False
-                triggered_target = eff_lower
-                triggered_note = getattr(alert, 'lower_note', None) or alert.note
-        elif eff_cond == 'ABOVE' and current_price >= eff_target:
-            triggered = True
+            triggered = False
             is_above = True
             triggered_target = eff_target
-            triggered_note = getattr(alert, 'upper_note', None) or alert.note
-        elif eff_cond == 'BELOW' and current_price <= eff_target:
-            triggered = True
-            is_above = False
-            triggered_target = eff_target
-            triggered_note = getattr(alert, 'lower_note', None) or alert.note
+            triggered_note = alert.note
+
+            if eff_upper is not None and eff_lower is not None and eff_cond in ['BOTHSIDES', 'BOTH']:
+                if current_price >= eff_upper:
+                    triggered = True
+                    is_above = True
+                    triggered_target = eff_upper
+                    triggered_note = getattr(alert, 'upper_note', None) or alert.note
+                elif current_price <= eff_lower:
+                    triggered = True
+                    is_above = False
+                    triggered_target = eff_lower
+                    triggered_note = getattr(alert, 'lower_note', None) or alert.note
+            elif eff_cond == 'ABOVE' and current_price >= eff_target:
+                triggered = True
+                is_above = True
+                triggered_target = eff_target
+                triggered_note = getattr(alert, 'upper_note', None) or alert.note
+            elif eff_cond == 'BELOW' and current_price <= eff_target:
+                triggered = True
+                is_above = False
+                triggered_target = eff_target
+                triggered_note = getattr(alert, 'lower_note', None) or alert.note
 
         if triggered:
             async with _db_lock:
@@ -490,7 +502,8 @@ async def check_alerts_job(skip_crypto: Optional[bool] = None):
             a.target_price > 0 or 
             (a.upper_target_price is not None and a.upper_target_price > 0) or 
             (a.lower_target_price is not None and a.lower_target_price > 0) or
-            (a.percent is not None and a.percent > 0 and (a.base_price or 0) > 0)
+            (a.percent is not None and a.percent > 0 and (a.base_price or 0) > 0) or
+            (a.exchange.lower() == 'tsetmc' and getattr(a, 'condition_type', '') in ('queueBuy', 'queueSell', 'volumeAbove'))
         ) and a.exchange.lower() not in ['timer', 'local', 'clock', 'none']
     ]
 

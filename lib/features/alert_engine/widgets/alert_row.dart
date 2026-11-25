@@ -844,6 +844,16 @@ class AlertRow extends StatelessWidget {
         if (lang == 'ru') return 'Всплеск объема >= $vol%';
         if (lang == 'zh') return '成交量突增 >= $vol%';
         return 'Volume surge >= $vol%';
+
+      case AlertConditionType.queueBuy:
+        return lang == 'fa' ? 'ورود به صف خرید' : 'Enters buy queue';
+
+      case AlertConditionType.queueSell:
+        return lang == 'fa' ? 'ورود به صف فروش' : 'Enters sell queue';
+
+      case AlertConditionType.volumeAbove:
+        final shares = (rule.targetPrice ?? 0.0).round();
+        return lang == 'fa' ? 'حجم معاملات امروز ≥ $shares سهم' : 'Today volume >= $shares shares';
     }
   }
 }

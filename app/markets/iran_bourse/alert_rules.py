@@ -8,10 +8,20 @@ Iranian Bourse — alert semantics (IB-8). Pure helpers, no I/O, nothing from ot
 * outlier filter: a price inside the instrument's own [lower_limit, upper_limit] is never held back.
 * asOf (set in price.py/mapping.py) is the gateway fetch time; last_trade_time is a separate field.
 """
+import math
 from typing import Any, Dict, Optional, Tuple
 
-EXTRA_KEYS = ("last_trade_time", "prev_close", "close", "lower_limit", "upper_limit",
-              "change_pct", "ticker", "name", "alert_eligible")
+EXTRA_KEYS = (
+    "last_trade_time", "prev_close", "close", "lower_limit", "upper_limit",
+    "change_pct", "ticker", "name", "alert_eligible",
+    "queue", "best_bid", "best_ask", "volume", "traded_today",
+)
+
+BOURSE_SPECIAL_TYPES = ("queueBuy", "queueSell", "volumeAbove")
+_BLOCKED_STATES = frozenset({
+    "CLOSED", "STALE", "NO_TRADE_TODAY", "CARRIED_OVER",
+    "closed", "no_trade_today", "no_data",
+})
 
 
 def meta_extras(trace: Dict[str, Any]) -> Dict[str, Any]:
@@ -29,7 +39,160 @@ def within_limits(price: float, traces) -> bool:
 
 
 def _pos(x: Any) -> Optional[float]:
-    return float(x) if isinstance(x, (int, float)) and x > 0 else None
+    if isinstance(x, bool) or not isinstance(x, (int, float)):
+        return None
+    f = float(x)
+    return f if math.isfinite(f) and f > 0 else None
+
+
+def _is_live_traded(meta: Optional[Dict[str, Any]]) -> bool:
+    """True only when the Bourse quote is live, eligible, and traded today."""
+    if not isinstance(meta, dict):
+        return False
+    if meta.get("alert_eligible") is False:
+        return False
+    if meta.get("is_stale") is True or meta.get("carried_over") is True:
+        return False
+    if meta.get("state") in _BLOCKED_STATES:
+        return False
+    if meta.get("traded_today") is not True:
+        return False
+    return True
+
+
+def is_bourse_special_alert(alert: Any) -> bool:
+    """True for Iranian-market alerts evaluated via order-book/volume rules."""
+    ex = str(getattr(alert, "exchange", "") or "").strip().lower()
+    ctype = getattr(alert, "condition_type", None) or ""
+    return ex == "tsetmc" and ctype in BOURSE_SPECIAL_TYPES
+
+
+def min_queue_volume_of(alert: Any) -> Optional[float]:
+    """Optional minimum queue volume (shares) from alert.raw_rule.min_queue_volume."""
+    raw = getattr(alert, "raw_rule", None)
+    if not isinstance(raw, dict):
+        return None
+    return _pos(raw.get("min_queue_volume"))
+
+
+def is_buy_queue(meta: Optional[Dict[str, Any]], min_queue_volume: Optional[float] = None) -> bool:
+    """True when the instrument is locked in a live buy queue at today's upper limit.
+
+    Real TSETMC captures (e.g. خگلپا, زبینا) may show an unfillable `best_ask` above
+    `upper_limit`; any ask at or below `upper_limit` (e.g. معیار) disqualifies a buy queue.
+    """
+    if not _is_live_traded(meta):
+        return False
+    assert meta is not None
+    if meta.get("queue") == "sell":
+        return False
+
+    upper = _pos(meta.get("upper_limit"))
+    bid = meta.get("best_bid")
+    if upper is None or not isinstance(bid, dict):
+        return False
+    bid_price = _pos(bid.get("price"))
+    bid_vol = _pos(bid.get("volume"))
+    if bid_price is None or bid_vol is None or abs(bid_price - upper) > 1e-6:
+        return False
+
+    ask = meta.get("best_ask")
+    if isinstance(ask, dict):
+        ask_price = _pos(ask.get("price"))
+        ask_vol = _pos(ask.get("volume"))
+        if ask_price is not None and ask_price <= upper + 1e-6 and (ask_vol is None or ask_vol > 0):
+            return False
+
+    min_vol = _pos(min_queue_volume)
+    if min_vol is not None and bid_vol < min_vol:
+        return False
+    return True
+
+
+def is_sell_queue(meta: Optional[Dict[str, Any]], min_queue_volume: Optional[float] = None) -> bool:
+    """True when the instrument is locked in a live sell queue at today's lower limit.
+
+    Allows `best_bid` to be None or strictly below `lower_limit` (unfillable out-of-band bid).
+    """
+    if not _is_live_traded(meta):
+        return False
+    assert meta is not None
+    if meta.get("queue") == "buy":
+        return False
+
+    lower = _pos(meta.get("lower_limit"))
+    ask = meta.get("best_ask")
+    if lower is None or not isinstance(ask, dict):
+        return False
+    ask_price = _pos(ask.get("price"))
+    ask_vol = _pos(ask.get("volume"))
+    if ask_price is None or ask_vol is None or abs(ask_price - lower) > 1e-6:
+        return False
+
+    bid = meta.get("best_bid")
+    if isinstance(bid, dict):
+        bid_price = _pos(bid.get("price"))
+        bid_vol = _pos(bid.get("volume"))
+        if bid_price is not None and bid_price >= lower - 1e-6 and (bid_vol is None or bid_vol > 0):
+            return False
+
+    min_vol = _pos(min_queue_volume)
+    if min_vol is not None and ask_vol < min_vol:
+        return False
+    return True
+
+
+def is_volume_above(meta: Optional[Dict[str, Any]], threshold: Optional[float]) -> bool:
+    """True when today's cumulative traded share volume meets or exceeds `threshold`."""
+    if not _is_live_traded(meta):
+        return False
+    assert meta is not None
+    limit = _pos(threshold)
+    vol = _pos(meta.get("volume"))
+    if limit is None or vol is None:
+        return False
+    return vol >= limit
+
+
+def evaluate_special_alert(
+    alert: Any,
+    current_price: float,
+    meta: Dict[str, Any],
+) -> Tuple[bool, bool, Optional[float]]:
+    """Edge-triggered evaluation for Bourse queueBuy / queueSell / volumeAbove alerts.
+
+    Returns `(triggered, is_above, triggered_target)`.
+    Sets `alert.waiting_for_cross = True` upon firing so staying in the queue or above
+    volume does not spam repeats; re-arms automatically once the condition turns False.
+    """
+    ctype = getattr(alert, "condition_type", None) or ""
+    if ctype == "queueBuy":
+        condition_met = is_buy_queue(meta, min_queue_volume=min_queue_volume_of(alert))
+        is_above = True
+        triggered_target = _pos(meta.get("upper_limit"))
+    elif ctype == "queueSell":
+        condition_met = is_sell_queue(meta, min_queue_volume=min_queue_volume_of(alert))
+        is_above = False
+        triggered_target = _pos(meta.get("lower_limit"))
+    elif ctype == "volumeAbove":
+        condition_met = is_volume_above(meta, getattr(alert, "target_price", None))
+        is_above = True
+        triggered_target = None  # target_price is shares, not Rial
+    else:
+        return False, True, None
+
+    waiting = bool(getattr(alert, "waiting_for_cross", False))
+    alert.last_eval_price = current_price
+    if waiting:
+        if not condition_met:
+            alert.waiting_for_cross = False
+        return False, is_above, None
+
+    if not condition_met:
+        return False, is_above, None
+
+    alert.waiting_for_cross = True
+    return True, is_above, triggered_target
 
 
 def rule_inputs(alert: Any, current_price: float, meta: Dict[str, Any],

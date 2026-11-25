@@ -119,6 +119,9 @@ class AlertRule extends Equatable {
   /// Optional Bourse price basis ('last' or 'close'); null omits the key so server defaults to 'last'.
   final String? priceField;
 
+  /// Optional Bourse minimum queue volume in shares (`raw_rule.min_queue_volume`); null omits key.
+  final double? minQueueVolume;
+
   /// Whether this alert is actively checked by the scheduler
   final bool isActive;
 
@@ -156,7 +159,11 @@ class AlertRule extends Equatable {
       case AlertConditionType.absolutePriceChange:
         return AlertType.price;
       case AlertConditionType.volumeChange:
+      case AlertConditionType.volumeAbove:
         return AlertType.volumeSurge;
+      case AlertConditionType.queueBuy:
+      case AlertConditionType.queueSell:
+        return AlertType.priceCross;
     }
   }
 
@@ -207,6 +214,15 @@ class AlertRule extends Equatable {
         if (lang == 'ru') return 'Всплеск объема торгов';
         if (lang == 'zh') return '成交量突增预警';
         return 'Volume Surge Alert';
+      case AlertConditionType.queueBuy:
+        if (lang == 'fa') return 'هشدار صف خرید';
+        return 'Buy Queue Alert';
+      case AlertConditionType.queueSell:
+        if (lang == 'fa') return 'هشدار صف فروش';
+        return 'Sell Queue Alert';
+      case AlertConditionType.volumeAbove:
+        if (lang == 'fa') return 'هشدار حجم معاملات';
+        return 'Volume Above Alert';
     }
   }
 
@@ -242,6 +258,7 @@ class AlertRule extends Equatable {
     this.flashEnabled = false,
     this.preferServerProxy = false,
     this.priceField,
+    this.minQueueVolume,
     this.isActive = true,
     this.isTriggered = false,
     this.cooldownUntil,
@@ -279,10 +296,14 @@ class AlertRule extends Equatable {
     bool flashEnabled = false,
     bool preferServerProxy = false,
     String? priceField,
+    double? minQueueVolume,
     DateTime? cooldownUntil,
     int triggerCount = 0,
   }) {
     final mode = (conditionType == AlertConditionType.priceThreshold && bothWayBehavior != BothWayBehavior.dualActive ||
+            conditionType == AlertConditionType.queueBuy ||
+            conditionType == AlertConditionType.queueSell ||
+            conditionType == AlertConditionType.volumeAbove ||
             (conditionType == AlertConditionType.percentChange &&
                 direction != AlertDirection.bothSides))
         ? TriggerMode.oneShot
@@ -320,6 +341,7 @@ class AlertRule extends Equatable {
       flashEnabled: flashEnabled,
       preferServerProxy: preferServerProxy,
       priceField: priceField,
+      minQueueVolume: minQueueVolume,
       isActive: true,
       isTriggered: false,
       cooldownUntil: cooldownUntil,
@@ -364,6 +386,7 @@ class AlertRule extends Equatable {
     bool? flashEnabled,
     bool? preferServerProxy,
     String? priceField,
+    double? minQueueVolume,
     bool? isActive,
     bool? isTriggered,
     DateTime? cooldownUntil,
@@ -403,6 +426,7 @@ class AlertRule extends Equatable {
       flashEnabled: flashEnabled ?? this.flashEnabled,
       preferServerProxy: preferServerProxy ?? this.preferServerProxy,
       priceField: priceField ?? this.priceField,
+      minQueueVolume: minQueueVolume ?? this.minQueueVolume,
       basePrice: basePrice ?? this.basePrice,
       lastCheckedPrice: lastCheckedPrice ?? this.lastCheckedPrice,
       previousPrice: previousPrice ?? this.previousPrice,
@@ -449,6 +473,7 @@ class AlertRule extends Equatable {
         'flashEnabled': flashEnabled,
         'preferServerProxy': preferServerProxy,
         if (priceField != null) 'price_field': priceField,
+        if (minQueueVolume != null) 'min_queue_volume': minQueueVolume,
         'isActive': isActive,
         'isTriggered': isTriggered,
         'cooldownUntil': cooldownUntil?.toIso8601String(),
@@ -498,6 +523,7 @@ class AlertRule extends Equatable {
         flashEnabled: json['flashEnabled'] as bool? ?? false,
         preferServerProxy: json['preferServerProxy'] as bool? ?? false,
         priceField: json['price_field'] as String?,
+        minQueueVolume: (json['min_queue_volume'] as num?)?.toDouble(),
         isActive: json['isActive'] as bool? ?? true,
         isTriggered: json['isTriggered'] as bool? ?? false,
         cooldownUntil: json['cooldownUntil'] != null
@@ -548,6 +574,7 @@ class AlertRule extends Equatable {
         flashEnabled,
         preferServerProxy,
         priceField,
+        minQueueVolume,
         isActive,
         isTriggered,
         cooldownUntil,

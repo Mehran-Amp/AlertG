@@ -17,7 +17,7 @@ REQUIRED_QUOTE_FIELDS = (
 )
 
 PASS_THROUGH = (
-    "upper_limit", "lower_limit", "queue", "nav", "market_code", "market",
+    "upper_limit", "lower_limit", "best_bid", "best_ask", "queue", "nav", "market_code", "market",
     "board_code", "board", "type_code", "type", "sector_code", "sector",
 )
 

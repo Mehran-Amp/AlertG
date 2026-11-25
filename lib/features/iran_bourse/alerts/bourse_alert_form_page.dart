@@ -68,6 +68,7 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
 
   late final BourseAlertApi _api = widget.api ?? BourseAlertApi();
   final TextEditingController _amount = TextEditingController();
+  final TextEditingController _minQueueVolume = TextEditingController();
   final TextEditingController _upperAmount = TextEditingController();
   final TextEditingController _lowerAmount = TextEditingController();
   final TextEditingController _note = TextEditingController();
@@ -94,6 +95,7 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
   @override
   void dispose() {
     _amount.dispose();
+    _minQueueVolume.dispose();
     _upperAmount.dispose();
     _lowerAmount.dispose();
     _note.dispose();
@@ -107,6 +109,7 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
         kind: _kind,
         direction: _direction,
         amount: parseBourseAmount(_amount.text),
+        minQueueVolume: parseBourseAmount(_minQueueVolume.text),
         upperAmount: parseBourseAmount(_upperAmount.text),
         lowerAmount: parseBourseAmount(_lowerAmount.text),
         upperNote: _upperNote.text,
@@ -141,6 +144,11 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
         return BourseStrings.alertAmountPercent;
       case BourseAlertKind.absoluteChange:
         return BourseStrings.alertAmountAbsolute;
+      case BourseAlertKind.volumeAbove:
+        return BourseStrings.alertAmountVolume;
+      case BourseAlertKind.queueBuy:
+      case BourseAlertKind.queueSell:
+        return BourseStrings.queueMinVolumeLabel;
     }
   }
 
@@ -466,16 +474,22 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
     final d = widget.persianDigits;
     final draft = _draft;
     final amount = parseBourseAmount(_amount.text);
+    final minQueueVol = parseBourseAmount(_minQueueVolume.text);
     final warning = draft.warning();
+    final isQueue = draft.isQueue;
+    final isVolume = draft.isVolume;
+    final isPriceBased = draft.isPriceBased;
     final isPercent = _kind == BourseAlertKind.percentChange;
-    final isChange = _kind != BourseAlertKind.price;
+    final isChange = _kind == BourseAlertKind.percentChange || _kind == BourseAlertKind.absoluteChange;
     final isTwoWayPrice = draft.isTwoWayPrice;
     final isBothChange = isChange && _direction == AlertDirection.bothSides;
 
-    final preview = (!isTwoWayPrice && amount != null && amount > 0)
+    final preview = (!isTwoWayPrice && !isQueue && amount != null && amount > 0)
         ? (isPercent
             ? BourseFormat.signedPercent(amount, persianDigits: d).replaceFirst('+', '')
-            : BourseFormat.rial(amount, persianDigits: d))
+            : (isVolume
+                ? '${BourseFormat.number(amount.round(), persianDigits: d)} سهم'
+                : BourseFormat.rial(amount, persianDigits: d)))
         : null;
     final target = draft.triggerPrice;
     final upperTarget = draft.upperTriggerPrice;
@@ -641,41 +655,43 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
                     ),
                     const SizedBox(height: AppTokens.space12),
 
-                    // 3-way direction selector (Above / Below / Both Sides)
-                    SegmentedButton<AlertDirection>(
-                      key: const Key('bourse_form_direction'),
-                      showSelectedIcon: false,
-                      style: ButtonStyle(
-                        shape: WidgetStatePropertyAll(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(BourseText.inputRadius),
+                    // 3-way direction selector (only for price-based kinds)
+                    if (isPriceBased) ...[
+                      SegmentedButton<AlertDirection>(
+                        key: const Key('bourse_form_direction'),
+                        showSelectedIcon: false,
+                        style: ButtonStyle(
+                          shape: WidgetStatePropertyAll(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(BourseText.inputRadius),
+                            ),
                           ),
+                          side: WidgetStatePropertyAll(BorderSide(color: BourseText.borderColor(context))),
                         ),
-                        side: WidgetStatePropertyAll(BorderSide(color: BourseText.borderColor(context))),
+                        segments: const [
+                          ButtonSegment<AlertDirection>(
+                            value: AlertDirection.above,
+                            label: Text(BourseStrings.directionAbove, style: TextStyle(fontSize: 12)),
+                          ),
+                          ButtonSegment<AlertDirection>(
+                            value: AlertDirection.below,
+                            label: Text(BourseStrings.directionBelow, style: TextStyle(fontSize: 12)),
+                          ),
+                          ButtonSegment<AlertDirection>(
+                            value: AlertDirection.bothSides,
+                            label: Text(BourseStrings.directionBothSides, style: TextStyle(fontSize: 12)),
+                          ),
+                        ],
+                        selected: {_direction},
+                        onSelectionChanged: _submitting
+                            ? null
+                            : (s) => setState(() {
+                                  _direction = s.first;
+                                  _error = null;
+                                }),
                       ),
-                      segments: const [
-                        ButtonSegment<AlertDirection>(
-                          value: AlertDirection.above,
-                          label: Text(BourseStrings.directionAbove, style: TextStyle(fontSize: 12)),
-                        ),
-                        ButtonSegment<AlertDirection>(
-                          value: AlertDirection.below,
-                          label: Text(BourseStrings.directionBelow, style: TextStyle(fontSize: 12)),
-                        ),
-                        ButtonSegment<AlertDirection>(
-                          value: AlertDirection.bothSides,
-                          label: Text(BourseStrings.directionBothSides, style: TextStyle(fontSize: 12)),
-                        ),
-                      ],
-                      selected: {_direction},
-                      onSelectionChanged: _submitting
-                          ? null
-                          : (s) => setState(() {
-                                _direction = s.first;
-                                _error = null;
-                              }),
-                    ),
-                    const SizedBox(height: AppTokens.space16),
+                      const SizedBox(height: AppTokens.space16),
+                    ],
 
                     // Quick percent chips tailored for Tehran Bourse volatility bands
                     if (isPercent) ...[
@@ -729,14 +745,81 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
                     if (_kind == BourseAlertKind.price) _buildDailyLimitShortcuts(context),
 
                     // Target input(s)
-                    if (isTwoWayPrice)
+                    if (isQueue) ...[
+                      Container(
+                        key: const Key('bourse_form_queue_note'),
+                        padding: const EdgeInsets.all(AppTokens.space12),
+                        decoration: BoxDecoration(
+                          color: (_kind == BourseAlertKind.queueBuy ? AppTokens.positive : AppTokens.negative)
+                              .withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(BourseText.inputRadius),
+                          border: Border.all(
+                            color: (_kind == BourseAlertKind.queueBuy ? AppTokens.positive : AppTokens.negative)
+                                .withValues(alpha: 0.35),
+                          ),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              _kind == BourseAlertKind.queueBuy
+                                  ? Icons.trending_up_rounded
+                                  : Icons.trending_down_rounded,
+                              size: 18,
+                              color: _kind == BourseAlertKind.queueBuy ? AppTokens.positive : AppTokens.negative,
+                            ),
+                            const SizedBox(width: AppTokens.space8),
+                            Expanded(
+                              child: Text(
+                                _kind == BourseAlertKind.queueBuy
+                                    ? BourseStrings.queueBuyNote
+                                    : BourseStrings.queueSellNote,
+                                style: BourseText.secondary(context).copyWith(fontSize: 12),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: AppTokens.space12),
+                      TextField(
+                        key: const Key('bourse_form_min_queue_volume'),
+                        controller: _minQueueVolume,
+                        enabled: !_submitting,
+                        keyboardType: TextInputType.number,
+                        textDirection: TextDirection.ltr,
+                        style: TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: BourseText.primaryColor(context),
+                        ),
+                        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9۰-۹٠-٩,٬،]'))],
+                        decoration: BourseText.inputDecoration(
+                          context,
+                          labelText: BourseStrings.queueMinVolumeLabel,
+                          hintText: BourseStrings.queueMinVolumeHint,
+                        ).copyWith(fillColor: theme.scaffoldBackgroundColor),
+                        onChanged: (_) => setState(() => _error = null),
+                      ),
+                      if (minQueueVol != null && minQueueVol > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(top: AppTokens.space8),
+                          child: Text(
+                            '${BourseFormat.number(minQueueVol.round(), persianDigits: d)} سهم',
+                            key: const Key('bourse_form_queue_vol_preview'),
+                            style: BourseText.secondary(context).copyWith(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                    ] else if (isTwoWayPrice)
                       _buildTwoWayPriceInputs(context, theme, accent)
                     else
                       TextField(
                         key: const Key('bourse_form_amount'),
                         controller: _amount,
                         enabled: !_submitting,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: isVolume
+                            ? TextInputType.number
+                            : const TextInputType.numberWithOptions(decimal: true),
                         textDirection: TextDirection.ltr,
                         style: TextStyle(
                           fontFamily: 'monospace',
@@ -744,11 +827,17 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
                           fontWeight: FontWeight.bold,
                           color: BourseText.primaryColor(context),
                         ),
-                        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9۰-۹٠-٩.,٬٫،]'))],
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                            isVolume ? RegExp(r'[0-9۰-۹٠-٩,٬،]') : RegExp(r'[0-9۰-۹٠-٩.,٬٫،]'),
+                          ),
+                        ],
                         decoration: BourseText.inputDecoration(
                           context,
                           labelText: _amountLabel,
-                          hintText: isPercent ? 'مثلاً ۳' : BourseStrings.alertAmountHintRial,
+                          hintText: isPercent
+                              ? 'مثلاً ۳'
+                              : (isVolume ? BourseStrings.alertVolumeHint : BourseStrings.alertAmountHintRial),
                         ).copyWith(fillColor: theme.scaffoldBackgroundColor),
                         onChanged: (_) => setState(() => _error = null),
                       ),
@@ -840,64 +929,84 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
                         child: Text(BourseStrings.alertDailyBaseNote, style: BourseText.caption(context)),
                       ),
 
-                    // Price evaluation basis (Last trade vs Close price)
-                    Padding(
-                      padding: const EdgeInsets.only(top: AppTokens.space12),
-                      child: Divider(height: 1, color: BourseText.borderColor(context)),
-                    ),
-                    const SizedBox(height: AppTokens.space12),
-                    Text(
-                      BourseStrings.priceFieldLabel,
-                      style: BourseText.caption(context).copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: AppTokens.space8),
-                    Wrap(
-                      key: const Key('bourse_form_price_field'),
-                      spacing: AppTokens.space8,
-                      runSpacing: AppTokens.space8,
-                      children: [
-                        ChoiceChip(
-                          key: const Key('bourse_price_field_last'),
-                          label: const Text(BourseStrings.priceFieldLast),
-                          selected: _priceField == BoursePriceField.last,
-                          showCheckmark: false,
-                          visualDensity: VisualDensity.compact,
-                          labelStyle: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: _priceField == BoursePriceField.last ? FontWeight.bold : FontWeight.normal,
-                            color:
-                                _priceField == BoursePriceField.last ? accent : BourseText.secondaryColor(context),
+                    if (isVolume) ...[
+                      if (widget.quote.volume != null && widget.quote.volume! > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(top: AppTokens.space8),
+                          child: Text(
+                            BourseStrings.alertVolumeTodayHint(
+                              BourseFormat.number(widget.quote.volume!, persianDigits: d),
+                            ),
+                            key: const Key('bourse_form_today_volume'),
+                            style: BourseText.caption(context),
                           ),
-                          selectedColor: accent.withValues(alpha: 0.15),
-                          backgroundColor: theme.scaffoldBackgroundColor,
-                          side: BorderSide(
-                            color: _priceField == BoursePriceField.last ? accent : BourseText.borderColor(context),
-                          ),
-                          onSelected:
-                              _submitting ? null : (_) => setState(() => _priceField = BoursePriceField.last),
                         ),
-                        ChoiceChip(
-                          key: const Key('bourse_price_field_close'),
-                          label: const Text(BourseStrings.priceFieldClose),
-                          selected: _priceField == BoursePriceField.close,
-                          showCheckmark: false,
-                          visualDensity: VisualDensity.compact,
-                          labelStyle: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: _priceField == BoursePriceField.close ? FontWeight.bold : FontWeight.normal,
-                            color:
-                                _priceField == BoursePriceField.close ? accent : BourseText.secondaryColor(context),
+                      Padding(
+                        padding: const EdgeInsets.only(top: AppTokens.space4),
+                        child: Text(BourseStrings.alertVolumeNote, style: BourseText.caption(context)),
+                      ),
+                    ],
+
+                    // Price evaluation basis (Last trade vs Close price) — only for price-based alerts
+                    if (isPriceBased) ...[
+                      Padding(
+                        padding: const EdgeInsets.only(top: AppTokens.space12),
+                        child: Divider(height: 1, color: BourseText.borderColor(context)),
+                      ),
+                      const SizedBox(height: AppTokens.space12),
+                      Text(
+                        BourseStrings.priceFieldLabel,
+                        style: BourseText.caption(context).copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: AppTokens.space8),
+                      Wrap(
+                        key: const Key('bourse_form_price_field'),
+                        spacing: AppTokens.space8,
+                        runSpacing: AppTokens.space8,
+                        children: [
+                          ChoiceChip(
+                            key: const Key('bourse_price_field_last'),
+                            label: const Text(BourseStrings.priceFieldLast),
+                            selected: _priceField == BoursePriceField.last,
+                            showCheckmark: false,
+                            visualDensity: VisualDensity.compact,
+                            labelStyle: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: _priceField == BoursePriceField.last ? FontWeight.bold : FontWeight.normal,
+                              color:
+                                  _priceField == BoursePriceField.last ? accent : BourseText.secondaryColor(context),
+                            ),
+                            selectedColor: accent.withValues(alpha: 0.15),
+                            backgroundColor: theme.scaffoldBackgroundColor,
+                            side: BorderSide(
+                              color: _priceField == BoursePriceField.last ? accent : BourseText.borderColor(context),
+                            ),
+                            onSelected:
+                                _submitting ? null : (_) => setState(() => _priceField = BoursePriceField.last),
                           ),
-                          selectedColor: accent.withValues(alpha: 0.15),
-                          backgroundColor: theme.scaffoldBackgroundColor,
-                          side: BorderSide(
-                            color: _priceField == BoursePriceField.close ? accent : BourseText.borderColor(context),
+                          ChoiceChip(
+                            key: const Key('bourse_price_field_close'),
+                            label: const Text(BourseStrings.priceFieldClose),
+                            selected: _priceField == BoursePriceField.close,
+                            showCheckmark: false,
+                            visualDensity: VisualDensity.compact,
+                            labelStyle: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: _priceField == BoursePriceField.close ? FontWeight.bold : FontWeight.normal,
+                              color:
+                                  _priceField == BoursePriceField.close ? accent : BourseText.secondaryColor(context),
+                            ),
+                            selectedColor: accent.withValues(alpha: 0.15),
+                            backgroundColor: theme.scaffoldBackgroundColor,
+                            side: BorderSide(
+                              color: _priceField == BoursePriceField.close ? accent : BourseText.borderColor(context),
+                            ),
+                            onSelected:
+                                _submitting ? null : (_) => setState(() => _priceField = BoursePriceField.close),
                           ),
-                          onSelected:
-                              _submitting ? null : (_) => setState(() => _priceField = BoursePriceField.close),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),

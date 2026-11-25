@@ -7,7 +7,7 @@ enum TriggerMode {
   recurring,
 }
 
-/// The four strictly supported condition types
+/// Supported condition types across markets
 enum AlertConditionType {
   /// Target price crossing above or below (one-shot by default)
   priceThreshold,
@@ -20,6 +20,15 @@ enum AlertConditionType {
 
   /// Volume percentage change from baseVolume (recurring)
   volumeChange,
+
+  /// Iranian Bourse: instrument enters buy queue at today's upper limit (server-evaluated)
+  queueBuy,
+
+  /// Iranian Bourse: instrument enters sell queue at today's lower limit (server-evaluated)
+  queueSell,
+
+  /// Iranian Bourse: today's cumulative share volume reaches targetPrice shares (server-evaluated)
+  volumeAbove,
 }
 
 /// Direction of condition evaluation

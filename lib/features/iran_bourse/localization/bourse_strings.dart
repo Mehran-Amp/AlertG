@@ -143,11 +143,25 @@ class BourseStrings {
   static const String kindPrice = 'رسیدن به قیمت';
   static const String kindPercent = 'درصد تغییر نسبت به دیروز';
   static const String kindAbsolute = 'مقدار تغییر (ریال) نسبت به دیروز';
+  static const String kindQueueBuy = 'صف خرید';
+  static const String kindQueueSell = 'صف فروش';
+  static const String kindVolumeAbove = 'حجم معاملات';
   static const String directionAbove = 'بالاتر از';
   static const String directionBelow = 'پایین‌تر از';
   static const String directionBothSides = 'هر دو جهت';
   static const String alertAmountPercent = 'درصد تغییر';
   static const String alertAmountAbsolute = 'مقدار تغییر (ریال)';
+  static const String alertAmountVolume = 'حداقل حجم معاملات امروز (سهم)';
+  static const String alertVolumeHint = 'مثلاً ۱۰٬۰۰۰٬۰۰۰';
+  static String alertVolumeTodayHint(String volText) => 'حجم معاملات امروز تا این لحظه: $volText سهم';
+  static const String alertVolumeNote =
+      'به‌محض رسیدن مجموع حجم معاملات امروز به این تعداد سهم، هشدار فعال می‌شود.';
+  static const String queueMinVolumeLabel = 'حداقل حجم صف (اختیاری - سهم)';
+  static const String queueMinVolumeHint = 'مثلاً ۱٬۰۰۰٬۰۰۰ (خالی = هر حجمی)';
+  static const String queueBuyNote =
+      'به‌محض تشکیل صف خرید در سقف مجاز قیمت امروز، هشدار فعال می‌شود.';
+  static const String queueSellNote =
+      'به‌محض تشکیل صف فروش در کف مجاز قیمت امروز، هشدار فعال می‌شود.';
   static const String alertNoteLabel = 'یادداشت (اختیاری)';
   static const String alertSubmit = 'ثبت هشدار';
   static const String alertRecurring = 'پس از هر بار فعال شدن دوباره فعال بماند';
@@ -207,6 +221,12 @@ class BourseStrings {
         return kindPercent;
       case BourseAlertKind.absoluteChange:
         return kindAbsolute;
+      case BourseAlertKind.queueBuy:
+        return kindQueueBuy;
+      case BourseAlertKind.queueSell:
+        return kindQueueSell;
+      case BourseAlertKind.volumeAbove:
+        return kindVolumeAbove;
     }
   }
 
