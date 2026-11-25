@@ -155,6 +155,9 @@ void main() {
 
       await t.enterText(find.byKey(const Key('bourse_form_amount')), '675000');
 
+      // Expand the collapsed-by-default notification options card first
+      await _tapVisible(t, find.byKey(const Key('bourse_notif_expand')));
+
       // Apply "vibrate only" preset -> sound=false, vibration=true
       await _tapVisible(t, find.byKey(const Key('bourse_notif_preset_vibrateOnly')));
       // Also enable flash SOS and TTS manually

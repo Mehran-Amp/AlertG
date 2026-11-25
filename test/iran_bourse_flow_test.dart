@@ -123,10 +123,8 @@ Future<void> goToForm(WidgetTester t, Rig rig) async {
   await t.pumpWidget(rig.app());
   await t.tap(find.byKey(const Key('open_flow')));
   await t.pumpAndSettle();
-  // the browse list is the first screen: the symbol is already there, no typing needed
+  // Tapping a symbol in the browse list opens the unified Symbol + Alert workspace directly.
   await t.tap(find.byKey(const ValueKey('bourse_board_row_$ayarId')));
-  await t.pumpAndSettle();
-  await t.tap(find.byKey(const Key('bourse_create_alert')));
   await t.pumpAndSettle();
 }
 
@@ -177,8 +175,6 @@ void main() {
     expect(find.byKey(const ValueKey('bourse_board_row_$ayarId')), findsOneWidget);
     await t.tap(find.byKey(const ValueKey('bourse_board_row_$ayarId')));
     await t.pumpAndSettle();
-    await t.tap(find.byKey(const Key('bourse_create_alert')));
-    await t.pumpAndSettle();
     expect(find.byKey(const Key('bourse_form_amount')), findsOneWidget);
   });
 
@@ -199,8 +195,7 @@ void main() {
   testWidgets('backing out of the flow returns null and saves nothing', (t) async {
     final rig = Rig();
     await goToForm(t, rig);
-    await t.pageBack();
-    await t.pumpAndSettle();
+    // Unified flow has 2 routes: workspace -> browse -> caller.
     await t.pageBack();
     await t.pumpAndSettle();
     await t.pageBack();

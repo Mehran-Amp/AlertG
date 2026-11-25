@@ -33,6 +33,37 @@ enum BourseState {
   }
 }
 
+/// Top-of-book order level (best bid or best ask) from `GET /api/iran-bourse/quote/{id}`.
+class BourseOrderLevel {
+  /// Price in Rial (IRR).
+  final num price;
+
+  /// Share volume waiting at this price level.
+  final num volume;
+
+  /// Number of queued orders at this level, when provided by the feed.
+  final int? orders;
+
+  const BourseOrderLevel({
+    required this.price,
+    required this.volume,
+    this.orders,
+  });
+
+  static BourseOrderLevel? tryParse(Object? json) {
+    if (json is! Map) return null;
+    final p = _n(json['price']);
+    if (p == null || p <= 0) return null;
+    final v = _n(json['volume']) ?? 0;
+    final o = _n(json['orders']);
+    return BourseOrderLevel(
+      price: p,
+      volume: v,
+      orders: o?.toInt(),
+    );
+  }
+}
+
 /// One Bourse quote from `GET /api/iran-bourse/quote/{id}`.
 /// All prices are Rial (IRR). [symbol] is the instrument id and always a String (rule N6).
 class BourseQuote {
@@ -68,6 +99,8 @@ class BourseQuote {
   final num? lowerLimit;
   final num? nav;
   final Object? queueRaw;
+  final BourseOrderLevel? bestBid;
+  final BourseOrderLevel? bestAsk;
 
   final String? marketCode;
   final String? market;
@@ -100,6 +133,8 @@ class BourseQuote {
     this.lowerLimit,
     this.nav,
     this.queueRaw,
+    this.bestBid,
+    this.bestAsk,
     this.marketCode,
     this.market,
     this.typeCode,
@@ -141,6 +176,8 @@ class BourseQuote {
       lowerLimit: _n(json['lower_limit']),
       nav: _n(json['nav']),
       queueRaw: json['queue'],
+      bestBid: BourseOrderLevel.tryParse(json['best_bid']),
+      bestAsk: BourseOrderLevel.tryParse(json['best_ask']),
       marketCode: _s(json['market_code']),
       market: _s(json['market']),
       typeCode: _s(json['type_code']),
@@ -157,6 +194,25 @@ class BourseQuote {
 
   /// True when this quote carries a price the UI may show as "current".
   bool get hasPrice => price != null && price! > 0;
+
+  /// ETF NAV bubble percentage: `(price - nav) / nav * 100`.
+  /// Positive means trading at a premium above NAV; negative means discount below NAV.
+  double? get navBubblePct {
+    final p = price;
+    final n = nav;
+    if (p == null || p <= 0 || n == null || n <= 0) return null;
+    final pct = (p - n) / n * 100.0;
+    return (pct.isNaN || pct.isInfinite) ? null : pct;
+  }
+
+  /// Close price percent change vs yesterday's close, when both are positive.
+  double? get closeChangePct {
+    final c = close;
+    final prev = prevClose;
+    if (c == null || c <= 0 || prev == null || prev <= 0) return null;
+    final pct = (c - prev) / prev * 100.0;
+    return (pct.isNaN || pct.isInfinite) ? null : pct;
+  }
 
   String? get typeLabel => type ?? typeCode;
   String? get marketLabel => market ?? marketCode;

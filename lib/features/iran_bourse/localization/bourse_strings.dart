@@ -212,6 +212,33 @@ class BourseStrings {
   static const String notifTtsTitle = 'اعلام صوتی (TTS)';
   static const String notifTtsSubtitle = 'خواندن نام نماد و قیمت هنگام فعال شدن هشدار';
   static const String notifTtsTest = 'تست صدا';
+  static const String notifEdit = 'تغییر';
+  static const String notifCollapse = 'بستن';
+
+  // ---- unified symbol + alert workspace ---------------------------------------------
+  static const String shortKindPrice = 'قیمت هدف';
+  static const String shortKindPercent = '٪ تغییر';
+  static const String shortKindAbsolute = 'ریال تغییر';
+  static const String closeShort = 'پایانی';
+  static const String prevCloseShort = 'دیروز';
+  static const String dayRangeShort = 'بازه امروز';
+  static const String volumeShort = 'حجم امروز';
+  static const String navShort = 'NAV';
+  static String navBubble(String pct) => 'حباب $pct';
+  static const String orderBookTitle = 'سرخط خرید و فروش';
+  static const String bestBidLabel = 'بهترین خرید';
+  static const String bestAskLabel = 'بهترین فروش';
+  static const String noBuyer = 'بدون خریدار';
+  static const String noSeller = 'بدون فروشنده';
+  static String ordersCount(String count) => '$count سفارش';
+  static const String tapToFillHint = 'لمس هر قیمت ← قرارگیری در قیمت هدف';
+  static const String moreDetails = 'جزئیات بیشتر نماد';
+  static const String lessDetails = 'بستن جزئیات';
+  static const String bandFloorShort = 'کف مجاز';
+  static const String bandCeilShort = 'سقف مجاز';
+  static const String refreshTooltip = 'بروزرسانی قیمت';
+  static String volumeMultiplier(String mult) => '×$mult امروز';
+  static String currentQueueTopHint(String side, String vol) => '$side فعلی در سرخط: $vol سهم';
 
   static String alertKindLabel(BourseAlertKind kind) {
     switch (kind) {
@@ -221,6 +248,24 @@ class BourseStrings {
         return kindPercent;
       case BourseAlertKind.absoluteChange:
         return kindAbsolute;
+      case BourseAlertKind.queueBuy:
+        return kindQueueBuy;
+      case BourseAlertKind.queueSell:
+        return kindQueueSell;
+      case BourseAlertKind.volumeAbove:
+        return kindVolumeAbove;
+    }
+  }
+
+  /// Compact chip label used in the 2x3 condition grid on mobile.
+  static String alertKindShortLabel(BourseAlertKind kind) {
+    switch (kind) {
+      case BourseAlertKind.price:
+        return shortKindPrice;
+      case BourseAlertKind.percentChange:
+        return shortKindPercent;
+      case BourseAlertKind.absoluteChange:
+        return shortKindAbsolute;
       case BourseAlertKind.queueBuy:
         return kindQueueBuy;
       case BourseAlertKind.queueSell:

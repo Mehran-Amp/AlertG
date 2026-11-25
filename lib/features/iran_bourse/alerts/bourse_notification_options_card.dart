@@ -27,6 +27,8 @@ class BourseNotificationOptionsCard extends StatefulWidget {
   final bool flashEnabled;
   final bool ttsEnabled;
   final bool enabled;
+  final bool collapsible;
+  final bool initiallyExpanded;
   final ValueChanged<String> onSoundChanged;
   final ValueChanged<bool> onSoundEnabledChanged;
   final ValueChanged<bool> onVibrationEnabledChanged;
@@ -53,6 +55,8 @@ class BourseNotificationOptionsCard extends StatefulWidget {
     required this.onTtsEnabledChanged,
     required this.onApplyPreset,
     this.enabled = true,
+    this.collapsible = false,
+    this.initiallyExpanded = true,
   });
 
   @override
@@ -61,6 +65,7 @@ class BourseNotificationOptionsCard extends StatefulWidget {
 
 class _BourseNotificationOptionsCardState extends State<BourseNotificationOptionsCard> {
   String? _playingSoundId;
+  late bool _expanded = widget.initiallyExpanded;
 
   @override
   void dispose() {
@@ -263,6 +268,23 @@ class _BourseNotificationOptionsCardState extends State<BourseNotificationOption
     ).whenComplete(_stopPreview);
   }
 
+  String _summaryText(AlarmSoundPreset currentSound) {
+    final parts = <String>[];
+    if (widget.soundEnabled) {
+      parts.add(currentSound.titleFa);
+      parts.add(widget.vibrationEnabled
+          ? BourseStrings.notifPresetStandard
+          : BourseStrings.notifPresetSoundOnly);
+    } else if (widget.vibrationEnabled) {
+      parts.add(BourseStrings.notifPresetVibrateOnly);
+    } else {
+      parts.add(BourseStrings.notifPresetSilent);
+    }
+    if (widget.flashEnabled) parts.add('SOS');
+    if (widget.ttsEnabled) parts.add('TTS');
+    return parts.join(' · ');
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -270,6 +292,7 @@ class _BourseNotificationOptionsCardState extends State<BourseNotificationOption
     final activePreset = _activePreset;
     final currentSound = _currentSoundPreset;
     final isPlaying = _playingSoundId == currentSound.id;
+    final showBody = !widget.collapsible || _expanded;
 
     return Material(
       key: const Key('bourse_form_notif_card'),
@@ -279,23 +302,77 @@ class _BourseNotificationOptionsCardState extends State<BourseNotificationOption
         side: BorderSide(color: BourseText.borderColor(context)),
       ),
       clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: const EdgeInsets.all(AppTokens.space16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Card header
-            Row(
-              children: [
-                Icon(Icons.notifications_active_outlined, size: 18, color: accent),
-                const SizedBox(width: 8),
-                Text(
-                  BourseStrings.alertSectionNotification,
-                  style: BourseText.sectionLabel(context).copyWith(fontSize: 13),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (widget.collapsible)
+            InkWell(
+              key: const Key('bourse_notif_expand'),
+              onTap: () => setState(() => _expanded = !_expanded),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppTokens.space16, vertical: 12),
+                child: Row(
+                  children: [
+                    Icon(Icons.notifications_active_outlined, size: 18, color: accent),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            BourseStrings.alertSectionNotification,
+                            style: BourseText.sectionLabel(context).copyWith(fontSize: 12.5),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            _summaryText(currentSound),
+                            key: const Key('bourse_notif_summary'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: BourseText.caption(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _expanded ? BourseStrings.notifCollapse : BourseStrings.notifEdit,
+                      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: accent),
+                    ),
+                    const SizedBox(width: 2),
+                    Icon(
+                      _expanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                      size: 18,
+                      color: accent,
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-            const SizedBox(height: AppTokens.space12),
+          if (showBody)
+            Padding(
+              padding: widget.collapsible
+                  ? const EdgeInsets.fromLTRB(AppTokens.space16, 0, AppTokens.space16, AppTokens.space16)
+                  : const EdgeInsets.all(AppTokens.space16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (!widget.collapsible) ...[
+                    Row(
+                      children: [
+                        Icon(Icons.notifications_active_outlined, size: 18, color: accent),
+                        const SizedBox(width: 8),
+                        Text(
+                          BourseStrings.alertSectionNotification,
+                          style: BourseText.sectionLabel(context).copyWith(fontSize: 13),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppTokens.space12),
+                  ] else ...[
+                    Divider(height: 1, color: BourseText.borderColor(context)),
+                    const SizedBox(height: AppTokens.space12),
+                  ],
 
             // 1. Quick notification profile chips
             Wrap(
@@ -494,6 +571,8 @@ class _BourseNotificationOptionsCardState extends State<BourseNotificationOption
             ),
           ],
         ),
+      ),
+    ],
       ),
     );
   }

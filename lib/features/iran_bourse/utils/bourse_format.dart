@@ -25,6 +25,31 @@ class BourseFormat {
     return _digits(n, persianDigits);
   }
 
+  /// Compact share volume for mobile tiles: `37.8 میلیون`, `450 هزار`, `1.2 میلیارد`.
+  static String compactVolume(num? value, {bool persianDigits = false}) {
+    if (value == null) return dash;
+    if (value is double && (value.isNaN || value.isInfinite)) return dash;
+    final abs = value.abs().toDouble();
+    final String out;
+    if (abs >= 1e9) {
+      out = '${_trimZero(value / 1e9)} میلیارد';
+    } else if (abs >= 1e6) {
+      out = '${_trimZero(value / 1e6)} میلیون';
+    } else if (abs >= 1e4) {
+      out = '${_trimZero(value / 1e3)} هزار';
+    } else {
+      final n = _fmt(value);
+      if (n == null) return dash;
+      out = n;
+    }
+    return _digits(out, persianDigits);
+  }
+
+  static String _trimZero(double v) {
+    final s = v.toStringAsFixed(v.abs() >= 100 ? 0 : 1);
+    return s.endsWith('.0') ? s.substring(0, s.length - 2) : s;
+  }
+
   /// Signed percent with two decimals: `+0.46%`, `-1.20%`, `0.00%`.
   static String signedPercent(double? value, {bool persianDigits = false}) {
     if (value == null || value.isNaN || value.isInfinite) return dash;
