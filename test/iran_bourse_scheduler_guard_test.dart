@@ -54,10 +54,8 @@ void main() {
       if (await tmpDir.exists()) await tmpDir.delete(recursive: true);
     });
 
-    final repo = JsonAlertRuleRepository(
-      fileProvider: () async => File('${tmpDir.path}/rules.json'),
-    );
-    await repo.init();
+    final repo = JsonAlertRuleRepository(tmpDir.path);
+    await repo.load();
 
     final rule = AlertRule(
       uuid: 'bourse-guard-1',
@@ -65,10 +63,13 @@ void main() {
       baseCurrency: 'عیار',
       counterCurrency: 'IRR',
       marketSymbol: '34144395039913458',
+      checkIntervalSeconds: 60,
       conditionType: AlertConditionType.priceThreshold,
       direction: AlertDirection.above,
+      triggerMode: TriggerMode.oneShot,
       targetPrice: 600000,
       isActive: true,
+      isTriggered: false,
       createdAt: DateTime.now().subtract(const Duration(minutes: 5)),
     );
     await repo.saveRule(rule, syncToServer: false);
