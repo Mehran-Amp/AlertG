@@ -40,12 +40,15 @@ double? parseBourseAmount(String input) {
   return v;
 }
 
+/// Time unit for Bourse alert evaluation interval (matches Global Stocks).
+enum BourseIntervalUnit { minutes, hours }
+
 /// Unified Symbol + Alert Workspace for one Iranian Bourse instrument.
 ///
 /// Combines a sticky live price & visual daily-band header, a compact tap-to-fill
 /// market quick board (close, prev close, volume, ETF NAV + bubble %, best bid/ask,
-/// and collapsible full metadata), the alert condition builder, collapsible notification
-/// options, and a sticky bottom submit bar with live Persian rule summary.
+/// and collapsible full metadata), the alert condition builder, check interval selector,
+/// collapsible notification options, and a sticky bottom submit bar with live Persian rule summary.
 ///
 /// Submitting creates the alert on the server first ([BourseAlertApi]); only when the server
 /// accepts it is [onCreated] called to save it on the phone. If saving on the phone fails
@@ -92,11 +95,13 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
   final TextEditingController _note = TextEditingController();
   final TextEditingController _upperNote = TextEditingController();
   final TextEditingController _lowerNote = TextEditingController();
+  final TextEditingController _intervalValueController = TextEditingController(text: '3');
 
   BourseAlertKind _kind = BourseAlertKind.price;
   AlertDirection _direction = AlertDirection.above;
   BothWayBehavior _bothWayBehavior = BothWayBehavior.oco;
   BoursePriceField _priceField = BoursePriceField.last;
+  BourseIntervalUnit _intervalUnit = BourseIntervalUnit.minutes;
   bool _recurring = false;
 
   // Notification & delivery options (matching other markets)
@@ -119,7 +124,25 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
     _note.dispose();
     _upperNote.dispose();
     _lowerNote.dispose();
+    _intervalValueController.dispose();
     super.dispose();
+  }
+
+  int? get _parsedIntervalValue {
+    final parsed = parseBourseAmount(_intervalValueController.text.trim());
+    if (parsed == null) return null;
+    return parsed.toInt();
+  }
+
+  int get _checkIntervalSeconds {
+    final value = _parsedIntervalValue;
+    if (value == null || value <= 0) return 0;
+    switch (_intervalUnit) {
+      case BourseIntervalUnit.minutes:
+        return (value * 60).clamp(1, 86400 * 7);
+      case BourseIntervalUnit.hours:
+        return (value * 3600).clamp(1, 86400 * 30);
+    }
   }
 
   BourseAlertDraft get _draft => BourseAlertDraft.fromQuote(
@@ -136,6 +159,7 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
         note: _note.text,
         recurring: _recurring,
         priceField: _priceField,
+        checkIntervalSeconds: _checkIntervalSeconds,
       );
 
   /// The price is not a live one: market closed, no trade today or a stale feed.
@@ -246,8 +270,9 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
     Navigator.of(context).maybePop(rule);
   }
 
-  Widget _sectionCard(BuildContext context, {required Widget child, EdgeInsets? padding}) {
+  Widget _sectionCard(BuildContext context, {Key? key, required Widget child, EdgeInsets? padding}) {
     return Material(
+      key: key,
       color: BourseText.cardColor(context),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(BourseText.cardRadius),
@@ -257,6 +282,109 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
       child: Padding(
         padding: padding ?? const EdgeInsets.all(AppTokens.space12),
         child: child,
+      ),
+    );
+  }
+
+  Widget _buildIntervalSection(BuildContext context, ThemeData theme, Color accent, bool persianDigits) {
+    final val = _parsedIntervalValue;
+    final unitText = _intervalUnit == BourseIntervalUnit.minutes
+        ? BourseStrings.intervalMinutes
+        : BourseStrings.intervalHours;
+    final seconds = _checkIntervalSeconds;
+    final isValidInterval = seconds >= minBourseCheckIntervalSeconds;
+    final displayVal = val != null && val > 0
+        ? (persianDigits ? BourseFormat.toPersianDigits('$val') : '$val')
+        : (persianDigits ? BourseFormat.toPersianDigits('3') : '3');
+
+    return _sectionCard(
+      context,
+      key: const Key('bourse_form_interval_card'),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.schedule_rounded, size: 17, color: accent),
+              const SizedBox(width: 6),
+              Text(
+                BourseStrings.alertSectionInterval,
+                style: BourseText.sectionLabel(context).copyWith(fontSize: 12.5),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: TextField(
+                  key: const Key('bourse_form_interval_value'),
+                  controller: _intervalValueController,
+                  enabled: !_submitting,
+                  keyboardType: TextInputType.number,
+                  textDirection: TextDirection.ltr,
+                  style: TextStyle(
+                    fontFamily: 'monospace',
+                    fontWeight: FontWeight.bold,
+                    color: BourseText.primaryColor(context),
+                  ),
+                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9۰-۹٠-٩]'))],
+                  decoration: BourseText.inputDecoration(
+                    context,
+                    labelText: BourseStrings.intervalUnitCount,
+                  ).copyWith(fillColor: theme.scaffoldBackgroundColor),
+                  onChanged: (_) => setState(() => _error = null),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                flex: 3,
+                child: DropdownButtonFormField<BourseIntervalUnit>(
+                  key: const Key('bourse_form_interval_unit'),
+                  initialValue: _intervalUnit,
+                  decoration: BourseText.inputDecoration(
+                    context,
+                    labelText: BourseStrings.intervalTimeUnit,
+                  ).copyWith(fillColor: theme.scaffoldBackgroundColor),
+                  items: const [
+                    DropdownMenuItem(
+                      value: BourseIntervalUnit.minutes,
+                      child: Text(BourseStrings.intervalMinutes),
+                    ),
+                    DropdownMenuItem(
+                      value: BourseIntervalUnit.hours,
+                      child: Text(BourseStrings.intervalHours),
+                    ),
+                  ],
+                  onChanged: _submitting
+                      ? null
+                      : (val) {
+                          if (val != null) {
+                            setState(() {
+                              _intervalUnit = val;
+                              _error = null;
+                            });
+                          }
+                        },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            isValidInterval
+                ? BourseStrings.intervalSummary(displayVal, unitText)
+                : BourseStrings.alertProblem(BourseAlertProblem.intervalTooShort),
+            key: const Key('bourse_form_interval_preview'),
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.bold,
+              color: isValidInterval ? accent : AppTokens.negative,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1367,6 +1495,11 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
             ),
           ),
 
+          const SizedBox(height: 10),
+
+          // Check interval selector (exact match to Global Stocks, minimum 3 minutes / 180s)
+          _buildIntervalSection(context, theme, accent, d),
+
           // Behavior & Note card
           if (!isTwoWayPrice || !_marketNotLive) ...[
             const SizedBox(height: 10),
@@ -1444,18 +1577,6 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
             onVibrationEnabledChanged: (v) => setState(() => _vibrationEnabled = v),
             onFlashEnabledChanged: (v) => setState(() => _flashEnabled = v),
             onTtsEnabledChanged: (v) => setState(() => _ttsEnabled = v),
-            onApplyPreset: ({
-              required bool soundEnabled,
-              required bool vibrationEnabled,
-              required bool flashEnabled,
-              required bool ttsEnabled,
-            }) =>
-                setState(() {
-              _soundEnabled = soundEnabled;
-              _vibrationEnabled = vibrationEnabled;
-              _flashEnabled = flashEnabled;
-              _ttsEnabled = ttsEnabled;
-            }),
           ),
         ],
       ),

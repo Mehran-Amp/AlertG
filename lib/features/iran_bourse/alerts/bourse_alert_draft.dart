@@ -9,6 +9,9 @@ const String bourseExchangeId = 'tsetmc';
 /// Counter currency of every Bourse alert: Rial (rule D1, no conversion).
 const String bourseCurrency = 'IRR';
 
+/// Minimum check interval allowed for Iranian Bourse alerts (matches server 180s).
+const int minBourseCheckIntervalSeconds = 180;
+
 /// What the user wants to be warned about.
 enum BourseAlertKind {
   /// Price reaches a level (Rial).
@@ -48,6 +51,7 @@ enum BourseAlertProblem {
   noPreviousClose,
   bothSidesTargetsMissing,
   invalidRange,
+  intervalTooShort,
 }
 
 /// A softer hint: the alert can be created but may never (or immediately) fire.
@@ -112,6 +116,9 @@ class BourseAlertDraft {
   /// Which price field the server checks (`last` by default, or `close`).
   final BoursePriceField priceField;
 
+  /// Server evaluation interval / recurring cooldown in seconds (min 180s).
+  final int checkIntervalSeconds;
+
   const BourseAlertDraft({
     required this.instrumentId,
     required this.ticker,
@@ -132,6 +139,7 @@ class BourseAlertDraft {
     this.note,
     this.recurring = false,
     this.priceField = BoursePriceField.last,
+    this.checkIntervalSeconds = minBourseCheckIntervalSeconds,
   });
 
   /// Draft for the instrument of a loaded quote (the detail page's "create alert" callback).
@@ -149,6 +157,7 @@ class BourseAlertDraft {
     String? note,
     bool recurring = false,
     BoursePriceField priceField = BoursePriceField.last,
+    int checkIntervalSeconds = minBourseCheckIntervalSeconds,
   }) {
     return BourseAlertDraft(
       instrumentId: quote.symbol,
@@ -170,6 +179,7 @@ class BourseAlertDraft {
       note: note,
       recurring: recurring,
       priceField: priceField,
+      checkIntervalSeconds: checkIntervalSeconds,
     );
   }
 
@@ -193,6 +203,9 @@ class BourseAlertDraft {
   /// `null` when the draft can be turned into an alert.
   BourseAlertProblem? validate() {
     if (!BourseInstrument.isValidId(instrumentId)) return BourseAlertProblem.invalidInstrument;
+    if (checkIntervalSeconds < minBourseCheckIntervalSeconds) {
+      return BourseAlertProblem.intervalTooShort;
+    }
 
     if (isQueue) {
       final minVol = minQueueVolume;
@@ -318,7 +331,7 @@ class BourseAlertDraft {
   /// The rule uses exchange `tsetmc`, the id as market symbol, the ticker as base currency
   /// and `IRR` as counter currency. `preferServerProxy` is on so any local check asks the server.
   AlertRule toRule({
-    int checkIntervalSeconds = 60,
+    int? checkIntervalSeconds,
     String language = 'fa',
     String? customSound,
     bool soundEnabled = true,
@@ -372,7 +385,7 @@ class BourseAlertDraft {
         marketSymbol: instrumentId,
       ),
       exchangeId: bourseExchangeId,
-      checkIntervalSeconds: checkIntervalSeconds,
+      checkIntervalSeconds: checkIntervalSeconds ?? this.checkIntervalSeconds,
       conditionType: type,
       direction: effectiveDirection,
       bothWayBehavior: isTwoWayPrice ? bothWayBehavior : BothWayBehavior.oco,

@@ -149,7 +149,7 @@ void main() {
       expect(h.saved.single.priceField, 'close');
     });
 
-    testWidgets('notification quick presets and manual toggles are sent in payload', (t) async {
+    testWidgets('notification manual toggles work without quick-presets and are sent in payload', (t) async {
       final h = _Harness();
       await t.pumpWidget(h.page());
 
@@ -158,9 +158,11 @@ void main() {
       // Expand the collapsed-by-default notification options card first
       await _tapVisible(t, find.byKey(const Key('bourse_notif_expand')));
 
-      // Apply "vibrate only" preset -> sound=false, vibration=true
-      await _tapVisible(t, find.byKey(const Key('bourse_notif_preset_vibrateOnly')));
-      // Also enable flash SOS and TTS manually
+      // Quick text preset chips must no longer exist
+      expect(find.byKey(const Key('bourse_notif_presets')), findsNothing);
+
+      // Toggle sound off manually (vibration remains enabled by default), enable flash SOS & TTS
+      await _tapVisible(t, find.byKey(const Key('bourse_form_sound_enabled')));
       await _tapVisible(t, find.byKey(const Key('bourse_form_flash_enabled')));
       await _tapVisible(t, find.byKey(const Key('bourse_form_tts_enabled')));
       expect(find.byKey(const Key('bourse_form_tts_test')), findsOneWidget);
@@ -172,6 +174,53 @@ void main() {
       expect(h.lastBody['flash_enabled'], isTrue);
       expect(h.lastBody['tts_enabled'], isTrue);
       expect(h.lastBody['sound'], 'alarm_siren');
+    });
+
+    testWidgets('check interval defaults to 3 minutes (180s) and rejects intervals under 180s', (t) async {
+      final h = _Harness();
+      await t.pumpWidget(h.page());
+
+      expect(find.byKey(const Key('bourse_form_interval_card')), findsOneWidget);
+      await t.enterText(find.byKey(const Key('bourse_form_amount')), '675000');
+      await _tapVisible(t, find.byKey(const Key('bourse_form_submit')));
+
+      expect(h.requests, hasLength(1));
+      expect(h.lastBody['check_interval_seconds'], 180);
+      expect(h.saved.single.checkIntervalSeconds, 180);
+
+      // Change to 1 minute -> refused with intervalTooShort error
+      await t.ensureVisible(find.byKey(const Key('bourse_form_interval_value')));
+      await t.enterText(find.byKey(const Key('bourse_form_interval_value')), '1');
+      await t.pumpAndSettle();
+      await _tapVisible(t, find.byKey(const Key('bourse_form_submit')));
+
+      expect(find.byKey(const Key('bourse_form_error')), findsOneWidget);
+      expect(find.text(BourseStrings.alertProblem(BourseAlertProblem.intervalTooShort)), findsWidgets);
+      expect(h.requests, hasLength(1));
+    });
+
+    testWidgets('check interval supports minutes and hours (15m -> 900s, 2h -> 7200s)', (t) async {
+      final h = _Harness();
+      await t.pumpWidget(h.page());
+
+      await t.enterText(find.byKey(const Key('bourse_form_amount')), '675000');
+      await t.ensureVisible(find.byKey(const Key('bourse_form_interval_value')));
+      await t.enterText(find.byKey(const Key('bourse_form_interval_value')), '15');
+      await t.pumpAndSettle();
+      await _tapVisible(t, find.byKey(const Key('bourse_form_submit')));
+
+      expect(h.lastBody['check_interval_seconds'], 900);
+      expect(h.saved.last.checkIntervalSeconds, 900);
+
+      // Switch unit to hours with value 2 -> 7200s
+      await t.ensureVisible(find.byKey(const Key('bourse_form_interval_value')));
+      await t.enterText(find.byKey(const Key('bourse_form_interval_value')), '2');
+      await _tapVisible(t, find.byKey(const Key('bourse_form_interval_unit')));
+      await _tapVisible(t, find.text(BourseStrings.intervalHours).last);
+      await _tapVisible(t, find.byKey(const Key('bourse_form_submit')));
+
+      expect(h.lastBody['check_interval_seconds'], 7200);
+      expect(h.saved.last.checkIntervalSeconds, 7200);
     });
 
     test('bourseAlertDescription formats bothSides rules cleanly in Persian', () {

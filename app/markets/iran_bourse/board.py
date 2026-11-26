@@ -293,6 +293,23 @@ class BourseBoard:
             "items": page,
         }
 
+    def catalog_snapshot(self) -> Dict[str, Any]:
+        """Full market snapshot for mobile local caching (refreshed once daily after market close)."""
+        items = [project(r) for r in self._rows.values()]
+        counts = {g: 0 for g in GROUPS}
+        for it in items:
+            counts[it["group"]] += 1
+        items.sort(key=lambda it: (-(_num(it.get("value")) or -1.0), it["id"]))
+        return {
+            "unit": "IRR",
+            "session": self.session(),
+            "stale": self.stale(),
+            "as_of": self.as_of,
+            "total": len(items),
+            "groups": counts,
+            "items": items,
+        }
+
     def stats(self) -> Dict[str, Any]:
         return {"rows": len(self._rows), "seq": self.seq, "stale": self.stale(),
                 "requests": self.requests_made, "full_loads": self.full_loads,

@@ -25,6 +25,7 @@ BourseAlertDraft draft({
   bool recurring = false,
   String instrumentId = ayarId,
   String ticker = 'عیار',
+  int checkIntervalSeconds = minBourseCheckIntervalSeconds,
 }) {
   return BourseAlertDraft(
     instrumentId: instrumentId,
@@ -39,6 +40,7 @@ BourseAlertDraft draft({
     lowerLimit: lowerLimit,
     note: note,
     recurring: recurring,
+    checkIntervalSeconds: checkIntervalSeconds,
   );
 }
 
@@ -87,6 +89,13 @@ void main() {
         expect(draft(kind: kind, amount: 3).validate(), isNull);
       }
       expect(draft(prevClose: null).validate(), isNull);
+    });
+
+    test('check interval must be at least 180 seconds', () {
+      expect(draft(checkIntervalSeconds: 60).validate(), BourseAlertProblem.intervalTooShort);
+      expect(draft(checkIntervalSeconds: 179).validate(), BourseAlertProblem.intervalTooShort);
+      expect(draft(checkIntervalSeconds: 180).validate(), isNull);
+      expect(draft(checkIntervalSeconds: 900).validate(), isNull);
     });
   });
 
@@ -214,13 +223,15 @@ void main() {
     });
 
     test('the rule survives the local save and load (toJson / fromJson)', () {
-      final r = draft(amount: 700000).toRule();
+      final r = draft(amount: 700000, checkIntervalSeconds: 900).toRule();
+      expect(r.checkIntervalSeconds, 900);
       final back = AlertRule.fromJson(jsonDecode(jsonEncode(r.toJson())) as Map<String, dynamic>);
       expect(back.marketSymbol, ayarId);
       expect(back.exchangeId, 'tsetmc');
       expect(back.baseCurrency, 'عیار');
       expect(back.counterCurrency, 'IRR');
       expect(back.targetPrice, 700000.0);
+      expect(back.checkIntervalSeconds, 900);
       expect(back.triggerMode, TriggerMode.oneShot);
     });
 

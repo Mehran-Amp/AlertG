@@ -152,6 +152,8 @@ class BourseStrings {
         return 'برای حالت دوطرفه، هر دو قیمت حد بالا و حد پایین را وارد کنید.';
       case BourseAlertProblem.invalidRange:
         return 'قیمت حد بالا باید بزرگ‌تر از قیمت حد پایین باشد.';
+      case BourseAlertProblem.intervalTooShort:
+        return 'حداقل زمان پایش آلارم باید ۳ دقیقه (۱۸۰ ثانیه) یا بیشتر باشد.';
     }
   }
 
@@ -197,6 +199,13 @@ class BourseStrings {
   static const String alertAmountHintRial = 'مثلاً ۷۰۰٬۰۰۰';
 
   static const String alertSectionCondition = 'شرط و جهت هشدار';
+  static const String alertSectionInterval = 'بازه زمانی بررسی خودکار';
+  static const String intervalUnitCount = 'تعداد واحد';
+  static const String intervalTimeUnit = 'واحد زمان';
+  static const String intervalMinutes = 'دقیقه';
+  static const String intervalHours = 'ساعت';
+  static String intervalSummary(String valueText, String unitText) =>
+      'بررسی قیمت هر $valueText $unitText یک‌بار در پس‌زمینه انجام خواهد شد.';
   static const String alertSectionBehavior = 'رفتار هشدار و یادداشت';
   static const String alertSectionNotification = 'شیوهٔ اطلاع‌رسانی و آلارم';
 
@@ -223,10 +232,9 @@ class BourseStrings {
   static String bothSidesPreviewLower(String priceText) => '▼ کف: $priceText';
 
   // ---- notification options ---------------------------------------------------------
-  static const String notifPresetStandard = 'صدا و ویبره';
-  static const String notifPresetSoundOnly = 'فقط صدا';
-  static const String notifPresetVibrateOnly = 'فقط ویبره';
-  static const String notifPresetSilent = 'فقط نوتیف';
+  static const String notifSummarySound = 'صدا';
+  static const String notifSummaryVibrate = 'ویبره';
+  static const String notifSummarySilent = 'بدون صدا و ویبره';
   static const String notifSoundTitle = 'صدای زنگ آلارم';
   static const String notifSoundMuted = 'پخش صدا خاموش است';
   static const String notifChangeSound = 'تغییر';

@@ -6,16 +6,8 @@ import '../../settings/services/sound_manager.dart';
 import '../localization/bourse_strings.dart';
 import '../theme/bourse_text.dart';
 
-/// Quick notification presets for one-tap mobile configuration.
-enum BourseNotifPreset {
-  standard,
-  soundOnly,
-  vibrateOnly,
-  silent,
-}
-
 /// Unified notification & alarm delivery card for Bourse alerts:
-/// quick profile chips, alarm sound picker with audition, sound/vibration/SOS-flash toggles,
+/// alarm sound picker with audition, manual sound/vibration/SOS-flash toggles,
 /// and TTS voice announcer with test button.
 ///
 /// Important: [SoundManager] is only touched on user tap (never inside [build] or [initState])
@@ -34,12 +26,6 @@ class BourseNotificationOptionsCard extends StatefulWidget {
   final ValueChanged<bool> onVibrationEnabledChanged;
   final ValueChanged<bool> onFlashEnabledChanged;
   final ValueChanged<bool> onTtsEnabledChanged;
-  final void Function({
-    required bool soundEnabled,
-    required bool vibrationEnabled,
-    required bool flashEnabled,
-    required bool ttsEnabled,
-  }) onApplyPreset;
 
   const BourseNotificationOptionsCard({
     super.key,
@@ -53,7 +39,6 @@ class BourseNotificationOptionsCard extends StatefulWidget {
     required this.onVibrationEnabledChanged,
     required this.onFlashEnabledChanged,
     required this.onTtsEnabledChanged,
-    required this.onApplyPreset,
     this.enabled = true,
     this.collapsible = false,
     this.initiallyExpanded = true,
@@ -75,44 +60,6 @@ class _BourseNotificationOptionsCardState extends State<BourseNotificationOption
       } catch (_) {}
     }
     super.dispose();
-  }
-
-  BourseNotifPreset? get _activePreset {
-    if (widget.flashEnabled || widget.ttsEnabled) return null;
-    if (widget.soundEnabled && widget.vibrationEnabled) return BourseNotifPreset.standard;
-    if (widget.soundEnabled && !widget.vibrationEnabled) return BourseNotifPreset.soundOnly;
-    if (!widget.soundEnabled && widget.vibrationEnabled) return BourseNotifPreset.vibrateOnly;
-    return BourseNotifPreset.silent;
-  }
-
-  void _selectPreset(BourseNotifPreset preset) {
-    switch (preset) {
-      case BourseNotifPreset.standard:
-        widget.onApplyPreset(soundEnabled: true, vibrationEnabled: true, flashEnabled: false, ttsEnabled: false);
-        break;
-      case BourseNotifPreset.soundOnly:
-        widget.onApplyPreset(soundEnabled: true, vibrationEnabled: false, flashEnabled: false, ttsEnabled: false);
-        break;
-      case BourseNotifPreset.vibrateOnly:
-        widget.onApplyPreset(soundEnabled: false, vibrationEnabled: true, flashEnabled: false, ttsEnabled: false);
-        break;
-      case BourseNotifPreset.silent:
-        widget.onApplyPreset(soundEnabled: false, vibrationEnabled: false, flashEnabled: false, ttsEnabled: false);
-        break;
-    }
-  }
-
-  String _presetLabel(BourseNotifPreset preset) {
-    switch (preset) {
-      case BourseNotifPreset.standard:
-        return BourseStrings.notifPresetStandard;
-      case BourseNotifPreset.soundOnly:
-        return BourseStrings.notifPresetSoundOnly;
-      case BourseNotifPreset.vibrateOnly:
-        return BourseStrings.notifPresetVibrateOnly;
-      case BourseNotifPreset.silent:
-        return BourseStrings.notifPresetSilent;
-    }
   }
 
   AlarmSoundPreset get _currentSoundPreset => SoundManager.presets.firstWhere(
@@ -271,14 +218,13 @@ class _BourseNotificationOptionsCardState extends State<BourseNotificationOption
   String _summaryText(AlarmSoundPreset currentSound) {
     final parts = <String>[];
     if (widget.soundEnabled) {
-      parts.add(currentSound.titleFa);
-      parts.add(widget.vibrationEnabled
-          ? BourseStrings.notifPresetStandard
-          : BourseStrings.notifPresetSoundOnly);
-    } else if (widget.vibrationEnabled) {
-      parts.add(BourseStrings.notifPresetVibrateOnly);
-    } else {
-      parts.add(BourseStrings.notifPresetSilent);
+      parts.add('${BourseStrings.notifSummarySound}: ${currentSound.titleFa}');
+    }
+    if (widget.vibrationEnabled) {
+      parts.add(BourseStrings.notifSummaryVibrate);
+    }
+    if (!widget.soundEnabled && !widget.vibrationEnabled && !widget.flashEnabled && !widget.ttsEnabled) {
+      parts.add(BourseStrings.notifSummarySilent);
     }
     if (widget.flashEnabled) parts.add('SOS');
     if (widget.ttsEnabled) parts.add('TTS');
@@ -289,7 +235,6 @@ class _BourseNotificationOptionsCardState extends State<BourseNotificationOption
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final accent = BourseText.accentColor(context);
-    final activePreset = _activePreset;
     final currentSound = _currentSoundPreset;
     final isPlaying = _playingSoundId == currentSound.id;
     final showBody = !widget.collapsible || _expanded;
@@ -374,34 +319,7 @@ class _BourseNotificationOptionsCardState extends State<BourseNotificationOption
                     const SizedBox(height: AppTokens.space12),
                   ],
 
-            // 1. Quick notification profile chips
-            Wrap(
-              key: const Key('bourse_notif_presets'),
-              spacing: AppTokens.space8,
-              runSpacing: AppTokens.space8,
-              children: [
-                for (final preset in BourseNotifPreset.values)
-                  ChoiceChip(
-                    key: Key('bourse_notif_preset_${preset.name}'),
-                    label: Text(_presetLabel(preset)),
-                    selected: activePreset == preset,
-                    showCheckmark: false,
-                    visualDensity: VisualDensity.compact,
-                    labelStyle: TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: activePreset == preset ? FontWeight.bold : FontWeight.normal,
-                      color: activePreset == preset ? accent : BourseText.secondaryColor(context),
-                    ),
-                    selectedColor: accent.withValues(alpha: 0.15),
-                    backgroundColor: theme.scaffoldBackgroundColor,
-                    side: BorderSide(color: activePreset == preset ? accent : BourseText.borderColor(context)),
-                    onSelected: widget.enabled ? (_) => _selectPreset(preset) : null,
-                  ),
-              ],
-            ),
-            const SizedBox(height: AppTokens.space12),
-
-            // 2. Alarm sound selector with audition
+            // 1. Alarm sound selector with audition
             Opacity(
               opacity: widget.soundEnabled ? 1.0 : 0.5,
               child: InkWell(

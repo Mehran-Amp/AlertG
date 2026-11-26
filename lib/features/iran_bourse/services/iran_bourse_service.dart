@@ -192,6 +192,28 @@ class IranBourseService {
     return BourseResult<BourseBoardPage>.ok(page);
   }
 
+  /// Full projected market catalog for on-device daily caching (`GET /api/iran-bourse/catalog`).
+  Future<BourseResult<BourseBoardPage>> catalog({
+    Duration catalogTimeout = const Duration(seconds: 30),
+  }) async {
+    final res = await _get('/api/iran-bourse/catalog', null, catalogTimeout);
+    if (!res.isOk) {
+      return BourseResult<BourseBoardPage>.fail(
+        res.failure!,
+        message: res.message,
+        httpStatus: res.httpStatus,
+      );
+    }
+    final page = BourseBoardPage.tryParse(res.data);
+    if (page == null) {
+      return const BourseResult<BourseBoardPage>.fail(
+        BourseFailure.badResponse,
+        message: 'not a catalog answer',
+      );
+    }
+    return BourseResult<BourseBoardPage>.ok(page);
+  }
+
   /// The gateway's classification tables (market / board / type / sector codes), as raw JSON.
   /// The filter UI (IB-11c) builds its options from this.
   Future<BourseResult<Map<String, dynamic>>> classification() async {

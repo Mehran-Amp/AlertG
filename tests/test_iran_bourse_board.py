@@ -324,6 +324,17 @@ class TestRoute(unittest.TestCase):
         self.assertEqual(r.status_code, 503)
         self.assertIn("unavailable", r.json()["detail"])
 
+    def test_catalog_snapshot_returns_all_instruments_including_derivatives(self):
+        self.assertEqual(self.http.get("/api/iran-bourse/catalog").status_code, 401)
+        r = self.http.get("/api/iran-bourse/catalog", headers=H)
+        self.assertEqual(r.status_code, 200)
+        j = r.json()
+        self.assertEqual(j["unit"], "IRR")
+        self.assertEqual(j["total"], 9)
+        self.assertEqual(len(j["items"]), 9)
+        self.assertEqual(j["groups"]["derivatives"], 2)
+        self.assertEqual(j["groups"]["stocks"], 2)
+
 
 if __name__ == "__main__":
     unittest.main()

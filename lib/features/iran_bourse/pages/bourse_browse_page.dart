@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/tokens.dart';
 import '../localization/bourse_strings.dart';
 import '../models/bourse_board.dart';
+import '../services/bourse_catalog_cache.dart';
 import '../services/iran_bourse_service.dart';
 import '../theme/bourse_text.dart';
 import '../utils/bourse_format.dart';
@@ -22,6 +23,11 @@ import 'bourse_symbol_detail_page.dart';
 /// inside the unified Iran Market tabbed hub without a nested header.
 class BourseBrowsePage extends StatefulWidget {
   final IranBourseService? service;
+  final BourseCatalogCache? catalogCache;
+
+  /// Defaults to `service == null`, so production uses the daily local catalog cache
+  /// while existing mock-service tests keep verifying server `/board` parameters.
+  final bool? useCatalogCache;
   final void Function(BourseBoardItem item)? onSelected;
   final Duration debounce;
   final int pageSize;
@@ -34,6 +40,8 @@ class BourseBrowsePage extends StatefulWidget {
   const BourseBrowsePage({
     super.key,
     this.service,
+    this.catalogCache,
+    this.useCatalogCache,
     this.onSelected,
     this.debounce = const Duration(milliseconds: 400),
     this.pageSize = 50,
@@ -48,6 +56,7 @@ class BourseBrowsePage extends StatefulWidget {
 
 class _BourseBrowsePageState extends State<BourseBrowsePage> {
   late final IranBourseService _service = widget.service ?? IranBourseService();
+  late final BourseCatalogCache _cache = widget.catalogCache ?? BourseCatalogCache.instance;
   final TextEditingController _search = TextEditingController();
   final ScrollController _scroll = ScrollController();
   Timer? _timer;
@@ -66,6 +75,8 @@ class _BourseBrowsePageState extends State<BourseBrowsePage> {
   bool _loadingMore = false;
   BourseFailure? _failure;
   bool _moreFailed = false;
+
+  bool get _useCache => widget.useCatalogCache ?? (widget.service == null);
 
   @override
   void initState() {
@@ -87,24 +98,67 @@ class _BourseBrowsePageState extends State<BourseBrowsePage> {
     if (_scroll.position.extentAfter < 400) _loadMore();
   }
 
-  Future<BourseResult<BourseBoardPage>> _fetch(int offset) => _service.board(
+  BourseBoardPage _queryCache(int offset) => _cache.query(
         group: _group,
-        sort: _sort,
         traded: _tradedOnly ? true : null,
         q: _search.text.trim().isEmpty ? null : _search.text.trim(),
+        sort: _sort,
         offset: offset,
         limit: widget.pageSize,
       );
 
-  Future<void> _reload({bool keepRows = false}) async {
+  Future<BourseResult<BourseBoardPage>> _fetch(int offset, {bool forceRefresh = false}) async {
+    if (_useCache) {
+      if (forceRefresh || !_cache.hasItems || !_cache.isFresh()) {
+        final loaded = await _cache.ensureLoaded(service: _service, forceRefresh: forceRefresh);
+        if (!loaded.isOk) {
+          return BourseResult<BourseBoardPage>.fail(
+            loaded.failure!,
+            message: loaded.message,
+            httpStatus: loaded.httpStatus,
+          );
+        }
+      }
+      return BourseResult<BourseBoardPage>.ok(_queryCache(offset));
+    }
+
+    return _service.board(
+      group: _group,
+      sort: _sort,
+      traded: _tradedOnly ? true : null,
+      q: _search.text.trim().isEmpty ? null : _search.text.trim(),
+      offset: offset,
+      limit: widget.pageSize,
+    );
+  }
+
+  Future<void> _reload({bool keepRows = false, bool forceRefresh = false}) async {
     final my = ++_seq;
+
+    // Fast path: catalog already loaded & valid for today -> zero network calls, zero spinner flicker.
+    if (_useCache && !forceRefresh && _cache.hasItems && _cache.isFresh()) {
+      final page = _queryCache(0);
+      setState(() {
+        _loading = false;
+        _loadingMore = false;
+        _failure = null;
+        _moreFailed = false;
+        _items
+          ..clear()
+          ..addAll(page.items);
+        _last = page;
+        _counts = page.groupCounts;
+      });
+      return;
+    }
+
     setState(() {
       _loading = true;
       _failure = null;
       _moreFailed = false;
       if (!keepRows) _items.clear();
     });
-    final res = await _fetch(0);
+    final res = await _fetch(0, forceRefresh: forceRefresh);
     if (!mounted || my != _seq) return;
     setState(() {
       _loading = false;
@@ -126,6 +180,16 @@ class _BourseBrowsePageState extends State<BourseBrowsePage> {
   Future<void> _loadMore() async {
     final page = _last;
     if (page == null || !page.hasMore || _loading || _loadingMore || _moreFailed) return;
+    if (_useCache && _cache.hasItems) {
+      final next = _queryCache(page.nextOffset);
+      final known = _items.map((e) => e.id).toSet();
+      setState(() {
+        _items.addAll(next.items.where((e) => !known.contains(e.id)));
+        _last = next;
+        _counts = next.groupCounts;
+      });
+      return;
+    }
     final my = _seq;
     setState(() => _loadingMore = true);
     final res = await _fetch(page.nextOffset);
@@ -433,7 +497,7 @@ class _BourseBrowsePageState extends State<BourseBrowsePage> {
     final session = page?.session ?? BourseSession.unknown;
     final footer = (_loadingMore || _moreFailed) ? 1 : 0;
     return RefreshIndicator(
-      onRefresh: () => _reload(keepRows: true),
+      onRefresh: () => _reload(keepRows: true, forceRefresh: true),
       child: ListView.separated(
         key: const Key('bourse_board_list'),
         controller: _scroll,

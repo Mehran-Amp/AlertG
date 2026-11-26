@@ -86,6 +86,18 @@ async def bourse_board(
                        q=q, sort=sort, order=order, offset=offset, limit=limit)
 
 
+@router.get("/api/iran-bourse/catalog", dependencies=API_DEP)
+async def bourse_catalog() -> Dict[str, Any]:
+    """Full projected market catalog for on-device caching (refreshed once daily after market close)."""
+    _enabled()
+    board = get_board()
+    try:
+        await board.ensure_fresh()
+    except BourseError as e:
+        raise _unavailable(e)
+    return board.catalog_snapshot()
+
+
 @router.get("/api/iran-bourse/classification", dependencies=API_DEP)
 async def bourse_classification() -> Dict[str, Any]:
     _enabled()

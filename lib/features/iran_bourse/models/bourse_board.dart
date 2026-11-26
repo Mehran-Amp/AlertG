@@ -154,6 +154,26 @@ class BourseBoardItem {
       queueRaw: json['queue'],
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'ticker': ticker,
+        'name': name,
+        'price': price,
+        'price_source': priceSource.name,
+        'change_pct': changePct,
+        'volume': volume,
+        'value': value,
+        'traded': traded,
+        'group': group.key,
+        'market_code': marketCode,
+        'type_code': typeCode,
+        'type': type,
+        'sector_code': sectorCode,
+        'sector': sector,
+        'update_time': updateTime,
+        'queue': queueRaw,
+      };
 }
 
 /// One page of the board, with the counts the category tabs need.
