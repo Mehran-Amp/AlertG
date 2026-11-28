@@ -177,9 +177,15 @@ TargetProgressState _computeTargetProgressState(AlertRule rule) {
       break;
 
     case AlertConditionType.volumeChange:
-    case AlertConditionType.volumeAbove:
       activeColor = tvGreen;
       progress = 0.5;
+      break;
+
+    case AlertConditionType.volumeAbove:
+      // Evaluated on the server; the rule carries no live volume, so no real progress
+      // can be shown here. 0 is honest, a fixed 0.5 was misleading.
+      activeColor = tvGreen;
+      progress = 0.0;
       break;
 
     case AlertConditionType.queueBuy:

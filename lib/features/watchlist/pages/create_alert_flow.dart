@@ -215,7 +215,9 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
       } else if (['tabdeal', 'kifpool'].contains(rule.exchangeId)) {
         _flowType = MarketFlowType.iran;
         _step = 3;
-        _iranSubTab = 1;
+        // 1 now means the 'بورس تهران' hub tab (Phase 22c); the Iranian crypto exchange
+        // picker it used to mean is no longer shown, so editing must not land on Bourse.
+        _iranSubTab = 0;
         _selectedIranExchange = widget.registry.get(rule.exchangeId);
         _selectedExchange = _selectedIranExchange;
         _selectedPair = rule.pair;
