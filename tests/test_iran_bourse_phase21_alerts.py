@@ -287,6 +287,31 @@ class Phase21MappingAndPureRulesTests(unittest.TestCase):
         self.assertNotIn("alert_category", p_price)
         self.assertNotIn("condition_type", p_price)
 
+    def test_phase24c_fresh_queue_alert_on_active_queue_fires_immediately(self):
+        # Decision 24c Option A: a freshly created queue alert on an already-queued symbol
+        # fires immediately on first evaluation, then arms waiting_for_cross until exit.
+        buy_alert = _alert(condition_type="queueBuy", trigger_mode="recurring")
+        self.assertFalse(buy_alert.waiting_for_cross)
+        trig, is_above, target = evaluate_special_alert(buy_alert, 4210, _live_meta(queue="buy"))
+        self.assertTrue(trig)
+        self.assertTrue(is_above)
+        self.assertEqual(target, 4210.0)
+        self.assertTrue(buy_alert.waiting_for_cross)
+
+        sell_meta = _live_meta(
+            queue="sell",
+            best_bid=None,
+            best_ask={"price": 3970, "volume": 4_000_000, "orders": 15},
+        )
+        sell_alert = _alert(condition_type="queueSell", trigger_mode="oneShot")
+        self.assertFalse(sell_alert.waiting_for_cross)
+        trig, is_above, target = evaluate_special_alert(sell_alert, 3970, sell_meta)
+        self.assertTrue(trig)
+        self.assertFalse(is_above)
+        self.assertEqual(target, 3970.0)
+        self.assertTrue(sell_alert.waiting_for_cross)
+
+
 
 try:
     import fastapi  # noqa: F401

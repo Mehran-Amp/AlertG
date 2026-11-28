@@ -65,3 +65,5 @@ for Iranian-market alert types (`percentChange`, `queueBuy`, `queueSell`, `volum
   - Staying in the queue / above volume on subsequent ticks does NOT fire again.
   - Leaving the queue (or volume resetting below threshold on a new trading day) clears `waiting_for_cross = False` so a `recurring` alert can fire again on the next entry.
   - A `oneShot` alert deactivates (`is_active = False`) after its first trigger, identical to all other AlertG rules.
+  - **قرارداد فاز 24c (گزینه الف)**: هشدار تازه روی شرط برقرار فوراً فعال میشود. (در فرم ساخت هشدار صف نیز در صورت برقرار بودن صف، اخطار «این نماد همین الان در صف خرید/فروش است. با ثبت، فوراً اعلان می‌گیرید.» نمایش داده می‌شود.)
+

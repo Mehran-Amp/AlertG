@@ -164,6 +164,10 @@ class BourseStrings {
         return 'این مقدار خارج از محدوده مجاز نوسان امروز است و امروز فعال نمی‌شود.';
       case BourseAlertWarning.alreadyReached:
         return 'شرط هم‌اکنون برقرار است؛ هشدار بلافاصله فعال می‌شود.';
+      case BourseAlertWarning.alreadyInBuyQueue:
+        return 'این نماد همین الان در صف خرید است. با ثبت، فوراً اعلان می‌گیرید.';
+      case BourseAlertWarning.alreadyInSellQueue:
+        return 'این نماد همین الان در صف فروش است. با ثبت، فوراً اعلان می‌گیرید.';
     }
   }
 

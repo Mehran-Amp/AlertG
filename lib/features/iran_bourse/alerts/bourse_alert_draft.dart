@@ -61,6 +61,12 @@ enum BourseAlertWarning {
 
   /// The condition is already true at the last price, so the alert would fire at once.
   alreadyReached,
+
+  /// The instrument is already in a live buy queue, so a buy-queue alert fires immediately.
+  alreadyInBuyQueue,
+
+  /// The instrument is already in a live sell queue, so a sell-queue alert fires immediately.
+  alreadyInSellQueue,
 }
 
 /// The user's choices for one Bourse alert, before it becomes an [AlertRule].
@@ -119,6 +125,12 @@ class BourseAlertDraft {
   /// Server evaluation interval / recurring cooldown in seconds (min 180s).
   final int checkIntervalSeconds;
 
+  /// Live queue snapshot flags for the Phase 24c immediate-trigger hint (never block submission).
+  final bool currentlyInBuyQueue;
+  final bool currentlyInSellQueue;
+  final num? currentBuyQueueVolume;
+  final num? currentSellQueueVolume;
+
   const BourseAlertDraft({
     required this.instrumentId,
     required this.ticker,
@@ -140,6 +152,10 @@ class BourseAlertDraft {
     this.recurring = false,
     this.priceField = BoursePriceField.last,
     this.checkIntervalSeconds = minBourseCheckIntervalSeconds,
+    this.currentlyInBuyQueue = false,
+    this.currentlyInSellQueue = false,
+    this.currentBuyQueueVolume,
+    this.currentSellQueueVolume,
   });
 
   /// Draft for the instrument of a loaded quote (the detail page's "create alert" callback).
@@ -180,6 +196,10 @@ class BourseAlertDraft {
       recurring: recurring,
       priceField: priceField,
       checkIntervalSeconds: checkIntervalSeconds,
+      currentlyInBuyQueue: quote.isCurrentlyInBuyQueue,
+      currentlyInSellQueue: quote.isCurrentlyInSellQueue,
+      currentBuyQueueVolume: quote.bestBid?.volume,
+      currentSellQueueVolume: quote.bestAsk?.volume,
     );
   }
 
@@ -289,6 +309,24 @@ class BourseAlertDraft {
 
   /// A hint about the target, or null. Never blocks creating the alert.
   BourseAlertWarning? warning() {
+    if (kind == BourseAlertKind.queueBuy) {
+      if (!currentlyInBuyQueue) return null;
+      final minVol = minQueueVolume;
+      final curVol = currentBuyQueueVolume;
+      if (_isFiniteNum(minVol) && minVol! > 0 && curVol != null && curVol < minVol) {
+        return null;
+      }
+      return BourseAlertWarning.alreadyInBuyQueue;
+    }
+    if (kind == BourseAlertKind.queueSell) {
+      if (!currentlyInSellQueue) return null;
+      final minVol = minQueueVolume;
+      final curVol = currentSellQueueVolume;
+      if (_isFiniteNum(minVol) && minVol! > 0 && curVol != null && curVol < minVol) {
+        return null;
+      }
+      return BourseAlertWarning.alreadyInSellQueue;
+    }
     if (!isPriceBased) return null;
     final upLimit = upperLimit;
     final lowLimit = lowerLimit;

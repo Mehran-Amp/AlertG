@@ -1382,10 +1382,34 @@ class _BourseAlertFormPageState extends State<BourseAlertFormPage> {
                 if (warning != null)
                   Padding(
                     padding: const EdgeInsets.only(top: AppTokens.space8),
-                    child: Text(
-                      BourseStrings.alertWarning(warning),
-                      key: const Key('bourse_form_warning'),
-                      style: BourseText.secondary(context).copyWith(color: BourseText.warningColor(context)),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppTokens.warningSubtle,
+                        borderRadius: BorderRadius.circular(BourseText.inputRadius),
+                        border: Border.all(color: AppTokens.warning.withAlpha(120)),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.warning_amber_rounded,
+                            size: 16,
+                            color: BourseText.warningColor(context),
+                          ),
+                          const SizedBox(width: AppTokens.space8),
+                          Expanded(
+                            child: Text(
+                              BourseStrings.alertWarning(warning),
+                              key: const Key('bourse_form_warning'),
+                              style: BourseText.secondary(context).copyWith(
+                                color: BourseText.warningColor(context),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 if (isChange)

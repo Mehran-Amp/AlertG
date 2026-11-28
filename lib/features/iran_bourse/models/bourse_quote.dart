@@ -192,6 +192,48 @@ class BourseQuote {
   /// Short text for a queue badge, or null when there is no queue.
   String? get queueLabel => queueLabelOf(queueRaw);
 
+  /// True when the quote represents a live, traded instrument currently locked in a buy queue.
+  /// Mirrors server `alert_rules.is_buy_queue`, falling back to `queue == "buy"` only when
+  /// top-of-book fields are absent.
+  bool get isCurrentlyInBuyQueue {
+    if (state != BourseState.live || !alertEligible || !tradedToday || isStale) return false;
+    final raw = queueLabel?.trim().toLowerCase() ?? '';
+    if (raw == 'sell' || raw == 'sell_queue' || raw.contains('فروش')) return false;
+    final upper = upperLimit;
+    final bid = bestBid;
+    if (upper != null && upper > 0 && bid != null) {
+      if (bid.volume <= 0 || (bid.price - upper).abs() > 1e-6) return false;
+      final ask = bestAsk;
+      if (ask != null && ask.price <= upper + 1e-6 && ask.volume > 0) return false;
+      return true;
+    }
+    if (bid == null && bestAsk == null) {
+      return raw == 'buy' || raw == 'buy_queue' || raw.contains('خرید');
+    }
+    return false;
+  }
+
+  /// True when the quote represents a live, traded instrument currently locked in a sell queue.
+  /// Mirrors server `alert_rules.is_sell_queue`, falling back to `queue == "sell"` only when
+  /// top-of-book fields are absent.
+  bool get isCurrentlyInSellQueue {
+    if (state != BourseState.live || !alertEligible || !tradedToday || isStale) return false;
+    final raw = queueLabel?.trim().toLowerCase() ?? '';
+    if (raw == 'buy' || raw == 'buy_queue' || raw.contains('خرید')) return false;
+    final lower = lowerLimit;
+    final ask = bestAsk;
+    if (lower != null && lower > 0 && ask != null) {
+      if (ask.volume <= 0 || (ask.price - lower).abs() > 1e-6) return false;
+      final bid = bestBid;
+      if (bid != null && bid.price >= lower - 1e-6 && bid.volume > 0) return false;
+      return true;
+    }
+    if (bestBid == null && ask == null) {
+      return raw == 'sell' || raw == 'sell_queue' || raw.contains('فروش');
+    }
+    return false;
+  }
+
   /// True when this quote carries a price the UI may show as "current".
   bool get hasPrice => price != null && price! > 0;
 
