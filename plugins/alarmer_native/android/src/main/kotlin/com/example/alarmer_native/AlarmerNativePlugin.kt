@@ -87,6 +87,23 @@ class AlarmerNativePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 stopFlashSOS()
                 result.success(true)
             }
+            "updateWidgetList" -> {
+                val json = call.argument<String>("json") ?: ""
+                context?.let { ctx ->
+                    val prefs = ctx.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+                    prefs.edit().putString("flutter.widget_alerts_json", json).apply()
+                    try {
+                        val updateIntent = android.content.Intent("com.example.bitcoin_checker.ACTION_WIDGET_DATA_UPDATED").apply {
+                            component = android.content.ComponentName(
+                                ctx.packageName,
+                                "com.example.bitcoin_checker.AlarmerAppWidgetProvider"
+                            )
+                        }
+                        ctx.sendBroadcast(updateIntent)
+                    } catch (_: Exception) {}
+                }
+                result.success(true)
+            }
             else -> {
                 result.notImplemented()
             }

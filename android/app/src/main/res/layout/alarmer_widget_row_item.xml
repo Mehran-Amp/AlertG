@@ -3,51 +3,119 @@
     android:id="@+id/item_root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="3dp"
+    android:layout_marginBottom="5dp"
     android:background="@drawable/widget_row_bg_dark"
-    android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:paddingLeft="8dp"
-    android:paddingStart="8dp"
-    android:paddingTop="5dp"
-    android:paddingRight="8dp"
-    android:paddingEnd="8dp"
-    android:paddingBottom="5dp">
+    android:orientation="vertical"
+    android:paddingLeft="9dp"
+    android:paddingStart="9dp"
+    android:paddingTop="7dp"
+    android:paddingRight="9dp"
+    android:paddingEnd="9dp"
+    android:paddingBottom="6dp">
 
-    <TextView
-        android:id="@+id/item_symbol"
-        android:layout_width="wrap_content"
+    <!-- 2-Line Rich Content Area with Left Status Accent Strip -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="BTC/USDT"
-        android:textColor="#F9FAFB"
-        android:textSize="11sp"
-        android:textStyle="bold" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
-    <TextView
-        android:id="@+id/item_price"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="6dp"
-        android:layout_marginStart="6dp"
-        android:layout_weight="1"
-        android:text="$87,420.00"
-        android:textColor="#F59E0B"
-        android:textSize="11sp"
-        android:textStyle="bold" />
+        <!-- Vertical Status Accent Indicator (Emerald / Coral / Gold) -->
+        <FrameLayout
+            android:id="@+id/item_accent_bar"
+            android:layout_width="3.5dp"
+            android:layout_height="30dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/widget_accent_green" />
 
-    <TextView
-        android:id="@+id/item_badge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/badge_green_dark"
-        android:paddingLeft="6dp"
-        android:paddingStart="6dp"
-        android:paddingTop="2dp"
-        android:paddingRight="6dp"
-        android:paddingEnd="6dp"
-        android:paddingBottom="2dp"
-        android:text="+2.50% ▲"
-        android:textColor="#3FB950"
-        android:textSize="9sp"
-        android:textStyle="bold" />
+        <!-- Two-Line Main Financial Column -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!-- Line 1: Readable Symbol Title (Left) + Live Price (Right) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/item_symbol"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="دلار آزاد"
+                    android:textColor="#F8FAFC"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/item_price"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginStart="8dp"
+                    android:maxLines="1"
+                    android:text="299,200 تومان"
+                    android:textColor="#F8FAFC"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Line 2: Exchange & Target Subtitle (Left) + Status/Change Pill Badge (Right) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/item_subtitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="بن‌بست • هدف: 305,000"
+                    android:textColor="#94A3B8"
+                    android:textSize="9.5sp" />
+
+                <TextView
+                    android:id="@+id/item_badge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="6dp"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/badge_green_dark"
+                    android:paddingLeft="7dp"
+                    android:paddingStart="7dp"
+                    android:paddingTop="2dp"
+                    android:paddingRight="7dp"
+                    android:paddingEnd="7dp"
+                    android:paddingBottom="2dp"
+                    android:text="+1.85% ▲"
+                    android:textColor="#10B981"
+                    android:textSize="9sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Target Proximity Micro-Bar (0..100%) -->
+    <ProgressBar
+        android:id="@+id/item_proximity_bar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="2.5dp"
+        android:layout_marginTop="5dp"
+        android:max="100"
+        android:progress="65"
+        android:progressDrawable="@drawable/widget_progress_bar" />
 </LinearLayout>

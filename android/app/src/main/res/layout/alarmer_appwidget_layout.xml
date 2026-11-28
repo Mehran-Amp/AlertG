@@ -5,50 +5,104 @@
     android:layout_height="match_parent"
     android:background="@drawable/widget_background_dark"
     android:orientation="vertical"
-    android:padding="8dp">
+    android:paddingLeft="10dp"
+    android:paddingStart="10dp"
+    android:paddingTop="9dp"
+    android:paddingRight="10dp"
+    android:paddingEnd="10dp"
+    android:paddingBottom="8dp">
 
-    <!-- Header Bar with Check All Action -->
+    <!-- Smart Live Telemetry Header Bar -->
     <LinearLayout
         android:id="@+id/widget_header_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingBottom="5dp">
+        android:paddingBottom="7dp">
 
-        <ImageView
-            android:id="@+id/widget_logo_icon"
-            android:layout_width="18dp"
-            android:layout_height="18dp"
-            android:src="@mipmap/ic_launcher" />
-
+        <!-- Tap on Logo + Title area opens the app -->
         <LinearLayout
+            android:id="@+id/widget_header_brand"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="6dp"
-            android:layout_marginStart="6dp"
             android:layout_weight="1"
-            android:orientation="vertical">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/widget_header_title"
+            <ImageView
+                android:id="@+id/widget_logo_icon"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@mipmap/ic_launcher" />
+
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Alarmer Live"
-                android:textColor="#F9FAFB"
-                android:textSize="11.5sp"
-                android:textStyle="bold" />
+                android:layout_marginLeft="7dp"
+                android:layout_marginStart="7dp"
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/widget_subtitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Active Alerts"
-                android:textColor="#9CA3AF"
-                android:textSize="8.5sp" />
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/widget_header_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Alarmer Pro"
+                        android:textColor="#F8FAFC"
+                        android:textSize="12.5sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/widget_live_dot"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginStart="5dp"
+                        android:text="● LIVE"
+                        android:textColor="#10B981"
+                        android:textSize="8.5sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/widget_subtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Active Alerts"
+                    android:textColor="#94A3B8"
+                    android:textSize="9.5sp" />
+            </LinearLayout>
         </LinearLayout>
 
-        <!-- Check All Action Button in Header -->
+        <!-- Quick Add Alert Button (+) -->
+        <TextView
+            android:id="@+id/widget_add_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="6dp"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/widget_add_pill_dark"
+            android:gravity="center"
+            android:minWidth="28dp"
+            android:minHeight="28dp"
+            android:paddingLeft="8dp"
+            android:paddingStart="8dp"
+            android:paddingTop="4dp"
+            android:paddingRight="8dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="4dp"
+            android:text="＋"
+            android:textColor="#38BDF8"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <!-- Silent Background Refresh Button (⟳) -->
         <TextView
             android:id="@+id/widget_refresh_btn"
             android:layout_width="wrap_content"
@@ -56,15 +110,15 @@
             android:background="@drawable/widget_live_pill_dark"
             android:gravity="center"
             android:minHeight="28dp"
-            android:paddingLeft="9dp"
-            android:paddingStart="9dp"
+            android:paddingLeft="10dp"
+            android:paddingStart="10dp"
             android:paddingTop="4dp"
-            android:paddingRight="9dp"
-            android:paddingEnd="9dp"
+            android:paddingRight="10dp"
+            android:paddingEnd="10dp"
             android:paddingBottom="4dp"
-            android:text="⟳ Check All"
+            android:text="⟳ بروزرسانی"
             android:textColor="#10B981"
-            android:textSize="9sp"
+            android:textSize="9.5sp"
             android:textStyle="bold" />
     </LinearLayout>
 
@@ -72,8 +126,8 @@
         android:id="@+id/widget_divider_1"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginBottom="4dp"
-        android:background="#21262D" />
+        android:layout_marginBottom="6dp"
+        android:background="#1E293B" />
 
     <!-- Scrollable ListView for all alerts -->
     <FrameLayout
@@ -95,11 +149,11 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            android:text="No active alerts configured"
-            android:textColor="#9CA3AF"
-            android:textSize="10sp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:text="هیچ آلارم فعالی ثبت نشده است • برای افزودن ضربه بزنید"
+            android:textColor="#94A3B8"
+            android:textSize="10.5sp"
             android:visibility="gone" />
     </FrameLayout>
 
@@ -107,17 +161,17 @@
         android:id="@+id/widget_divider_2"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginTop="2dp"
-        android:background="#21262D" />
+        android:layout_marginTop="4dp"
+        android:background="#1E293B" />
 
     <!-- Footer -->
     <TextView
         android:id="@+id/widget_footer_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="2.5dp"
+        android:layout_marginTop="4dp"
         android:gravity="center"
-        android:text="Tap to open Alarmer"
-        android:textColor="#10B981"
-        android:textSize="8sp" />
+        android:text="برای مدیریت آلارم‌ها ضربه بزنید"
+        android:textColor="#64748B"
+        android:textSize="8.5sp" />
 </LinearLayout>

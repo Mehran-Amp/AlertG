@@ -19,9 +19,6 @@ class AlarmerListRemoteViewsFactory(
 ) : RemoteViewsService.RemoteViewsFactory {
 
     private var items: JSONArray = JSONArray()
-    private var isDark: Boolean = true
-    private var textPrimaryColor: Int = 0xFFF9FAFB.toInt()
-    private var priceColor: Int = 0xFFF59E0B.toInt()
 
     override fun onCreate() {
         loadData()
@@ -38,12 +35,6 @@ class AlarmerListRemoteViewsFactory(
             if (jsonStr != null && jsonStr.isNotEmpty()) {
                 val root = JSONObject(jsonStr)
                 items = root.optJSONArray("items") ?: JSONArray()
-                val themeObj = root.optJSONObject("theme")
-                isDark = themeObj?.optInt("isDark", 1) == 1
-                textPrimaryColor = themeObj?.optLong("textPrimary", if (isDark) 0xFFF9FAFB else 0xFF111827)?.toInt()
-                    ?: if (isDark) 0xFFF9FAFB.toInt() else 0xFF111827.toInt()
-                priceColor = themeObj?.optLong("price", if (isDark) 0xFFF59E0B else 0xFFD97706)?.toInt()
-                    ?: if (isDark) 0xFFF59E0B.toInt() else 0xFFD97706.toInt()
             } else {
                 items = JSONArray()
             }
@@ -65,34 +56,61 @@ class AlarmerListRemoteViewsFactory(
         try {
             val item = items.getJSONObject(position)
             val symbol = item.optString("symbol", "—")
+            val subtitle = item.optString("subtitle", "")
             val price = item.optString("price", "—")
             val badge = item.optString("badge", "—")
             val isDone = item.optBoolean("isDone", false)
+            val isNearTarget = item.optBoolean("isNearTarget", false)
             val isPositive = item.optBoolean("isPositive", true)
+            val proximity = item.optInt("proximity", if (isDone) 100 else 35).coerceIn(4, 100)
 
-            val rowRes = if (isDark) R.drawable.widget_row_bg_dark else R.drawable.widget_row_bg_light
+            // Fixed Obsidian Dark Luxury Card Background
+            val rowRes = if (isDone) R.drawable.widget_row_bg_done else R.drawable.widget_row_bg_dark
             rowView.setInt(R.id.item_root, "setBackgroundResource", rowRes)
 
+            // Left Vertical Accent Bar
+            val accentRes = when {
+                isDone || isNearTarget -> R.drawable.widget_accent_gold
+                isPositive -> R.drawable.widget_accent_green
+                else -> R.drawable.widget_accent_red
+            }
+            rowView.setInt(R.id.item_accent_bar, "setBackgroundResource", accentRes)
+
+            // Line 1: Symbol & Live Price
             rowView.setTextViewText(R.id.item_symbol, symbol)
-            rowView.setTextColor(R.id.item_symbol, textPrimaryColor)
+            rowView.setTextColor(
+                R.id.item_symbol,
+                if (isDone) 0xFFFBBF24.toInt() else 0xFFF8FAFC.toInt()
+            )
 
             rowView.setTextViewText(R.id.item_price, price)
-            rowView.setTextColor(R.id.item_price, priceColor)
+            rowView.setTextColor(R.id.item_price, 0xFFF8FAFC.toInt())
+
+            // Line 2: Exchange + Target Subtitle & Status Badge
+            rowView.setTextViewText(R.id.item_subtitle, if (subtitle.isNotEmpty()) subtitle else "Active Alert")
+            rowView.setTextColor(R.id.item_subtitle, 0xFF94A3B8.toInt())
 
             rowView.setTextViewText(R.id.item_badge, badge)
 
-            if (isDone) {
-                rowView.setInt(R.id.item_badge, "setBackgroundResource", if (isDark) R.drawable.badge_done_dark else R.drawable.badge_done_light)
-                rowView.setTextColor(R.id.item_badge, if (isDark) 0xFFE3B341.toInt() else 0xFFD97706.toInt())
-            } else if (isPositive) {
-                rowView.setInt(R.id.item_badge, "setBackgroundResource", if (isDark) R.drawable.badge_green_dark else R.drawable.badge_green_light)
-                rowView.setTextColor(R.id.item_badge, if (isDark) 0xFF3FB950.toInt() else 0xFF16A34A.toInt())
-            } else {
-                rowView.setInt(R.id.item_badge, "setBackgroundResource", if (isDark) R.drawable.badge_red_dark else R.drawable.badge_red_light)
-                rowView.setTextColor(R.id.item_badge, if (isDark) 0xFFF85149.toInt() else 0xFFDC2626.toInt())
+            when {
+                isDone || isNearTarget -> {
+                    rowView.setInt(R.id.item_badge, "setBackgroundResource", R.drawable.badge_done_dark)
+                    rowView.setTextColor(R.id.item_badge, 0xFFFBBF24.toInt())
+                }
+                isPositive -> {
+                    rowView.setInt(R.id.item_badge, "setBackgroundResource", R.drawable.badge_green_dark)
+                    rowView.setTextColor(R.id.item_badge, 0xFF10B981.toInt())
+                }
+                else -> {
+                    rowView.setInt(R.id.item_badge, "setBackgroundResource", R.drawable.badge_red_dark)
+                    rowView.setTextColor(R.id.item_badge, 0xFFF43F5E.toInt())
+                }
             }
 
-            // Fill-in Intent so clicking on any row launches the app
+            // Target Proximity Micro-Bar
+            rowView.setProgressBar(R.id.item_proximity_bar, 100, proximity, false)
+
+            // Fill-in Intent so clicking on any card row launches the app
             val fillInIntent = Intent().apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
