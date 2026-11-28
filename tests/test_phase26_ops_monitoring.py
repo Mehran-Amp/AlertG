@@ -18,7 +18,7 @@ from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from app.markets.iran_bourse.client import BourseConnectionError
-from app.markets.iran_bourse.monitor import BourseHealthMonitor
+from app.markets.iran_bourse.monitor import BourseHealthMonitor, _extract_bridge_state
 from app.markets.iran_bourse.snapshot import BourseSnapshotStore
 
 SAT_OPEN = datetime(2026, 11, 14, 6, 30, tzinfo=timezone.utc)    # Saturday 10:00 Tehran (OPEN)
@@ -214,6 +214,168 @@ class TestPhase26aAnd26bMonitor(unittest.TestCase):
         self.assertFalse(r["market_open"])
         self.assertFalse(r["alert_triggered"])
         self.assertEqual(alerts, [])
+
+    def test_26e_stale_error_from_5_hours_ago_with_healthy_gateway_is_ok(self):
+        """Old retained last_error (5h ago) with healthy gateway must NOT trigger error/alert."""
+        now = 1_795_875_784.0
+        five_hours_ago = now - 5 * 3600.0
+
+        # Shape 1: stats.last_error is a dict with `at` and `message`
+        body_dict = _healthy_gateway()
+        body_dict["stats"]["errors"] = 1
+        body_dict["stats"]["last_error"] = {"at": five_hours_ago, "message": "502 Bad Gateway"}
+        status, detail = _extract_bridge_state(body_dict, now=now)
+        self.assertEqual(status, "ok")
+        self.assertEqual(detail, "errors=1")
+
+        # Shape 2: stats.last_error is a string paired with stats.last_error_at
+        body_str = _healthy_gateway()
+        body_str["stats"]["errors"] = 1
+        body_str["stats"]["last_error"] = "502 Bad Gateway"
+        body_str["stats"]["last_error_at"] = five_hours_ago
+        status2, detail2 = _extract_bridge_state(body_str, now=now)
+        self.assertEqual(status2, "ok")
+        self.assertEqual(detail2, "errors=1")
+
+        # Full monitor run over >10 min during market hours -> zero fault & zero Telegram alerts
+        clk = _Clock(now)
+        poller = _FakePoller(clk)
+        alerts = []
+
+        async def healthy_with_old_err():
+            b = _healthy_gateway()
+            b["stats"]["errors"] = 1
+            b["stats"]["last_error"] = {"at": five_hours_ago, "message": "502 Bad Gateway"}
+            return b
+
+        async def notify(msg: str):
+            alerts.append(msg)
+
+        mon = BourseHealthMonitor(
+            poller_fn=lambda: poller,
+            health_fn=healthy_with_old_err,
+            notify_fn=notify,
+            clock=clk,
+            now_dt_fn=lambda: SAT_OPEN,
+            outage_threshold_seconds=600.0,
+        )
+        r0 = self._run(mon.check_once())
+        self.assertEqual(r0["bridge"], "ok")
+        self.assertIsNone(r0["fault_kind"])
+        self.assertEqual(r0["outage_seconds"], 0.0)
+
+        clk.t += 720.0
+        r1 = self._run(mon.check_once())
+        self.assertEqual(r1["bridge"], "ok")
+        self.assertIsNone(r1["fault_kind"])
+        self.assertFalse(r1["alert_triggered"])
+        self.assertEqual(alerts, [])
+
+    def test_26e_fresh_error_from_30_seconds_ago_is_error(self):
+        """A recent last_error (<180s ago) must still be classified as bridge=error."""
+        now = 1_795_875_784.0
+        thirty_sec_ago = now - 30.0
+
+        # Dict form
+        body_dict = _healthy_gateway()
+        body_dict["stats"]["errors"] = 1
+        body_dict["stats"]["last_error"] = {"at": thirty_sec_ago, "message": "502 Bad Gateway"}
+        status, detail = _extract_bridge_state(body_dict, now=now)
+        self.assertEqual(status, "error")
+        self.assertIn("502 Bad Gateway", detail)
+
+        # String + last_error_at form
+        body_str = _healthy_gateway()
+        body_str["stats"]["errors"] = 1
+        body_str["stats"]["last_error"] = "502 Bad Gateway"
+        body_str["stats"]["last_error_at"] = thirty_sec_ago
+        status2, detail2 = _extract_bridge_state(body_str, now=now)
+        self.assertEqual(status2, "error")
+        self.assertIn("502 Bad Gateway", detail2)
+
+        # Monitor records active bridge fault on fresh error
+        clk = _Clock(now)
+        poller = _FakePoller(clk)
+
+        async def fresh_err():
+            b = _healthy_gateway()
+            b["stats"]["errors"] = 1
+            b["stats"]["last_error"] = {"at": thirty_sec_ago, "message": "502 Bad Gateway"}
+            return b
+
+        mon = BourseHealthMonitor(
+            poller_fn=lambda: poller,
+            health_fn=fresh_err,
+            notify_fn=lambda _m: asyncio.sleep(0),
+            clock=clk,
+            now_dt_fn=lambda: SAT_OPEN,
+            outage_threshold_seconds=600.0,
+        )
+        r = self._run(mon.check_once())
+        self.assertEqual(r["bridge"], "error")
+        self.assertEqual(r["fault_kind"], "bridge")
+        self.assertIn("bridge=error(502 Bad Gateway)", r["line"])
+
+    def test_26e_increasing_error_counter_across_consecutive_probes_is_error(self):
+        """When stats.errors increases between probes, bridge must report error even without fresh timestamp."""
+        now = 1_795_875_784.0
+        five_hours_ago = now - 5 * 3600.0
+
+        # Direct helper check
+        body = _healthy_gateway()
+        body["stats"]["errors"] = 3
+        body["stats"]["last_error"] = "upstream timeout"
+        status_same, _ = _extract_bridge_state(body, now=now, prev_errors=3)
+        self.assertEqual(status_same, "ok")
+        status_inc, detail_inc = _extract_bridge_state(body, now=now, prev_errors=2)
+        self.assertEqual(status_inc, "error")
+        self.assertIn("upstream timeout", detail_inc)
+
+        # Consecutive probes in BourseHealthMonitor
+        clk = _Clock(now)
+        poller = _FakePoller(clk)
+        state = {"errors": 2, "msg": "502 Bad Gateway", "at": five_hours_ago}
+
+        async def probe():
+            b = _healthy_gateway()
+            b["stats"]["errors"] = state["errors"]
+            b["stats"]["last_error"] = {"at": state["at"], "message": state["msg"]}
+            return b
+
+        mon = BourseHealthMonitor(
+            poller_fn=lambda: poller,
+            health_fn=probe,
+            notify_fn=lambda _m: asyncio.sleep(0),
+            clock=clk,
+            now_dt_fn=lambda: SAT_OPEN,
+            outage_threshold_seconds=600.0,
+        )
+
+        # Probe 1: baseline errors=2 with 5h old timestamp -> ok
+        r1 = self._run(mon.check_once())
+        self.assertEqual(r1["bridge"], "ok")
+        self.assertIsNone(r1["fault_kind"])
+
+        # Probe 2: errors jumps 2 -> 3 (even without updated timestamp) -> error
+        clk.t += 180.0
+        state["errors"] = 3
+        r2 = self._run(mon.check_once())
+        self.assertEqual(r2["bridge"], "error")
+        self.assertEqual(r2["fault_kind"], "bridge")
+
+        # Probe 3: errors keeps climbing 3 -> 4 -> stays error
+        clk.t += 180.0
+        state["errors"] = 4
+        r3 = self._run(mon.check_once())
+        self.assertEqual(r3["bridge"], "error")
+        self.assertEqual(r3["fault_kind"], "bridge")
+
+        # Probe 4: errors stops climbing (stays 4) & no fresh error -> recovers to ok
+        clk.t += 180.0
+        r4 = self._run(mon.check_once())
+        self.assertEqual(r4["bridge"], "ok")
+        self.assertIsNone(r4["fault_kind"])
+
 
 
 def _load_health_check_module():

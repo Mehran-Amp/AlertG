@@ -26,6 +26,7 @@ logger = logging.getLogger("signalalert.iran_bourse")
 DEFAULT_HEALTH_LOG_SECONDS = 180.0
 DEFAULT_OUTAGE_ALERT_SECONDS = 600.0
 DEFAULT_OUTAGE_REPEAT_SECONDS = 1800.0
+DEFAULT_BRIDGE_ERROR_FRESH_SECONDS = 180.0
 
 
 def _sanitize_detail(raw: Any, limit: int = 120) -> str:
@@ -35,34 +36,133 @@ def _sanitize_detail(raw: Any, limit: int = 120) -> str:
     return text
 
 
-def _extract_bridge_state(health_body: Dict[str, Any]) -> Tuple[str, str]:
+def _parse_timestamp(raw: Any) -> Optional[float]:
+    """Parse Unix epoch seconds (or milliseconds / ISO-8601 string) to float seconds."""
+    if raw is None or isinstance(raw, bool):
+        return None
+    if isinstance(raw, (int, float)):
+        val = float(raw)
+        if val <= 0:
+            return None
+        return val / 1000.0 if val > 1e12 else val
+    if isinstance(raw, str):
+        s = raw.strip()
+        if not s:
+            return None
+        try:
+            val = float(s)
+            if val <= 0:
+                return None
+            return val / 1000.0 if val > 1e12 else val
+        except ValueError:
+            pass
+        try:
+            return datetime.fromisoformat(s.replace("Z", "+00:00")).timestamp()
+        except ValueError:
+            return None
+    return None
+
+
+def _parse_last_error(container: Dict[str, Any]) -> Tuple[str, Optional[float]]:
+    """Extract `(message, error_epoch_seconds)` from `stats` or `bridge` dict."""
+    raw_err = container.get("last_error")
+    if raw_err is None:
+        raw_err = container.get("error")
+    err_at: Optional[float] = None
+    if isinstance(raw_err, dict):
+        msg = _sanitize_detail(
+            raw_err.get("message")
+            or raw_err.get("error")
+            or raw_err.get("detail")
+            or raw_err.get("msg")
+            or raw_err
+        )
+        err_at = _parse_timestamp(raw_err.get("at") or raw_err.get("ts") or raw_err.get("timestamp"))
+    elif raw_err:
+        msg = _sanitize_detail(raw_err)
+    else:
+        msg = ""
+
+    if msg and err_at is None:
+        err_at = _parse_timestamp(
+            container.get("last_error_at")
+            or container.get("error_at")
+            or container.get("at")
+        )
+    return msg, err_at
+
+
+def _int_or_none(raw: Any) -> Optional[int]:
+    if isinstance(raw, bool) or raw is None:
+        return None
+    if isinstance(raw, int):
+        return raw
+    if isinstance(raw, float):
+        return int(raw)
+    try:
+        return int(str(raw).strip())
+    except (TypeError, ValueError):
+        return None
+
+
+def _extract_bridge_state(
+    health_body: Dict[str, Any],
+    *,
+    now: Optional[float] = None,
+    prev_errors: Optional[int] = None,
+    fresh_window_seconds: float = DEFAULT_BRIDGE_ERROR_FRESH_SECONDS,
+) -> Tuple[str, str]:
     """Classify Iranian bridge / upstream TSETMC health from gateway /health JSON.
 
     Returns `(status, detail)` where status is `'ok'` or `'error'`.
-    Supports both standard tsetmc-gateway v0.2.2 `/health` (`status`, `stale`,
-    `stats.last_error`, `stats.errors`) and an optional explicit `bridge` dict.
+    Phase 26e rule: when the gateway itself is healthy (`status == "ok"`, `ready == True`,
+    `stale == False`), an old retained `stats.last_error` is NOT treated as an active outage.
+    Bridge is reported as `'error'` only if:
+      1. gateway is not ready, `status != "ok"`, or `stale == True`; OR
+      2. `last_error.at` (or `last_error_at`) is fresher than `fresh_window_seconds` (180s); OR
+      3. `stats.errors` increased compared to `prev_errors` from the previous probe.
     """
+    cur_now = time.time() if now is None else float(now)
+
     bridge_obj = health_body.get("bridge")
     if isinstance(bridge_obj, dict):
         b_ok = bridge_obj.get("ok")
         b_status = str(bridge_obj.get("status") or "").strip().lower()
-        b_err = _sanitize_detail(bridge_obj.get("last_error") or bridge_obj.get("error") or "")
-        if b_ok is False or b_status in ("error", "down", "degraded", "fail", "failed") or b_err:
+        b_err, b_at = _parse_last_error(bridge_obj)
+        b_fresh = b_at is not None and (cur_now - b_at) < fresh_window_seconds
+        if b_ok is False or b_status in ("error", "down", "degraded", "fail", "failed"):
             return "error", b_err or b_status or "bridge_error"
+        if b_err and b_fresh:
+            return "error", b_err
 
     stats = health_body.get("stats") if isinstance(health_body.get("stats"), dict) else {}
-    last_err = _sanitize_detail(stats.get("last_error") or "")
+    err_msg, err_at = _parse_last_error(stats)
+    if err_msg and err_at is None:
+        err_at = _parse_timestamp(health_body.get("last_error_at") or health_body.get("error_at"))
     gw_status = str(health_body.get("status") or "ok").strip().lower()
     stale = bool(health_body.get("stale", False))
     ready = bool(health_body.get("ready", True))
-    err_count = stats.get("errors", 0)
+    err_count_int = _int_or_none(stats.get("errors", 0))
+    err_count_disp = err_count_int if err_count_int is not None else 0
 
-    if last_err:
-        return "error", last_err
     if not ready or gw_status != "ok" or stale:
+        if err_msg:
+            return "error", err_msg
         reason = "not_ready" if not ready else ("stale" if stale else gw_status)
-        return "error", f"{reason},errors={err_count}"
-    return "ok", f"errors={err_count}"
+        return "error", f"{reason},errors={err_count_disp}"
+
+    error_is_fresh = err_at is not None and (cur_now - err_at) < fresh_window_seconds
+    errors_increased = (
+        prev_errors is not None
+        and err_count_int is not None
+        and err_count_int > prev_errors
+    )
+
+    if error_is_fresh:
+        return "error", err_msg or f"errors={err_count_disp}"
+    if errors_increased:
+        return "error", err_msg or f"errors={prev_errors}->{err_count_int}"
+    return "ok", f"errors={err_count_disp}"
 
 
 class BourseHealthMonitor:
@@ -120,6 +220,7 @@ class BourseHealthMonitor:
         self._last_alert_at: Optional[float] = None
         self._last_line: Optional[str] = None
         self._last_check_at: Optional[float] = None
+        self._prev_bridge_errors: Optional[int] = None
 
     @staticmethod
     def _default_poller() -> Any:
@@ -180,7 +281,15 @@ class BourseHealthMonitor:
             gateway_status = "ok" if (health.get("ready") and health.get("status") == "ok" and not health.get("stale")) else "degraded"
             gateway_detail = f"v{ver},ready={ready},stale={stale},age={age_str}"
 
-            bridge_status, bridge_detail = _extract_bridge_state(health)
+            bridge_status, bridge_detail = _extract_bridge_state(
+                health,
+                now=now,
+                prev_errors=self._prev_bridge_errors,
+            )
+            stats = health.get("stats") if isinstance(health.get("stats"), dict) else {}
+            cur_err_count = _int_or_none(stats.get("errors"))
+            if cur_err_count is not None:
+                self._prev_bridge_errors = cur_err_count
             if bridge_status != "ok":
                 fault_kind = "bridge"
                 fault_detail = bridge_detail
