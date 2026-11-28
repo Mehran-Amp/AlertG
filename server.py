@@ -343,13 +343,16 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             print(f"⚠️ [Crypto Poller] Failed to start poller: {e}")
 
-    # IB-5: Iranian Bourse poller. Off unless IRAN_BOURSE_ENABLED; touches no other market.
+    # IB-5 / IB-12c-d: Iranian Bourse poller & health monitor. Off unless IRAN_BOURSE_ENABLED.
     if getattr(config, "IRAN_BOURSE_ENABLED", False):
         try:
             from app.markets.iran_bourse.poller import start_bourse_poller
-            start_bourse_poller()
+            from app.markets.iran_bourse.monitor import start_bourse_monitor
+            started_leader = start_bourse_poller()
+            if started_leader:
+                start_bourse_monitor()
         except Exception as e:
-            print(f"⚠️ [IranBourse] Failed to start poller: {e}")
+            print(f"⚠️ [IranBourse] Failed to start poller/monitor: {e}")
 
     # Phase 7 (Stage C): Start WebSocket stream supervisor if CRYPTO_STREAM_ENABLED is active
     if getattr(config, "CRYPTO_STREAM_ENABLED", False):
@@ -375,6 +378,11 @@ async def lifespan(app: FastAPI):
         except Exception:
             pass
     if getattr(config, "IRAN_BOURSE_ENABLED", False):
+        try:
+            from app.markets.iran_bourse.monitor import stop_bourse_monitor
+            await stop_bourse_monitor()
+        except Exception:
+            pass
         try:
             from app.markets.iran_bourse.poller import stop_bourse_poller
             await stop_bourse_poller()
