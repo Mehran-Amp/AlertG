@@ -7,7 +7,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import '../../../core/services/service_logger.dart';
-import '../../../core/services/delivery_ack_service.dart';
 import '../../../core/services/device_health_service.dart';
 import '../../../core/services/fcm_notification_service.dart';
 import '../../../core/services/server_alert_service.dart';
@@ -40,7 +39,6 @@ class _NotificationHealthPageState extends State<NotificationHealthPage> {
   DateTime? _lastSyncOk;
   bool _syncPending = false;
 
-  Map<String, dynamic>? _deviceHealthData;
   int? _heartbeatAgeSeconds;
   String? _fcmTail;
 
@@ -130,7 +128,6 @@ class _NotificationHealthPageState extends State<NotificationHealthPage> {
         _batteryExempt = battery;
         _lastSyncOk = lastSync;
         _syncPending = pendingSync;
-        _deviceHealthData = healthRecord;
         _heartbeatAgeSeconds = heartbeatAge;
         _fcmTail = tokenTail;
         _pendingAcksCount = pendingAcks;
@@ -238,40 +235,6 @@ class _NotificationHealthPageState extends State<NotificationHealthPage> {
     if (mounted) {
       setState(() => _isTestingFlash = false);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
-    }
-  }
-
-  Future<void> _copyServiceLog() async {
-    final isFa = widget.lang == 'fa' || widget.lang == 'ar' || widget.lang == 'ckb';
-    String fullLogs = '';
-    try {
-      final dir = await getApplicationDocumentsDirectory();
-      final logFile = File('${dir.path}/service_log.txt');
-      if (logFile.existsSync()) {
-        fullLogs = await logFile.readAsString();
-      }
-    } catch (e, st) {
-      ServiceLogger.logError('notification_health.line225', e, st).ignore();
-    }
-
-    if (fullLogs.isEmpty) {
-      fullLogs = 'لاگی در حافظه ثبت نشده است یا سرویس هنوز لاگی تولید نکرده است.';
-    }
-
-    await Clipboard.setData(ClipboardData(text: fullLogs));
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            isFa
-                ? '📋 متن کامل لاگ سرویس در کلیپ‌بورد کپی شد (${fullLogs.length} کاراکتر)'
-                : '📋 Service log copied to clipboard (${fullLogs.length} chars)',
-          ),
-          backgroundColor: AppTokens.positive,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
     }
   }
 

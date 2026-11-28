@@ -76,7 +76,6 @@ class EventReminderService {
     final reminderTime = eventTime.subtract(const Duration(minutes: 30));
 
     final timeUntilReminder = reminderTime.difference(nowUtc);
-    final notificationId = _generateNotificationId(event.id);
 
     // If reminder time is in the future, schedule timer for current session
     if (timeUntilReminder.inSeconds > 0) {

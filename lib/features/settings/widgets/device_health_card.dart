@@ -108,7 +108,6 @@ class _DeviceHealthCardState extends State<DeviceHealthCard> {
 
     if (mounted) {
       setState(() => _isSendingPing = false);
-      final theme = Theme.of(context);
 
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(

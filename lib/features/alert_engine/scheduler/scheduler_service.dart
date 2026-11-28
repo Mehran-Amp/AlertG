@@ -4,7 +4,6 @@ import '../../exchanges/base/models/market_ticker.dart';
 import '../../exchanges/registry/exchange_registry.dart';
 import '../../notifications/models/notification_log.dart';
 import '../../notifications/repositories/notification_repository.dart';
-import '../../notifications/services/notification_service.dart';
 import '../../notifications/services/notification_service_interface.dart';
 import '../../notifications/models/alert_dispatch_result.dart';
 import '../../notifications/background/background_service_manager.dart';

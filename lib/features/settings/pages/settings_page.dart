@@ -2775,7 +2775,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
               ),
               value: settings.showMarketEventsBanner,
-              activeColor: accentColor,
+              activeThumbColor: accentColor,
               onChanged: (val) {
                 settingsService.updateSettings(settings.copyWith(showMarketEventsBanner: val));
               },
@@ -2796,7 +2796,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
               ),
               value: settings.eventsNotificationEnabled,
-              activeColor: accentColor,
+              activeThumbColor: accentColor,
               onChanged: (val) {
                 settingsService.updateSettings(settings.copyWith(eventsNotificationEnabled: val));
               },

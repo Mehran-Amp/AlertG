@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -11,7 +10,6 @@ import '../models/alert_dispatch_result.dart';
 import '../../../core/services/tts_service.dart';
 import '../../../core/services/service_logger.dart';
 import 'notification_service_interface.dart';
-import '../../settings/services/sound_manager.dart';
 
 
 /// Reads persisted master settings (settings.json). Shared by every isolate.

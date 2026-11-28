@@ -20,7 +20,7 @@ void main() {
     test('1. Successful claim sends POST to /api/alerts/claim with user_id, fcm_token and X-API-Key', () async {
       http.Request? capturedRequest;
       final mockClient = MockClient((request) async {
-        capturedRequest = request as http.Request;
+        capturedRequest = request;
         if (request.url.path.endsWith('/api/alerts/claim') && request.method == 'POST') {
           return http.Response(
             jsonEncode({'status': 'success', 'claimed_count': 3}),

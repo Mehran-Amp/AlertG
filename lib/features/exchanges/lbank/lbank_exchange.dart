@@ -49,7 +49,6 @@ class LBankExchange implements Exchange {
   String get defaultCounterCurrency => 'USDT';
 
   static final Map<String, double> _cachedLivePrices = {};
-  static DateTime? _lastLivePriceUpdate;
 
   @override
   Future<List<CurrencyPair>> fetchCurrencyPairs() async {
@@ -85,7 +84,6 @@ class LBankExchange implements Exchange {
             }
           }
           if (pairs.isNotEmpty) {
-            _lastLivePriceUpdate = DateTime.now();
             return pairs;
           }
         }

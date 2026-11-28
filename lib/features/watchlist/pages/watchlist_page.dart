@@ -566,8 +566,9 @@ class _WatchlistPageState extends State<WatchlistPage> {
                   80.0,
                 ),
                 itemCount: rules.length,
-                onReorder: (oldIndex, newIndex) {
-                  repository.reorderRules(oldIndex, newIndex);
+                onReorderItem: (oldIndex, newIndex) {
+                  final adjustedNewIndex = newIndex >= oldIndex ? newIndex + 1 : newIndex;
+                  repository.reorderRules(oldIndex, adjustedNewIndex);
                 },
                 itemBuilder: (context, index) {
                   final rule = rules[index];
@@ -1413,77 +1414,6 @@ class _WatchlistPageState extends State<WatchlistPage> {
     } else {
       final h = seconds ~/ 3600;
       return '$h ${AppStrings.get('hours', lang)}';
-    }
-  }
-
-  String _getExchangeDisplayName(String exchangeId, String lang) {
-    switch (exchangeId) {
-      case 'global_stocks':
-      case 'GLOBALSTOKS':
-      case 'GLOBAL_STOCKS':
-      case 'Global Stocks':
-        return 'GL-ST';
-      case 'iran_market':
-      case 'IRAN_MARKET':
-        return 'IR_M';
-      case 'binance':
-        return 'Binance';
-      case 'nobitex':
-        return 'Nobitex';
-      case 'wallex':
-        return 'Wallex';
-      case 'tabdeal':
-        return 'Tabdeal';
-      case 'kifpool':
-        return 'Kifpool';
-      case 'bitbarg':
-        return 'Bitbarg';
-      case 'abantether':
-        return 'AbanTether';
-      case 'ramzinex':
-        return 'Ramzinex';
-      case 'tetherland':
-        return 'TetherLand';
-      case 'sarmayex':
-        return 'Sarmayex';
-      case 'exir':
-        return 'Exir';
-      case 'kcex':
-        return 'KCEX';
-      case 'lbank':
-        return 'LBank';
-      case 'ourbit':
-        return 'Ourbit';
-      case 'xt':
-        return 'XT.COM';
-      case 'toobit':
-        return 'Toobit';
-      case 'coinbase':
-        return 'Coinbase';
-      case 'kucoin':
-        return 'KuCoin';
-      case 'okx':
-        return 'OKX';
-      case 'bybit':
-        return 'Bybit';
-      case 'mexc':
-        return 'MEXC';
-      case 'gateio':
-        return 'Gate.io';
-      case 'bingx':
-        return 'BingX';
-      case 'bitget':
-        return 'Bitget';
-      case 'kraken':
-        return 'Kraken';
-      case 'htx':
-        return 'HTX / Huobi';
-      case 'poloniex':
-        return 'Poloniex';
-      case 'bitfinex':
-        return 'Bitfinex';
-      default:
-        return exchangeId.toUpperCase();
     }
   }
 

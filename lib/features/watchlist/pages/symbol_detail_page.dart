@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import '../../../core/localization/app_strings.dart';
 import '../../../core/services/catalog_sync_service.dart';
-import '../../../core/theme/tokens.dart';
 import '../../../core/utils/format_utils.dart';
 import '../../alert_engine/repositories/json_alert_rule_repository.dart';
 import '../../exchanges/registry/exchange_registry.dart';
@@ -71,7 +70,6 @@ class SymbolDetailPage extends StatefulWidget {
 
 class _SymbolDetailPageState extends State<SymbolDetailPage> {
   Map<String, dynamic>? _marketData;
-  bool _isLoading = true;
   double? _livePrice;
 
   @override
@@ -82,7 +80,6 @@ class _SymbolDetailPageState extends State<SymbolDetailPage> {
   }
 
   Future<void> _fetchDetails() async {
-    setState(() => _isLoading = true);
     final data = await CatalogSyncService.instance.fetchSymbolDetail(
       widget.symbol,
       exchange: widget.exchange,
@@ -90,7 +87,6 @@ class _SymbolDetailPageState extends State<SymbolDetailPage> {
     if (mounted) {
       setState(() {
         _marketData = data;
-        _isLoading = false;
         if (data != null && data['price'] != null) {
           _livePrice = (data['price'] as num).toDouble();
         }

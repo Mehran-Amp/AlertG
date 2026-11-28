@@ -23,7 +23,6 @@ import 'package:bitcoin_checker/features/exchanges/toobit/toobit_exchange.dart';
 import 'package:bitcoin_checker/features/exchanges/xt/xt_exchange.dart';
 import 'package:bitcoin_checker/features/exchanges/ourbit/ourbit_exchange.dart';
 import 'package:bitcoin_checker/features/exchanges/registry/exchange_catalog.dart';
-import 'package:bitcoin_checker/features/exchanges/registry/exchange_registry.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

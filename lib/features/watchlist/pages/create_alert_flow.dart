@@ -9,7 +9,6 @@ import '../../alert_engine/repositories/json_alert_rule_repository.dart';
 import '../../exchanges/base/crypto_catalog_service.dart';
 import '../../exchanges/base/currency_pair.dart';
 import '../../exchanges/base/exchange.dart';
-import '../../exchanges/base/exchange_category.dart';
 import '../../exchanges/registry/exchange_catalog.dart';
 import '../../exchanges/registry/exchange_registry.dart';
 import '../../exchanges/stocks/global_stocks_exchange.dart';
@@ -69,7 +68,6 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
   int _step = 1;
 
   // Crypto Flow State
-  ExchangeCategory _selectedCategory = ExchangeCategory.all;
   Exchange? _selectedExchange;
   String _exchangeSearchQuery = '';
   List<CurrencyPair> _exchangePairs = [];
@@ -92,9 +90,6 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
   final Map<String, double> _iranLivePrices = {};
   Map<String, dynamic>? _iranMarketsStatus;
   final Map<String, Map<String, dynamic>> _iranItemMeta = {};
-  bool _isLoadingIranPairs = false;
-  String _iranPairSearchQuery = '';
-  List<CurrencyPair> _iranExchangePairs = [];
 
   // Snapshot
   double? _currentPrice;
@@ -553,56 +548,6 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
     } catch (e) {
       debugPrint('⚠️ Error fetching Iran market overview: $e');
     }
-  }
-
-  Future<void> _onIranExchangeChosen(Exchange ex) async {
-    setState(() {
-      _selectedIranExchange = ex;
-      _selectedIranDomesticAsset = null;
-      _selectedExchange = ex;
-      _step = 2;
-      _isLoadingIranPairs = true;
-      _iranPairSearchQuery = '';
-    });
-
-    await _fetchPairsForIranExchange();
-  }
-
-  Future<void> _fetchPairsForIranExchange({bool forceRefresh = false}) async {
-    if (_selectedIranExchange == null) return;
-    setState(() => _isLoadingIranPairs = true);
-
-    try {
-      List<CurrencyPair> pairs;
-      if (forceRefresh) {
-        pairs = await widget.registry.refreshCurrencyPairs(_selectedIranExchange!.id);
-      } else {
-        pairs = await widget.registry.getCurrencyPairs(_selectedIranExchange!.id);
-      }
-      if (mounted) {
-        setState(() {
-          _iranExchangePairs = pairs;
-          _isLoadingIranPairs = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _isLoadingIranPairs = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _onIranPairChosen(CurrencyPair pair) async {
-    setState(() {
-      _selectedPair = pair;
-      _step = 3;
-      _isLoadingPrice = true;
-      _currentPrice = null;
-    });
-
-    await _fetchLivePriceForSelectedAsset();
   }
 
   Future<void> _onPairChosen(CurrencyPair pair) async {
@@ -2000,7 +1945,6 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
               final sym = asset['symbol'] as String;
               final unit = (asset['unit'] as String?) ?? 'USD';
               final livePrice = _macroLivePrices[sym];
-              final displayName = isFa ? (asset['nameFa'] as String) : (asset['name'] as String);
               final iconStr = asset['icon']?.toString() ?? '📊';
 
               return InkWell(
