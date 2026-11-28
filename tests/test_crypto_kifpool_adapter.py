@@ -104,7 +104,7 @@ class TestKifpoolAdapter(unittest.TestCase):
         self.assertEqual(btc_tmn.base, "BTC")
 
     def test_04_batch_prices_parsing(self):
-        """Kifpool adapter must extract exact USDT price and convert IRT (Rials) to Tomans (div 10)."""
+        """Kifpool adapter must extract exact USDT price and preserve IRT (Toman) prices directly."""
         raw_mock = [
             {
                 "symbol": "BTC",
@@ -125,13 +125,13 @@ class TestKifpoolAdapter(unittest.TestCase):
         self.assertIn("BTCUSDT", res.prices)
         self.assertAlmostEqual(res.prices["BTCUSDT"], 80306.41)
 
-        # TMN calculation: (21,400,000,000 + 21,600,000,000) / 2 / 10 = 2,150,000,000 Tomans
+        # TMN calculation: (21,400,000,000 + 21,600,000,000) / 2 = 21,500,000,000 Tomans
         self.assertIn("BTCTMN", res.prices)
-        self.assertAlmostEqual(res.prices["BTCTMN"], 2150000000.0)
+        self.assertAlmostEqual(res.prices["BTCTMN"], 21500000000.0)
 
-        # USDT/TMN calculation: (267,000 + 269,000) / 2 / 10 = 26,800 Tomans
+        # USDT/TMN calculation: (267,000 + 269,000) / 2 = 268,000 Tomans
         self.assertIn("USDTTMN", res.prices)
-        self.assertAlmostEqual(res.prices["USDTTMN"], 26800.0)
+        self.assertAlmostEqual(res.prices["USDTTMN"], 268000.0)
 
     def test_05_single_price_resolution(self):
         """Single price lookup must resolve both direct and base/quote formats."""
@@ -150,7 +150,7 @@ class TestKifpoolAdapter(unittest.TestCase):
 
         res_tmn = self.adapter.parse_single_price(raw_mock, "SOLTMN")
         self.assertEqual(res_tmn.status, "OK")
-        self.assertAlmostEqual(res_tmn.price, 2590000.0)
+        self.assertAlmostEqual(res_tmn.price, 25900000.0)
 
 
 if __name__ == "__main__":

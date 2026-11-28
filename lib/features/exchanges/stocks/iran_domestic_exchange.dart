@@ -6,8 +6,10 @@ import '../base/exchange.dart';
 import '../base/exchange_category.dart';
 import '../base/models/market_ticker.dart';
 import '../base/models/price_snapshot.dart';
+import '../kifpool/kifpool_exchange.dart';
+import '../tabdeal/tabdeal_exchange.dart';
 
-/// Comprehensive Iran Domestic Market Adapter (TSETMC, Bonbast, ICE, Nobitex, Wallex, etc.)
+/// Comprehensive Iran Domestic Market Adapter (Bonbast, TSETMC, Tabdeal & Kifpool)
 /// Quote currency is strictly Toman (TMN).
 class IranDomesticExchange implements Exchange {
   final http.Client _client;
@@ -700,186 +702,60 @@ class IranDomesticExchange implements Exchange {
     },
 
     // ==========================================
-    // ۶. تتر و طلای صرافی‌های ایرانی (USDT & Gold)
+    // ۶. تتر و طلای دیجیتال صرافی‌های تبدیل و کیف پول من (Tabdeal & Kifpool USDT & Digital Gold)
     // ==========================================
-    {
-      'symbol': 'USDT_NOBITEX',
-      'name': 'Nobitex Tether (USDT/TMN)',
-      'nameFa': 'تتر نوبیتکس (USDT)',
-      'cat': 'Tether',
-      'icon': '🟢',
-      'price': 268950.0,
-      'unit': 'تومان',
-    },
-    {
-      'symbol': 'USDT_WALLEX',
-      'name': 'Wallex Tether (USDT/TMN)',
-      'nameFa': 'تتر والکس (USDT)',
-      'cat': 'Tether',
-      'icon': '🟢',
-      'price': 268900.0,
-      'unit': 'تومان',
-    },
     {
       'symbol': 'USDT_TABDEAL',
       'name': 'Tabdeal Tether (USDT/TMN)',
       'nameFa': 'تتر تبدیل (USDT)',
       'cat': 'Tether',
       'icon': '🟢',
-      'price': 268880.0,
+      'price': 298550.0,
       'unit': 'تومان',
     },
     {
-      'symbol': 'USDT_TETHERLAND',
-      'name': 'Tetherland Tether (USDT/TMN)',
-      'nameFa': 'تتر تترلند (USDT)',
+      'symbol': 'USDT_KIFPOOL',
+      'name': 'Kifpool Tether (USDT/TMN)',
+      'nameFa': 'تتر کیف پول من (USDT)',
       'cat': 'Tether',
       'icon': '🟢',
-      'price': 268920.0,
-      'unit': 'تومان',
-    },
-    {
-      'symbol': 'USDT_RAMZINEX',
-      'name': 'Ramzinex Tether (USDT/TMN)',
-      'nameFa': 'تتر رمزینکس (USDT)',
-      'cat': 'Tether',
-      'icon': '🟢',
-      'price': 268850.0,
-      'unit': 'تومان',
-    },
-    {
-      'symbol': 'USDT_ABAN',
-      'name': 'AbanTether (USDT/TMN)',
-      'nameFa': 'تتر آبان‌تتر (USDT)',
-      'cat': 'Tether',
-      'icon': '🟢',
-      'price': 268900.0,
-      'unit': 'تومان',
-    },
-    {
-      'symbol': 'USDT_BITPIN',
-      'name': 'Bitpin Tether (USDT/TMN)',
-      'nameFa': 'تتر بیت‌پین (USDT)',
-      'cat': 'Tether',
-      'icon': '🟢',
-      'price': 268920.0,
-      'unit': 'تومان',
-    },
-    {
-      'symbol': 'USDT_BITBARG',
-      'name': 'Bitbarg Tether (USDT/TMN)',
-      'nameFa': 'تتر بیت‌برگ (USDT)',
-      'cat': 'Tether',
-      'icon': '🟢',
-      'price': 269100.0,
-      'unit': 'تومان',
-    },
-    {
-      'symbol': 'USDT_EXIR',
-      'name': 'Exir Tether (USDT/TMN)',
-      'nameFa': 'تتر اکسیر (USDT)',
-      'cat': 'Tether',
-      'icon': '🟢',
-      'price': 268930.0,
-      'unit': 'تومان',
-    },
-    {
-      'symbol': 'USDT_SARMAYEX',
-      'name': 'Sarmayex Tether (USDT/TMN)',
-      'nameFa': 'تتر سرمایکس (USDT)',
-      'cat': 'Tether',
-      'icon': '🟢',
-      'price': 268950.0,
-      'unit': 'تومان',
-    },
-    {
-      'symbol': 'GOLD_NOBITEX',
-      'name': 'Nobitex Gold 18K (Digital Gold)',
-      'nameFa': 'طلای دیجیتال نوبیتکس (طلا ۱۸)',
-      'cat': 'DigitalGold',
-      'icon': '🪙',
-      'price': 26750000.0,
-      'unit': 'تومان',
-    },
-    {
-      'symbol': 'GOLD_WALLEX',
-      'name': 'Wallex Gold / PAXG',
-      'nameFa': 'تتر گلد والکس (PAXG)',
-      'cat': 'DigitalGold',
-      'icon': '🪙',
-      'price': 26740000.0,
+      'price': 298990.0,
       'unit': 'تومان',
     },
     {
       'symbol': 'GOLD_TABDEAL',
-      'name': 'Tabdeal Digital Gold',
-      'nameFa': 'طلای دیجیتال تبدیل (طلا ۱۸)',
+      'name': 'Tabdeal PAX Gold (PAXG/TMN)',
+      'nameFa': 'پکس گلد تبدیل (PAXG)',
       'cat': 'DigitalGold',
       'icon': '🪙',
-      'price': 26730000.0,
+      'price': 1089677646.0,
       'unit': 'تومان',
     },
     {
-      'symbol': 'GOLD_RAMZINEX',
-      'name': 'Ramzinex Gold / PAXG',
-      'nameFa': 'تتر گلد رمزینکس (PAXG)',
+      'symbol': 'XAUT_TABDEAL',
+      'name': 'Tabdeal Tether Gold (XAUT/TMN)',
+      'nameFa': 'تتر گلد تبدیل (XAUT)',
       'cat': 'DigitalGold',
       'icon': '🪙',
-      'price': 26745000.0,
+      'price': 1095146654.0,
       'unit': 'تومان',
     },
     {
-      'symbol': 'GOLD_ABAN',
-      'name': 'AbanTether Gold',
-      'nameFa': 'طلای دیجیتال آبان‌تتر (طلا ۱۸)',
+      'symbol': 'GOLD_KIFPOOL',
+      'name': 'Kifpool PAX Gold (PAXG/TMN)',
+      'nameFa': 'پکس گلد کیف پول من (PAXG)',
       'cat': 'DigitalGold',
       'icon': '🪙',
-      'price': 26755000.0,
+      'price': 1090897267.0,
       'unit': 'تومان',
     },
     {
-      'symbol': 'GOLD_BITPIN',
-      'name': 'Bitpin Gold / PAXG',
-      'nameFa': 'تتر گلد بیت‌پین (PAXG)',
+      'symbol': 'XAUT_KIFPOOL',
+      'name': 'Kifpool Tether Gold (XAUT/TMN)',
+      'nameFa': 'تتر گلد کیف پول من (XAUT)',
       'cat': 'DigitalGold',
       'icon': '🪙',
-      'price': 26742000.0,
-      'unit': 'تومان',
-    },
-    {
-      'symbol': 'BTC_NOBITEX',
-      'name': 'Nobitex Bitcoin (BTC/TMN)',
-      'nameFa': 'بیت‌کوین نوبیتکس (BTC)',
-      'cat': 'Tether',
-      'icon': '₿',
-      'price': 22500000000.0,
-      'unit': 'تومان',
-    },
-    {
-      'symbol': 'ETH_NOBITEX',
-      'name': 'Nobitex Ethereum (ETH/TMN)',
-      'nameFa': 'اتریوم نوبیتکس (ETH)',
-      'cat': 'Tether',
-      'icon': 'Ξ',
-      'price': 705000000.0,
-      'unit': 'تومان',
-    },
-    {
-      'symbol': 'BTC_WALLEX',
-      'name': 'Wallex Bitcoin (BTC/TMN)',
-      'nameFa': 'بیت‌کوین والکس (BTC)',
-      'cat': 'Tether',
-      'icon': '₿',
-      'price': 22500000000.0,
-      'unit': 'تومان',
-    },
-    {
-      'symbol': 'ETH_WALLEX',
-      'name': 'Wallex Ethereum (ETH/TMN)',
-      'nameFa': 'اتریوم والکس (ETH)',
-      'cat': 'Tether',
-      'icon': 'Ξ',
-      'price': 705000000.0,
+      'price': 1090858365.0,
       'unit': 'تومان',
     },
 
@@ -1112,102 +988,58 @@ class IranDomesticExchange implements Exchange {
   Future<MarketTicker> fetchTicker(CurrencyPair pair) async {
     final sym = pair.baseCurrency.toUpperCase();
 
-    // 1. Direct Crypto Exchange Live Resolution
-    if (sym == 'USDT_NOBITEX' || sym == 'GOLD_NOBITEX') {
+    // 1. Approved Iranian Crypto Exchange Live Resolution (Tabdeal & Kifpool via Crypto Engine)
+    const tabdealPairMap = <String, CurrencyPair>{
+      'USDT_TABDEAL': CurrencyPair(baseCurrency: 'USDT', counterCurrency: 'TMN', marketSymbol: 'USDTIRT'),
+      'GOLD_TABDEAL': CurrencyPair(baseCurrency: 'PAXG', counterCurrency: 'TMN', marketSymbol: 'PAXGIRT'),
+      'PAXG_TABDEAL': CurrencyPair(baseCurrency: 'PAXG', counterCurrency: 'TMN', marketSymbol: 'PAXGIRT'),
+      'XAUT_TABDEAL': CurrencyPair(baseCurrency: 'XAUT', counterCurrency: 'TMN', marketSymbol: 'XAUTIRT'),
+    };
+    if (tabdealPairMap.containsKey(sym)) {
       try {
-        final isGold = sym == 'GOLD_NOBITEX';
-        final pairKey = isGold ? 'pm-irt' : 'usdt-irt';
-        final url = Uri.parse('https://apiv2.nobitex.ir/market/stats');
-        final res = await _client.get(url).timeout(const Duration(seconds: 4));
-        if (res.statusCode == 200) {
-          final data = json.decode(utf8.decode(res.bodyBytes));
-          final stats = data['stats']?[pairKey] ?? data['stats']?[isGold ? 'pm-rls' : 'usdt-rls'];
-          if (stats != null && stats['latest'] != null) {
-            var p = double.tryParse(stats['latest'].toString()) ?? 0.0;
-            if (p > 0) {
-              // Nobitex returns raw prices in Rials (e.g. 2,680,000 for USDT). Always convert to Toman:
-              p = p / 10.0;
-              while (sym == 'USDT_NOBITEX' && p > 1000000) {
-                p = p / 10.0;
-              }
-              while (isGold && p > 100000000) {
-                p = p / 10.0;
-              }
-              return MarketTicker(
-                exchangeId: id,
-                pair: pair,
-                lastPrice: p,
-                volume24h: double.tryParse(stats['dayVolume']?.toString() ?? '0') ?? 0.0,
-                timestamp: DateTime.now(),
-                asOf: DateTime.now(),
-                state: 'live',
-                quoteUnit: 'تومان',
-                source: 'نوبیتکس (Nobitex)',
-              );
-            }
-          }
+        final cryptoTicker = await TabdealExchange().fetchTicker(tabdealPairMap[sym]!);
+        if (cryptoTicker.lastPrice > 0) {
+          return MarketTicker(
+            exchangeId: id,
+            pair: pair,
+            lastPrice: cryptoTicker.lastPrice,
+            volume24h: cryptoTicker.volume24h,
+            timestamp: cryptoTicker.timestamp,
+            asOf: cryptoTicker.asOf ?? cryptoTicker.timestamp,
+            state: 'live',
+            quoteUnit: 'تومان',
+            source: 'صرافی تبدیل (Tabdeal)',
+          );
         }
       } catch (e) {
-        debugPrint('⚠️ [IranDomesticExchange] Nobitex fetch error for $sym: $e');
+        debugPrint('⚠️ [IranDomesticExchange] Tabdeal fetch error for $sym: $e');
       }
     }
 
-    if (sym == 'USDT_TETHERLAND') {
+    const kifpoolPairMap = <String, CurrencyPair>{
+      'USDT_KIFPOOL': CurrencyPair(baseCurrency: 'USDT', counterCurrency: 'TMN', marketSymbol: 'USDTTMN'),
+      'GOLD_KIFPOOL': CurrencyPair(baseCurrency: 'PAXG', counterCurrency: 'TMN', marketSymbol: 'PAXGTMN'),
+      'PAXG_KIFPOOL': CurrencyPair(baseCurrency: 'PAXG', counterCurrency: 'TMN', marketSymbol: 'PAXGTMN'),
+      'XAUT_KIFPOOL': CurrencyPair(baseCurrency: 'XAUT', counterCurrency: 'TMN', marketSymbol: 'XAUTTMN'),
+    };
+    if (kifpoolPairMap.containsKey(sym)) {
       try {
-        final url = Uri.parse('https://api.tetherland.com/currencies');
-        final res = await _client.get(url).timeout(const Duration(seconds: 4));
-        if (res.statusCode == 200) {
-          final data = json.decode(utf8.decode(res.bodyBytes));
-          final pStr = data['data']?['currencies']?['USDT']?['price'] ?? data['data']?['currencies']?['USDT']?['last_price'];
-          if (pStr != null) {
-            final p = double.tryParse(pStr.toString()) ?? 0.0;
-            if (p > 0) {
-              return MarketTicker(
-                exchangeId: id,
-                pair: pair,
-                lastPrice: p,
-                volume24h: 0.0,
-                timestamp: DateTime.now(),
-                asOf: DateTime.now(),
-                state: 'live',
-                quoteUnit: 'تومان',
-                source: 'تترلند (Tetherland)',
-              );
-            }
-          }
+        final cryptoTicker = await KifpoolExchange().fetchTicker(kifpoolPairMap[sym]!);
+        if (cryptoTicker.lastPrice > 0) {
+          return MarketTicker(
+            exchangeId: id,
+            pair: pair,
+            lastPrice: cryptoTicker.lastPrice,
+            volume24h: cryptoTicker.volume24h,
+            timestamp: cryptoTicker.timestamp,
+            asOf: cryptoTicker.asOf ?? cryptoTicker.timestamp,
+            state: 'live',
+            quoteUnit: 'تومان',
+            source: 'کیف پول من (Kifpool)',
+          );
         }
       } catch (e) {
-        debugPrint('⚠️ [IranDomesticExchange] Tetherland fetch error for $sym: $e');
-      }
-    }
-
-    if (sym == 'USDT_WALLEX' || sym == 'GOLD_WALLEX') {
-      try {
-        final url = Uri.parse('https://api.wallex.ir/v1/markets');
-        final res = await _client.get(url).timeout(const Duration(seconds: 4));
-        if (res.statusCode == 200) {
-          final data = json.decode(utf8.decode(res.bodyBytes));
-          final symKey = sym == 'GOLD_WALLEX' ? 'PAXGTMN' : 'USDTTMN';
-          final stats = data['result']?['symbols']?[symKey]?['stats'];
-          if (stats != null && stats['lastPrice'] != null) {
-            final p = double.tryParse(stats['lastPrice'].toString()) ?? 0.0;
-            if (p > 0) {
-              return MarketTicker(
-                exchangeId: id,
-                pair: pair,
-                lastPrice: p,
-                volume24h: double.tryParse(stats['24h_volume']?.toString() ?? '0') ?? 0.0,
-                timestamp: DateTime.now(),
-                asOf: DateTime.now(),
-                state: 'live',
-                quoteUnit: 'تومان',
-                source: 'والکس (Wallex)',
-              );
-            }
-          }
-        }
-      } catch (e) {
-        debugPrint('⚠️ [IranDomesticExchange] Wallex fetch error for $sym: $e');
+        debugPrint('⚠️ [IranDomesticExchange] Kifpool fetch error for $sym: $e');
       }
     }
 

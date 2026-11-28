@@ -97,6 +97,25 @@ TSETMC_INSTRUMENTS_MAP = {
     'GOHAR': ('12390706505809150', 'صندوق طلای گوهر مفید', 25670.0),
 }
 
+IRAN_CRYPTO_SYMBOL_MAP = {
+    'USDTTABDEAL': ('tabdeal', 'USDTIRT'),
+    'USDT_TABDEAL': ('tabdeal', 'USDTIRT'),
+    'GOLDTABDEAL': ('tabdeal', 'PAXGIRT'),
+    'GOLD_TABDEAL': ('tabdeal', 'PAXGIRT'),
+    'PAXGTABDEAL': ('tabdeal', 'PAXGIRT'),
+    'PAXG_TABDEAL': ('tabdeal', 'PAXGIRT'),
+    'XAUTTABDEAL': ('tabdeal', 'XAUTIRT'),
+    'XAUT_TABDEAL': ('tabdeal', 'XAUTIRT'),
+    'USDTKIFPOOL': ('kifpool', 'USDTTMN'),
+    'USDT_KIFPOOL': ('kifpool', 'USDTTMN'),
+    'GOLDKIFPOOL': ('kifpool', 'PAXGTMN'),
+    'GOLD_KIFPOOL': ('kifpool', 'PAXGTMN'),
+    'PAXGKIFPOOL': ('kifpool', 'PAXGTMN'),
+    'PAXG_KIFPOOL': ('kifpool', 'PAXGTMN'),
+    'XAUTKIFPOOL': ('kifpool', 'XAUTTMN'),
+    'XAUT_KIFPOOL': ('kifpool', 'XAUTTMN'),
+}
+
 async def fetch_iran(
     client: httpx.AsyncClient,
     exchange: str,
@@ -107,9 +126,28 @@ async def fetch_iran(
 ) -> Optional[float]:
     ex = (exchange or '').lower()
     sym_clean = normalize_symbol(symbol)
+    raw_upper = (symbol or '').strip().upper()
 
-    # 0. Iran High-Speed Bridge (aegkala.com Host in Iran for domestic market & special tokens)
-    if IRAN_BRIDGE_URL and (ex in ['iran_market', 'bridge', 'tse', 'bonbast'] or sym_clean.startswith('USDT_') or sym_clean.startswith('GOLD_') or sym_clean.startswith('BTC_') or sym_clean.startswith('ETH_') or sym_clean in TSETMC_INDEX_MAP or sym_clean in TSETMC_INSTRUMENTS_MAP):
+    # 0-a. Direct routing of Tabdeal & Kifpool Tether and Digital Gold symbols via Crypto Engine
+    mapped_crypto = IRAN_CRYPTO_SYMBOL_MAP.get(sym_clean) or IRAN_CRYPTO_SYMBOL_MAP.get(raw_upper)
+    if mapped_crypto:
+        from app.markets.crypto_strict import fetch_crypto_strict
+        target_ex, target_pair = mapped_crypto
+        strict_res = await fetch_crypto_strict(
+            client,
+            target_ex,
+            target_pair,
+            _try_fetch,
+            traces,
+            counter_currency="TMN",
+            market_symbol=target_pair,
+        )
+        if strict_res.price is not None and strict_res.price > 0:
+            return strict_res.price
+        return None
+
+    # 0-b. Iran High-Speed Bridge (aegkala.com Host in Iran for domestic market & special tokens)
+    if IRAN_BRIDGE_URL and IRAN_BRIDGE_TOKEN and (ex in ['iran_market', 'bridge', 'tse', 'bonbast'] or sym_clean in TSETMC_INDEX_MAP or sym_clean in TSETMC_INSTRUMENTS_MAP):
         def _extract_iran_bridge(data):
             if isinstance(data, dict):
                 if data.get('failed_sources'):
@@ -211,56 +249,6 @@ async def fetch_iran(
         p = await _try_fetch('پل اختصاصی ایران (aegkala.com)', IRAN_BRIDGE_URL, _extract_iran_bridge, headers=bridge_headers, timeout_sec=30.0)
         if p and not collect_all_traces:
             return p
-
-    # 0-b. Specialized Exchange Tethers & Digital Gold routing
-    if sym_clean == 'USDT_TETHERLAND':
-        def _extract_tetherland_direct(data):
-            if isinstance(data, dict):
-                usdt_info = data.get('data', {}).get('currencies', {}).get('USDT', {})
-                p = usdt_info.get('price') or usdt_info.get('last_price')
-                if p and float(p) > 0:
-                    return {'price': float(p), 'state': 'LIVE', 'currency': 'TMN', 'source': 'تترلند (Tetherland)'}
-            return None
-        p = await _try_fetch('Tetherland API', 'https://api.tetherland.com/currencies', _extract_tetherland_direct)
-        if p and not collect_all_traces: return p
-
-    if sym_clean in ['USDT_WALLEX', 'GOLD_WALLEX']:
-        def _extract_wallex_direct(data):
-            if isinstance(data, dict):
-                sym_target = 'PAXGTMN' if sym_clean == 'GOLD_WALLEX' else 'USDTTMN'
-                symbols = data.get('result', {}).get('symbols', {})
-                if sym_target in symbols:
-                    p = symbols[sym_target].get('stats', {}).get('lastPrice')
-                    if p and float(p) > 0:
-                        return {'price': float(p), 'state': 'LIVE', 'currency': 'TMN', 'source': 'والکس (Wallex)'}
-            return None
-        p = await _try_fetch('Wallex API', 'https://api.wallex.ir/v1/markets', _extract_wallex_direct)
-        if p and not collect_all_traces: return p
-
-    if sym_clean in ['USDT_NOBITEX', 'GOLD_NOBITEX']:
-        def _extract_nobitex_direct(data):
-            if isinstance(data, dict):
-                stats = data.get('stats', {})
-                pair_k = 'pm-irt' if sym_clean == 'GOLD_NOBITEX' else 'usdt-irt'
-                item = stats.get(pair_k)
-                if not item:
-                    pair_k = 'pm-rls' if sym_clean == 'GOLD_NOBITEX' else 'usdt-rls'
-                    item = stats.get(pair_k)
-                if item and item.get('latest'):
-                    val = float(item['latest'])
-                    if 'rls' in pair_k or 'irt' in pair_k or val > 1000000:
-                        val = val / 10.0
-                    while sym_clean in ['USDT_NOBITEX', 'USDT'] and val > 1000000:
-                        val = val / 10.0
-                    return {'price': val, 'state': 'LIVE', 'currency': 'TMN', 'source': 'نوبیتکس (Nobitex)'}
-            return None
-        p = await _try_fetch('Nobitex Stats API', 'https://apiv2.nobitex.ir/market/stats', _extract_nobitex_direct)
-        if p and not collect_all_traces: return p
-
-    nobitex_sym = 'USDTIRT' if sym_clean in ['USDTTMN', 'USDTIRT', 'USDT'] else (sym_clean[:-3] + 'IRT' if sym_clean.endswith('TMN') else sym_clean)
-    matching_keys = [sym_clean, nobitex_sym]
-    if sym_clean in ['USDT', 'USDTTMN', 'USDTIRT']:
-        matching_keys.extend(['USDTTMN', 'USDTIRT', 'USDT_IRT', 'USDT_TMN'])
 
     # 1-0. TSETMC Public Transparency Open Data for Bourse Indices (TEDPIX, TEDPIX_EQUAL, IFX)
     if sym_clean in TSETMC_INDEX_MAP:
@@ -418,117 +406,20 @@ async def fetch_iran(
             except Exception:
                 pass
 
-    # 1a. Nobitex Market Stats API (Official aggregated prices for all markets)
-    def _extract_nobitex_stats(data):
-        if isinstance(data, dict):
-            stats = data.get('stats', {})
-            search_targets = [
-                sym_clean.lower(),
-                nobitex_sym.lower(),
-                f"{sym_clean.replace('IRT', '').replace('TMN', '').lower()}-rls",
-                f"{sym_clean.replace('IRT', '').replace('TMN', '').lower()}-irt",
-                f"{sym_clean.replace('IRT', '').replace('TMN', '').lower()}-usdt"
-            ]
-            if sym_clean in ['USDT', 'USDTTMN', 'USDTIRT']:
-                search_targets = ['usdt-rls', 'usdt-irt']
-
-            for tgt in search_targets:
-                if tgt in stats:
-                    item = stats[tgt]
-                    latest_raw = item.get('latest')
-                    if latest_raw and float(latest_raw) > 0:
-                        raw_val = float(latest_raw)
-                        is_domestic = tgt.endswith('-rls') or tgt.endswith('rls') or tgt.endswith('-irt') or tgt.endswith('irt')
-                        final_val = (raw_val / 10.0) if is_domestic else raw_val
-                        while sym_clean in ['USDT', 'USDTTMN', 'USDTIRT'] and final_val > 1000000:
-                            final_val = final_val / 10.0
-                        return {
-                            'price': final_val,
-                            'state': 'LIVE',
-                            'currency': 'TMN' if is_domestic else 'USDT'
-                        }
-        return None
-
-    p = await _try_fetch('Nobitex Stats API', 'https://apiv2.nobitex.ir/market/stats', _extract_nobitex_stats)
-    if p and not collect_all_traces: return p
-
-    # 1b. Nobitex Orderbook (Using lastTradePrice, with bids fallback)
-    for domain, label in [('apiv2.nobitex.ir', 'Nobitex Global Net'), ('api.nobitex.ir', 'Nobitex Local IR')]:
-        def _extract_nobitex_ob(data):
-            if isinstance(data, dict):
-                p_val = data.get('lastTradePrice')
-                if not p_val and 'bids' in data and len(data['bids']) > 0:
-                    p_val = data['bids'][0][0]
-                if p_val and float(p_val) > 0:
-                    raw_val = float(p_val)
-                    is_domestic_rial = nobitex_sym.upper().endswith('RLS') or nobitex_sym.upper().endswith('IRT') or 'TMN' in nobitex_sym.upper()
-                    final_val = (raw_val / 10.0) if is_domestic_rial else raw_val
-                    while sym_clean in ['USDT', 'USDTTMN', 'USDTIRT'] and final_val > 1000000:
-                        final_val = final_val / 10.0
-                    return {
-                        'price': final_val,
-                        'state': 'LIVE',
-                        'currency': 'TMN' if is_domestic_rial else 'USDT'
-                    }
-            return None
-        p = await _try_fetch(f'{label} Orderbook', f'https://{domain}/v2/orderbook/{nobitex_sym}', _extract_nobitex_ob)
-        if p and not collect_all_traces: return p
-
-    # 1c. Tabdeal
-    tabdeal_sym = 'USDTIRT' if sym_clean in ['USDTTMN', 'USDTIRT', 'USDT'] else (sym_clean[:-3] + 'IRT' if sym_clean.endswith('TMN') else sym_clean)
-    def _extract_tabdeal(data):
-        if isinstance(data, dict):
-            bids = data.get('bids', [])
-            if bids and len(bids) > 0:
-                val = float(bids[0][0])
-                if val > 0:
-                    return {'price': val, 'state': 'LIVE', 'currency': 'TMN'}
-        return None
-
-    p = await _try_fetch('Tabdeal Depth API', f'https://api1.tabdeal.org/r/api/v1/depth?symbol={tabdeal_sym}', _extract_tabdeal)
-    if p and not collect_all_traces: return p
-
-    # 1d. Bitpin
-    def _extract_bitpin(data):
-        if isinstance(data, dict):
-            for m in data.get('results', []):
-                code = m.get('code', '')
-                if normalize_symbol(code) in matching_keys:
-                    raw_val = float(m.get('price', 0))
-                    if raw_val > 0:
-                        is_rls = code.upper().endswith('RLS') or code.upper().endswith('IRR')
-                        final_val = (raw_val / 10.0) if is_rls else raw_val
-                        return {'price': final_val, 'state': 'LIVE', 'currency': 'TMN'}
-        return None
-
-    p = await _try_fetch('Bitpin Markets API', 'https://api.bitpin.org/v1/mkt/markets/', _extract_bitpin)
-    if p and not collect_all_traces: return p
-
-    # 1e. Wallex
-    def _extract_wallex(data):
-        if isinstance(data, dict):
-            symbols = data.get('result', {}).get('symbols', {})
-            for k, v in symbols.items():
-                if normalize_symbol(k) == sym_clean:
-                    p = v.get('stats', {}).get('lastPrice')
-                    if p and float(p) > 0:
-                        return {'price': float(p), 'state': 'LIVE', 'currency': 'TMN' if 'TMN' in k else 'USDT'}
-        return None
-
-    p = await _try_fetch('Wallex Markets API', 'https://api.wallex.ir/v1/markets', _extract_wallex)
-    if p and not collect_all_traces: return p
-
-    # 1f. Tetherland (For USDT/TMN direct)
-    if sym_clean in ['USDTTMN', 'USDTIRT', 'USDT']:
-        def _extract_tetherland(data):
-            if isinstance(data, dict):
-                usdt_info = data.get('data', {}).get('currencies', {}).get('USDT', {})
-                p = usdt_info.get('price') or usdt_info.get('last_price')
-                if p and float(p) > 0:
-                    return {'price': float(p), 'state': 'LIVE', 'currency': 'TMN'}
-            return None
-
-        p = await _try_fetch('Tetherland API', 'https://api.tetherland.com/currencies', _extract_tetherland)
-        if p and not collect_all_traces: return p
+    # 1-4. Generic Toman crypto / USDT fallback via approved Iranian crypto exchanges (Tabdeal & Kifpool only)
+    if sym_clean in ('USDT', 'USDTTMN', 'USDTIRT'):
+        from app.markets.crypto_strict import fetch_crypto_strict
+        for target_ex, target_pair in (('tabdeal', 'USDTIRT'), ('kifpool', 'USDTTMN')):
+            strict_res = await fetch_crypto_strict(
+                client,
+                target_ex,
+                target_pair,
+                _try_fetch,
+                traces,
+                counter_currency="TMN",
+                market_symbol=target_pair,
+            )
+            if strict_res.price is not None and strict_res.price > 0 and not collect_all_traces:
+                return strict_res.price
 
     return None

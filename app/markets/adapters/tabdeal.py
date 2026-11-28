@@ -5,9 +5,8 @@ Dedicated, isolated adapter for Tabdeal Spot (USDT & IRT/TMN pairs):
 1. Market list from https://api1.tabdeal.org/r/api/v1/exchangeInfo
 2. Bulk prices from https://api1.tabdeal.org/r/plots/market_information/
 3. Individual trades from https://api1.tabdeal.org/r/api/v1/trades?symbol={symbol}
-4. Conversion: Tabdeal IRT pairs are quoted in Rials on the API (e.g. 271,250 Rials);
-   converted to canonical Tomans (TMN) by dividing by 10 (27,125 TMN).
-   USDT pairs remain direct 1:1.
+4. Conversion: Tabdeal IRT pairs are already quoted in Tomans (IRT = Iranian Toman, e.g. 271,250 TMN);
+   both USDT and IRT/TMN pairs are direct 1:1.
 5. Strict exchange isolation (Rule R1: zero cross-exchange fallback).
 """
 import time
@@ -37,6 +36,7 @@ class TabdealAdapter(BaseExchangeAdapter):
     market_list_url = "https://api1.tabdeal.org/r/api/v1/exchangeInfo"
     batch_price_url = "https://api1.tabdeal.org/r/plots/market_information/"
     single_price_url = "https://api1.tabdeal.org/r/api/v1/trades?symbol={symbol}"
+    depth_price_url = "https://api1.tabdeal.org/r/api/v1/depth?symbol={symbol}"
     provider_key = "crypto_tabdeal"
 
     specification = AdapterSpecification(
@@ -120,11 +120,13 @@ class TabdealAdapter(BaseExchangeAdapter):
         """
         Parses GET /r/api/v1/exchangeInfo response.
         Filters for status == 'TRADING' and isSpotTradingAllowed == True.
+        Ensures USDTIRT anchor pair is always present when valid markets are returned.
         """
         if not isinstance(raw_data, list):
             return []
 
         results: List[SymbolInfo] = []
+        seen_symbols = set()
         for item in raw_data:
             if not isinstance(item, dict):
                 continue
@@ -145,7 +147,7 @@ class TabdealAdapter(BaseExchangeAdapter):
 
             market_symbol = item.get("symbol") or f"{base}{quote_raw}"
 
-            # Extract filter constraints
+            # Extract filter constraints (IRT on Tabdeal is already in Tomans)
             min_price: Optional[float] = None
             min_qty: Optional[float] = None
             filters = item.get("filters", [])
@@ -155,8 +157,6 @@ class TabdealAdapter(BaseExchangeAdapter):
                     if ftype == "PRICE_FILTER" and f.get("minPrice"):
                         try:
                             min_price = float(f["minPrice"])
-                            if quote == "TMN" and min_price:
-                                min_price /= 10.0
                         except (ValueError, TypeError):
                             pass
                     elif ftype == "LOT_SIZE" and f.get("minQty"):
@@ -165,6 +165,7 @@ class TabdealAdapter(BaseExchangeAdapter):
                         except (ValueError, TypeError):
                             pass
 
+            seen_symbols.add(market_symbol.upper())
             results.append(SymbolInfo(
                 base=base,
                 quote=quote,
@@ -174,6 +175,19 @@ class TabdealAdapter(BaseExchangeAdapter):
                 min_price=min_price,
                 min_qty=min_qty,
                 raw=item
+            ))
+
+        # Ensure USDTIRT anchor pair is always registered even if exchangeInfo omits it
+        if results and "USDTIRT" not in seen_symbols:
+            results.append(SymbolInfo(
+                base="USDT",
+                quote="TMN",
+                market_symbol="USDTIRT",
+                is_active=True,
+                is_etf=False,
+                min_price=1.0,
+                min_qty=1.0,
+                raw={"symbol": "USDTIRT", "baseAsset": "USDT", "quoteAsset": "IRT", "status": "TRADING", "isSpotTradingAllowed": True},
             ))
 
         return results
@@ -186,7 +200,7 @@ class TabdealAdapter(BaseExchangeAdapter):
     def parse_batch_prices(self, raw_data: Any) -> BatchPriceResult:
         """
         Parses GET /r/plots/market_information/ response into a normalized BatchPriceResult.
-        Tabdeal IRT prices are divided by 10 to yield canonical Tomans.
+        Tabdeal IRT prices are already quoted in Tomans (1:1).
         """
         now = int(time.time())
         if not isinstance(raw_data, list):
@@ -207,9 +221,6 @@ class TabdealAdapter(BaseExchangeAdapter):
                 p = float(raw_p)
                 if p <= 0:
                     continue
-                # IRT pairs are quoted in Rials on Tabdeal -> divide by 10 for Tomans
-                if raw_sym.endswith("_IRT") or raw_sym.endswith("IRT"):
-                    p = p / 10.0
                 native_sym = raw_sym.replace("_", "").upper()
                 prices[native_sym] = p
                 # Also store canonical TMN representation
@@ -222,7 +233,8 @@ class TabdealAdapter(BaseExchangeAdapter):
 
     def parse_single_price(self, raw_data: Any, market_symbol: str) -> SinglePriceResult:
         """
-        Parses GET /r/api/v1/trades?symbol={symbol} response into SinglePriceResult (Last Traded Price).
+        Parses GET /r/api/v1/trades?symbol={symbol} (or depth orderbook) response into SinglePriceResult.
+        Tabdeal IRT prices are already in Tomans (1:1).
         """
         now = int(time.time())
         sym_clean = market_symbol.replace("_", "").upper()
@@ -235,13 +247,33 @@ class TabdealAdapter(BaseExchangeAdapter):
                 try:
                     price = float(first_trade["price"])
                     if price > 0:
-                        if is_tmn:
-                            price /= 10.0
                         trade_time = first_trade.get("time")
                         as_of = int(trade_time / 1000) if trade_time else now
                         return SinglePriceResult(
                             price=price,
                             as_of=as_of,
+                            source=self.display_name,
+                            status="OK",
+                            market_symbol=sym_clean,
+                            currency=currency
+                        )
+                except (ValueError, TypeError):
+                    pass
+        elif isinstance(raw_data, dict):
+            bids = raw_data.get("bids") or []
+            asks = raw_data.get("asks") or []
+            raw_p = None
+            if bids and isinstance(bids[0], (list, tuple)) and len(bids[0]) > 0:
+                raw_p = bids[0][0]
+            elif asks and isinstance(asks[0], (list, tuple)) and len(asks[0]) > 0:
+                raw_p = asks[0][0]
+            if raw_p is not None:
+                try:
+                    price = float(raw_p)
+                    if price > 0:
+                        return SinglePriceResult(
+                            price=price,
+                            as_of=now,
                             source=self.display_name,
                             status="OK",
                             market_symbol=sym_clean,
@@ -280,13 +312,25 @@ class TabdealAdapter(BaseExchangeAdapter):
             return [], "PROVIDER_ERROR"
 
     async def fetch_batch_prices(self, client: httpx.AsyncClient, timeout: float = 12.0, **kwargs) -> BatchPriceResult:
-        """Fetches full market bulk prices in a single call."""
+        """Fetches full market bulk prices in a single call, plus USDTIRT depth if omitted from market_information."""
         await acquire_provider_slot(self.provider_key, wait=True)
         try:
             res = await client.get(self.batch_price_url, timeout=timeout)
             if res.status_code == 200:
                 record_provider_metric(self.provider_key, "success")
-                return self.parse_batch_prices(res.json())
+                batch_res = self.parse_batch_prices(res.json())
+                if batch_res.error_code == "OK" and "USDTIRT" not in batch_res.prices:
+                    try:
+                        depth_url = self.depth_price_url.format(symbol="USDTIRT")
+                        depth_res = await client.get(depth_url, timeout=min(timeout, 4.0))
+                        if depth_res.status_code == 200:
+                            single_usdt = self.parse_single_price(depth_res.json(), "USDTIRT")
+                            if single_usdt.status == "OK" and single_usdt.price and single_usdt.price > 0:
+                                batch_res.prices["USDTIRT"] = single_usdt.price
+                                batch_res.prices["USDTTMN"] = single_usdt.price
+                    except Exception:
+                        pass
+                return batch_res
             else:
                 err_code, err_desc = classify_http_error(res.status_code, res.text, res.headers)
                 record_provider_metric(self.provider_key, "errors", status_code=res.status_code)
@@ -299,7 +343,7 @@ class TabdealAdapter(BaseExchangeAdapter):
             return BatchPriceResult(prices={}, source=self.display_name, error=str(e), error_code="PROVIDER_ERROR")
 
     async def fetch_single_price(self, client: httpx.AsyncClient, market_symbol: str) -> SinglePriceResult:
-        """Fetches last traded price for an individual symbol."""
+        """Fetches last traded price for an individual symbol, falling back to depth orderbook if trades list is empty."""
         native_sym = self.to_native_symbol(market_symbol)
         url = self.single_price_url.format(symbol=native_sym)
         await acquire_provider_slot(self.provider_key, wait=True)
@@ -307,7 +351,15 @@ class TabdealAdapter(BaseExchangeAdapter):
             res = await client.get(url, timeout=10.0)
             if res.status_code == 200:
                 record_provider_metric(self.provider_key, "success")
-                return self.parse_single_price(res.json(), native_sym)
+                parsed = self.parse_single_price(res.json(), native_sym)
+                if parsed.status == "OK" and parsed.price and parsed.price > 0:
+                    return parsed
+                # Fallback to depth endpoint when trades array is empty
+                depth_url = self.depth_price_url.format(symbol=native_sym)
+                depth_res = await client.get(depth_url, timeout=8.0)
+                if depth_res.status_code == 200:
+                    return self.parse_single_price(depth_res.json(), native_sym)
+                return parsed
             else:
                 err_code, _ = classify_http_error(res.status_code, res.text, res.headers)
                 record_provider_metric(self.provider_key, "errors", status_code=res.status_code)

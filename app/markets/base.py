@@ -258,20 +258,30 @@ async def fetch_price_with_trace(
             counter_currency=counter_currency,
             market_symbol=market_symbol,
         )
+        if p is not None and final_price is None:
+            final_price = p
         if p and not collect_all_traces:
             return p, traces
 
     # 1. IRANIAN EXCHANGES & TOMAN MARKETS
     elif ex in ['nobitex', 'wallex', 'bitpin', 'tetherland', 'abantether', 'ramzinex', 'bitbarg', 'sarmayex', 'exir', 'iran_market', 'bonbast'] or \
          sym_clean.endswith('TMN') or sym_clean.endswith('IRT') or sym_clean.endswith('RLS') or \
-         sym_clean.startswith('USDT_') or sym_clean.startswith('GOLD_'):
+         sym_clean.startswith('USDT_') or sym_clean.startswith('GOLD_') or \
+         sym_clean.startswith('USDTTABDEAL') or sym_clean.startswith('USDTKIFPOOL') or \
+         sym_clean.startswith('GOLDTABDEAL') or sym_clean.startswith('GOLDKIFPOOL') or \
+         sym_clean.startswith('PAXGTABDEAL') or sym_clean.startswith('PAXGKIFPOOL') or \
+         sym_clean.startswith('XAUTTABDEAL') or sym_clean.startswith('XAUTKIFPOOL'):
         p = await fetch_iran(client, exchange, symbol, _try_fetch, traces, collect_all_traces)
+        if p is not None and final_price is None:
+            final_price = p
         if p and not collect_all_traces:
             return p, traces
 
     # 2. GLOBAL MACRO / FOREX / US BONDS / STOCKS (Yahoo Finance)
     elif ex in ['global_stocks', 'stocks', 'macro', 'forex', 'bonds', 'wallstreet']:
         p = await fetch_global_stocks(client, exchange, symbol, _try_fetch, traces, collect_all_traces)
+        if p is not None and final_price is None:
+            final_price = p
         if p and not collect_all_traces:
             return p, traces
 
@@ -283,6 +293,8 @@ async def fetch_price_with_trace(
             counter_currency=counter_currency,
             market_symbol=market_symbol,
         )
+        if p is not None and final_price is None:
+            final_price = p
         if p and not collect_all_traces:
             return p, traces
 

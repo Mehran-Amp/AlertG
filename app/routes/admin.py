@@ -649,7 +649,7 @@ PROBE_TARGETS = [
     {"id": "tsetmc_main", "name": "TSETMC Main (درگاه اصلی بورس تهران)", "cat": "iran", "url": "https://tsetmc.com", "extractor": lambda d: None},
     {"id": "ice_cbi", "name": "ICE (مرکز مبادله ارز و طلای ایران)", "cat": "iran", "url": "https://ice.ir", "extractor": lambda d: None},
     {"id": "tabdeal_depth", "name": "Tabdeal Depth (دفتر سفارشات تبدیل)", "cat": "iran", "url": "https://api1.tabdeal.org/r/api/v1/depth?symbol=USDTIRT", "extractor": lambda d: float(d.get('bids', [[0]])[0][0]) if isinstance(d, dict) and d.get('bids') else None},
-    {"id": "kifpool_spot", "name": "Kifpool Spot (قیمت‌های زنده کیف پول من)", "cat": "iran", "url": "https://api.kifpool.app/api/spot/price", "extractor": lambda d: float(next((x.get('priceBuyIRT', 0) for x in d if isinstance(x, dict) and x.get('symbol') == 'USDT'), 0)) / 10.0 if isinstance(d, list) else None},
+    {"id": "kifpool_spot", "name": "Kifpool Spot (قیمت‌های زنده کیف پول من)", "cat": "iran", "url": "https://api.kifpool.app/api/spot/price", "extractor": lambda d: float(next((x.get('priceBuyIRT', 0) for x in d if isinstance(x, dict) and x.get('symbol') == 'USDT'), 0)) if isinstance(d, list) else None},
     {"id": "bonbast", "name": "Bonbast (دلار آزاد و سکه)", "cat": "iran", "url": "https://bonbast.com", "extractor": lambda d: None},
 
     # DEX Providers

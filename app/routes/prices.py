@@ -199,7 +199,7 @@ async def get_markets_status():
         }
 
     cached_markets = IRAN_MARKET_CACHE.get('__markets_status__')
-    if state.http_client and IRAN_BRIDGE_URL:
+    if state.http_client and IRAN_BRIDGE_URL and IRAN_BRIDGE_TOKEN:
         try:
             headers = {'Authorization': f'Bearer {IRAN_BRIDGE_TOKEN}'}
             resp = await state.http_client.get(IRAN_BRIDGE_URL, headers=headers, timeout=30.0)

@@ -30,7 +30,7 @@ class TestIranianCryptoBinding(unittest.IsolatedAsyncioTestCase):
             url_str = str(url)
             requested_urls.append(url_str)
             if "tabdeal.org" in url_str:
-                # 271,250 Rials raw trade price -> converts to 27,125 Tomans
+                # 271,250 IRT raw trade price is directly in Tomans (271,250 Tomans)
                 return httpx.Response(
                     200,
                     json=[{"price": "271250.0", "qty": "100.0", "time": 1700000000000}],
@@ -47,9 +47,9 @@ class TestIranianCryptoBinding(unittest.IsolatedAsyncioTestCase):
                 collect_all_traces=True
             )
 
-        # Assert result came strictly from Tabdeal and was converted to Tomans
+        # Assert result came strictly from Tabdeal in Tomans
         self.assertIsNotNone(price)
-        self.assertEqual(price, 27125.0)
+        self.assertEqual(price, 271250.0)
 
         # Assert ALL requested URLs belong strictly to Tabdeal
         self.assertGreater(len(requested_urls), 0)

@@ -782,8 +782,9 @@ def resolve_pair(
 
     ex_id = ex_meta.id
 
-    # If quote currency is specified and is non-USDT, reject for spot crypto
-    if counter_currency and str(counter_currency).strip().upper() != "USDT":
+    # If quote currency is specified and is non-USDT (or non-TMN/IRT for Iranian exchanges), reject for spot crypto
+    allowed_quotes = ("USDT", "TMN", "IRT") if ex_id in ("tabdeal", "kifpool") else ("USDT",)
+    if counter_currency and str(counter_currency).strip().upper() not in allowed_quotes:
         return "SYMBOL_NOT_LISTED", None
 
     query = (symbol_or_base or "").strip()
@@ -792,6 +793,24 @@ def resolve_pair(
 
     if not query and not m_sym and not b_curr:
         return "SYMBOL_NOT_LISTED", None
+
+    desired_quote: Optional[str] = None
+    if ex_id in ("tabdeal", "kifpool"):
+        cc_up = str(counter_currency).strip().upper() if counter_currency else ""
+        m_up = m_sym.upper().replace("-", "").replace("_", "").replace("/", "")
+        q_up = query.upper().replace("-", "").replace("_", "").replace("/", "")
+        if cc_up in ("TMN", "IRT"):
+            desired_quote = "TMN"
+        elif cc_up == "USDT":
+            desired_quote = "USDT"
+        elif m_up.endswith(("TMN", "IRT")) and len(m_up) > 3:
+            desired_quote = "TMN"
+        elif m_up.endswith("USDT") and len(m_up) > 4:
+            desired_quote = "USDT"
+        elif q_up.endswith(("TMN", "IRT")) and len(q_up) > 3:
+            desired_quote = "TMN"
+        elif q_up.endswith("USDT") and len(q_up) > 4:
+            desired_quote = "USDT"
 
     # 1. Lookup in persisted catalog if present
     cat = load_exchange_catalog(ex_id, override_dir)
@@ -803,17 +822,22 @@ def resolve_pair(
 
         m_upper = m_sym.upper() if m_sym else ""
         m_lower = m_sym.lower() if m_sym else ""
+        m_norm = m_upper.replace("-", "").replace("_", "").replace("/", "")
         b_upper = b_curr.upper() if b_curr else ""
 
         for p in pairs:
             native = str(p.get("native_symbol", ""))
             base = str(p.get("base", ""))
-            sym = str(p.get("symbol", f"{base}USDT"))
+            p_quote_raw = str(p.get("quote", "USDT")).upper()
+            p_quote = "TMN" if p_quote_raw in ("TMN", "IRT") else p_quote_raw
+            if desired_quote is not None and p_quote != desired_quote:
+                continue
+            sym = str(p.get("symbol", f"{base}{p_quote}"))
             aliases = p.get("aliases", [])
 
             # Match priority: market_symbol -> base_currency -> query
             matched = False
-            if m_sym and (m_sym == native or m_upper == native.upper() or m_lower == native.lower()):
+            if m_sym and (m_sym == native or m_upper == native.upper() or m_lower == native.lower() or m_norm == sym):
                 matched = True
             elif b_curr and (b_upper == base.upper() or b_curr == base):
                 matched = True
@@ -839,27 +863,48 @@ def resolve_pair(
                     "is_leveraged": bool(p.get("is_leveraged", p.get("is_etf", False))),
                 }
 
+        # Always resolve Tabdeal's anchor USDTIRT / USDTTMN pair even if omitted from older exchangeInfo catalog
+        if ex_id == "tabdeal" and (
+            q_norm in ("USDTIRT", "USDTTMN")
+            or m_norm in ("USDTIRT", "USDTTMN")
+            or (b_upper == "USDT" and desired_quote == "TMN")
+        ):
+            return "OK", {
+                "symbol": "USDTTMN",
+                "base": "USDT",
+                "quote": "TMN",
+                "native_symbol": "USDTIRT",
+                "is_leveraged": False,
+            }
+
         return "SYMBOL_NOT_LISTED", None
 
     # 2. Fallback when catalog has not been seeded yet on disk
     adapter = get_exchange_adapter(ex_id)
     if adapter:
+        target_q = desired_quote or "USDT"
         if m_sym:
-            native = m_sym
+            native = adapter.to_native_symbol(m_sym, quote=target_q) if ex_id in ("tabdeal", "kifpool") else m_sym
             base = adapter.to_canonical_base(native)
         elif b_curr:
             base = b_curr.upper()
-            native = adapter.to_native_symbol(base)
+            native = adapter.to_native_symbol(base, quote=target_q) if ex_id in ("tabdeal", "kifpool") else adapter.to_native_symbol(base)
         else:
-            native = adapter.to_native_symbol(query)
+            native = adapter.to_native_symbol(query, quote=target_q) if ex_id in ("tabdeal", "kifpool") else adapter.to_native_symbol(query)
             base = adapter.to_canonical_base(native)
 
-        sym = f"{base}USDT"
+        resolved_quote = "USDT"
+        if hasattr(adapter, "to_canonical_base_and_quote"):
+            _, resolved_quote = adapter.to_canonical_base_and_quote(native)
+        elif desired_quote:
+            resolved_quote = desired_quote
+
+        sym = f"{base}{resolved_quote}"
         from app.markets.adapters.base import is_leveraged_token
         return "OK", {
             "symbol": sym,
             "base": base,
-            "quote": "USDT",
+            "quote": resolved_quote,
             "native_symbol": native,
             "is_leveraged": is_leveraged_token(base),
         }

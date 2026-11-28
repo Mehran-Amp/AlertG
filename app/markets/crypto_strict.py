@@ -77,8 +77,12 @@ def _format_native_symbol(exchange_id: str, symbol: str) -> str:
         return f"{base}-USDT"
     elif ex == 'bitfinex':
         return f"t{base}:UST" if len(base) > 3 else f"t{base}UST"
+    elif ex == 'tabdeal':
+        from app.markets.adapters.tabdeal import TabdealAdapter
+        return TabdealAdapter().to_native_symbol(raw_upper)
     elif ex == 'kifpool':
-        return f"{base}USDT"
+        from app.markets.adapters.kifpool import KifpoolAdapter
+        return KifpoolAdapter().to_native_symbol(raw_upper)
     return f"{base}USDT"
 
 
@@ -146,10 +150,16 @@ async def fetch_crypto_strict(
     native_sym = pair_data["native_symbol"] if pair_data else _format_native_symbol(ex, symbol)
     source_label = meta.source_label
     now_ts = int(time.time())
+    is_tmn_pair = (
+        native_sym.upper().endswith(('IRT', 'TMN'))
+        or (pair_data and str(pair_data.get('quote', '')).upper() in ('TMN', 'IRT'))
+        or (counter_currency and str(counter_currency).upper() in ('TMN', 'IRT'))
+    )
+    curr = 'TMN' if is_tmn_pair else 'USDT'
 
     # Phase 3: Stage A Price Engine (Read O(1) in-memory snapshot with ZERO outbound HTTP calls)
     if getattr(config, "CRYPTO_ENGINE_V2", False):
-        from app.markets.crypto_snapshot import get_snapshot_price
+        from app.markets.crypto_snapshot import get_snapshot_price, update_symbol_snapshot
         max_age = getattr(config, "CRYPTO_SNAPSHOT_MAX_AGE_SECONDS", 10.0)
         snap_price, snap_as_of, snap_status, latency_ms = get_snapshot_price(ex, native_sym, max_age_seconds=max_age)
 
@@ -158,6 +168,15 @@ async def fetch_crypto_strict(
             from app.markets.crypto_ondemand import ensure_fresh_snapshot
             await ensure_fresh_snapshot(ex, client=client)
             snap_price, snap_as_of, snap_status, latency_ms = get_snapshot_price(ex, native_sym, max_age_seconds=max_age)
+
+        # If Tabdeal USDTIRT was omitted from plots/market_information in an already-fresh snapshot, fetch depth directly
+        if not (snap_status == "OK" and snap_price is not None and snap_price > 0) and ex == "tabdeal" and native_sym.upper() in ("USDTIRT", "USDTTMN"):
+            from app.markets.adapters.tabdeal import TabdealAdapter
+            single_res = await TabdealAdapter().fetch_single_price(client, "USDTIRT")
+            if single_res.status == "OK" and single_res.price and single_res.price > 0:
+                update_symbol_snapshot("tabdeal", "USDTIRT", single_res.price, as_of=single_res.as_of, source="rest")
+                update_symbol_snapshot("tabdeal", "USDTTMN", single_res.price, as_of=single_res.as_of, source="rest")
+                snap_price, snap_as_of, snap_status, latency_ms = get_snapshot_price(ex, native_sym, max_age_seconds=max_age)
 
         if snap_status == "OK" and snap_price is not None and snap_price > 0:
             traces.append({
@@ -168,14 +187,15 @@ async def fetch_crypto_strict(
                 'parsed_price': snap_price,
                 'asOf': snap_as_of,
                 'state': 'LIVE',
-                'currency': 'USDT',
+                'currency': curr,
                 'success': True
             })
             return CryptoPriceResult(
                 price=snap_price,
                 asOf=int(snap_as_of) if snap_as_of else None,
                 source=meta.name,
-                status='OK'
+                status='OK',
+                currency=curr,
             )
         else:
             traces.append({
@@ -189,7 +209,8 @@ async def fetch_crypto_strict(
                 price=None,
                 asOf=int(snap_as_of) if snap_as_of else None,
                 source=meta.name,
-                status=snap_status
+                status=snap_status,
+                currency=curr,
             )
 
     # 3. Single-target isolated fetch per exchange (R1 / R11 fallback when engine flag is OFF)
@@ -300,10 +321,22 @@ async def fetch_crypto_strict(
                 if isinstance(first, dict) and first.get('price'):
                     val = float(first['price'])
                     if val > 0:
-                        final_val = val / 10.0 if is_tmn else val
-                        return {'price': final_val, 'state': 'LIVE', 'currency': 'TMN' if is_tmn else 'USDT'}
+                        return {'price': val, 'state': 'LIVE', 'currency': 'TMN' if is_tmn else 'USDT'}
+            elif isinstance(d, dict):
+                bids = d.get('bids') or []
+                asks = d.get('asks') or []
+                raw_p = None
+                if bids and isinstance(bids[0], (list, tuple)) and len(bids[0]) > 0:
+                    raw_p = bids[0][0]
+                elif asks and isinstance(asks[0], (list, tuple)) and len(asks[0]) > 0:
+                    raw_p = asks[0][0]
+                if raw_p and float(raw_p) > 0:
+                    return {'price': float(raw_p), 'state': 'LIVE', 'currency': 'TMN' if is_tmn else 'USDT'}
             return None
         p = await _try_fetch(source_label, url, _extract_tabdeal)
+        if not p:
+            depth_url = f"https://api1.tabdeal.org/r/api/v1/depth?symbol={tab_sym}"
+            p = await _try_fetch(source_label, depth_url, _extract_tabdeal)
     elif ex == 'kifpool':
         url = "https://api.kifpool.app/api/spot/price"
         from app.markets.adapters.kifpool import KifpoolAdapter
@@ -317,9 +350,11 @@ async def fetch_crypto_strict(
                             b_irt = item.get("priceBuyIRT")
                             s_irt = item.get("priceSellIRT")
                             if b_irt and s_irt:
-                                return {'price': ((float(b_irt) + float(s_irt)) / 2.0) / 10.0, 'state': 'LIVE', 'currency': 'TMN'}
+                                return {'price': (float(b_irt) + float(s_irt)) / 2.0, 'state': 'LIVE', 'currency': 'TMN'}
                             elif b_irt:
-                                return {'price': float(b_irt) / 10.0, 'state': 'LIVE', 'currency': 'TMN'}
+                                return {'price': float(b_irt), 'state': 'LIVE', 'currency': 'TMN'}
+                            elif s_irt:
+                                return {'price': float(s_irt), 'state': 'LIVE', 'currency': 'TMN'}
                         else:
                             p_val = item.get("price")
                             if p_val and float(p_val) > 0:
@@ -331,7 +366,6 @@ async def fetch_crypto_strict(
 
     # 4. Check result: price must be valid positive float, otherwise NO_PRICE
     if p is not None and float(p) > 0:
-        curr = 'TMN' if (native_sym.endswith('IRT') or native_sym.endswith('TMN')) else 'USDT'
         return CryptoPriceResult(
             price=float(p),
             asOf=now_ts,
@@ -350,5 +384,6 @@ async def fetch_crypto_strict(
         price=None,
         asOf=None,
         source=meta.name,
-        status='NO_PRICE'
+        status='NO_PRICE',
+        currency=curr
     )

@@ -17,7 +17,7 @@ class IranMarketGateway {
   static DateTime? _rateLastFetched;
   static final Map<String, double> _cachedGlobalPrices = {};
 
-  /// Fetches the latest live USDT to TMN (Toman) rate across multiple Iranian sources
+  /// Fetches the latest live USDT to TMN (Toman) rate across approved Iranian sources (Kifpool & Tabdeal)
   static Future<double> getLiveUsdtTomanRate() async {
     if (_cachedUsdtTomanRate != null &&
         _rateLastFetched != null &&
@@ -25,71 +25,44 @@ class IranMarketGateway {
       return _cachedUsdtTomanRate!;
     }
 
-    // 1. Try Wallex USDT/TMN
+    // 1. Try Kifpool USDT/TMN (priceBuyIRT & priceSellIRT are in Tomans)
     try {
-      final res = await _dio.get('https://api.wallex.ir/v1/markets');
-      final symbols = res.data?['result']?['symbols'] as Map<String, dynamic>?;
-      final usdtTmn = double.tryParse(symbols?['USDTTMN']?['stats']?['lastPrice']?.toString() ?? '0') ?? 0.0;
-      if (usdtTmn > 10000) {
-        _cachedUsdtTomanRate = usdtTmn;
-        _rateLastFetched = DateTime.now();
-        return usdtTmn;
-      }
-    } catch (_) {}
-
-    // 2. Try Nobitex USDT/RLS
-    try {
-      final res = await _dio.post(
-        'https://apiv2.nobitex.ir/market/stats',
-        data: {'srcCurrency': 'usdt', 'dstCurrency': 'rls'},
-      );
-      final stats = res.data?['stats'] as Map<String, dynamic>?;
-      final rlsPrice = double.tryParse(stats?['usdt-rls']?['latest']?.toString() ?? '0') ?? 0.0;
-      if (rlsPrice > 100000) {
-        final tmn = rlsPrice / 10.0;
-        _cachedUsdtTomanRate = tmn;
-        _rateLastFetched = DateTime.now();
-        return tmn;
-      }
-    } catch (_) {}
-
-    // 3. Try TetherLand USDT/TMN
-    try {
-      final res = await _dio.get('https://api.tetherland.com/currencies');
-      final currencies = res.data?['data']?['currencies'] as Map<String, dynamic>?;
-      final usdt = currencies?['USDT'] as Map<String, dynamic>?;
-      final p = double.tryParse(usdt?['price']?.toString() ?? '0') ?? 0.0;
-      if (p > 10000) {
-        _cachedUsdtTomanRate = p;
-        _rateLastFetched = DateTime.now();
-        return p;
-      }
-    } catch (_) {}
-
-    // 4. Try Ramzinex USDT/IRR
-    try {
-      final res = await _dio.get('https://publicapi.ramzinex.com/exchange/api/v1.0/exchange/pairs');
-      final list = res.data?['data'] as List?;
+      final res = await _dio.get('https://api.kifpool.app/api/spot/price');
+      final list = res.data as List?;
       if (list != null) {
         for (final item in list) {
-          if (item is Map &&
-              item['base_currency_symbol']?['en']?.toString().toLowerCase() == 'usdt' &&
-              (item['quote_currency_symbol']?['en']?.toString().toLowerCase() == 'irr' ||
-                  item['quote_currency_symbol']?['en']?.toString().toLowerCase() == 'rls')) {
-            final p = double.tryParse(item['sell']?.toString() ?? item['financial']?['last24h']?['close']?.toString() ?? '0') ?? 0.0;
-            if (p > 100000) {
-              final tmn = p / 10.0;
-              _cachedUsdtTomanRate = tmn;
+          if (item is Map && (item['symbol'] ?? '').toString().toUpperCase() == 'USDT') {
+            final buyIrt = double.tryParse(item['priceBuyIRT']?.toString() ?? '') ?? 0.0;
+            final sellIrt = double.tryParse(item['priceSellIRT']?.toString() ?? '') ?? 0.0;
+            final usdtTmn = (buyIrt > 0 && sellIrt > 0)
+                ? (buyIrt + sellIrt) / 2.0
+                : (buyIrt > 0 ? buyIrt : sellIrt);
+            if (usdtTmn > 10000) {
+              _cachedUsdtTomanRate = usdtTmn;
               _rateLastFetched = DateTime.now();
-              return tmn;
+              return usdtTmn;
             }
           }
         }
       }
     } catch (_) {}
 
+    // 2. Try Tabdeal USDT/IRT Depth (bids[0][0] is in Tomans)
+    try {
+      final res = await _dio.get('https://api1.tabdeal.org/r/api/v1/depth?symbol=USDTIRT');
+      final bids = res.data?['bids'] as List?;
+      if (bids != null && bids.isNotEmpty && bids[0] is List) {
+        final tmn = double.tryParse(bids[0][0]?.toString() ?? '0') ?? 0.0;
+        if (tmn > 10000) {
+          _cachedUsdtTomanRate = tmn;
+          _rateLastFetched = DateTime.now();
+          return tmn;
+        }
+      }
+    } catch (_) {}
+
     // Fallback benchmark rate if all Iranian endpoints are temporarily blocked
-    return _cachedUsdtTomanRate ?? 95000.0;
+    return _cachedUsdtTomanRate ?? 298500.0;
   }
 
   /// Fetches global live USD/USDT price of any coin from multiple global gateways

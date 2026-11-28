@@ -155,11 +155,11 @@ class KifpoolExchange implements Exchange {
               final buyIrt = double.tryParse(item['priceBuyIRT']?.toString() ?? '') ?? 0.0;
               final sellIrt = double.tryParse(item['priceSellIRT']?.toString() ?? '') ?? 0.0;
               if (buyIrt > 0 && sellIrt > 0) {
-                price = ((buyIrt + sellIrt) / 2.0) / 10.0; // 1 TMN = 10 Rials (IRT)
+                price = (buyIrt + sellIrt) / 2.0; // Kifpool IRT is already in Tomans
               } else if (buyIrt > 0) {
-                price = buyIrt / 10.0;
+                price = buyIrt;
               } else if (sellIrt > 0) {
-                price = sellIrt / 10.0;
+                price = sellIrt;
               }
             } else {
               price = double.tryParse(item['price']?.toString() ?? '') ?? 0.0;

@@ -88,7 +88,7 @@ class TestTabdealAdapter(unittest.TestCase):
         self.assertFalse(btc_irt.is_etf)
 
     def test_04_parse_batch_prices_and_rial_to_toman_conversion(self):
-        """4. Verify parse_batch_prices converts IRT Rials to canonical Tomans (divide by 10)."""
+        """4. Verify parse_batch_prices preserves IRT prices directly in canonical Tomans (no /10 division)."""
         mkt_path = os.path.join(self.fixtures_dir, "market_information.json")
         if not os.path.exists(mkt_path):
             self.skipTest(f"Fixture not found at {mkt_path}")
@@ -100,17 +100,17 @@ class TestTabdealAdapter(unittest.TestCase):
         self.assertEqual(res.error_code, "OK")
         self.assertGreater(len(res.prices), 1000)
 
-        # USDT/IRT: e.g. raw 271,250 Rials -> 27,125 Tomans
+        # USDT/IRT: raw 271,250 IRT is already in Tomans (271,250 Tomans)
         self.assertIn("USDTIRT", res.prices)
         usdt_tmn = res.prices["USDTIRT"]
-        self.assertAlmostEqual(usdt_tmn, 27125.0, delta=500.0)
+        self.assertAlmostEqual(usdt_tmn, 271250.0, delta=5000.0)
 
-        # BTC/IRT: e.g. raw ~21,095,833,291 Rials -> ~2,109,583,329.1 Tomans
+        # BTC/IRT: raw ~21,095,833,291 IRT is already in Tomans
         self.assertIn("BTCIRT", res.prices)
         btc_tmn = res.prices["BTCIRT"]
-        self.assertAlmostEqual(btc_tmn, 2109583329.1, delta=100000000.0)
+        self.assertAlmostEqual(btc_tmn, 21095833291.0, delta=1000000000.0)
 
-        # BTC/USDT: directly in USDT without factor 10
+        # BTC/USDT: directly in USDT
         self.assertIn("BTCUSDT", res.prices)
         btc_usdt = res.prices["BTCUSDT"]
         self.assertGreater(btc_usdt, 50000.0)
@@ -131,6 +131,29 @@ class TestTabdealAdapter(unittest.TestCase):
         self.assertGreater(res.price, 1000000000.0)  # > 1 Billion Tomans
         self.assertEqual(res.currency, "TMN")
         self.assertEqual(res.source, self.adapter.display_name)
+
+    def test_06_parse_single_price_from_depth_and_resolve_pair(self):
+        """6. Verify depth orderbook fallback parsing and resolve_pair for USDTIRT / PAXGIRT."""
+        from app.markets.crypto_catalog import resolve_pair
+
+        depth_payload = {
+            "bids": [["298550.0", "1240.5"], ["298500.0", "500.0"]],
+            "asks": [["298600.0", "900.0"]],
+        }
+        res = self.adapter.parse_single_price(depth_payload, "USDTIRT")
+        self.assertEqual(res.status, "OK")
+        self.assertEqual(res.price, 298550.0)
+        self.assertEqual(res.currency, "TMN")
+
+        status_usdt, resolved_usdt = resolve_pair("tabdeal", "USDTIRT")
+        self.assertEqual(status_usdt, "OK")
+        self.assertEqual(resolved_usdt["native_symbol"], "USDTIRT")
+        self.assertEqual(resolved_usdt["quote"], "TMN")
+
+        status_paxg, resolved_paxg = resolve_pair("tabdeal", "PAXGIRT")
+        self.assertEqual(status_paxg, "OK")
+        self.assertEqual(resolved_paxg["native_symbol"], "PAXGIRT")
+        self.assertEqual(resolved_paxg["quote"], "TMN")
 
 
 if __name__ == "__main__":

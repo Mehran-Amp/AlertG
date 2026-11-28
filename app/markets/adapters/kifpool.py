@@ -5,7 +5,7 @@ Dedicated, isolated adapter for Kifpool (kifpool.me / api.kifpool.app):
 1. Official Public REST endpoint: https://api.kifpool.app/api/spot/price
 2. Over 1,200 spot pairs with dual-quote architecture:
    - USDT quote: item['price'] (direct USD/USDT price)
-   - TMN quote: (item['priceBuyIRT'] + item['priceSellIRT']) / 2.0 / 10.0 (converted from IRT Rials to Tomans)
+   - TMN quote: (item['priceBuyIRT'] + item['priceSellIRT']) / 2.0 (IRT on Kifpool is already in Tomans)
 3. Strict exchange isolation (Rule R1: zero cross-exchange fallback).
 """
 
@@ -175,7 +175,7 @@ class KifpoolAdapter(BaseExchangeAdapter):
                 except (ValueError, TypeError):
                     pass
 
-            # B. TMN Price (Average of Buy and Sell IRT / 10 to get Tomans)
+            # B. TMN Price (Average of Buy and Sell IRT, already in Tomans)
             buy_irt = item.get("priceBuyIRT")
             sell_irt = item.get("priceSellIRT")
             tmn_val: Optional[float] = None
@@ -185,19 +185,25 @@ class KifpoolAdapter(BaseExchangeAdapter):
                     b_f = float(buy_irt)
                     s_f = float(sell_irt)
                     if b_f > 0 and s_f > 0:
-                        # 1 Toman = 10 Rials (IRT)
-                        tmn_val = ((b_f + s_f) / 2.0) / 10.0
+                        tmn_val = (b_f + s_f) / 2.0
                     elif b_f > 0:
-                        tmn_val = b_f / 10.0
+                        tmn_val = b_f
                     elif s_f > 0:
-                        tmn_val = s_f / 10.0
+                        tmn_val = s_f
                 except (ValueError, TypeError):
                     pass
             elif buy_irt is not None:
                 try:
                     b_f = float(buy_irt)
                     if b_f > 0:
-                        tmn_val = b_f / 10.0
+                        tmn_val = b_f
+                except (ValueError, TypeError):
+                    pass
+            elif sell_irt is not None:
+                try:
+                    s_f = float(sell_irt)
+                    if s_f > 0:
+                        tmn_val = s_f
                 except (ValueError, TypeError):
                     pass
 

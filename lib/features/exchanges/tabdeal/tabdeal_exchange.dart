@@ -72,6 +72,16 @@ class TabdealExchange implements Exchange {
           }
         }
         if (pairs.isNotEmpty) {
+          final hasUsdtTmn = pairs.any(
+            (p) => p.baseCurrency == 'USDT' && p.counterCurrency == 'TMN',
+          );
+          if (!hasUsdtTmn) {
+            pairs.add(const CurrencyPair(
+              baseCurrency: 'USDT',
+              counterCurrency: 'TMN',
+              marketSymbol: 'USDTIRT',
+            ));
+          }
           pairs.sort((a, b) {
             if (a.counterCurrency == 'TMN' && b.counterCurrency != 'TMN') return -1;
             if (a.counterCurrency != 'TMN' && b.counterCurrency == 'TMN') return 1;
@@ -149,12 +159,11 @@ class TabdealExchange implements Exchange {
               final rawPrice = double.tryParse(item['price']?.toString() ?? '') ?? 0.0;
               final vol = double.tryParse(item['volume']?.toString() ?? '') ?? 0.0;
               if (rawPrice > 0) {
-                // Tabdeal prices for IRT are in Rials -> divide by 10 for Tomans
-                final effectivePrice = isTmn ? (rawPrice / 10.0) : rawPrice;
+                // Tabdeal IRT prices are already quoted in Tomans (1:1)
                 final ticker = MarketTicker(
                   exchangeId: id,
                   pair: pair,
-                  lastPrice: effectivePrice,
+                  lastPrice: rawPrice,
                   volume24h: vol,
                   timestamp: DateTime.now(),
                 );
@@ -176,11 +185,10 @@ class TabdealExchange implements Exchange {
         final rawPrice = double.tryParse(latestTrade['price']?.toString() ?? '0') ?? 0.0;
         final q = double.tryParse(latestTrade['qty']?.toString() ?? '0') ?? 0.0;
         if (rawPrice > 0) {
-          final effectivePrice = isTmn ? (rawPrice / 10.0) : rawPrice;
           final ticker = MarketTicker(
             exchangeId: id,
             pair: pair,
-            lastPrice: effectivePrice,
+            lastPrice: rawPrice,
             volume24h: q,
             timestamp: DateTime.now(),
           );
@@ -197,11 +205,10 @@ class TabdealExchange implements Exchange {
       if (bids != null && bids.isNotEmpty && bids[0] is List) {
         final rawPrice = double.tryParse(bids[0][0]?.toString() ?? '0') ?? 0.0;
         if (rawPrice > 0) {
-          final effectivePrice = isTmn ? (rawPrice / 10.0) : rawPrice;
           final ticker = MarketTicker(
             exchangeId: id,
             pair: pair,
-            lastPrice: effectivePrice,
+            lastPrice: rawPrice,
             volume24h: 0.0,
             timestamp: DateTime.now(),
           );

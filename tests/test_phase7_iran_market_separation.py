@@ -40,7 +40,7 @@ class TestIranMarketSeparation(unittest.TestCase):
         with open('lib/features/exchanges/stocks/iran_domestic_exchange.dart', 'r', encoding='utf-8') as f:
             content = f.read()
 
-        # Key REAL symbols check: Bonbast (Gold & FX), TSETMC (Indices, Gold & Leveraged Funds, Top Stocks), Tether & Digital Gold
+        # Key REAL symbols check: Bonbast (Gold & FX), TSETMC (Indices, Gold & Leveraged Funds, Top Stocks), Tether & Digital Gold (Tabdeal & Kifpool only)
         symbols = [
             'GERAM18', 'GERAM24', 'MESGHAL', 'COIN_EMAMI', 'COIN_BAHAR',
             'USD_TMN', 'EUR_TMN', 'AED_TMN', 'TEDPIX',
@@ -49,21 +49,24 @@ class TestIranMarketSeparation(unittest.TestCase):
             'AHRAM', 'JAHESH', 'TAVAN', 'SHETAB', 'MOJ', 'BIDAR',
             'PALAYESH', 'DARA1', 'FIRUZEH', 'SERVO', 'TEMESHK',
             'FOOLAD', 'FEMELLI', 'FARES', 'SHEPNA', 'SHETRAN', 'VEBMELAT', 'KHODRO', 'KHASAPA',
-            'USDT_NOBITEX', 'USDT_WALLEX', 'USDT_TETHERLAND',
-            'GOLD_NOBITEX', 'GOLD_WALLEX'
+            'USDT_TABDEAL', 'USDT_KIFPOOL',
+            'GOLD_TABDEAL', 'XAUT_TABDEAL', 'GOLD_KIFPOOL', 'XAUT_KIFPOOL'
         ]
         for sym in symbols:
             self.assertIn(f"'{sym}'", content, f"Symbol {sym} must be present in IranDomesticExchange")
 
-        # Rule 7: Assert that fake/static placeholder symbols have been removed
+        # Rule 7: Assert that fake/static placeholder symbols and unsupported Iranian crypto exchanges have been removed
         fake_symbols = [
             'IME_GOLD_BAR', 'IME_SAFFRON', 'IME_SILVER',
             'AKHZA_YTM', 'INTERBANK_RATE',
             'ICE_USD_CASH', 'ICE_USD_REMIT', 'ICE_EUR_CASH', 'ICE_EUR_REMIT',
-            'SANA_USD', 'NIMA_USD'
+            'SANA_USD', 'NIMA_USD',
+            'USDT_NOBITEX', 'USDT_WALLEX', 'USDT_TETHERLAND', 'USDT_RAMZINEX', 'USDT_BITPIN',
+            'GOLD_NOBITEX', 'GOLD_WALLEX', 'GOLD_RAMZINEX', 'GOLD_BITPIN',
+            'BTC_NOBITEX', 'ETH_NOBITEX'
         ]
         for fake in fake_symbols:
-            self.assertNotIn(f"'{fake}'", content, f"Fake symbol {fake} must be removed from IranDomesticExchange")
+            self.assertNotIn(f"'{fake}'", content, f"Symbol {fake} must be removed from IranDomesticExchange")
 
     def test_server_iran_sources_and_cache_ttl_60s(self):
         with open('server.py', 'r', encoding='utf-8') as f:
