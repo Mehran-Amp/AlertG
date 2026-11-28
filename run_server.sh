@@ -50,7 +50,19 @@ start() {
         echo -e "${YELLOW}[WARN] Environment file '$ENV_FILE' not found! Server starting with default env...${NC}"
     fi
 
-    nohup $PYTHON_CMD -m uvicorn "$APP" --host "$HOST" --port "$PORT" $ENV_OPT > "$LOG_FILE" 2>&1 &
+    # Phase 26c: rotate oversized server.log on startup and open in append mode (>>)
+    # so periodic copytruncate rotation never leaves sparse zero-filled files.
+    LOG_MAX_BYTES="${SERVER_LOG_MAX_BYTES:-10485760}"
+    if [ -f "$LOG_FILE" ]; then
+        LOG_SIZE=$(wc -c < "$LOG_FILE" | tr -d '[:space:]')
+        if [ -n "$LOG_SIZE" ] && [ "$LOG_SIZE" -ge "$LOG_MAX_BYTES" ] 2>/dev/null; then
+            [ -f "${LOG_FILE}.2.gz" ] && mv -f "${LOG_FILE}.2.gz" "${LOG_FILE}.3.gz"
+            [ -f "${LOG_FILE}.1.gz" ] && mv -f "${LOG_FILE}.1.gz" "${LOG_FILE}.2.gz"
+            gzip -c "$LOG_FILE" > "${LOG_FILE}.1.gz" && : > "$LOG_FILE"
+        fi
+    fi
+
+    nohup $PYTHON_CMD -m uvicorn "$APP" --host "$HOST" --port "$PORT" $ENV_OPT >> "$LOG_FILE" 2>&1 &
     echo $! > "$PID_FILE"
 
     sleep 2

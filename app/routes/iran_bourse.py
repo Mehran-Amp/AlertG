@@ -257,6 +257,9 @@ async def bourse_status(probe: bool = False) -> Dict[str, Any]:
     vs = getattr(getattr(p, "_client", None), "version_state", None)
     if callable(vs):
         out["gateway_version"] = vs()
+    from app.markets.iran_bourse import monitor as mmod
+    if mmod.BOURSE_MONITOR is not None:
+        out["monitor"] = mmod.BOURSE_MONITOR.status()
     if probe and out["enabled"]:
         try:
             from app.markets.iran_bourse.poller import get_poller
