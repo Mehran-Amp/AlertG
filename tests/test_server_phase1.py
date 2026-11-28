@@ -198,44 +198,43 @@ class TestServerPhase12(unittest.IsolatedAsyncioTestCase):
 
     async def test_06_nobitex_quotes_irr_vs_usdt_division(self):
         """
-        Verify:
-        - USDTIRT (in Rials, e.g. 2,684,000) is divided by 10 to 268,400 Tomans.
-        - BTCUSDT (in USDT, e.g. 85,600) is NOT divided by 10!
+        Verify Iranian crypto quotes (Tabdeal):
+        - USDTIRT (quoted in Tomans, e.g. 268,400) is preserved 1:1 as 268,400 Tomans.
+        - BTCUSDT (in USDT, e.g. 85,600.5) is preserved 1:1 in USDT.
         """
-        mock_client = AsyncMock()
+        import app.config as _cfg
+        orig_v2 = getattr(_cfg, "CRYPTO_ENGINE_V2", False)
+        _cfg.CRYPTO_ENGINE_V2 = False
+        try:
+            mock_client = AsyncMock()
 
-        # 1. Test USDTIRT (Orderbook in Rials -> divide by 10)
-        res_orderbook_irt = MagicMock()
-        res_orderbook_irt.status_code = 200
-        res_orderbook_irt.json.return_value = {
-            "status": "ok",
-            "lastTradePrice": "2684000",
-            "bids": [["2684000", "100"]]
-        }
-        res_stats_404 = MagicMock()
-        res_stats_404.status_code = 404
+            # 1. Test USDTIRT on Tabdeal (1:1 in Tomans)
+            res_trades_irt = MagicMock()
+            res_trades_irt.status_code = 200
+            res_trades_irt.json.return_value = [
+                {"price": "268400", "qty": "100"}
+            ]
+            mock_client.get.side_effect = [res_trades_irt]
 
-        mock_client.get.side_effect = [res_stats_404, res_orderbook_irt]
+            price_irt, _ = await fetch_price_with_trace(
+                mock_client, exchange='tabdeal', symbol='USDTIRT', collect_all_traces=False
+            )
+            self.assertEqual(price_irt, 268400.0, "Tabdeal USDTIRT is quoted in Tomans (1:1)")
 
-        price_irt, _ = await fetch_price_with_trace(
-            mock_client, exchange='nobitex', symbol='USDTIRT', collect_all_traces=False
-        )
-        self.assertEqual(price_irt, 268400.0, "USDTIRT must be divided by 10 to Tomans")
+            # 2. Test BTCUSDT on Tabdeal (in USDT -> 1:1)
+            res_trades_usdt = MagicMock()
+            res_trades_usdt.status_code = 200
+            res_trades_usdt.json.return_value = [
+                {"price": "85600.5", "qty": "0.5"}
+            ]
+            mock_client.get.side_effect = [res_trades_usdt]
 
-        # 2. Test BTCUSDT (Orderbook in USDT -> DO NOT divide by 10!)
-        res_orderbook_usdt = MagicMock()
-        res_orderbook_usdt.status_code = 200
-        res_orderbook_usdt.json.return_value = {
-            "status": "ok",
-            "lastTradePrice": "85600.5",
-            "bids": [["85600.5", "0.5"]]
-        }
-        mock_client.get.side_effect = [res_stats_404, res_orderbook_usdt]
-
-        price_usdt, _ = await fetch_price_with_trace(
-            mock_client, exchange='nobitex', symbol='BTCUSDT', collect_all_traces=False
-        )
-        self.assertEqual(price_usdt, 85600.5, "BTCUSDT quote in USDT must NOT be divided by 10!")
+            price_usdt, _ = await fetch_price_with_trace(
+                mock_client, exchange='tabdeal', symbol='BTCUSDT', collect_all_traces=False
+            )
+            self.assertEqual(price_usdt, 85600.5, "BTCUSDT quote in USDT must be preserved 1:1")
+        finally:
+            _cfg.CRYPTO_ENGINE_V2 = orig_v2
 
     async def test_07_bonbast_requires_api_key_401(self):
         """Verify /api/bonbast and /bonbast enforce X-API-Key requirement and return 401 when missing or invalid."""

@@ -95,16 +95,18 @@ class TestClassify(unittest.TestCase):
 
 class TestStatusAndIsolation(unittest.TestCase):
     def test_status_has_new_key_old_keys_unchanged(self):
-        st = cal.get_all_markets_status(teh(*SAT, 10, 0))
-        self.assertEqual(set(st), {"us_stocks", "forex", "commodities", "crypto", "tse", "iran_bourse"})
-        self.assertEqual(st["tse"], {
-            "name": "بورس اوراق بهادار تهران (TSE)", "status": "open", "status_fa": "باز", "state": "OPEN",
-            "state_fa": "باز", "is_open": True, "schedule": "Saturday-Wednesday 09:00-12:30 IRST",
-            "schedule_fa": "شنبه تا چهارشنبه ۰۹:۰۰ تا ۱۲:۳۰", "source": "Tehran Stock Exchange Official Schedule"})
-        self.assertEqual(st["crypto"]["state"], "OPEN")
-        self.assertTrue(st["iran_bourse"]["is_open"])
-        self.assertFalse(st["iran_bourse"]["enabled"])           # flag default off
-        self.assertFalse(cal.get_all_markets_status(teh(*THU, 10, 0))["iran_bourse"]["is_open"])
+        from unittest.mock import patch
+        with patch("app.config.IRAN_BOURSE_ENABLED", False):
+            st = cal.get_all_markets_status(teh(*SAT, 10, 0))
+            self.assertEqual(set(st), {"us_stocks", "forex", "commodities", "crypto", "tse", "iran_bourse"})
+            self.assertEqual(st["tse"], {
+                "name": "بورس اوراق بهادار تهران (TSE)", "status": "open", "status_fa": "باز", "state": "OPEN",
+                "state_fa": "باز", "is_open": True, "schedule": "Saturday-Wednesday 09:00-12:30 IRST",
+                "schedule_fa": "شنبه تا چهارشنبه ۰۹:۰۰ تا ۱۲:۳۰", "source": "Tehran Stock Exchange Official Schedule"})
+            self.assertEqual(st["crypto"]["state"], "OPEN")
+            self.assertTrue(st["iran_bourse"]["is_open"])
+            self.assertFalse(st["iran_bourse"]["enabled"])           # flag default off
+            self.assertFalse(cal.get_all_markets_status(teh(*THU, 10, 0))["iran_bourse"]["is_open"])
 
     def test_old_tse_untouched(self):
         self.assertEqual(cal.is_tse_market_open(teh(*WED, 12, 45)), (False, "CLOSED"))   # TSE closed, Bourse open
