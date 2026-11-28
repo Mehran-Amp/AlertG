@@ -55,13 +55,13 @@ Map<String, dynamic> _catalogJson(List<Map<String, dynamic>> items, {String sess
 void main() {
   late Directory tempDir;
 
-  setUp(() async {
-    tempDir = await Directory.systemTemp.createTemp('bourse_catalog_cache_test_');
+  setUp(() {
+    tempDir = Directory.systemTemp.createTempSync('bourse_catalog_cache_test_');
   });
 
-  tearDown(() async {
-    if (await tempDir.exists()) {
-      await tempDir.delete(recursive: true);
+  tearDown(() {
+    if (tempDir.existsSync()) {
+      tempDir.deleteSync(recursive: true);
     }
   });
 
@@ -215,7 +215,9 @@ void main() {
         apiKey: () => 'k',
       );
       final cache = BourseCatalogCache(
-        directoryProvider: () async => tempDir,
+        // Avoid real dart:io file calls inside Flutter's FakeAsync testWidgets zone;
+        // disk persistence is verified in the real-async unit tests above.
+        directoryProvider: () async => throw UnsupportedError('memory-only in widget test'),
         nowUtc: () => DateTime.utc(2026, 11, 26, 16, 0),
       );
 
@@ -261,7 +263,7 @@ void main() {
       // Clear search and pull-to-refresh -> triggers a forced catalog reload
       await t.enterText(find.byKey(const Key('bourse_board_search')), '');
       await t.pumpAndSettle();
-      await t.fling(find.byKey(const Key('bourse_board_list')), const Offset(0, 400), 1000);
+      await t.fling(find.byKey(ValueKey('bourse_board_row_${_idOf(2)}')), const Offset(0, 500), 1000);
       await t.pumpAndSettle();
       expect(calls, hasLength(2));
     });
