@@ -19,9 +19,11 @@ from app.markets.iran_bourse.alert_rules import (
 )
 from app.markets.iran_bourse.mapping import quote_to_price_result
 from app.markets.iran_bourse.messages import (
+    alert_category_of,
     format_shares,
     telegram_registered,
     trigger_display,
+    trigger_payload,
 )
 
 REAL_FIX = os.path.join(os.path.dirname(__file__), "fixtures", "iran_bourse", "real")
@@ -259,6 +261,32 @@ class Phase21MappingAndPureRulesTests(unittest.TestCase):
         _, disp_vol = trigger_display(a_vol, _live_meta(volume=16_200_000), 4200)
         self.assertIn("16,200,000 سهم", disp_vol)
 
+    def test_phase24d_payload_category_and_sound_fields_for_queue_and_volume(self):
+        self.assertEqual(alert_category_of("queueBuy"), "queue")
+        self.assertEqual(alert_category_of("queueSell"), "queue")
+        self.assertEqual(alert_category_of("volumeAbove"), "volume")
+        self.assertEqual(alert_category_of("priceThreshold"), "price")
+
+        p_buy = trigger_payload(_alert(condition_type="queueBuy"), _live_meta())
+        self.assertEqual(p_buy["condition_type"], "queueBuy")
+        self.assertEqual(p_buy["alert_category"], "queue")
+        self.assertTrue(all(isinstance(v, str) for v in p_buy.values()))
+
+        p_sell = trigger_payload(_alert(condition_type="queueSell"), _live_meta(queue="sell"))
+        self.assertEqual(p_sell["condition_type"], "queueSell")
+        self.assertEqual(p_sell["alert_category"], "queue")
+
+        p_vol = trigger_payload(_alert(condition_type="volumeAbove", target_price=10_000_000), _live_meta(volume=16_200_000))
+        self.assertEqual(p_vol["condition_type"], "volumeAbove")
+        self.assertEqual(p_vol["alert_category"], "volume")
+        self.assertEqual(p_vol["volume"], "16200000")
+        self.assertTrue(all(isinstance(v, str) for v in p_vol.values()))
+
+        # Standard priceThreshold keeps legacy 5-key schema untouched
+        p_price = trigger_payload(_alert(condition_type="priceThreshold"), _live_meta())
+        self.assertNotIn("alert_category", p_price)
+        self.assertNotIn("condition_type", p_price)
+
 
 try:
     import fastapi  # noqa: F401
@@ -306,6 +334,84 @@ class Phase21ValidationTests(unittest.TestCase):
                     "user_id": "u1", "exchange": "tsetmc", "symbol": "37389789764168256",
                     "condition_type": "volumeAbove", "target_price": 0, "raw_rule": {},
                 }))
+
+    def test_phase24d_checker_preserves_sound_flags_and_category_for_queue_and_volume(self):
+        from app.engine import checker
+        from app.models import Alert
+        from app.state import PRICE_CACHE
+
+        cases = [
+            ("queueBuy", 0.0, "radar_pulse", True, False, True, True, "queue",
+             {"queue": "buy", "upper_limit": 4210, "lower_limit": 3970,
+              "best_bid": {"price": 4210, "volume": 3_000_000, "orders": 12}, "best_ask": None,
+              "volume": 5_000_000}),
+            ("queueSell", 0.0, "alert_horn", False, True, False, False, "queue",
+             {"queue": "sell", "upper_limit": 4210, "lower_limit": 3970,
+              "best_bid": None, "best_ask": {"price": 3970, "volume": 4_000_000, "orders": 15},
+              "volume": 6_000_000}),
+            ("volumeAbove", 10_000_000.0, "cyber_chime", True, True, True, False, "volume",
+             {"queue": None, "upper_limit": 4210, "lower_limit": 3970,
+              "best_bid": {"price": 4100, "volume": 1000, "orders": 1},
+              "best_ask": {"price": 4110, "volume": 1000, "orders": 1},
+              "volume": 12_500_000}),
+        ]
+
+        async def run_cases():
+            for ctype, target, sound, s_en, v_en, f_en, t_en, expected_cat, extra in cases:
+                PRICE_CACHE.pop("tsetmc:37389789764168256", None)
+                push = AsyncMock()
+                alert = Alert(
+                    id=f"p24d-{ctype}",
+                    user_id="u1",
+                    exchange="tsetmc",
+                    symbol="37389789764168256",
+                    market_symbol="توریل",
+                    condition="BELOW" if ctype == "queueSell" else "ABOVE",
+                    condition_type=ctype,
+                    target_price=target,
+                    trigger_mode="oneShot",
+                    check_interval_seconds=180,
+                    is_active=True,
+                    last_checked_at=0.0,
+                    sound=sound,
+                    sound_enabled=s_en,
+                    vibration_enabled=v_en,
+                    flash_enabled=f_en,
+                    tts_enabled=t_en,
+                )
+                tr = {
+                    "source": "iran_bourse",
+                    "success": True,
+                    "parsed_price": 4210.0 if ctype != "queueSell" else 3970.0,
+                    "asOf": 10,
+                    "state": "LIVE",
+                    "alert_eligible": True,
+                    "traded_today": True,
+                    "ticker": "توریل",
+                    "name": "توکاریل",
+                    "prev_close": 4090.0,
+                    "currency": "IRR",
+                    **extra,
+                }
+                with patch.object(checker, "enqueue_alert_push", push), \
+                     patch.object(checker, "save_alerts_to_disk_async", AsyncMock()), \
+                     patch.object(checker, "get_category_cache_ttl", return_value=0.0), \
+                     patch.object(checker, "fetch_price_with_trace", new=AsyncMock(return_value=(tr["parsed_price"], [tr]))):
+                    await checker.evaluate_ready_alerts(None, [alert], 10_000.0)
+
+                self.assertEqual(push.await_count, 1, f"{ctype} did not trigger push")
+                _a, _title, _body, data = push.await_args.args[:4]
+                self.assertEqual(data["sound"], sound)
+                self.assertEqual(data["sound_enabled"], "true" if s_en else "false")
+                self.assertEqual(data["vibration_enabled"], "true" if v_en else "false")
+                self.assertEqual(data["flash_enabled"], "true" if f_en else "false")
+                self.assertEqual(data["tts_enabled"], "true" if t_en else "false")
+                self.assertEqual(data["condition_type"], ctype)
+                self.assertEqual(data["alert_category"], expected_cat)
+                if ctype == "volumeAbove":
+                    self.assertEqual(data["volume"], "12500000")
+
+        self._run(run_cases())
 
 
 if __name__ == "__main__":

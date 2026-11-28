@@ -14,6 +14,9 @@ gateway's /v1/changes feed:
 * Imports nothing from other markets. Calls go through the poller's single client.
 """
 import asyncio
+import gzip
+import hashlib
+import json
 import time
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -171,12 +174,14 @@ class BourseBoard:
         self.as_of: Optional[int] = None
         self.requests_made = 0
         self.full_loads = 0
+        self._catalog_cache: Optional[Tuple[Tuple[Any, ...], bytes, bytes, str]] = None
 
     def __len__(self) -> int:
         return len(self._rows)
 
     # ---- refresh ---------------------------------------------------------
     def apply(self, quotes: List[Dict[str, Any]], meta: Dict[str, Any], full: bool) -> None:
+        self._catalog_cache = None
         if full:
             self._rows = {}
             self.full_loads += 1
@@ -309,6 +314,19 @@ class BourseBoard:
             "groups": counts,
             "items": items,
         }
+
+    def catalog_encoded(self) -> Tuple[bytes, bytes, str]:
+        """Return cached (compact_json_bytes, gzip_bytes, strong_etag) for /api/iran-bourse/catalog."""
+        key = (self.seq, self.as_of, self.session(), self.stale(), len(self._rows))
+        cached = self._catalog_cache
+        if cached is not None and cached[0] == key:
+            return cached[1], cached[2], cached[3]
+        payload = self.catalog_snapshot()
+        raw = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        gz = gzip.compress(raw, compresslevel=6)
+        etag = f'"{hashlib.sha256(raw).hexdigest()[:24]}"'
+        self._catalog_cache = (key, raw, gz, etag)
+        return raw, gz, etag
 
     def stats(self) -> Dict[str, Any]:
         return {"rows": len(self._rows), "seq": self.seq, "stale": self.stale(),

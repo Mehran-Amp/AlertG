@@ -23,6 +23,53 @@ int _notificationIdFor(RemoteMessage m, String alertId) {
   return id == 777 ? 778 : id;
 }
 
+/// Builds clear Persian TTS speech for Iranian Bourse (`tsetmc`) pushes so queue,
+/// volume, and price alerts speak the Persian symbol name and Rial/share unit instead
+/// of spelling out the 17-digit instrument ID in dollars.
+@visibleForTesting
+String buildBourseAlertSpeech(
+  Map<String, dynamic> d, {
+  String? effectiveTitle,
+  String? effectiveBody,
+}) {
+  final rawName = ((d['name'] as String?) ?? '').trim();
+  final rawTicker = ((d['ticker'] as String?) ?? '').trim();
+  final label = rawName.isNotEmpty
+      ? rawName
+      : (rawTicker.isNotEmpty ? rawTicker : 'نماد بورس');
+  final ctype = ((d['condition_type'] as String?) ?? '').trim();
+  final note = ((d['note'] as String?) ?? '').trim();
+  final priceVal = double.tryParse(((d['price'] as String?) ?? '').trim());
+  final priceText = (priceVal != null && priceVal > 0) ? '${priceVal.round()} ریال' : '';
+  final volVal = double.tryParse(((d['volume'] as String?) ?? '').trim());
+  final volText = (volVal != null && volVal > 0) ? '${volVal.round()} سهم' : '';
+
+  final String base;
+  if (ctype == 'queueBuy') {
+    base = priceText.isNotEmpty
+        ? 'هشدار صف خرید $label در قیمت $priceText'
+        : 'هشدار صف خرید $label';
+  } else if (ctype == 'queueSell') {
+    base = priceText.isNotEmpty
+        ? 'هشدار صف فروش $label در قیمت $priceText'
+        : 'هشدار صف فروش $label';
+  } else if (ctype == 'volumeAbove') {
+    base = volText.isNotEmpty
+        ? 'هشدار حجم معاملات $label به $volText رسید'
+        : 'هشدار حجم معاملات $label فعال شد';
+  } else if (priceText.isNotEmpty) {
+    base = 'هشدار بورس $label در قیمت $priceText';
+  } else if (effectiveTitle != null && effectiveTitle.trim().isNotEmpty) {
+    base = effectiveTitle.trim();
+  } else if (effectiveBody != null && effectiveBody.trim().isNotEmpty) {
+    base = effectiveBody.trim();
+  } else {
+    base = 'هشدار بورس $label فعال شد';
+  }
+
+  return note.isNotEmpty ? '$base. $note' : base;
+}
+
 /// Shared central alert handling pipeline for both FCM push and WebSocket alerts.
 /// Enforces cross-channel deduplication via [delivery_id] (Phase 4B-2).
 Future<void> handleAlertDataMap(
@@ -35,6 +82,7 @@ Future<void> handleAlertDataMap(
   final symbol = (d['symbol'] as String?) ?? '';
   final priceStr = (d['price'] as String?) ?? '';
   final alertId = (d['alert_id'] as String?) ?? '';
+  final exchange = ((d['exchange'] as String?) ?? '').trim().toLowerCase();
   final effectiveTitle = title ?? (d['title'] as String?) ?? '';
   final effectiveBody = body ?? (d['body'] as String?) ?? '';
   final note = (d['note'] as String?) ?? '';
@@ -62,7 +110,13 @@ Future<void> handleAlertDataMap(
 
   final double? parsedPrice = double.tryParse(priceStr);
   final String speechText;
-  if (symbol.isNotEmpty && parsedPrice != null && parsedPrice > 0) {
+  if (exchange == 'tsetmc') {
+    speechText = buildBourseAlertSpeech(
+      d,
+      effectiveTitle: effectiveTitle,
+      effectiveBody: effectiveBody,
+    );
+  } else if (symbol.isNotEmpty && parsedPrice != null && parsedPrice > 0) {
     speechText = TtsService.buildAlertSpeech(
       symbol: symbol,
       price: parsedPrice,

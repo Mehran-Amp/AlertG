@@ -4,10 +4,11 @@ AlertG — Iranian Bourse API (IB-9). Search, classification, quote, admin statu
 Prices are Rial (decision D1). Instrument ids are digit strings (rule N6).
 Everything here is behind IRAN_BOURSE_ENABLED and touches no other market.
 """
+import collections
 import time
-from typing import Any, Dict, Optional
+from typing import Any, Deque, Dict, Optional, Tuple
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Header, HTTPException, Query, Request, Response
 
 import app.config as config
 from app.security import API_DEP, ADMIN_DEP
@@ -18,6 +19,80 @@ from app.markets.iran_bourse.price import NoQuote, resolve_result, valid_instrum
 from app.markets.iran_bourse.session import classify
 
 router = APIRouter()
+
+CATALOG_RATE_LIMIT_MAX = 12
+CATALOG_RATE_LIMIT_WINDOW_SECONDS = 60.0
+CATALOG_CACHE_CONTROL = "private, max-age=300"
+
+
+class _CatalogRateLimiter:
+    """Memory-bounded per-client sliding-window rate limiter for the large catalog endpoint."""
+
+    def __init__(self, max_requests: int = CATALOG_RATE_LIMIT_MAX,
+                 window_seconds: float = CATALOG_RATE_LIMIT_WINDOW_SECONDS,
+                 max_keys: int = 4096):
+        self.max_requests = max_requests
+        self.window_seconds = float(window_seconds)
+        self.max_keys = max_keys
+        self._hits: Dict[str, Deque[float]] = {}
+
+    def reset(self) -> None:
+        self._hits.clear()
+
+    def check(self, key: str, now: Optional[float] = None) -> Tuple[bool, int]:
+        ts = time.monotonic() if now is None else float(now)
+        window = float(getattr(config, "IRAN_BOURSE_CATALOG_RATE_WINDOW", self.window_seconds))
+        limit = int(getattr(config, "IRAN_BOURSE_CATALOG_RATE_LIMIT", self.max_requests))
+        if limit <= 0 or window <= 0:
+            return True, 0
+        cutoff = ts - window
+
+        if len(self._hits) >= self.max_keys and key not in self._hits:
+            stale_keys = [k for k, dq in self._hits.items() if not dq or dq[-1] <= cutoff]
+            for sk in stale_keys:
+                self._hits.pop(sk, None)
+            if len(self._hits) >= self.max_keys:
+                oldest = next(iter(self._hits))
+                self._hits.pop(oldest, None)
+
+        dq = self._hits.setdefault(key, collections.deque())
+        while dq and dq[0] <= cutoff:
+            dq.popleft()
+        if len(dq) >= limit:
+            retry_after = max(1, int(window - (ts - dq[0])) + 1)
+            return False, retry_after
+        dq.append(ts)
+        return True, 0
+
+
+_CATALOG_RATE_LIMITER = _CatalogRateLimiter()
+
+
+def _client_key(request: Optional[Request]) -> str:
+    if request is None:
+        return "local"
+    host = (request.client.host if request.client else "") or "unknown"
+    if host in ("127.0.0.1", "::1"):
+        xff = (request.headers.get("x-forwarded-for") or "").split(",")[0].strip()
+        if xff:
+            return xff[:64]
+    return host[:64]
+
+
+def _etag_matches(if_none_match: Optional[str], current_etag: str) -> bool:
+    if not if_none_match:
+        return False
+    cur = current_etag.strip().strip('"')
+    raw = if_none_match.strip()
+    if raw == "*":
+        return True
+    for part in raw.split(",")[:16]:
+        token = part.strip()
+        if token.startswith("W/") or token.startswith("w/"):
+            token = token[2:].strip()
+        if token.strip('"') == cur:
+            return True
+    return False
 
 
 def _enabled() -> None:
@@ -87,15 +162,50 @@ async def bourse_board(
 
 
 @router.get("/api/iran-bourse/catalog", dependencies=API_DEP)
-async def bourse_catalog() -> Dict[str, Any]:
-    """Full projected market catalog for on-device caching (refreshed once daily after market close)."""
+async def bourse_catalog(
+    request: Request,
+    if_none_match: Optional[str] = Header(None, alias="If-None-Match"),
+    accept_encoding: Optional[str] = Header(None, alias="Accept-Encoding"),
+) -> Response:
+    """Full projected market catalog for on-device caching (ETag/304, gzip, rate-limited)."""
     _enabled()
+    allowed, retry_after = _CATALOG_RATE_LIMITER.check(_client_key(request))
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail="Too many catalog requests; please retry shortly.",
+            headers={"Retry-After": str(retry_after)},
+        )
+
     board = get_board()
     try:
         await board.ensure_fresh()
     except BourseError as e:
         raise _unavailable(e)
-    return board.catalog_snapshot()
+
+    raw_bytes, gzip_bytes, etag = board.catalog_encoded()
+    headers = {
+        "ETag": etag,
+        "Cache-Control": CATALOG_CACHE_CONTROL,
+        "Vary": "Accept-Encoding",
+    }
+    if _etag_matches(if_none_match, etag):
+        return Response(status_code=304, headers=headers)
+
+    accepts_gzip = "gzip" in (accept_encoding or "").lower()
+    if accepts_gzip:
+        return Response(
+            content=gzip_bytes,
+            status_code=200,
+            headers={**headers, "Content-Encoding": "gzip"},
+            media_type="application/json",
+        )
+    return Response(
+        content=raw_bytes,
+        status_code=200,
+        headers=headers,
+        media_type="application/json",
+    )
 
 
 @router.get("/api/iran-bourse/classification", dependencies=API_DEP)

@@ -12,9 +12,35 @@ import 'package:bitcoin_checker/features/settings/models/app_settings.dart';
 import 'package:bitcoin_checker/features/settings/services/settings_service.dart';
 import 'package:bitcoin_checker/features/watchlist/pages/create_alert_flow.dart';
 
-/// Phase 22f visual regression guard:
+/// Phase 22f / 24e visual regression guard:
 /// Locks the unified Market Chooser (3 cards) and Iranian Hub (Model 1 two-tab switcher)
 /// in both dark and light palettes so unintended layout/theme regressions fail in `flutter test`.
+///
+/// Uses a bounded 3% pixel-diff threshold so minor OS-level font/icon anti-aliasing
+/// differences between Windows and Linux CI do not cause false positives while real
+/// layout, palette, or widget regressions still fail.
+class _TolerantGoldenFileComparator extends LocalFileComparator {
+  final double maxDiffRatio;
+
+  _TolerantGoldenFileComparator(super.testFile, {required this.maxDiffRatio});
+
+  @override
+  Future<bool> compare(Uint8List imageBytes, Uri golden) async {
+    final ComparisonResult result = await GoldenFileComparator.compareLists(
+      imageBytes,
+      await getGoldenBytes(golden),
+    );
+    final bool passed = result.passed || result.diffPercent <= maxDiffRatio;
+    if (passed) {
+      result.dispose();
+      return true;
+    }
+    final String error = await generateFailureOutput(result, golden, basedir);
+    result.dispose();
+    throw FlutterError(error);
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -22,8 +48,17 @@ void main() {
   const audioGlobalChannel = MethodChannel('xyz.luan/audioplayers.global');
 
   late Directory tempDir;
+  late GoldenFileComparator previousComparator;
 
   setUpAll(() {
+    final prev = goldenFileComparator;
+    previousComparator = prev;
+    if (prev is LocalFileComparator) {
+      goldenFileComparator = _TolerantGoldenFileComparator(
+        prev.basedir.resolve('iran_bourse_ui_golden_test.dart'),
+        maxDiffRatio: 0.03,
+      );
+    }
     tempDir = Directory.systemTemp.createTempSync('iran_bourse_22f_golden_');
     final messenger = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
     messenger.setMockMethodCallHandler(audioChannel, (_) async => null);
@@ -31,6 +66,7 @@ void main() {
   });
 
   tearDownAll(() {
+    goldenFileComparator = previousComparator;
     final messenger = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
     messenger.setMockMethodCallHandler(audioChannel, null);
     messenger.setMockMethodCallHandler(audioGlobalChannel, null);

@@ -104,10 +104,34 @@ def trigger_display(alert: Any, meta: dict, price: float) -> Tuple[str, str]:
     return name_of(alert, meta), price_text
 
 
+def alert_category_of(condition_type: Optional[str]) -> str:
+    """Notification category for Iranian Bourse alert types."""
+    ctype = (condition_type or "").strip()
+    if ctype in ("queueBuy", "queueSell"):
+        return "queue"
+    if ctype == "volumeAbove":
+        return "volume"
+    return "price"
+
+
 def trigger_payload(alert: Any, meta: Optional[dict] = None) -> Dict[str, str]:
     """Extra push/webhook fields. symbol is the id; all values are strings (FCM data rule)."""
-    return {"exchange": "tsetmc", "symbol": _alert_id(alert), "ticker": ticker_of(alert, meta),
-            "name": name_of(alert, meta), "unit": UNIT_EN}
+    out: Dict[str, str] = {
+        "exchange": "tsetmc",
+        "symbol": _alert_id(alert),
+        "ticker": ticker_of(alert, meta),
+        "name": name_of(alert, meta),
+        "unit": UNIT_EN,
+    }
+    ctype = (getattr(alert, "condition_type", None) or "").strip()
+    if ctype in ("queueBuy", "queueSell", "volumeAbove"):
+        out["condition_type"] = ctype
+        out["alert_category"] = alert_category_of(ctype)
+        if ctype == "volumeAbove":
+            vol = (meta or {}).get("volume")
+            if isinstance(vol, (int, float)) and not isinstance(vol, bool) and vol > 0:
+                out["volume"] = str(int(round(float(vol))))
+    return out
 
 
 def _lang(alert: Any) -> str:

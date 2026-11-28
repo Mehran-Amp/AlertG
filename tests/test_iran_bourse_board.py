@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """IB-16a: market board for the app's browse lists (grouping, filters, sort, paging, refresh, route)."""
 import asyncio
+import gzip
+import json
 import unittest
 from datetime import datetime, timezone
 from unittest.mock import patch
@@ -13,6 +15,7 @@ import server as server_mod
 from app.markets.iran_bourse import board as bmod
 from app.markets.iran_bourse.board import BourseBoard, group_of, price_of, norm
 from app.markets.iran_bourse.client import BourseTimeout
+from app.routes import iran_bourse as iran_bourse_routes
 from app.routes.iran_bourse import router as bourse_router
 
 SAT_OPEN = datetime(2026, 11, 14, 6, 30, tzinfo=timezone.utc)    # Saturday 10:00 Tehran
@@ -276,8 +279,11 @@ class TestRefresh(unittest.TestCase):
 
 class TestRoute(unittest.TestCase):
     def setUp(self):
+        iran_bourse_routes._CATALOG_RATE_LIMITER.reset()
+        self.addCleanup(iran_bourse_routes._CATALOG_RATE_LIMITER.reset)
         self.fc = FakeClient()
-        self.board = BourseBoard(lambda: self.fc, clock=Clock(), refresh_seconds=15.0)
+        self.clock = Clock()
+        self.board = BourseBoard(lambda: self.fc, clock=self.clock, refresh_seconds=15.0)
         app = FastAPI()
         app.include_router(bourse_router)
         self.http = TestClient(app)
@@ -328,12 +334,69 @@ class TestRoute(unittest.TestCase):
         self.assertEqual(self.http.get("/api/iran-bourse/catalog").status_code, 401)
         r = self.http.get("/api/iran-bourse/catalog", headers=H)
         self.assertEqual(r.status_code, 200)
+        self.assertIn("etag", {k.lower() for k in r.headers.keys()})
+        self.assertIn("max-age=", r.headers.get("Cache-Control", ""))
+        self.assertIn("Accept-Encoding", r.headers.get("Vary", ""))
         j = r.json()
         self.assertEqual(j["unit"], "IRR")
         self.assertEqual(j["total"], 9)
         self.assertEqual(len(j["items"]), 9)
         self.assertEqual(j["groups"]["derivatives"], 2)
         self.assertEqual(j["groups"]["stocks"], 2)
+
+    def test_catalog_etag_returns_304_on_second_request_and_refreshes_on_change(self):
+        r1 = self.http.get("/api/iran-bourse/catalog", headers=H)
+        self.assertEqual(r1.status_code, 200)
+        etag = r1.headers["ETag"]
+        self.assertTrue(etag.startswith('"') and etag.endswith('"'))
+
+        # Second consecutive request with matching ETag -> 304 Not Modified, empty body
+        r2 = self.http.get("/api/iran-bourse/catalog", headers={**H, "If-None-Match": etag})
+        self.assertEqual(r2.status_code, 304)
+        self.assertEqual(r2.content, b"")
+        self.assertEqual(r2.headers["ETag"], etag)
+
+        # Weak ETag also matches per RFC 9110
+        r_weak = self.http.get("/api/iran-bourse/catalog", headers={**H, "If-None-Match": f"W/{etag}"})
+        self.assertEqual(r_weak.status_code, 304)
+
+        # Mismatched ETag -> 200 OK
+        r_miss = self.http.get("/api/iran-bourse/catalog", headers={**H, "If-None-Match": '"stale-tag"'})
+        self.assertEqual(r_miss.status_code, 200)
+
+        # Board update changes ETag -> previous ETag gets 200 OK with new ETag
+        self.fc.rows = [row(1, "فولاد", "سهام", last=9999)]
+        self.fc.seq = 9
+        self.clock.t += 20
+        r3 = self.http.get("/api/iran-bourse/catalog", headers={**H, "If-None-Match": etag})
+        self.assertEqual(r3.status_code, 200)
+        self.assertNotEqual(r3.headers["ETag"], etag)
+
+    def test_catalog_supports_gzip_compression_and_reduces_size(self):
+        # Populate enough rows so gzip is unambiguously smaller than raw compact JSON
+        self.fc.rows = [row(i, f"نماد{i}", "سهام") for i in range(1, 120)]
+        r_plain = self.http.get("/api/iran-bourse/catalog", headers={**H, "Accept-Encoding": "identity"})
+        self.assertEqual(r_plain.status_code, 200)
+        self.assertNotIn("content-encoding", {k.lower() for k in r_plain.headers.keys()})
+        raw_bytes, gz_bytes, _etag = self.board.catalog_encoded()
+        self.assertLess(len(gz_bytes), len(raw_bytes))
+        self.assertEqual(json.loads(gzip.decompress(gz_bytes).decode("utf-8"))["total"], 119)
+
+        r_gz = self.http.get("/api/iran-bourse/catalog", headers={**H, "Accept-Encoding": "gzip"})
+        self.assertEqual(r_gz.status_code, 200)
+        self.assertEqual(r_gz.headers.get("Content-Encoding"), "gzip")
+        self.assertEqual(r_gz.json()["total"], 119)
+
+    def test_catalog_rate_limit_enforces_429_with_retry_after(self):
+        with patch.object(config, "IRAN_BOURSE_CATALOG_RATE_LIMIT", 2, create=True), \
+             patch.object(config, "IRAN_BOURSE_CATALOG_RATE_WINDOW", 60.0, create=True):
+            iran_bourse_routes._CATALOG_RATE_LIMITER.reset()
+            self.assertEqual(self.http.get("/api/iran-bourse/catalog", headers=H).status_code, 200)
+            self.assertEqual(self.http.get("/api/iran-bourse/catalog", headers=H).status_code, 200)
+            r3 = self.http.get("/api/iran-bourse/catalog", headers=H)
+            self.assertEqual(r3.status_code, 429)
+            self.assertIn("Retry-After", r3.headers)
+            self.assertGreaterEqual(int(r3.headers["Retry-After"]), 1)
 
 
 if __name__ == "__main__":

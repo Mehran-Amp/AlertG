@@ -50,13 +50,21 @@ class BourseResult<T> {
   final String? message;
   final int? httpStatus;
 
-  const BourseResult.ok(this.data)
+  /// Optional HTTP ETag header returned by cacheable endpoints (e.g. `/catalog`).
+  final String? etag;
+
+  /// True when the server answered HTTP 304 Not Modified for an `If-None-Match` check.
+  final bool notModified;
+
+  const BourseResult.ok(this.data, {this.etag, this.notModified = false})
       : failure = null,
         message = null,
         httpStatus = null;
 
   const BourseResult.fail(BourseFailure this.failure, {this.message, this.httpStatus})
-      : data = null;
+      : data = null,
+        etag = null,
+        notModified = false;
 
   bool get isOk => failure == null;
 }
@@ -193,15 +201,36 @@ class IranBourseService {
   }
 
   /// Full projected market catalog for on-device daily caching (`GET /api/iran-bourse/catalog`).
+  ///
+  /// When [ifNoneMatch] matches the server's current ETag, returns an ok result with
+  /// `notModified == true` and `data == null` so the cache can keep its existing rows.
   Future<BourseResult<BourseBoardPage>> catalog({
+    String? ifNoneMatch,
     Duration catalogTimeout = const Duration(seconds: 30),
   }) async {
-    final res = await _get('/api/iran-bourse/catalog', null, catalogTimeout);
+    final extraHeaders = <String, String>{};
+    final tag = ifNoneMatch?.trim();
+    if (tag != null && tag.isNotEmpty) {
+      extraHeaders['If-None-Match'] = tag;
+    }
+    final res = await _get(
+      '/api/iran-bourse/catalog',
+      null,
+      catalogTimeout,
+      extraHeaders.isEmpty ? null : extraHeaders,
+    );
     if (!res.isOk) {
       return BourseResult<BourseBoardPage>.fail(
         res.failure!,
         message: res.message,
         httpStatus: res.httpStatus,
+      );
+    }
+    if (res.notModified) {
+      return BourseResult<BourseBoardPage>.ok(
+        null,
+        etag: res.etag ?? tag,
+        notModified: true,
       );
     }
     final page = BourseBoardPage.tryParse(res.data);
@@ -211,7 +240,7 @@ class IranBourseService {
         message: 'not a catalog answer',
       );
     }
-    return BourseResult<BourseBoardPage>.ok(page);
+    return BourseResult<BourseBoardPage>.ok(page, etag: res.etag);
   }
 
   /// The gateway's classification tables (market / board / type / sector codes), as raw JSON.
@@ -243,7 +272,12 @@ class IranBourseService {
 
   // ---- transport -------------------------------------------------------------------------
 
-  Future<BourseResult<Map<String, dynamic>>> _get(String path, [Map<String, String>? query, Duration? timeoutOverride]) async {
+  Future<BourseResult<Map<String, dynamic>>> _get(
+    String path, [
+    Map<String, String>? query,
+    Duration? timeoutOverride,
+    Map<String, String>? extraHeaders,
+  ]) async {
     try {
       var base = _baseUrl().trim();
       while (base.endsWith('/')) {
@@ -255,6 +289,9 @@ class IranBourseService {
       final headers = <String, String>{'Accept': 'application/json'};
       final key = _apiKey();
       if (key.isNotEmpty) headers['X-API-Key'] = key;
+      if (extraHeaders != null && extraHeaders.isNotEmpty) {
+        headers.addAll(extraHeaders);
+      }
 
       final client = _client;
       final response = await (client != null
@@ -269,8 +306,24 @@ class IranBourseService {
     }
   }
 
+  static String? _headerValue(Map<String, String> headers, String lowerName) {
+    for (final entry in headers.entries) {
+      if (entry.key.toLowerCase() == lowerName) {
+        final v = entry.value.trim();
+        return v.isEmpty ? null : v;
+      }
+    }
+    return null;
+  }
+
   BourseResult<Map<String, dynamic>> _decode(http.Response response) {
     final status = response.statusCode;
+    final etag = _headerValue(response.headers, 'etag');
+
+    if (status == 304) {
+      return BourseResult<Map<String, dynamic>>.ok(null, etag: etag, notModified: true);
+    }
+
     dynamic decoded;
     try {
       decoded = jsonDecode(utf8.decode(response.bodyBytes));
@@ -280,7 +333,10 @@ class IranBourseService {
 
     if (status == 200) {
       if (decoded is Map) {
-        return BourseResult<Map<String, dynamic>>.ok(Map<String, dynamic>.from(decoded));
+        return BourseResult<Map<String, dynamic>>.ok(
+          Map<String, dynamic>.from(decoded),
+          etag: etag,
+        );
       }
       return BourseResult<Map<String, dynamic>>.fail(BourseFailure.badResponse, message: 'body is not a JSON object', httpStatus: status);
     }
@@ -291,6 +347,8 @@ class IranBourseService {
       failure = (detail != null && detail.toLowerCase().contains('not enabled'))
           ? BourseFailure.disabled
           : BourseFailure.unavailable;
+    } else if (status == 429) {
+      failure = BourseFailure.unavailable;
     } else if (status == 404) {
       failure = BourseFailure.notFound;
     } else if (status == 400 || status == 422) {

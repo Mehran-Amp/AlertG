@@ -186,6 +186,63 @@ void main() {
       expect(p2.hasMore, isFalse);
       expect(p2.items, hasLength(1));
     });
+
+    test('Phase 24b — persists ETag, sends If-None-Match, handles 304 without dropping items, and maps 429', () async {
+      DateTime clock = DateTime.utc(2026, 11, 26, 16, 0);
+      final sentIfNoneMatch = <String?>[];
+      int call = 0;
+
+      final payload = _catalogJson([
+        _row(1, ticker: 'فولاد', name: 'فولاد مبارکه اصفهان', group: 'stocks', value: 900),
+        _row(2, ticker: 'عیار', name: 'صندوق طلای عیار مفید', group: 'funds', value: 700),
+      ]);
+
+      final service = IranBourseService(
+        client: MockClient((r) async {
+          call++;
+          sentIfNoneMatch.add(r.headers['If-None-Match'] ?? r.headers['if-none-match']);
+          if (call == 1) {
+            return http.Response.bytes(
+              utf8.encode(jsonEncode(payload)),
+              200,
+              headers: {
+                'content-type': 'application/json; charset=utf-8',
+                'etag': '"abc123etag"',
+                'cache-control': 'private, max-age=300',
+              },
+            );
+          }
+          if (call == 2) {
+            return http.Response('', 304, headers: {'etag': '"abc123etag"'});
+          }
+          return http.Response('{"detail":"rate limited"}', 429, headers: {'retry-after': '15'});
+        }),
+        baseUrl: () => 'https://srv.test',
+        apiKey: () => 'k',
+      );
+
+      final cache1 = BourseCatalogCache(directoryProvider: () async => tempDir, nowUtc: () => clock);
+      final res1 = await cache1.ensureLoaded(service: service);
+      expect(res1.isOk, isTrue);
+      expect(cache1.etag, '"abc123etag"');
+      expect(sentIfNoneMatch.single, isNull);
+
+      // Reopen from disk on next day after 19:00 Tehran -> reloads with stored ETag and accepts 304
+      clock = DateTime.utc(2026, 11, 27, 16, 0);
+      final cache2 = BourseCatalogCache(directoryProvider: () async => tempDir, nowUtc: () => clock);
+      final res2 = await cache2.ensureLoaded(service: service);
+      expect(res2.isOk, isTrue);
+      expect(sentIfNoneMatch, [null, '"abc123etag"']);
+      expect(cache2.items, hasLength(2));
+      expect(cache2.syncedAtUtc, clock);
+      expect(cache2.isFresh(), isTrue);
+
+      // Direct service call hitting HTTP 429 maps cleanly to unavailable without throwing
+      final rateLimited = await service.catalog(ifNoneMatch: '"abc123etag"');
+      expect(rateLimited.isOk, isFalse);
+      expect(rateLimited.failure, BourseFailure.unavailable);
+      expect(rateLimited.httpStatus, 429);
+    });
   });
 
   group('BourseBrowsePage with useCatalogCache', () {

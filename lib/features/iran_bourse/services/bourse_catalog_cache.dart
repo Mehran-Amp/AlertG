@@ -27,6 +27,7 @@ class BourseCatalogCache {
   BourseSession _session = BourseSession.unknown;
   bool _serverStale = false;
   int? _asOf;
+  String? _etag;
   DateTime? _syncedAtUtc;
   bool _diskLoaded = false;
   Future<BourseResult<void>>? _inFlight;
@@ -42,6 +43,7 @@ class BourseCatalogCache {
   BourseSession get session => _session;
   bool get serverStale => _serverStale;
   int? get asOf => _asOf;
+  String? get etag => _etag;
   List<BourseBoardItem> get items => _items;
 
   /// Latest 19:00 Tehran market-close timestamp (in UTC) at or before [nowUtc].
@@ -69,6 +71,7 @@ class BourseCatalogCache {
     _session = BourseSession.unknown;
     _serverStale = false;
     _asOf = null;
+    _etag = null;
     _syncedAtUtc = null;
     _diskLoaded = false;
     _inFlight = null;
@@ -120,6 +123,9 @@ class BourseCatalogCache {
       _session = BourseSession.fromServer(decoded['session']);
       _serverStale = decoded['stale'] == true;
       _asOf = decoded['as_of'] is int ? decoded['as_of'] as int : null;
+      _etag = decoded['etag'] is String && (decoded['etag'] as String).trim().isNotEmpty
+          ? (decoded['etag'] as String).trim()
+          : null;
       _syncedAtUtc = syncedMs is int ? DateTime.fromMillisecondsSinceEpoch(syncedMs, isUtc: true) : null;
     } catch (_) {
       // Ignore corrupt or inaccessible cache file and fall back to network.
@@ -135,6 +141,7 @@ class BourseCatalogCache {
         'version': 1,
         'synced_at_ms': _syncedAtUtc?.millisecondsSinceEpoch,
         'as_of': _asOf,
+        if (_etag != null) 'etag': _etag,
         'session': _sessionKey(_session),
         'stale': _serverStale,
         'items': _items.map((e) => e.toJson()).toList(),
@@ -191,13 +198,20 @@ class BourseCatalogCache {
     required IranBourseService service,
     required bool forceRefresh,
   }) async {
-    final res = await service.catalog();
+    final res = await service.catalog(ifNoneMatch: _items.isNotEmpty ? _etag : null);
+    if (res.isOk && res.notModified && _items.isNotEmpty) {
+      if (res.etag != null) _etag = res.etag;
+      _syncedAtUtc = _nowUtc().toUtc();
+      await _saveToDisk();
+      return const BourseResult<void>.ok(null);
+    }
     if (res.isOk && res.data != null) {
       final page = res.data!;
       _items = List<BourseBoardItem>.unmodifiable(page.items);
       _session = page.session;
       _serverStale = page.stale;
       _asOf = page.asOf;
+      _etag = res.etag;
       _syncedAtUtc = _nowUtc().toUtc();
       await _saveToDisk();
       return const BourseResult<void>.ok(null);

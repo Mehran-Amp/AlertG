@@ -172,6 +172,7 @@ def _normalize_sync_item(item: Any) -> Dict[str, Any]:
 
     out['sound_enabled'] = bool(item.get('sound_enabled', True))
     out['vibration_enabled'] = bool(item.get('vibration_enabled', True))
+    out['flash_enabled'] = bool(item.get('flash_enabled', False))
     out['tts_enabled'] = bool(item.get('tts_enabled', True))
     out['prefer_server_proxy'] = bool(item.get('prefer_server_proxy', False))
     out['is_active'] = bool(item.get('is_active', True))

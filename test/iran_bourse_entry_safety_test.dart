@@ -177,4 +177,92 @@ void main() {
       }
     });
   });
+
+  group('Phase 24a — Tabdeal & Kifpool edit entry and back navigation safety', () {
+    for (final exchangeId in const ['tabdeal', 'kifpool']) {
+      testWidgets(
+        'editing a saved $exchangeId rule opens step 3 and tapping Back never opens the Bourse tab',
+        (WidgetTester tester) async {
+          tester.view.physicalSize = const Size(1080, 3200);
+          tester.view.devicePixelRatio = 2.0;
+          addTearDown(tester.view.resetPhysicalSize);
+          addTearDown(tester.view.resetDevicePixelRatio);
+
+          final savedRule = AlertRule(
+            uuid: 'phase24a-$exchangeId-usdtirt',
+            baseCurrency: 'USDT',
+            counterCurrency: 'IRT',
+            marketSymbol: 'USDTIRT',
+            exchangeId: exchangeId,
+            checkIntervalSeconds: 300,
+            conditionType: AlertConditionType.priceThreshold,
+            direction: AlertDirection.above,
+            triggerMode: TriggerMode.oneShot,
+            targetPrice: 95000.0,
+            lastCheckedPrice: 90000.0,
+            createdAt: DateTime(2026, 11, 1),
+          );
+
+          final runDir = tempDir.createTempSync('case_24a_${exchangeId}_');
+          final registry = ExchangeRegistry();
+          final repo = JsonAlertRuleRepository(runDir.path);
+          final settings = SettingsService(runDir.path);
+
+          try {
+            await tester.pumpWidget(
+              ChangeNotifierProvider<SettingsService>.value(
+                value: settings,
+                child: MaterialApp(
+                  home: Scaffold(
+                    body: Builder(
+                      builder: (ctx) => Center(
+                        child: ElevatedButton(
+                          key: const Key('open_edit_flow_btn'),
+                          onPressed: () {
+                            Navigator.of(ctx).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => CreateAlertFlow(
+                                  registry: registry,
+                                  repository: repo,
+                                  initialRule: savedRule,
+                                ),
+                              ),
+                            );
+                          },
+                          child: const Text('PARENT_WATCHLIST'),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+            await tester.pumpAndSettle();
+
+            // Push CreateAlertFlow(initialRule: tabdeal/kifpool) -> lands on step 3.
+            await tester.tap(find.byKey(const Key('open_edit_flow_btn')));
+            await tester.pump();
+            await tester.pump(const Duration(milliseconds: 350));
+
+            // Step 3 edit form is visible; Bourse tab & Iranian hub are NOT opened.
+            expect(find.text(AppStrings.get('edit_alert_title', 'en')), findsOneWidget);
+            expect(find.text(AppStrings.get('save_changes_cta', 'fa')), findsOneWidget);
+            expect(find.byKey(const Key('bourse_board_search')), findsNothing);
+            expect(find.byKey(const Key('iran_hub_tab_bourse')), findsNothing);
+
+            // Press Back -> pops straight back to parent without mounting the Bourse tab.
+            await tester.tap(find.byIcon(Icons.arrow_back_rounded));
+            await tester.pump();
+            await tester.pump(const Duration(milliseconds: 350));
+
+            expect(find.text('PARENT_WATCHLIST'), findsOneWidget);
+            expect(find.byKey(const Key('bourse_board_search')), findsNothing);
+            expect(find.byKey(const Key('iran_hub_tab_bourse')), findsNothing);
+          } finally {
+            if (runDir.existsSync()) runDir.deleteSync(recursive: true);
+          }
+        },
+      );
+    }
+  });
 }
