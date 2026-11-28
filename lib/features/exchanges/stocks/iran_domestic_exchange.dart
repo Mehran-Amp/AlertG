@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../../../core/services/server_alert_service.dart';
 import '../base/currency_pair.dart';
 import '../base/exchange.dart';
 import '../base/exchange_category.dart';
@@ -1095,8 +1096,41 @@ class IranDomesticExchange implements Exchange {
   @override
   Future<MarketTicker> fetchTicker(CurrencyPair pair) async {
     final sym = pair.baseCurrency.toUpperCase();
+    final matched = predefinedAssets.firstWhere(
+      (a) => a['symbol'] == sym,
+      orElse: () => {'price': 0.0, 'unit': 'تومان', 'cat': 'General'},
+    );
+    final unitLabel = matched['unit'] as String? ?? 'تومان';
 
-    // 1. Approved Iranian Crypto Exchange Live Resolution (Tabdeal & Kifpool via Crypto Engine)
+    // 1. Primary: Live Server Price (/api/price/iran_market/<SYM>)
+    // Ensures 100% consistency between the initial market list, the alert creation form, and live alert polling.
+    try {
+      final details = await ServerAlertService.fetchPriceDetailsViaServer('iran_market', sym);
+      if (details != null) {
+        final serverPrice = (details['price'] as num?)?.toDouble();
+        if (serverPrice != null && serverPrice > 0) {
+          final asOfSec = (details['asOf'] as num?)?.toInt();
+          final asOfDt = asOfSec != null
+              ? DateTime.fromMillisecondsSinceEpoch(asOfSec * 1000)
+              : DateTime.now();
+          return MarketTicker(
+            exchangeId: id,
+            pair: pair,
+            lastPrice: serverPrice,
+            volume24h: (details['volume'] as num?)?.toDouble() ?? 0.0,
+            timestamp: DateTime.now(),
+            asOf: asOfDt,
+            state: (details['state'] as String?)?.toLowerCase() ?? 'live',
+            quoteUnit: unitLabel,
+            source: (details['source'] as String?) ?? 'بازار آزاد تهران (Bonbast)',
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('⚠️ [IranDomesticExchange] Server live fetch error for $sym: $e');
+    }
+
+    // 2. Approved Iranian Crypto Exchange Direct Fallback (Tabdeal & Kifpool via Crypto Engine)
     const tabdealPairMap = <String, CurrencyPair>{
       'USDT_TABDEAL': CurrencyPair(baseCurrency: 'USDT', counterCurrency: 'TMN', marketSymbol: 'USDTIRT'),
       'GOLD_TABDEAL': CurrencyPair(baseCurrency: 'PAXG', counterCurrency: 'TMN', marketSymbol: 'PAXGIRT'),
@@ -1151,11 +1185,7 @@ class IranDomesticExchange implements Exchange {
       }
     }
 
-    // 2. Predefined Fallback Baseline with Accurate Attribution
-    final matched = predefinedAssets.firstWhere(
-      (a) => a['symbol'] == sym,
-      orElse: () => {'price': 0.0, 'unit': 'تومان', 'cat': 'General'},
-    );
+    // 3. Predefined Fallback Baseline (only if server is offline)
 
     final baselinePrice = (matched['price'] as num?)?.toDouble() ?? 0.0;
     if (baselinePrice > 0) {

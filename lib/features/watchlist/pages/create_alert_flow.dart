@@ -369,7 +369,7 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
   }
 
   Future<void> _fetchLivePriceForSelectedAsset() async {
-    // 0. Iran Domestic Asset Special Handling (Bonbast, TSETMC, ICE & Iranian Crypto Exchanges)
+    // 0. Iran Domestic Asset Special Handling (Bonbast, TSETMC & Tabdeal/Kifpool)
     if (_flowType == MarketFlowType.iran && _selectedIranDomesticAsset != null) {
       final sym = _selectedIranDomesticAsset!['symbol'] as String;
       final unit = (_selectedIranDomesticAsset!['unit'] as String?) ?? 'TMN';
@@ -377,7 +377,26 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
 
       setState(() => _isLoadingPrice = true);
 
-      // Local fetch
+      // 1. Primary: Server fetch with 60s Bonbast / 5s Tabdeal-Kifpool cache
+      try {
+        final details = await ServerAlertService.fetchPriceDetailsViaServer('iran_market', sym);
+        if (details != null && mounted) {
+          final serverPrice = (details['price'] as num?)?.toDouble();
+          if (serverPrice != null && serverPrice > 0) {
+            setState(() {
+              _iranItemMeta[sym] = details;
+              _iranLivePrices[sym] = serverPrice;
+              _currentPrice = serverPrice;
+              _targetPriceController.text = _formatSmartNumber(serverPrice);
+              _preferServerProxy = true;
+              _isLoadingPrice = false;
+            });
+            return;
+          }
+        }
+      } catch (_) {}
+
+      // 2. Fallback: Local adapter fetch
       try {
         final snapshot = await widget.registry.fetchSnapshotFrom('iran_market', pair).timeout(const Duration(seconds: 10));
         if (snapshot != null && snapshot.price > 0 && mounted) {
@@ -386,21 +405,6 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
             _currentPrice = snapshot.price;
             _targetPriceController.text = _formatSmartNumber(snapshot.price);
             _preferServerProxy = false;
-            _isLoadingPrice = false;
-          });
-          return;
-        }
-      } catch (_) {}
-
-      // Server fetch with 60s cache
-      try {
-        final serverPrice = await ServerAlertService.fetchPriceViaServer('iran_market', sym);
-        if (serverPrice != null && serverPrice > 0 && mounted) {
-          setState(() {
-            _iranLivePrices[sym] = serverPrice;
-            _currentPrice = serverPrice;
-            _targetPriceController.text = _formatSmartNumber(serverPrice);
-            _preferServerProxy = true;
             _isLoadingPrice = false;
           });
           return;
@@ -465,6 +469,8 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
   }
 
   Future<void> _onIranDomesticAssetChosen(Map<String, dynamic> asset) async {
+    final sym = asset['symbol'] as String;
+    final initialLivePrice = _iranLivePrices[sym] ?? (asset['price'] as num?)?.toDouble();
     setState(() {
       _selectedIranDomesticAsset = asset;
       _selectedIranExchange = null;
@@ -472,13 +478,12 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
       _selectedPair = null;
       _step = 2;
       _isLoadingPrice = true;
-      _currentPrice = (asset['price'] as num?)?.toDouble();
+      _currentPrice = initialLivePrice;
       if (_currentPrice != null && _currentPrice! > 0) {
         _targetPriceController.text = _formatSmartNumber(_currentPrice!);
       }
     });
 
-    final sym = asset['symbol'] as String;
     final unit = (asset['unit'] as String?) ?? 'TMN';
     final pair = CurrencyPair(baseCurrency: sym, counterCurrency: unit, marketSymbol: sym);
 
