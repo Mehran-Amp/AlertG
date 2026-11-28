@@ -265,8 +265,17 @@ def is_market_open(exchange: str, symbol: str, now_dt: Optional[datetime] = None
 
     if cat == 'iran_market':
         s_upper = (symbol or '').upper().strip()
-        # Crypto on Iranian exchanges is 24/7
-        if any(c in s_upper for c in ['USDT', 'BTC', 'ETH', 'TON', 'TRX', 'DOGE', 'SOL']):
+        from app.markets.common import normalize_symbol
+        from app.markets.iran import BONBAST_MAP, IRAN_CRYPTO_SYMBOL_MAP
+        sym_clean = normalize_symbol(symbol)
+        # Crypto, Digital Gold, and Bonbast Free Market Gold/Coins/FX are 24/7
+        if (
+            sym_clean in BONBAST_MAP
+            or sym_clean in IRAN_CRYPTO_SYMBOL_MAP
+            or s_upper in BONBAST_MAP
+            or s_upper in IRAN_CRYPTO_SYMBOL_MAP
+            or any(c in s_upper for c in ['USDT', 'PAXG', 'XAUT', 'GOLD', 'GERAM', 'MESGHAL', 'COIN', 'TMN'])
+        ):
             return True
         return is_tse_market_open(now_dt)[0]
 
@@ -386,18 +395,18 @@ def get_symbol_market_detail(exchange: str, symbol: str, now_dt: Optional[dateti
     - is_open, status, status_fa, state, state_fa
     - schedule, schedule_fa
     - next_open_fa: Persian time until or datetime of next opening session
-    - source: data provider label (e.g. Yahoo Finance, FRED, Finnhub, Nobitex, TSETMC, Binance)
+    - source: data provider label (e.g. Yahoo Finance, FRED, Finnhub, Tabdeal, Kifpool, Bonbast, TSETMC, Binance)
     - delay: latency label (e.g. بلادرنگ, تأخیر ۱۵ دقیقه, روزانه, ماهانه)
     """
     cat = resolve_symbol_category(exchange, symbol)
     s_upper = (symbol or "").strip().upper()
     ex_lower = (exchange or "").strip().lower()
 
-    if cat == 'crypto':
-        source = "Nobitex / رمزارز ایرانی" if ex_lower in ('nobitex', 'wallex', 'tabdeal', 'ramzinex', 'tetherland', 'bitbarg', 'abantether') else "Binance / Global Crypto"
+    if cat in ('crypto', 'iran_crypto'):
+        source = "Tabdeal / Kifpool (رمزارز ایرانی)" if ex_lower in ('tabdeal', 'kifpool') else "Binance / Global Crypto"
         return {
             "symbol": s_upper,
-            "category": "crypto",
+            "category": cat,
             "category_fa": "رمزارز",
             "is_open": True,
             "status": "open",
@@ -484,11 +493,14 @@ def get_symbol_market_detail(exchange: str, symbol: str, now_dt: Optional[dateti
         }
 
     if cat == 'iran_market':
-        if any(c in s_upper for c in ['USDT', 'BTC', 'ETH', 'TON', 'TRX', 'DOGE', 'SOL']):
+        from app.markets.common import normalize_symbol
+        from app.markets.iran import BONBAST_MAP, IRAN_CRYPTO_SYMBOL_MAP
+        sym_clean = normalize_symbol(symbol)
+        if sym_clean in IRAN_CRYPTO_SYMBOL_MAP or s_upper in IRAN_CRYPTO_SYMBOL_MAP or any(c in s_upper for c in ['USDT', 'PAXG', 'XAUT']):
             return {
                 "symbol": s_upper,
                 "category": "iran_market",
-                "category_fa": "کریپتو تومانی و تتری ایران",
+                "category_fa": "تتر و طلای دیجیتال ایران",
                 "is_open": True,
                 "status": "open",
                 "status_fa": "باز",
@@ -497,14 +509,30 @@ def get_symbol_market_detail(exchange: str, symbol: str, now_dt: Optional[dateti
                 "schedule": "24/7/365",
                 "schedule_fa": "۲۴ ساعته ۷ روز هفته",
                 "next_open_fa": "معاملات فعال است",
-                "source": "Nobitex / Wallex / Tabdeal",
+                "source": "Tabdeal / Kifpool",
+                "delay": "بلادرنگ (Real-Time)"
+            }
+        if sym_clean in BONBAST_MAP or s_upper in BONBAST_MAP:
+            return {
+                "symbol": s_upper,
+                "category": "iran_market",
+                "category_fa": "طلا، سکه و ارز آزاد تهران",
+                "is_open": True,
+                "status": "open",
+                "status_fa": "باز",
+                "state": "OPEN",
+                "state_fa": "باز",
+                "schedule": "24/7 Free Market",
+                "schedule_fa": "بازار آزاد تهران (بروزرسانی مستمر)",
+                "next_open_fa": "بازار فعال است",
+                "source": "Bonbast (bonbast.com)",
                 "delay": "بلادرنگ (Real-Time)"
             }
         tse_open, tse_state = is_tse_market_open(now_dt)
         return {
             "symbol": s_upper,
             "category": "iran_market",
-            "category_fa": "طلا، ارز و بورس تهران",
+            "category_fa": "بورس اوراق بهادار تهران",
             "is_open": tse_open,
             "status": "open" if tse_open else "closed",
             "status_fa": "باز" if tse_open else "بسته",
@@ -513,7 +541,7 @@ def get_symbol_market_detail(exchange: str, symbol: str, now_dt: Optional[dateti
             "schedule": "Saturday-Wednesday 09:00-12:30 IRST",
             "schedule_fa": "شنبه تا چهارشنبه ۰۹:۰۰ تا ۱۲:۳۰",
             "next_open_fa": "جلسه معاملاتی فعال است" if tse_open else "جلسه بعدی: ساعت ۰۹:۰۰ روز کاری بعد",
-            "source": "TSETMC / TGJU",
+            "source": "TSETMC",
             "delay": "بلادرنگ (Real-Time)"
         }
 

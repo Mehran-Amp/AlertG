@@ -8,7 +8,13 @@ from app.config import (
 from app.state import BULK_MARKET_RESPONSE_CACHE, FAILED_SYMBOLS
 from app.markets.common import normalize_symbol
 from app.engine.categories import resolve_symbol_category
-from app.markets.iran import fetch_iran
+from app.markets.iran import (
+    fetch_iran,
+    BONBAST_MAP,
+    IRAN_CRYPTO_SYMBOL_MAP,
+    TSETMC_INDEX_MAP,
+    TSETMC_INSTRUMENTS_MAP,
+)
 from app.markets.global_stocks import fetch_global_stocks
 from app.markets.crypto import fetch_crypto
 from app.markets.limiter import acquire_provider_slot, record_provider_metric
@@ -264,8 +270,10 @@ async def fetch_price_with_trace(
             return p, traces
 
     # 1. IRANIAN EXCHANGES & TOMAN MARKETS
-    elif ex in ['nobitex', 'wallex', 'bitpin', 'tetherland', 'abantether', 'ramzinex', 'bitbarg', 'sarmayex', 'exir', 'iran_market', 'bonbast'] or \
+    elif ex in ['nobitex', 'wallex', 'bitpin', 'tetherland', 'abantether', 'ramzinex', 'bitbarg', 'sarmayex', 'exir', 'iran_market', 'bonbast', 'tse', 'bridge'] or \
          sym_clean.endswith('TMN') or sym_clean.endswith('IRT') or sym_clean.endswith('RLS') or \
+         sym_clean in BONBAST_MAP or sym_clean in IRAN_CRYPTO_SYMBOL_MAP or \
+         sym_clean in TSETMC_INDEX_MAP or sym_clean in TSETMC_INSTRUMENTS_MAP or \
          sym_clean.startswith('USDT_') or sym_clean.startswith('GOLD_') or \
          sym_clean.startswith('USDTTABDEAL') or sym_clean.startswith('USDTKIFPOOL') or \
          sym_clean.startswith('GOLDTABDEAL') or sym_clean.startswith('GOLDKIFPOOL') or \

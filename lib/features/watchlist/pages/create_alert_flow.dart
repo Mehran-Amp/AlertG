@@ -482,7 +482,26 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
     final unit = (asset['unit'] as String?) ?? 'TMN';
     final pair = CurrencyPair(baseCurrency: sym, counterCurrency: unit, marketSymbol: sym);
 
-    // 1. Try local direct fetch
+    // 1. Primary: Live Server fetch (/api/price/iran_market/<SYM>) with 60s Bonbast / 5s Tabdeal-Kifpool cache
+    try {
+      final details = await ServerAlertService.fetchPriceDetailsViaServer('iran_market', sym);
+      if (details != null && mounted) {
+        final serverPrice = (details['price'] as num?)?.toDouble();
+        if (serverPrice != null && serverPrice > 0) {
+          setState(() {
+            _iranItemMeta[sym] = details;
+            _iranLivePrices[sym] = serverPrice;
+            _currentPrice = serverPrice;
+            _targetPriceController.text = _formatSmartNumber(serverPrice);
+            _preferServerProxy = true;
+            _isLoadingPrice = false;
+          });
+          return;
+        }
+      }
+    } catch (_) {}
+
+    // 2. Fallback: Local adapter fetch
     try {
       final snapshot = await widget.registry.fetchSnapshotFrom('iran_market', pair).timeout(const Duration(seconds: 10));
       if (snapshot != null && snapshot.price > 0 && mounted) {
@@ -491,27 +510,6 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
           _currentPrice = snapshot.price;
           _targetPriceController.text = _formatSmartNumber(snapshot.price);
           _preferServerProxy = false;
-          _isLoadingPrice = false;
-        });
-        return;
-      }
-    } catch (_) {}
-
-    // 2. Fallback server fetch with 60-second cache
-    try {
-      final details = await ServerAlertService.fetchPriceDetailsViaServer('iran_market', sym);
-      if (details != null && mounted) {
-        final serverPrice = (details['price'] as num?)?.toDouble();
-        setState(() {
-          _iranItemMeta[sym] = details;
-          if (serverPrice != null && serverPrice > 0) {
-            _iranLivePrices[sym] = serverPrice;
-            _currentPrice = serverPrice;
-            _targetPriceController.text = _formatSmartNumber(serverPrice);
-          } else {
-            _currentPrice = null;
-          }
-          _preferServerProxy = true;
           _isLoadingPrice = false;
         });
         return;
@@ -2152,7 +2150,7 @@ class _CreateAlertFlowState extends State<CreateAlertFlow> {
               onChanged: (val) => setState(() => _iranSearchQuery = val),
               style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurface),
               decoration: InputDecoration(
-                hintText: 'جستجوی نماد (دلار، طلای ۱۸، سکه، تتر نوبیتکس، طلای دیجیتال، درهم)...',
+                hintText: 'جستجوی نماد (دلار، طلای ۱۸، سکه، تتر تبدیل، تتر کیف پول من، طلای دیجیتال، درهم)...',
                 prefixIcon: Icon(Icons.search, size: 20, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
                 filled: true,
                 fillColor: theme.colorScheme.surface,

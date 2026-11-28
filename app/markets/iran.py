@@ -12,67 +12,86 @@ from app.markets.common import normalize_symbol
 logger = logging.getLogger(__name__)
 
 BONBAST_MAP = {
-    'USD_TMN': 'usd1',
-    'USD': 'usd1',
-    'DOLLAR': 'usd1',
-    'EUR_TMN': 'eur1',
-    'EUR': 'eur1',
-    'GBP_TMN': 'gbp1',
-    'GBP': 'gbp1',
-    'AED_TMN': 'aed1',
-    'AED': 'aed1',
-    'DIRHAM': 'aed1',
-    'TRY_TMN': 'try1',
-    'TRY': 'try1',
-    'LIRA': 'try1',
-    'CAD_TMN': 'cad1',
-    'CAD': 'cad1',
-    'AUD_TMN': 'aud1',
-    'CNY_TMN': 'cny1',
-    'CHF_TMN': 'chf1',
-    'SAR_TMN': 'sar1',
-    'KWD_TMN': 'kwd1',
-    'BHD_TMN': 'bhd1',
-    'OMR_TMN': 'omr1',
-    'QAR_TMN': 'qar1',
-    'IQD_TMN': 'iqd1',
-    'AFN_TMN': 'afn1',
-    'SEK_TMN': 'sek1',
-    'NOK_TMN': 'nok1',
-    'RUB_TMN': 'rub1',
-    'INR_TMN': 'inr1',
-    'JPY_TMN': 'jpy1',
-    'AZN_TMN': 'azn1',
-    'GEL_TMN': 'gel1',
-    'AMD_TMN': 'amd1',
-    'GERAM18': 'gol18',
-    'GOLD18': 'gol18',
-    'GERAM24': 'gol24',
-    'GOLD24': 'gol24',
-    'MESGHAL': 'mithqal',
-    'MITHQAL': 'mithqal',
-    'GOLD_USED': 'gol18',
-    'GOLD_MELTED': 'mithqal',
-    'COIN_EMAMI': 'emami1',
-    'EMAMI': 'emami1',
-    'COIN_BAHAR': 'azadi1',
-    'BAHAR': 'azadi1',
-    'COIN_HALF': 'azadi1_2',
-    'HALF_COIN': 'azadi1_2',
-    'COIN_NIM': 'azadi1_2',
-    'NIM_SEKKEH': 'azadi1_2',
-    'COIN_QUARTER': 'azadi1_4',
-    'QUARTER_COIN': 'azadi1_4',
-    'COIN_ROB': 'azadi1_4',
-    'ROB_SEKKEH': 'azadi1_4',
-    'COIN_GRAM': 'azadi1g',
-    'GRAM_COIN': 'azadi1g',
-    'COIN_GERAMI': 'azadi1g',
-    'SEKKEH_GERAMI': 'azadi1g',
-    'BOURSE': 'bourse',
-    'TEDPIX_BONBAST': 'bourse',
-    'BITCOIN_BONBAST': 'bitcoin',
+    # 1. Free Market Currencies (both underscored and normalize_symbol stripped keys)
+    'USD_TMN': 'usd1', 'USDTMN': 'usd1', 'USD': 'usd1', 'DOLLAR': 'usd1',
+    'EUR_TMN': 'eur1', 'EURTMN': 'eur1', 'EUR': 'eur1',
+    'GBP_TMN': 'gbp1', 'GBPTMN': 'gbp1', 'GBP': 'gbp1',
+    'AED_TMN': 'aed1', 'AEDTMN': 'aed1', 'AED': 'aed1', 'DIRHAM': 'aed1',
+    'AED_REMIT_DUB': 'aed1', 'AEDREMITDUB': 'aed1', 'AED_REMIT': 'aed1', 'AEDREMIT': 'aed1',
+    'TRY_TMN': 'try1', 'TRYTMN': 'try1', 'TRY': 'try1', 'LIRA': 'try1',
+    'CAD_TMN': 'cad1', 'CADTMN': 'cad1', 'CAD': 'cad1',
+    'AUD_TMN': 'aud1', 'AUDTMN': 'aud1', 'AUD': 'aud1',
+    'CNY_TMN': 'cny1', 'CNYTMN': 'cny1', 'CNY': 'cny1',
+    'CNY_REMIT': 'cny1', 'CNYREMIT': 'cny1',
+    'CHF_TMN': 'chf1', 'CHFTMN': 'chf1', 'CHF': 'chf1',
+    'SAR_TMN': 'sar1', 'SARTMN': 'sar1', 'SAR': 'sar1',
+    'KWD_TMN': 'kwd1', 'KWDTMN': 'kwd1', 'KWD': 'kwd1',
+    'BHD_TMN': 'bhd1', 'BHDTMN': 'bhd1', 'BHD': 'bhd1',
+    'OMR_TMN': 'omr1', 'OMRTMN': 'omr1', 'OMR': 'omr1',
+    'QAR_TMN': 'qar1', 'QARTMN': 'qar1', 'QAR': 'qar1',
+    'IQD_TMN': 'iqd1', 'IQDTMN': 'iqd1', 'IQD': 'iqd1',
+    'AFN_TMN': 'afn1', 'AFNTMN': 'afn1', 'AFN': 'afn1',
+    'SEK_TMN': 'sek1', 'SEKTMN': 'sek1', 'SEK': 'sek1',
+    'NOK_TMN': 'nok1', 'NOKTMN': 'nok1', 'NOK': 'nok1',
+    'DKK_TMN': 'dkk1', 'DKKTMN': 'dkk1', 'DKK': 'dkk1',
+    'HKD_TMN': 'hkd1', 'HKDTMN': 'hkd1', 'HKD': 'hkd1',
+    'SGD_TMN': 'sgd1', 'SGDTMN': 'sgd1', 'SGD': 'sgd1',
+    'MYR_TMN': 'myr1', 'MYRTMN': 'myr1', 'MYR': 'myr1',
+    'THB_TMN': 'thb1', 'THBTMN': 'thb1', 'THB': 'thb1',
+    'RUB_TMN': 'rub1', 'RUBTMN': 'rub1', 'RUB': 'rub1',
+    'INR_TMN': 'inr1', 'INRTMN': 'inr1', 'INR': 'inr1',
+    'JPY_TMN': 'jpy1', 'JPYTMN': 'jpy1', 'JPY': 'jpy1',
+    'AZN_TMN': 'azn1', 'AZNTMN': 'azn1', 'AZN': 'azn1',
+    'AMD_TMN': 'amd1', 'AMDTMN': 'amd1', 'AMD': 'amd1',
+
+    # 2. Physical Gold & Coins (both underscored and normalize_symbol stripped keys)
+    'GERAM18': 'gol18', 'GOLD18': 'gol18',
+    'GERAM24': 'gol18', 'GOLD24': 'gol18',
+    'MESGHAL': 'mithqal', 'MITHQAL': 'mithqal',
+    'GOLD_USED': 'gol18', 'GOLDUSED': 'gol18',
+    'GOLD_MELTED': 'mithqal', 'GOLDMELTED': 'mithqal',
+    'OUNCE': 'ounce', 'GOLD_OUNCE': 'ounce', 'GOLDOUNCE': 'ounce',
+    'COIN_EMAMI': 'emami1', 'COINEMAMI': 'emami1', 'EMAMI': 'emami1',
+    'COIN_BAHAR': 'azadi1', 'COINBAHAR': 'azadi1', 'BAHAR': 'azadi1',
+    'COIN_HALF': 'azadi1_2', 'COINHALF': 'azadi1_2', 'HALF_COIN': 'azadi1_2', 'HALFCOIN': 'azadi1_2',
+    'COIN_NIM': 'azadi1_2', 'COINNIM': 'azadi1_2', 'NIM_SEKKEH': 'azadi1_2', 'NIMSEKKEH': 'azadi1_2',
+    'COIN_QUARTER': 'azadi1_4', 'COINQUARTER': 'azadi1_4', 'QUARTER_COIN': 'azadi1_4', 'QUARTERCOIN': 'azadi1_4',
+    'COIN_ROB': 'azadi1_4', 'COINROB': 'azadi1_4', 'ROB_SEKKEH': 'azadi1_4', 'ROBSEKKEH': 'azadi1_4',
+    'COIN_GRAM': 'azadi1g', 'COINGRAM': 'azadi1g', 'GRAM_COIN': 'azadi1g', 'GRAMCOIN': 'azadi1g',
+    'COIN_GERAMI': 'azadi1g', 'COINGERAMI': 'azadi1g', 'SEKKEH_GERAMI': 'azadi1g', 'SEKKEHGERAMI': 'azadi1g',
+    'BOURSE': 'bourse', 'TEDPIX_BONBAST': 'bourse', 'TEDPIXBONBAST': 'bourse',
+    'BITCOIN_BONBAST': 'bitcoin', 'BITCOINBONBAST': 'bitcoin',
 }
+
+# Bonbast quotes certain minor-unit currencies per 10 or 100 units:
+# - jpy1, amd1: per 10 units on Bonbast
+# - iqd1: per 100 units on Bonbast (e.g. 20,800 TMN per 100 IQD -> 208 TMN per 1 IQD)
+# We divide by these factors so all currency prices represent 1 single unit of the foreign currency in Tomans.
+BONBAST_UNIT_DIVISORS = {
+    'iqd1': 100.0,
+    'jpy1': 10.0,
+    'amd1': 10.0,
+}
+
+def compute_bonbast_symbol_price(sym_clean: str, bonbast_k: str, bb_map: Dict[str, Any]) -> Optional[float]:
+    """Computes canonical 1-unit Toman price for a symbol from raw Bonbast JSON dict."""
+    if not bb_map or bonbast_k not in bb_map:
+        return None
+    try:
+        val = float(str(bb_map[bonbast_k]).replace(',', ''))
+        if val <= 0:
+            return None
+        if sym_clean in ('GERAM24', 'GOLD24'):
+            # 24K gold derived from 18K gold: gol18 * 24 / 18
+            val = round(val * (24.0 / 18.0))
+        elif sym_clean in ('GOLD_USED', 'GOLDUSED'):
+            # Second-hand gold (740/750 standard market formula = 98.6667% of 18K)
+            val = round(val * (740.0 / 750.0))
+        elif bonbast_k in BONBAST_UNIT_DIVISORS:
+            val = round(val / BONBAST_UNIT_DIVISORS[bonbast_k], 2)
+        return val
+    except Exception:
+        return None
 
 TSETMC_INDEX_MAP = {
     'TEDPIX': '32097828799138116',
@@ -301,10 +320,15 @@ async def fetch_iran(
         if p and not collect_all_traces: return p
 
     # 1-3. Bonbast API for Free Market Currencies, Physical Gold & Coins (Direct from Server)
-    bonbast_k = BONBAST_MAP.get(sym_clean) or (BONBAST_MAP.get(sym_clean[:-3]) if sym_clean.endswith('TMN') else None)
+    bonbast_k = (
+        BONBAST_MAP.get(sym_clean)
+        or BONBAST_MAP.get(raw_upper)
+        or (BONBAST_MAP.get(sym_clean[:-3]) if sym_clean.endswith('TMN') else None)
+    )
     if bonbast_k:
         now_bb = time.time()
-        cached_bb = IRAN_MARKET_CACHE.get(f'bonbast_{bonbast_k}')
+        cache_slot = f'bonbast_{sym_clean}'
+        cached_bb = IRAN_MARKET_CACHE.get(cache_slot)
         if cached_bb and (now_bb - cached_bb[1]) < CACHE_TTL_IRAN:
             traces.append({
                 'source': 'بن‌بست مستقیم (Bonbast API 60s Cache)',
@@ -320,91 +344,24 @@ async def fetch_iran(
             if not collect_all_traces:
                 return cached_bb[0]
 
-        async def _resolve_direct_bonbast():
-            bulk_cached = IRAN_MARKET_CACHE.get('__bonbast_bulk__')
-            if bulk_cached and (now_bb - bulk_cached[1]) < CACHE_TTL_IRAN:
-                return bulk_cached[2]
-            try:
-                bb_html_res = await client.get('https://bonbast.com/', headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}, timeout=6.0)
-                if bb_html_res.status_code == 200:
-                    m = re.search(r'param:\s*[\'"]([^\'"]+)[\'"]', bb_html_res.text)
-                    if m:
-                        param_val = m.group(1)
-                        post_headers = {
-                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                            'Referer': 'https://bonbast.com/',
-                            'Origin': 'https://bonbast.com',
-                            'Accept': 'application/json, text/javascript, */*; q=0.01',
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-                        }
-                        bb_json_res = await client.post('https://bonbast.com/json', data={'param': param_val}, headers=post_headers, cookies=dict(bb_html_res.cookies), timeout=6.0)
-                        if bb_json_res.status_code == 200:
-                            parsed = bb_json_res.json()
-                            if isinstance(parsed, dict) and ('usd1' in parsed or 'mithqal' in parsed or 'gol18' in parsed):
-                                IRAN_MARKET_CACHE['__bonbast_bulk__'] = (0.0, time.time(), parsed)
-                                return parsed
-            except Exception as e:
-                logger.warning(f"Bonbast dynamic client fetch error: {e}")
-
-            try:
-                import urllib.request, urllib.parse, http.cookiejar
-                loop = asyncio.get_event_loop()
-                def _sync_bb():
-                    cj = http.cookiejar.CookieJar()
-                    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
-                    req1 = urllib.request.Request('https://bonbast.com/', headers={
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                    })
-                    with opener.open(req1, timeout=5) as r1:
-                        html = r1.read().decode('utf-8', errors='ignore')
-                    m = re.search(r'param:\s*[\'"]([^\'"]+)[\'"]', html)
-                    if m:
-                        data_bytes = urllib.parse.urlencode({'param': m.group(1)}).encode('utf-8')
-                        req2 = urllib.request.Request('https://bonbast.com/json', data=data_bytes, headers={
-                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-                            'Referer': 'https://bonbast.com/',
-                            'Origin': 'https://bonbast.com',
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                        })
-                        with opener.open(req2, timeout=5) as r2:
-                            parsed = json.loads(r2.read().decode('utf-8'))
-                            if isinstance(parsed, dict) and ('usd1' in parsed or 'mithqal' in parsed):
-                                return parsed
-                    return None
-                fb_parsed = await loop.run_in_executor(None, _sync_bb)
-                if fb_parsed:
-                    IRAN_MARKET_CACHE['__bonbast_bulk__'] = (0.0, time.time(), fb_parsed)
-                    return fb_parsed
-            except Exception as e:
-                logger.warning(f"Bonbast session fallback error: {e}")
-            return None
-
-        bb_map = await _resolve_direct_bonbast()
-        if bb_map and bonbast_k in bb_map:
-            try:
-                val = float(str(bb_map[bonbast_k]).replace(',', ''))
-                if sym_clean == 'GOLD_USED':
-                    val = val * 0.975 # 97.5% for second-hand gold
-                meta = {'price': val, 'state': 'LIVE', 'currency': 'TMN', 'source': 'بن‌بست مستقیم (Bonbast Live)'}
-                IRAN_MARKET_CACHE[f'bonbast_{bonbast_k}'] = (val, time.time(), meta)
-                traces.append({
-                    'source': 'بن‌بست مستقیم (Bonbast Live)',
-                    'url': 'https://bonbast.com/json',
-                    'status_code': 200,
-                    'latency_ms': 120.0,
-                    'parsed_price': val,
-                    'asOf': int(time.time()),
-                    'state': 'LIVE',
-                    'currency': 'TMN',
-                    'success': True
-                })
-                if not collect_all_traces:
-                    return val
-            except Exception:
-                pass
+        bb_map = await resolve_direct_bonbast_bulk(client)
+        val = compute_bonbast_symbol_price(sym_clean, bonbast_k, bb_map) if bb_map else None
+        if val is not None and val > 0:
+            meta = {'price': val, 'state': 'LIVE', 'currency': 'TMN', 'source': 'بن‌بست مستقیم (Bonbast Live)'}
+            IRAN_MARKET_CACHE[cache_slot] = (val, time.time(), meta)
+            traces.append({
+                'source': 'بن‌بست مستقیم (Bonbast Live)',
+                'url': 'https://bonbast.com/json',
+                'status_code': 200,
+                'latency_ms': 120.0,
+                'parsed_price': val,
+                'asOf': int(time.time()),
+                'state': 'LIVE',
+                'currency': 'TMN',
+                'success': True
+            })
+            if not collect_all_traces:
+                return val
 
     # 1-4. Generic Toman crypto / USDT fallback via approved Iranian crypto exchanges (Tabdeal & Kifpool only)
     if sym_clean in ('USDT', 'USDTTMN', 'USDTIRT'):
@@ -423,3 +380,83 @@ async def fetch_iran(
                 return strict_res.price
 
     return None
+
+
+async def resolve_direct_bonbast_bulk(client: Optional[httpx.AsyncClient] = None) -> Optional[Dict[str, Any]]:
+    """Fetches and caches the full Bonbast JSON bulk payload for 60 seconds."""
+    now_bb = time.time()
+    bulk_cached = IRAN_MARKET_CACHE.get('__bonbast_bulk__')
+    if bulk_cached and (now_bb - bulk_cached[1]) < CACHE_TTL_IRAN:
+        return bulk_cached[2]
+
+    if client is not None:
+        try:
+            bb_html_res = await client.get(
+                'https://bonbast.com/',
+                headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'},
+                timeout=6.0,
+            )
+            if bb_html_res.status_code == 200:
+                m = re.search(r'param:\s*[\'"]([^\'"]+)[\'"]', bb_html_res.text)
+                if m:
+                    param_val = m.group(1)
+                    post_headers = {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                        'Referer': 'https://bonbast.com/',
+                        'Origin': 'https://bonbast.com',
+                        'Accept': 'application/json, text/javascript, */*; q=0.01',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    }
+                    bb_json_res = await client.post(
+                        'https://bonbast.com/json',
+                        data={'param': param_val},
+                        headers=post_headers,
+                        cookies=dict(bb_html_res.cookies),
+                        timeout=6.0,
+                    )
+                    if bb_json_res.status_code == 200:
+                        parsed = bb_json_res.json()
+                        if isinstance(parsed, dict) and ('usd1' in parsed or 'mithqal' in parsed or 'gol18' in parsed):
+                            IRAN_MARKET_CACHE['__bonbast_bulk__'] = (0.0, time.time(), parsed)
+                            return parsed
+        except Exception as e:
+            logger.warning(f"Bonbast dynamic client fetch error: {e}")
+
+    try:
+        import urllib.request, urllib.parse, http.cookiejar
+        loop = asyncio.get_event_loop()
+
+        def _sync_bb():
+            cj = http.cookiejar.CookieJar()
+            opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+            req1 = urllib.request.Request('https://bonbast.com/', headers={
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            })
+            with opener.open(req1, timeout=5) as r1:
+                html = r1.read().decode('utf-8', errors='ignore')
+            m = re.search(r'param:\s*[\'"]([^\'"]+)[\'"]', html)
+            if m:
+                data_bytes = urllib.parse.urlencode({'param': m.group(1)}).encode('utf-8')
+                req2 = urllib.request.Request('https://bonbast.com/json', data=data_bytes, headers={
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+                    'Referer': 'https://bonbast.com/',
+                    'Origin': 'https://bonbast.com',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                })
+                with opener.open(req2, timeout=5) as r2:
+                    parsed = json.loads(r2.read().decode('utf-8'))
+                    if isinstance(parsed, dict) and ('usd1' in parsed or 'mithqal' in parsed):
+                        return parsed
+            return None
+
+        fb_parsed = await loop.run_in_executor(None, _sync_bb)
+        if fb_parsed:
+            IRAN_MARKET_CACHE['__bonbast_bulk__'] = (0.0, time.time(), fb_parsed)
+            return fb_parsed
+    except Exception as e:
+        logger.warning(f"Bonbast session fallback error: {e}")
+    return None
+

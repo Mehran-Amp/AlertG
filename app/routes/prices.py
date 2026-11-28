@@ -243,15 +243,95 @@ async def get_markets_status():
         except Exception as e:
             logger.warning(f"Error fetching market status from bridge: {e}")
 
-    # Fallback status if bridge not immediately reachable
+    # Fallback / Direct status when bridge is not configured or unreachable:
+    # Populate items directly from live Bonbast + Tabdeal + Kifpool so mobile app gets all live Gold, Coin, FX, Tether & Digital Gold prices.
+    from app.markets.iran import (
+        BONBAST_MAP,
+        IRAN_CRYPTO_SYMBOL_MAP,
+        compute_bonbast_symbol_price,
+        resolve_direct_bonbast_bulk,
+    )
+
+    items: dict = {}
+    now = time.time()
+    as_of_ts = int(now)
+
+    # 1. Resolve all canonical Bonbast symbols (Gold, Coins, 28 Free Market Currencies)
+    CANONICAL_BONBAST_SYMBOLS = [
+        'GERAM18', 'GERAM24', 'MESGHAL', 'GOLD_USED', 'GOLD_MELTED',
+        'COIN_EMAMI', 'COIN_BAHAR', 'COIN_HALF', 'COIN_QUARTER', 'COIN_GRAM',
+        'USD_TMN', 'EUR_TMN', 'GBP_TMN', 'AED_TMN', 'AED_REMIT_DUB', 'CNY_REMIT',
+        'TRY_TMN', 'CAD_TMN', 'AUD_TMN', 'CNY_TMN', 'CHF_TMN', 'SAR_TMN',
+        'KWD_TMN', 'BHD_TMN', 'OMR_TMN', 'QAR_TMN', 'IQD_TMN', 'AFN_TMN',
+        'SEK_TMN', 'NOK_TMN', 'DKK_TMN', 'HKD_TMN', 'SGD_TMN', 'MYR_TMN',
+        'THB_TMN', 'RUB_TMN', 'INR_TMN', 'JPY_TMN', 'AZN_TMN', 'AMD_TMN',
+    ]
+
+    bb_map = await resolve_direct_bonbast_bulk(state.http_client)
+    if bb_map:
+        for sym in CANONICAL_BONBAST_SYMBOLS:
+            sym_clean = normalize_symbol(sym)
+            bb_key = BONBAST_MAP.get(sym) or BONBAST_MAP.get(sym_clean)
+            if bb_key:
+                val = compute_bonbast_symbol_price(sym_clean, bb_key, bb_map)
+                if val is not None and val > 0:
+                    item_dict = {
+                        "price": val,
+                        "state": "LIVE",
+                        "state_fa": "زنده",
+                        "unit": "TMN",
+                        "currency": "TMN",
+                        "market_open": True,
+                        "alert_eligible": True,
+                        "as_of": as_of_ts,
+                        "source": "بن‌بست مستقیم (Bonbast Live)",
+                    }
+                    items[sym] = item_dict
+                    PRICE_CACHE[f"iran_market:{sym_clean}"] = (val, now, item_dict)
+
+    # 2. Resolve Tabdeal & Kifpool Tether and Digital Gold symbols
+    if state.http_client:
+        for sym in ('USDT_TABDEAL', 'USDT_KIFPOOL', 'GOLD_TABDEAL', 'XAUT_TABDEAL', 'GOLD_KIFPOOL', 'XAUT_KIFPOOL'):
+            try:
+                p = await get_cached_price(state.http_client, 'iran_market', sym)
+                if p is not None and p > 0:
+                    src_label = "صرافی تبدیل (Tabdeal)" if "TABDEAL" in sym else "کیف پول من (Kifpool)"
+                    items[sym] = {
+                        "price": p,
+                        "state": "LIVE",
+                        "state_fa": "زنده",
+                        "unit": "TMN",
+                        "currency": "TMN",
+                        "market_open": True,
+                        "alert_eligible": True,
+                        "as_of": as_of_ts,
+                        "source": src_label,
+                    }
+            except Exception:
+                pass
+
     prev_markets = cached_markets[2] if (cached_markets and len(cached_markets) > 2 and isinstance(cached_markets[2], dict)) else {}
     fallback_markets = {**calendar_status, **prev_markets}
+    symbols_count = len(items)
+    symbols_with_price = len([v for v in items.values() if isinstance(v, dict) and v.get('price') is not None])
+    state_counts = {"LIVE": symbols_with_price} if symbols_with_price > 0 else {}
+
+    if symbols_with_price > 0:
+        IRAN_MARKET_CACHE['__markets_overview__'] = (0.0, now, {
+            "markets": fallback_markets,
+            "state_counts": state_counts,
+            "symbols_count": symbols_count,
+            "symbols_with_price": symbols_with_price,
+            "items": items,
+        })
+
     return {
         "status": "ok",
-        "cached": True,
+        "cached": False if symbols_with_price > 0 else True,
         "markets": fallback_markets,
-        "state_counts": {},
-        "symbols_count": 0,
-        "symbols_with_price": 0,
-        "items": {}
+        "state_counts": state_counts,
+        "symbols_count": symbols_count,
+        "symbols_with_price": symbols_with_price,
+        "items": items
     }
+
