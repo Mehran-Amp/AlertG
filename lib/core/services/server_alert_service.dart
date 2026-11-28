@@ -675,11 +675,15 @@ class ServerAlertService {
           for (final item in decoded) {
             if (item is Map<String, dynamic>) {
               try {
+                final serverCurrentVol = (item['current_volume'] as num?)?.toDouble();
                 if (item['raw_rule'] is Map) {
                   final rawMap = Map<String, dynamic>.from(item['raw_rule'] as Map);
-                  final rule = AlertRule.fromJson(rawMap);
+                  var rule = AlertRule.fromJson(rawMap);
                   if (rule.exchangeId.trim().toLowerCase() == 'coinex') {
                     continue;
+                  }
+                  if (serverCurrentVol != null && serverCurrentVol >= 0) {
+                    rule = rule.copyWith(currentVolume: serverCurrentVol);
                   }
                   await repo.saveRule(rule, syncToServer: false);
                   imported++;
@@ -766,6 +770,7 @@ class ServerAlertService {
                   volumePercent: (item['volume_percent'] as num?)?.toDouble(),
                   basePrice: (item['base_price'] as num?)?.toDouble(),
                   baseVolume: (item['base_volume'] as num?)?.toDouble(),
+                  currentVolume: serverCurrentVol,
                   customNote: note,
                   customSound: sound,
                   language: item['language'] as String? ?? 'fa',
@@ -976,6 +981,58 @@ class ServerAlertService {
       debugPrint('❌ Error fetching alerts from Python server: $e');
     }
     return [];
+  }
+
+  /// Refreshes live `current_volume` (Phase 25) for local Iran Bourse (`tsetmc`) rules
+  /// from `GET /api/alerts/{userId}` without triggering local evaluation or server re-sync.
+  static Future<int> refreshBourseAlertVolumes(
+    JsonAlertRuleRepository repository, {
+    String? userId,
+  }) async {
+    try {
+      final effUser = (userId ?? await getEffectiveUserId()).trim().toLowerCase();
+      if (effUser.isEmpty) return 0;
+      final fcmToken = await FCMNotificationService.getFCMToken();
+      final url = Uri.parse('$effectiveBaseUrl/api/alerts/$effUser').replace(
+        queryParameters: {
+          if (fcmToken.isNotEmpty) 'fcm_token': fcmToken,
+        },
+      );
+      final response = await http.get(url, headers: _buildHeaders()).timeout(const Duration(seconds: 8));
+      if (response.statusCode != 200) return 0;
+      final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
+      if (decoded is! List) return 0;
+
+      final volById = <String, double>{};
+      for (final item in decoded) {
+        if (item is Map<String, dynamic>) {
+          final id = item['id'] as String?;
+          final vol = (item['current_volume'] as num?)?.toDouble();
+          if (id != null && id.isNotEmpty && vol != null && vol >= 0) {
+            volById[id] = vol;
+          }
+        }
+      }
+      if (volById.isEmpty) return 0;
+
+      int updated = 0;
+      for (final rule in repository.allRules) {
+        if (rule.exchangeId.toLowerCase() != 'tsetmc') continue;
+        final liveVol = volById[rule.uuid];
+        if (liveVol != null) {
+          await repository.updateRule(
+            rule.uuid,
+            (current) => current.copyWith(currentVolume: liveVol),
+            syncToServer: false,
+          );
+          updated++;
+        }
+      }
+      return updated;
+    } catch (e) {
+      debugPrint('⚠️ [Phase25] Bourse volume refresh failed: $e');
+      return 0;
+    }
   }
 
   /// Delete an alert from the Python server by ID

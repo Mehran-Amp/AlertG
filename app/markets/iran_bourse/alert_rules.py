@@ -183,6 +183,11 @@ def evaluate_special_alert(
 
     waiting = bool(getattr(alert, "waiting_for_cross", False))
     alert.last_eval_price = current_price
+    raw_vol = (meta or {}).get("volume")
+    if not isinstance(raw_vol, bool) and isinstance(raw_vol, (int, float)):
+        fv = float(raw_vol)
+        if math.isfinite(fv) and fv >= 0:
+            alert.last_eval_volume = fv
     if waiting:
         if not condition_met:
             alert.waiting_for_cross = False
@@ -193,6 +198,38 @@ def evaluate_special_alert(
 
     alert.waiting_for_cross = True
     return True, is_above, triggered_target
+
+
+def _non_neg_float(x: Any) -> Optional[float]:
+    if isinstance(x, bool) or not isinstance(x, (int, float)):
+        return None
+    f = float(x)
+    return f if math.isfinite(f) and f >= 0 else None
+
+
+def current_volume_for_alert(alert: Any) -> Optional[float]:
+    """Return today's traded share volume for a Bourse (`tsetmc`) alert without I/O.
+
+    Reads the live in-memory snapshot from `BOURSE_POLLER.store` first, falling back
+    to `alert.last_eval_volume` recorded during the latest server evaluation.
+    Returns None for non-Bourse alerts or when no volume has been observed yet.
+    """
+    ex = str(getattr(alert, "exchange", "") or "").strip().lower()
+    if ex != "tsetmc":
+        return None
+    iid = str(getattr(alert, "symbol", "") or "").strip()
+    if iid:
+        try:
+            from app.markets.iran_bourse import poller as pmod
+            if pmod.BOURSE_POLLER is not None:
+                entry = pmod.BOURSE_POLLER.store.get(iid)
+                if entry and isinstance(entry.get("quote"), dict):
+                    vol = _non_neg_float(entry["quote"].get("volume"))
+                    if vol is not None:
+                        return vol
+        except Exception:
+            pass
+    return _non_neg_float(getattr(alert, "last_eval_volume", None))
 
 
 def rule_inputs(alert: Any, current_price: float, meta: Dict[str, Any],

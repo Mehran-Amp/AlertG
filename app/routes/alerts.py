@@ -83,6 +83,18 @@ def _trigger_signature(x) -> tuple:
 
 trigger_signature = _trigger_signature
 
+
+def _to_alert_public(alert: Alert) -> AlertPublic:
+    """Serialize an Alert to AlertPublic and attach live Bourse current_volume (Phase 25a)."""
+    data = alert.model_dump() if hasattr(alert, "model_dump") else alert.dict()
+    data.pop("fcm_token", None)
+    if (data.get("exchange") or "").strip().lower() == "tsetmc":
+        from app.markets.iran_bourse.alert_rules import current_volume_for_alert
+        data["current_volume"] = current_volume_for_alert(alert)
+    else:
+        data["current_volume"] = None
+    return AlertPublic(**data)
+
 @router.post("/api/alerts", response_model=AlertPublic, dependencies=API_DEP)
 @router.post("/alerts", response_model=AlertPublic, dependencies=API_DEP)
 async def create_alert(alert_in: AlertCreate, response: Response = None):
@@ -265,7 +277,7 @@ async def create_alert(alert_in: AlertCreate, response: Response = None):
         except Exception:
             pass
 
-    return new_alert
+    return _to_alert_public(new_alert)
 
 @router.post("/api/alerts/sync", dependencies=API_DEP)
 @router.post("/alerts/sync", dependencies=API_DEP)
@@ -351,12 +363,14 @@ async def sync_user_alerts(payload: dict):
             if sig_matches:
                 last_eval_asof = existing.last_eval_asof
                 last_eval_price = existing.last_eval_price
+                last_eval_volume = getattr(existing, "last_eval_volume", None)
                 waiting_for_cross = existing.waiting_for_cross
                 last_trig = existing.last_triggered_at
                 last_chk = existing.last_checked_at
             else:
                 last_eval_asof = None
                 last_eval_price = None
+                last_eval_volume = None
                 waiting_for_cross = False
                 last_trig = 0.0
                 last_chk = 0.0
@@ -417,6 +431,7 @@ async def sync_user_alerts(payload: dict):
                 last_triggered_at=last_trig,
                 last_eval_asof=last_eval_asof,
                 last_eval_price=last_eval_price,
+                last_eval_volume=last_eval_volume,
                 waiting_for_cross=waiting_for_cross,
                 warning=item_warning
             )
@@ -573,7 +588,7 @@ async def get_user_alerts(user_id: str, fcm_token: Optional[str] = None):
         storage.USER_PROFILES_DB[clean_uid] = profile_update
         await save_user_profiles_to_disk_async(storage.USER_PROFILES_DB)
 
-    return results
+    return [_to_alert_public(a) for a in results]
  
 @router.post("/api/alerts/claim", dependencies=API_DEP)
 @router.post("/alerts/claim", dependencies=API_DEP)

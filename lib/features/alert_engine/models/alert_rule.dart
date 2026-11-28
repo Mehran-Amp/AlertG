@@ -89,6 +89,9 @@ class AlertRule extends Equatable {
   /// Baseline reference volume
   final double? baseVolume;
 
+  /// Latest traded volume reported by the server/quote (used for volumeAbove progress).
+  final double? currentVolume;
+
   /// Custom note / trade thesis (e.g. "TP1 Hit - take profit", "Stop Loss")
   final String? customNote;
 
@@ -249,6 +252,7 @@ class AlertRule extends Equatable {
     this.lastCheckedPrice,
     this.previousPrice,
     this.baseVolume,
+    this.currentVolume,
     this.customNote,
     this.customSound,
     this.language,
@@ -332,6 +336,7 @@ class AlertRule extends Equatable {
       lastCheckedPrice: currentPrice,
       previousPrice: previousPrice ?? currentPrice,
       baseVolume: currentVolume,
+      currentVolume: currentVolume,
       customNote: customNote,
       customSound: customSound,
       language: language,
@@ -395,6 +400,7 @@ class AlertRule extends Equatable {
     double? lastCheckedPrice,
     double? previousPrice,
     double? baseVolume,
+    double? currentVolume,
     DateTime? lastCheckedAt,
     DateTime? lastTriggeredAt,
   }) {
@@ -431,6 +437,7 @@ class AlertRule extends Equatable {
       lastCheckedPrice: lastCheckedPrice ?? this.lastCheckedPrice,
       previousPrice: previousPrice ?? this.previousPrice,
       baseVolume: baseVolume ?? this.baseVolume,
+      currentVolume: currentVolume ?? this.currentVolume,
       isActive: isActive ?? this.isActive,
       isTriggered: isTriggered ?? this.isTriggered,
       cooldownUntil: cooldownUntil ?? this.cooldownUntil,
@@ -464,6 +471,7 @@ class AlertRule extends Equatable {
         'lastCheckedPrice': lastCheckedPrice,
         'previousPrice': previousPrice,
         'baseVolume': baseVolume,
+        if (currentVolume != null) 'currentVolume': currentVolume,
         'customNote': customNote,
         'customSound': customSound,
         'language': language,
@@ -514,6 +522,7 @@ class AlertRule extends Equatable {
         lastCheckedPrice: (json['lastCheckedPrice'] as num?)?.toDouble(),
         previousPrice: (json['previousPrice'] as num?)?.toDouble() ?? (json['previous_price'] as num?)?.toDouble(),
         baseVolume: (json['baseVolume'] as num?)?.toDouble(),
+        currentVolume: (json['currentVolume'] as num?)?.toDouble() ?? (json['current_volume'] as num?)?.toDouble(),
         customNote: repairMojibake(json['customNote'] as String?),
         customSound: json['customSound'] as String?,
         language: json['language'] as String?,
@@ -565,6 +574,7 @@ class AlertRule extends Equatable {
         lastCheckedPrice,
         previousPrice,
         baseVolume,
+        currentVolume,
         customNote,
         customSound,
         language,

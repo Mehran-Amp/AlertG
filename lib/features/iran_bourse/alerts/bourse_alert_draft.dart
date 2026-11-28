@@ -131,6 +131,9 @@ class BourseAlertDraft {
   final num? currentBuyQueueVolume;
   final num? currentSellQueueVolume;
 
+  /// Latest traded share volume from the quote (used for initial volumeAbove progress).
+  final double? currentVolume;
+
   const BourseAlertDraft({
     required this.instrumentId,
     required this.ticker,
@@ -156,6 +159,7 @@ class BourseAlertDraft {
     this.currentlyInSellQueue = false,
     this.currentBuyQueueVolume,
     this.currentSellQueueVolume,
+    this.currentVolume,
   });
 
   /// Draft for the instrument of a loaded quote (the detail page's "create alert" callback).
@@ -200,6 +204,7 @@ class BourseAlertDraft {
       currentlyInSellQueue: quote.isCurrentlyInSellQueue,
       currentBuyQueueVolume: quote.bestBid?.volume,
       currentSellQueueVolume: quote.bestAsk?.volume,
+      currentVolume: quote.volume?.toDouble(),
     );
   }
 
@@ -440,6 +445,7 @@ class BourseAlertDraft {
               ? prevClose
               : lastPrice)
           ?.toDouble(),
+      currentVolume: isVolume ? currentVolume : null,
       customNote: isTwoWayPrice ? (cleanedNote ?? cleanedUpperNote ?? cleanedLowerNote) : cleanedNote,
       customSound: customSound,
       language: language,

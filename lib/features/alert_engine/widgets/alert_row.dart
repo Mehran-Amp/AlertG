@@ -9,6 +9,7 @@ import '../../../core/utils/format_utils.dart';
 import '../../../core/services/asset_naming_service.dart';
 import '../../iran_bourse/alerts/bourse_alert_draft.dart' show bourseExchangeId;
 import '../../iran_bourse/alerts/bourse_alert_text.dart';
+import '../../iran_bourse/utils/bourse_format.dart';
 import '../../settings/services/settings_service.dart';
 import '../models/alert_rule.dart';
 import 'cooldown_timer.dart';
@@ -312,11 +313,32 @@ class AlertRow extends StatelessWidget {
                           ],
                         ],
                       ),
+                      if (rule.conditionType == AlertConditionType.volumeAbove &&
+                          rule.currentVolume != null &&
+                          rule.currentVolume! >= 0 &&
+                          rule.targetPrice != null &&
+                          rule.targetPrice! > 0) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          _buildVolumeProgressLabel(rule, lang),
+                          key: const Key('alert_row_volume_ratio'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w500,
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
+                          ),
+                        ),
+                      ],
                       if (progress != null) ...[
                         const SizedBox(height: 6),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(3),
                           child: LinearProgressIndicator(
+                            key: rule.conditionType == AlertConditionType.volumeAbove
+                                ? const Key('alert_row_volume_progress')
+                                : null,
                             value: progress.clamp(0.0, 1.0),
                             minHeight: 4,
                             backgroundColor: theme.colorScheme.surfaceContainerHighest,
@@ -681,8 +703,37 @@ class AlertRow extends StatelessWidget {
     );
   }
 
+  /// Formats `currentVolume / targetVolume` for `volumeAbove` alerts (Phase 25b).
+  String _buildVolumeProgressLabel(AlertRule rule, String lang) {
+    final cur = (rule.currentVolume ?? 0).round();
+    final target = (rule.targetPrice ?? 0).round();
+    final isFa = lang == 'fa';
+    if (rule.exchangeId.toLowerCase() == bourseExchangeId) {
+      final curStr = BourseFormat.number(cur, persianDigits: isFa);
+      final targetStr = BourseFormat.number(target, persianDigits: isFa);
+      return isFa ? '$curStr / $targetStr سهم' : '$curStr / $targetStr shares';
+    }
+    final fmt = NumberFormat('#,###');
+    return isFa
+        ? '${fmt.format(cur)} / ${fmt.format(target)} سهم'
+        : '${fmt.format(cur)} / ${fmt.format(target)} shares';
+  }
+
   /// Calculates proximity ratio toward target condition
   double? _calculateProgressRatio() {
+    if (rule.conditionType == AlertConditionType.volumeAbove) {
+      final curVol = rule.currentVolume;
+      final targetVol = rule.targetPrice;
+      if (curVol == null || curVol < 0 || targetVol == null || targetVol <= 0) {
+        return null;
+      }
+      return (curVol / targetVol).clamp(0.0, 1.0);
+    }
+    if (rule.conditionType == AlertConditionType.queueBuy ||
+        rule.conditionType == AlertConditionType.queueSell) {
+      return null;
+    }
+
     final cur = rule.currentDisplayPrice;
     final target = rule.targetPrice;
     if (cur == null || target == null || target <= 0) return null;

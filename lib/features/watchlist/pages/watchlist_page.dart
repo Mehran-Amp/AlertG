@@ -5,6 +5,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 import 'package:provider/provider.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/services/asset_naming_service.dart';
+import '../../../core/services/server_alert_service.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/utils/crypto_icons.dart';
 import '../../../core/utils/format_utils.dart';
@@ -32,9 +33,23 @@ class TargetProgressState {
   });
 }
 
-TargetProgressState _computeTargetProgressState(AlertRule rule) {
+TargetProgressState computeTargetProgressState(AlertRule rule) {
   const Color tvGreen = Color(0xFF089981); // Official TradingView Bullish Green
   const Color tvRed = Color(0xFFF23645);   // Official TradingView Bearish Red
+
+  if (rule.conditionType == AlertConditionType.volumeAbove) {
+    final targetVol = rule.targetPrice;
+    final curVol = rule.currentVolume;
+    if (targetVol == null || targetVol <= 0 || curVol == null || curVol <= 0) {
+      return const TargetProgressState(progressFactor: 0.0, color: null, percentageInt: 0);
+    }
+    final clamped = (curVol / targetVol).clamp(0.0, 1.0);
+    return TargetProgressState(
+      progressFactor: clamped,
+      color: tvGreen,
+      percentageInt: (clamped * 100).round(),
+    );
+  }
 
   final displayPrice = rule.currentDisplayPrice;
   final basePrice = rule.basePrice;
@@ -182,9 +197,8 @@ TargetProgressState _computeTargetProgressState(AlertRule rule) {
       break;
 
     case AlertConditionType.volumeAbove:
-      // Evaluated on the server; the rule carries no live volume, so no real progress
-      // can be shown here. 0 is honest, a fixed 0.5 was misleading.
-      activeColor = tvGreen;
+      // Handled above before the price guard using currentVolume / targetPrice.
+      activeColor = null;
       progress = 0.0;
       break;
 
@@ -321,9 +335,13 @@ class _WatchlistPageState extends State<WatchlistPage> {
       }
 
       int successCount = 0;
+      final hasBourseRules = activeRules.any((r) => r.exchangeId.toLowerCase() == 'tsetmc');
       for (final rule in activeRules) {
         final ok = await scheduler.checkRuleNow(rule);
         if (ok) successCount++;
+      }
+      if (hasBourseRules) {
+        successCount += await ServerAlertService.refreshBourseAlertVolumes(repository);
       }
 
       if (context.mounted) {
@@ -681,7 +699,7 @@ class _WatchlistPageState extends State<WatchlistPage> {
     }
 
     // Compute Target Progress State (TradingView Green/Red two-layer bar)
-    final progState = _computeTargetProgressState(rule);
+    final progState = computeTargetProgressState(rule);
 
     return Dismissible(
       key: Key(rule.uuid),
@@ -1461,8 +1479,15 @@ class _WatchlistPageState extends State<WatchlistPage> {
         return isFa ? 'صف فروش' : 'Sell queue';
 
       case AlertConditionType.volumeAbove:
-        final v = (rule.targetPrice ?? 0).round();
-        return isFa ? 'حجم ≥ $v سهم' : 'Volume >= $v';
+        final target = (rule.targetPrice ?? 0).round();
+        final fmt = NumberFormat('#,###');
+        final targetStr = fmt.format(target);
+        final cur = rule.currentVolume;
+        if (cur != null && cur >= 0) {
+          final curStr = fmt.format(cur.round());
+          return isFa ? 'حجم $curStr / $targetStr سهم' : 'Vol $curStr / $targetStr';
+        }
+        return isFa ? 'حجم ≥ $targetStr سهم' : 'Volume >= $targetStr';
     }
   }
 }

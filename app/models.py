@@ -72,6 +72,7 @@ class Alert(AlertCreate):
     last_triggered_at: float = 0.0
     last_eval_asof: Optional[int] = None
     last_eval_price: Optional[float] = None
+    last_eval_volume: Optional[float] = None
     waiting_for_cross: bool = False
     last_macro_release_date: Optional[str] = None
     last_macro_value: Optional[float] = None
@@ -120,6 +121,8 @@ class AlertPublic(BaseModel):
     last_triggered_at: float = 0.0
     last_eval_asof: Optional[int] = None
     last_eval_price: Optional[float] = None
+    last_eval_volume: Optional[float] = None
+    current_volume: Optional[float] = None
     waiting_for_cross: bool = False
     last_macro_release_date: Optional[str] = None
     last_macro_value: Optional[float] = None
